@@ -10,10 +10,18 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import cliniclogo from "@/assets/images/Logos/Logo.png";
 import * as React from "react";
 
 interface KoalaWelcomeEmailProps {
   userFirstname?: string;
+  reason?: string;
+  clinicName?: string;
+  name?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  endDate?: Date;
+  startDate?: Date;
 }
 
 const baseUrl = process.env.VERCEL_URL
@@ -22,6 +30,13 @@ const baseUrl = process.env.VERCEL_URL
 
 export const KoalaWelcomeEmail = ({
   userFirstname,
+  reason,
+  clinicName,
+  name,
+  buttonText,
+  buttonLink,
+  startDate,
+  endDate,
 }: KoalaWelcomeEmailProps) => (
   <Html>
     <Head />
@@ -31,31 +46,30 @@ export const KoalaWelcomeEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img
-          src={`${baseUrl}/static/koala-logo.png`}
-          width="170"
+          src={`https://firebasestorage.googleapis.com/v0/b/facebook-messenger-clone-df789.appspot.com/o/clinca_logo.png?alt=media&token=0bfc549b-f8a4-42b7-a627-1425dfa49978`}
+          width="50"
           height="50"
           alt="Koala"
           style={logo}
         />
-        <Text style={paragraph}>Hi {userFirstname},</Text>
+        <Text style={paragraph}>Dear {userFirstname},</Text>
         <Text style={paragraph}>
-          Welcome to Koala, the sales intelligence platform that helps you
-          uncover qualified leads and close deals faster.
+          Please note that {clinicName} will be closed from{" "}
+          {startDate?.toString()} to {endDate?.toString()} due to {reason}. We
+          will contact you to reschedule any affected appointments. Thank you
+          for your understanding.
         </Text>
         <Section style={btnContainer}>
-          <Button style={button} href="https://getkoala.com">
-            Get started
+          <Button style={button} href={`${buttonLink}`}>
+            {buttonText}
           </Button>
         </Section>
         <Text style={paragraph}>
           Best,
           <br />
-          The Koala team
+          {name}
         </Text>
         <Hr style={hr} />
-        <Text style={footer}>
-          470 Noor Ave STE B #1148, South San Francisco, CA 94080
-        </Text>
       </Container>
     </Body>
   </Html>
@@ -69,6 +83,10 @@ export default KoalaWelcomeEmail;
 
 const main = {
   backgroundColor: "#ffffff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 };
@@ -92,7 +110,7 @@ const btnContainer = {
 };
 
 const button = {
-  backgroundColor: "#5F51E8",
+  backgroundColor: "#C1001F",
   borderRadius: "3px",
   color: "#fff",
   fontSize: "16px",

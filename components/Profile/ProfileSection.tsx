@@ -28,7 +28,7 @@ const ProfileSection = () => {
       <div className="flex my-4 ">
         <AgeByGender />
         <PageImpression />
-        <Card4 />
+        {/* <Card4 /> */}
       </div>
     </div>
   );

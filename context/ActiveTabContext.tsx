@@ -8,11 +8,19 @@ export const TabContext = createContext<any>(null);
 export const ActiveTabProvider = ({ children }: any) => {
   const [activeTitle, setActiveTitle] = useState("");
   const [pageViewsByPeriod, setPageViewsByPeriod] = useState("");
-  const [pageViewsByDay, setPageViewsByDay] = useState("");
-  const [pageViewsByWeek, setPageViewsByWeek] = useState("");
+  const [selectedEmails, setSelectedEmails] = useState<any[]>([]);
 
   return (
-    <TabContext.Provider value={{ activeTitle, setActiveTitle,pageViewsByPeriod, setPageViewsByPeriod }}>
+    <TabContext.Provider
+      value={{
+        activeTitle,
+        setActiveTitle,
+        pageViewsByPeriod,
+        setPageViewsByPeriod,
+        selectedEmails,
+        setSelectedEmails,
+      }}
+    >
       {children}
     </TabContext.Provider>
   );
