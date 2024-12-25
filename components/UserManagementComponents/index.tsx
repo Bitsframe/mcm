@@ -13,6 +13,7 @@ import { CreateUserModalDataInterface } from "@/types/typesInterfaces";
 import { error } from "console";
 import { toast } from "react-toastify";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { TrashIcon } from "lucide-react";
 
 
 interface DataListInterface {
@@ -31,7 +32,7 @@ interface DataListInterface {
 const tableHeader = [
     { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
     { id: 'full_name', label: 'Name', align: 'text-start', classNames: 'w-72' },
-    { id: 'role', label: 'Role',  classNames: 'w-72'},
+    { id: 'role', label: 'Role', classNames: 'w-72' },
     // { id: 'email', label: 'Email' },
     { id: 'locations', label: 'Location(s)', },
     // { id: 'password', label: 'Password' },
@@ -43,22 +44,28 @@ const tableHeader = [
 const UserManagementComponent = () => {
 
     const [loading, setLoading] = useState(false)
-    const [dataList, setDataList] = useState<DataListInterface[]>([]);
+    const [dataList, setDataList] = useState<any[]>([]);
+    const [allData, setAllData] = useState<any[]>([])
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
 
     const handleOpen = () => setOpen(true);
-    const handleClose = () =>{
+    const handleClose = () => {
         setOpen(false)
     };
 
-    const onChangeHandle = () => {
+    const onChangeHandle = (e: any) => {
+        const val = e.target.value;
+        if (val === '') {
+            setDataList([...allData]);
+        } else {
+            const filteredData = allData.filter((elem) => elem.full_name.toLowerCase().includes(val.toLowerCase()))
+            setDataList([...filteredData]);
+        }
+    };
 
-    }
 
 
-
-    
 
 
     const fetchUsers = async () => {
@@ -80,6 +87,7 @@ const UserManagementComponent = () => {
                 locations: user.user_locations.map((elem: any) => `${elem.Locations.title}\n`)
             }));
             setDataList(users);
+            setAllData(users);
         } catch (error) {
             console.error(error);
             toast.error("Error fetching user data.");
@@ -91,14 +99,14 @@ const UserManagementComponent = () => {
 
     const addNewHandle = async (data: CreateUserModalDataInterface) => {
         try {
-            setLoading(true); 
+            setLoading(true);
             await axios.post('/api/admin/create-user', data);
-            setLoading(false); 
+            setLoading(false);
             handleClose();
             fetchUsers()
             toast.success("User created successfully!");
         } catch (error: any) {
-            setLoading(false); 
+            setLoading(false);
             console.error("Error submitting data:", error);
             toast.error(`Error creating user: ${error?.response?.data?.message || error.message}`); // Show error toast
         }
@@ -124,10 +132,6 @@ const UserManagementComponent = () => {
                         <div className='pl-1 pr-3 w-72 text-sm rounded-md bg-[#F5F7F9] flex items-center '>
                             <input onChange={onChangeHandle} className="bg-transparent flex-1 focus:outline-none placeholder:text-[#B5B5BE]" type="text" placeholder="Search for a user" />
                             <IoSearchOutline size={24} color="#B5B5BE" />
-
-
-
-
                         </div>
 
                         <button onClick={handleOpen} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
@@ -164,12 +168,19 @@ const UserManagementComponent = () => {
 
                                     return (<div className={`${classNames ? classNames : 'flex-1'} ${align || 'text-start'}`} key={ind}>
                                         {id === 'toggle' ? <Switch /> : id === 'actions' ? <div className="flex items-center space-x-5 justify-end ">
-                                            <MdPassword size={25} /><GoPencil size={25} />
+                                            <button>
+                                                <TrashIcon size={24} color="red" />
+                                            </button>
+                                            <button>
+                                                <GoPencil size={25} />
+                                            </button>
 
                                         </div> : <div key={ind}>
-                                            {Array.isArray(content) ? content.map((elem, index) => <h1 key={index}>
+                                            {Array.isArray(content) ? (content.length > 0 ? <h1 >
+                                                Multiple Locations
+                                            </h1> : content.map((elem, index) => <h1 key={index}>
                                                 {elem}
-                                            </h1>) : <h1 key={index}>
+                                            </h1>)) : <h1 key={index}>
                                                 {content}
 
                                             </h1>

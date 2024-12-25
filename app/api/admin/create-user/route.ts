@@ -1,21 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabaseAdmin:any = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export const POST = async (req: Request) => {
-
+    
+    const supabaseAdmin:any = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     const { email, roleId = 1, locationIds, fullName, password } = await req.json();
 
     try {
-        const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
-            email,
-            password: password || null,
-            email_confirm: true,
-        });
+        let { data:user, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
+        // const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
+        //     email,
+        //     password: password || null,
+        //     email_confirm: true,
+        // });
 
         if (error) throw error;
 

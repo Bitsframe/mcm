@@ -1,28 +1,35 @@
-import React from 'react';
+import {LinearProgress } from '@mui/material';
+import React, { useState } from 'react';
 
 interface RoleInputProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSave: () => void;
+  onSave: (value:string) => void;
+  cancelHandle: () => void;
+  loading:boolean
 }
 
-const RoleInput: React.FC<RoleInputProps> = ({ value, onChange, onSave }) => {
+const RoleInput: React.FC<RoleInputProps> = ({onSave, cancelHandle, loading }) => {
+  const [value, setvalue] = useState('')
+  const onChangeHandle = (e:any) => {
+      setvalue(e.target.value)
+  }
   return (
     <div className="mt-4 flex items-center border-2 border-gray-100 rounded focus:outline-none" >
       <input
+      disabled={loading}
         type="text"
         value={value}
         placeholder="Enter role name"
-        onChange={onChange}
-        className="w-full px-3 py-2 border rounded focus:outline-none flex-1"
+        onChange={onChangeHandle}
+        className="w-full px-3 py-2 border rounded focus:outline-none flex-1 disabled:opacity-60"
       />
-      <div className="flex gap-3 py-1 px-1">
-        <button className="px-4 py-2 rounded">Cancel</button>
+      <div className="flex gap-2 py-1 px-1">
+        <button disabled={loading}  onClick={cancelHandle} className='px-4 py-2 rounded  disabled:opacity-65'>Cancel</button>
         <button
-          onClick={() => onSave()}
-          className="px-4 py-2 bg-gray-100 text-gray-600 rounded"
+          disabled={!value || loading}
+          onClick={() => onSave(value)}
+          className={`px-4 w-24 py-2 ${!value || loading ? 'bg-gray-100 text-gray-600' : 'bg-text_primary_color text-white'} rounded`}
         >
-          Save
+          {loading ? <LinearProgress color='inherit' /> : 'Save'}
         </button>
       </div>
     </div>
