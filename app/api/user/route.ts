@@ -55,14 +55,22 @@ export const GET = async (req: Request) => {
         //     return NextResponse.json({ message: rolesError.message }, { status: 500 });
         // }
 
+        
+        
+        const { data: permissions, error: permissionsError } = await supabase
+        .from('user_permissions')
+        .select('*, permissions(id,permission)')
+        .eq('roles', profile.role_id)
+        
         const role = userRole?.name || 'admin' 
-
-        const permissions = rolePermissions[role]
+        
+        // const permissions = rolePermissions[role]
+        
 
         const userData = {
             profile,
             locations: locations?.map((location)=>location.location_id),
-            permissions,
+            permissions:permissions?.map((elem)=>elem.permissions.permission),
             role: role
         };
 

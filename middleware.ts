@@ -12,9 +12,9 @@ export async function middleware(request: NextRequest) {
   // Retrieve user session
   const path_start_with = pathname.startsWith('/login')
 
-  if (pathname.startsWith('/set-password')) {
-    return NextResponse.next()
-  }
+  // if (pathname.startsWith('/set-password')) {
+  //   return NextResponse.next()
+  // }
 
   // await updateSession(request);
 
@@ -52,7 +52,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to modify this pattern to include more paths.
      */
-    // '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
 

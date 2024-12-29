@@ -7,6 +7,7 @@ interface InputComponentProps {
     label?: string;
     bg_color?: string;
     border?: string;
+    disabled?:boolean;
     py?: string;
     onChange: (value: any) => void; // Accepting both string and boolean for value
     value?: string | boolean; // value can be string or boolean
@@ -29,9 +30,9 @@ export const Input_Component: React.FC<InputComponentProps> = ({
     type = 'text',
     min = '',
     max = '',
-    passwordEye = false
+    passwordEye = false,
+    disabled=false
 }) => {
-    console.log({ min, max })
 
     const [showPassword, setShowPassword] = useState(false)
 
@@ -80,6 +81,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
                 ) : (
                     <div className='flex w-full items-center pr-3'>
                         <input
+                        disabled={disabled}
                             min={min}
                             max={100}
                             // @ts-ignore
@@ -87,7 +89,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
                             onChange={(e) => onChange(e.target.value)}
                             type={showPassword ? 'text' : 'password'}
                             placeholder={placeholder}
-                            className={`w-full h-auto p-3 rounded-lg ${bg_color} ${py} px-3 flex-1`}
+                            className={`w-full h-auto p-3 rounded-lg ${bg_color} ${py} px-3 flex-1 disabled:opacity-65 disabled:cursor-not-allowed`}
                             id="section"
                         />
                         {passwordEye ? <button type='button' onClick={togglePassHandle}>

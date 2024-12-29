@@ -7,27 +7,25 @@ import { LuChevronDown } from 'react-icons/lu';
 
 interface LocationModalProps {
   onChange: (selectedLocations: number[]) => void;
+  selectionLocationIds: number[]
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({ onChange }) => {
+const LocationModal: React.FC<LocationModalProps> = ({ onChange,selectionLocationIds }) => {
   const [open, setOpen] = useState(false);
-  const [selectedLocationList, setSelectedLocationList] = useState<number[]>([]);
+  const [selectedLocationList, setSelectedLocationList] = useState<number[]>(selectionLocationIds);
   const { locations } = useLocationClinica(); // Assuming this hook provides location data.
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Update the parent when selected locations change
   useEffect(() => {
     onChange(selectedLocationList);
-  }, [selectedLocationList, onChange]);
+  }, [selectedLocationList]);
 
   const selectLocationHandle = (id: number, add: boolean) => {
     if (add) {
-      // Add the location ID to the list if it's not already there
       setSelectedLocationList((prev) => [...prev, id]);
     } else {
-      // Remove the location ID if it's already in the list
       setSelectedLocationList((prev) => prev.filter((locationId) => locationId !== id));
     }
   };

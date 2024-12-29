@@ -12,7 +12,7 @@ import axios from "axios";
 import { CreateUserModalDataInterface } from "@/types/typesInterfaces";
 import { error } from "console";
 import { toast } from "react-toastify";
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { TrashIcon } from "lucide-react";
 
 
@@ -30,7 +30,7 @@ interface DataListInterface {
 
 
 const tableHeader = [
-    { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
+    // { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
     { id: 'full_name', label: 'Name', align: 'text-start', classNames: 'w-72' },
     { id: 'role', label: 'Role', classNames: 'w-72' },
     // { id: 'email', label: 'Email' },
@@ -48,10 +48,12 @@ const UserManagementComponent = () => {
     const [allData, setAllData] = useState<any[]>([])
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
+    const [editData, setEditData] = useState<any>(null)
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         setOpen(false)
+        setEditData(null)
     };
 
     const onChangeHandle = (e: any) => {
@@ -70,6 +72,8 @@ const UserManagementComponent = () => {
 
     const fetchUsers = async () => {
         setTableLoading(true);
+        const resData = await axios.get('/api/admin/users');
+        console.log(resData)
         try {
             const fetchedData = await fetch_content_service({
                 table: 'profiles',
@@ -81,10 +85,11 @@ const UserManagementComponent = () => {
             const users: any = fetchedData.map((user: any) => ({
                 id: user.id,
                 full_name: user.full_name,
+                role_id: user.role_id,
                 role: user.roles.name,
                 created_at: new Date(user.created_at).toLocaleDateString(),
                 active: user.active,
-                locations: user.user_locations.map((elem: any) => `${elem.Locations.title}\n`)
+                locations: user.user_locations.map((elem: any) => ({ title: elem.Locations.title, location_id: elem.location_id }))
             }));
             setDataList(users);
             setAllData(users);
@@ -108,13 +113,53 @@ const UserManagementComponent = () => {
         } catch (error: any) {
             setLoading(false);
             console.error("Error submitting data:", error);
-            toast.error(`Error creating user: ${error?.response?.data?.message || error.message}`); // Show error toast
+            toast.error(`Error creating user: ${error?.response?.data?.message || error.message}`);
         }
     }
 
+    const editHandle = async (data: CreateUserModalDataInterface) => {
+        try {
+            setLoading(true);
+            await axios.post('/api/admin/users/actions/edit', data);
+            setLoading(false);
+            handleClose();
+            fetchUsers()
+            toast.success("User details has been updated!");
+        } catch (error: any) {
+            setLoading(false);
+            console.error("Error submitting data:", error);
+            toast.error(`Error creating user: ${error?.response?.data?.message || error.message}`);
+        }
+    }
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    const deleteUserHandle = async (id: string) => {
+
+        try {
+            await axios.post('/api/admin/users/actions/delete', { id });
+            toast.success("User deleted successfully!");
+            fetchUsers()
+        } catch (error: any) {
+            console.error("Error:", error);
+            toast.error(`Error: ${error?.response?.data?.message || error.message}`);
+        }
+    }
+
+    const editUserHandle = (elem: any) => {
+        const { full_name, role_id, id } = elem
+        const data = {
+            id,
+            email: '-----',
+            roleId: role_id,
+            locationIds: elem.locations.map(({ location_id }: any) => location_id),
+            fullName: full_name,
+            password: '',
+        }
+        setEditData(data)
+        handleOpen()
+    }
 
 
     return (
@@ -168,10 +213,10 @@ const UserManagementComponent = () => {
 
                                     return (<div className={`${classNames ? classNames : 'flex-1'} ${align || 'text-start'}`} key={ind}>
                                         {id === 'toggle' ? <Switch /> : id === 'actions' ? <div className="flex items-center space-x-5 justify-end ">
-                                            <button>
+                                            <button className="disabled:opacity-55 disabled:cursor-not-allowed" disabled={elem.role === 'super admin'} onClick={() => deleteUserHandle(elem.id)}>
                                                 <TrashIcon size={24} color="red" />
                                             </button>
-                                            <button>
+                                            <button onClick={() => editUserHandle(elem)}>
                                                 <GoPencil size={25} />
                                             </button>
 
@@ -179,7 +224,7 @@ const UserManagementComponent = () => {
                                             {Array.isArray(content) ? (content.length > 0 ? <h1 >
                                                 Multiple Locations
                                             </h1> : content.map((elem, index) => <h1 key={index}>
-                                                {elem}
+                                                {elem.title}
                                             </h1>)) : <h1 key={index}>
                                                 {content}
 
@@ -197,9 +242,11 @@ const UserManagementComponent = () => {
             </div>
 
             <AddEditUserModal
+                key={editData ? 1 : 0}
+                editData={editData}
                 open={open}
                 handleClose={handleClose}
-                submitHandle={addNewHandle}
+                submitHandle={editData ? editHandle : addNewHandle}
                 loading={loading}
             />
 

@@ -11,12 +11,12 @@ export const POST = async (req: Request) => {
     const { email, roleId = 1, locationIds, fullName, password } = await req.json();
 
     try {
-        let { data: user, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
-        // const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
-        //     email,
-        //     password: password || null,
-        //     email_confirm: true,
-        // });
+        // let { data: user, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
+        const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password: password || null,
+            email_confirm: true,
+        });
 
         if (error) throw error;
 
@@ -57,34 +57,69 @@ export const GET = async () => {
     );
 
     try {
-        const { data: profiles, error } = await supabaseAdmin
+        // Step 1: Fetch all users from auth.users
+        const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+
+        if (usersError) throw usersError;
+
+        // Step 2: Fetch profiles related to these users
+        const userIds = users.map((user: any) => user.id); // Extract user IDs
+        const { data: profiles, error: profilesError } = await supabaseAdmin
             .from('profiles')
             .select(`
-                id, 
-                full_name, 
-                created_at, 
-                active, 
-                roles(name), 
-                user_locations(location_id, Locations(title)),
-                auth.users(id,email)
-            `);
+                id,
+                full_name,
+                created_at,
+                active,
+                role_id,
+                user_locations(location_id, Locations(title))
+            `)
+            .in('id', userIds); // Filter by the IDs of the users we fetched
 
-        if (error) throw error;
+        if (profilesError) throw profilesError;
 
-        // Transform the data
-        const users = profiles.map((profile: any) => ({
-            id: profile.id,
-            full_name: profile.full_name,
-            email: profile.auth?.email || 'No Email', // Fetch email from the linked auth.user table
-            role: profile.roles?.name || 'Unknown Role',
-            created_at: new Date(profile.created_at).toLocaleDateString(),
-            active: profile.active,
-            locations: profile.user_locations.map((loc: any) => loc.Locations?.title).join(', ') || 'No Locations',
-        }));
+        // Step 3: Fetch roles data
+        const { data: roles, error: rolesError } = await supabaseAdmin
+            .from('roles')
+            .select('id, name');
 
-        return NextResponse.json({ success: true, data: users }, { status: 200 });
+        if (rolesError) throw rolesError;
+
+        // Step 4: Create a map for role names based on role_id
+        const roleMap = roles.reduce((acc: any, role: any) => {
+            acc[role.id] = role.name;
+            return acc;
+        }, {});
+
+        // Step 5: Merge data from auth.users and profiles
+        const profilesMap = profiles.reduce((acc: any, profile: any) => {
+            acc[profile.id] = profile;
+            return acc;
+        }, {});
+
+        const transformedUsers = users.map((user: any) => {
+            const profile = profilesMap[user.id] || {}; // Get the profile data, if available
+            return {
+                id: user.id,
+                email: user.email,
+                full_name: profile.full_name || 'No Name',
+                role: roleMap[profile.role_id] || 'Unknown Role', // Map role name using role_id
+                created_at: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
+                active: profile.active || false,
+                locations: profile.user_locations
+                    ? profile.user_locations.map((loc: any) => loc.Locations?.title).join(', ')
+                    : 'No Locations'
+            };
+        });
+
+        // Step 6: Return the combined data
+        return NextResponse.json({ success: true, data: transformedUsers }, { status: 200 });
+
     } catch (error: any) {
         console.error(error);
         return NextResponse.json({ message: error?.message || 'Internal Server Error' }, { status: 500 });
     }
 };
+
+
+

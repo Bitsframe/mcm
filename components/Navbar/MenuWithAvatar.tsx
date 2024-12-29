@@ -7,13 +7,15 @@ import React, { useContext } from 'react';
 import { Avatar } from "@/assets/images";
 import { signOut } from '@/actions/supabase_auth/action';
 import { AuthContext } from '@/context';
+import { useRouter } from 'next/navigation';
 
 
 export default function MenuWithAvatar() {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
-    const {userProfile, userRole } = useContext(AuthContext);
+    const { userProfile, userRole } = useContext(AuthContext);
 
+    const router = useRouter()
 
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -29,6 +31,12 @@ export default function MenuWithAvatar() {
         await signOut()
         handleClose()
     }
+
+    const goToChangePassword = () => {
+        router.push('/set-password')
+    }
+
+
 
     return (
         <div>
@@ -49,7 +57,7 @@ export default function MenuWithAvatar() {
 
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-[#121111] text-[16px] font-semibold">
-                           {userProfile?.full_name}
+                            {userProfile?.full_name}
                         </div>
                         <div className="text-[#121111] text-xs">{userRole}</div>
                     </div>
@@ -65,6 +73,7 @@ export default function MenuWithAvatar() {
                 }}
             >
                 <MenuItem onClick={logoutHandle}>Logout</MenuItem>
+                <MenuItem onClick={goToChangePassword}>Change Password</MenuItem>
             </Menu>
         </div>
     );

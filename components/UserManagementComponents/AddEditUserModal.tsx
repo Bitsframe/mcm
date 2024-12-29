@@ -1,36 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from '@mui/material/Modal';
 import { Input_Component } from '../Input_Component';
 import { Select_Dropdown } from '../Select_Dropdown';
 import LocationModal from './LocationModal';
 import { CreateUserModalDataInterface } from '@/types/typesInterfaces';
+import { useRolesAndPermissions } from '@/hooks/useRolesAndPermissions';
 
 interface PropsInterface {
     open: boolean;
     handleClose: () => void;
     submitHandle: (data: CreateUserModalDataInterface) => Promise<void>;
     loading: boolean
+    editData: any
 }
 
-const roles = [
-    { id: 2, label: 'Admin' },
-    { id: 3, label: 'Manager' },
-    { id: 4, label: 'sales person'},
-];
+// const roles = [
+//     { id: 2, label: 'Admin' },
+//     { id: 3, label: 'Manager' },
+//     { id: 4, label: 'sales person' },
+// ];
 
 export default function AddEditUserModal({
     open,
     handleClose,
     submitHandle,
     loading,
+    editData
 }: PropsInterface) {
-    const [formData, setFormData] = useState<CreateUserModalDataInterface>({
+    const [formData, setFormData] = useState<CreateUserModalDataInterface>(editData ? editData : {
         email: '',
         roleId: 0,
         locationIds: [],
         fullName: '',
         password: '',
     });
+
+    const { roles } = useRolesAndPermissions()
+
+
+    useEffect(() => {
+        if (editData) {
+            setFormData(editData)
+        }
+
+    }, [editData])
+
 
     const handleInputChange = (field: keyof CreateUserModalDataInterface, value: string | number | number[]) => {
         setFormData((prev) => ({
@@ -70,7 +84,7 @@ export default function AddEditUserModal({
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="bg-white rounded-md px-3 py-3 min-w-[650px]">
                         <h2 id="add-edit-user-modal-title" className="mb-4 font-bold">
-                            Add a new user
+                            {editData ? "Edit " : "Add a new "}user
                         </h2>
 
                         <div className="flex flex-col w-full space-y-4">
@@ -86,12 +100,12 @@ export default function AddEditUserModal({
 
                                 <div >
                                     <Select_Dropdown
-                                    hideLabel={true}
-                                    label='Select Role'
-                                    start_empty={true}
+                                        hideLabel={true}
+                                        label='Select Role'
+                                        start_empty={true}
                                         bg_color="#fff"
                                         value={formData.roleId}
-                                        options_arr={roles.map((role) => ({ value: role.id, label: role.label }))}
+                                        options_arr={roles.map((role) => ({ value: role.id, label: role.name }))}
                                         on_change_handle={(e) => handleInputChange('roleId', Number(e.target.value))}
                                         required
                                     />
@@ -100,7 +114,7 @@ export default function AddEditUserModal({
                                 <div className="col-span-full">
                                     <Input_Component
                                         value={formData.email}
-
+                                        disabled={editData ? true : false}
                                         placeholder="Email"
                                         type='email'
                                         border="border-[1px] border-gray-300 rounded-md"
@@ -111,6 +125,7 @@ export default function AddEditUserModal({
                                     <Input_Component
                                         value={formData.password}
                                         passwordEye
+                                        disabled={editData ? true : false}
                                         placeholder="Password"
                                         type='password'
                                         border="border-[1px] border-gray-300 rounded-md"
@@ -120,6 +135,7 @@ export default function AddEditUserModal({
 
                                 <div className="col-span-full">
                                     <LocationModal
+                                        selectionLocationIds={formData.locationIds}
                                         onChange={(value: number[]) => handleInputChange('locationIds', value)}
                                     />
                                 </div>
@@ -137,7 +153,12 @@ export default function AddEditUserModal({
                                     disabled={loading}
                                     className="bg-black border-2 border-black text-white px-4 py-2 rounded-md disabled:bg-gray-400 disabled:border-gray-400 col-span-3 w-full"
                                 >
-                                    {loading ? 'Adding...' : 'Add User'}
+                                    {editData ? <span>
+                                        {loading ? 'Updating...' : 'Edit User'}
+                                    </span> :
+                                        <span>
+                                            {loading ? 'Adding...' : 'Add User'}
+                                        </span>}
                                 </button>
                             </div>
                         </div>
