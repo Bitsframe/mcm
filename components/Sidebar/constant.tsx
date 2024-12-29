@@ -32,7 +32,7 @@ export const routeList: Route[] = [
     children: [
       { id: 1, name: "Dashboard", route: "/" },
       { id: 2, name: "Profiles", route: "/profiles" },
-      { id: 4, name: "SEO", route: "/seo" },
+      // { id: 4, name: "SEO", route: "/seo" },
     ],
   },
   {
@@ -45,15 +45,15 @@ export const routeList: Route[] = [
       { id: 3, name: "Off-site", route: "/patients/offsite" },
     ],
   },
-  {
-    id: 3,
-    name: "Inbox",
-    icon: inbox,
-    children: [
-      { id: 1, name: "Text", route: "/inbox/text" },
-      { id: 2, name: "Whatsapp", route: "/inbox/whatsapp" },
-    ],
-  },
+  // {
+  //   id: 3,
+  //   name: "Inbox",
+  //   icon: inbox,
+  //   children: [
+  //     { id: 1, name: "Text", route: "/inbox/text" },
+  //     { id: 2, name: "Whatsapp", route: "/inbox/whatsapp" },
+  //   ],
+  // },
   {
     id: 4,
     name: "Appointments",
@@ -104,7 +104,7 @@ export const routeList: Route[] = [
     children: [
       { id: 1, name: "Email Broadcast", route: "/tools/emailbroadcast" },
       { id: 2, name: "Website Content", route: "/tools/websitecontent" },
-      { id: 3, name: "Text Broadcast", route: "/tools/textbroadcast" },
+      // { id: 3, name: "Text Broadcast", route: "/tools/textbroadcast" },
       { id: 4, name: "Promo Codes", route: "/tools/promo-codes" },
       { id: 4, name: "Roles and Permissions", route: "/tools/roles-permissions" },
       { id: 4, name: "User Management", route: "/tools/user-management" },

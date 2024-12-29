@@ -77,28 +77,12 @@ const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, edi
 };
 
 const RolesAndPermissionsComponent: React.FC = () => {
-    const { roles, loadingDataState, activeForAddNewRoleInput, newAddLoading, handleAddRole, toggleActivateAddNewRoleHandle, deleteRoleHandle, updateRoleHandle, setEditStateIndexActivate, editStateId, selectRoleHandle, selectedRole } = useRolesAndPermissions()
-    const [permissions, setPermissions] = useState([
-        { name: 'Dashboard', allowed: true },
-        { name: 'Patients', allowed: true },
-        { name: 'Pos', allowed: true },
-        { name: 'Inventory', allowed: true },
-        { name: 'User Management', allowed: true },
-        { name: 'Appointment', allowed: true },
-        { name: 'Texts', allowed: true },
-        { name: 'Reputation', allowed: true },
-    ]);
-
-    const handlePermissionToggle = (permissionName: string) => {
-        setPermissions((prev) =>
-            prev.map((perm) =>
-                perm.name === permissionName ? { ...perm, allowed: !perm.allowed } : perm
-            )
-        );
-    };
+    const { roles, loadingDataState, activeForAddNewRoleInput, newAddLoading, handleAddRole, toggleActivateAddNewRoleHandle, deleteRoleHandle, updateRoleHandle, setEditStateIndexActivate, editStateId, selectRoleHandle, selectedRole, permissions, handlePermissionToggle, toggleAllPermissions } = useRolesAndPermissions()
+   
 
     const handleAllowAll = (allowed: boolean) => {
-        setPermissions((prev) => prev.map((perm) => ({ ...perm, allowed })));
+        // setPermissions((prev) => prev.map((perm) => ({ ...perm, allowed })));
+        toggleAllPermissions(allowed)
     };
 
 
@@ -140,14 +124,19 @@ const RolesAndPermissionsComponent: React.FC = () => {
                         <h2 className="text-lg font-bold">Permissions</h2>
                         {selectedRole ? <label className="flex items-center gap-2">
                             <span>Allow all</span>
-                            <Switch onChange={(e) => handleAllowAll(e)} checked={permissions.every((perm) => perm.allowed)} />
+                            <Switch className='disabled:opacity-65' disabled={selectedRole?.id === 1}  onChange={(e) => handleAllowAll(e)} 
+                            
+                            checked={permissions?.every((perm:any) => perm.allowed) || selectedRole?.id === 1} 
+                                />
 
                         </label> : null}
                     </div>
                     {selectedRole ? <div className="space-y-3 border-2 border-gray-100 rounded-md px-2 py-2">
-                        {permissions.map((perm, index) => (
+                        {permissions.map((perm:any, index) => (
                             <PermissionToggle
                                 key={index}
+                                isAllowed={perm.allowed || selectedRole?.id === 1}
+                                disabled={selectedRole?.id === 1}
                                 permission={perm}
                                 onToggle={handlePermissionToggle}
                             />

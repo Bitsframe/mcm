@@ -100,7 +100,7 @@ const UserManagementComponent = () => {
     const addNewHandle = async (data: CreateUserModalDataInterface) => {
         try {
             setLoading(true);
-            await axios.post('/api/admin/create-user', data);
+            await axios.post('/api/admin/users', data);
             setLoading(false);
             handleClose();
             fetchUsers()
