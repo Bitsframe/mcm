@@ -137,14 +137,16 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({ data, selectDateTimeSlotH
                 <label className="text-[16px] text-customGray font-poppins font-bold">
                     Select Schedule Date:
                 </label>
+                <span className='border-[1px] border-[#000000] rounded-[10px] w-full'>
                 <ReactDatePicker
                     // minDate={}
                     selected={date }
                     onChange={dateTimeChangeHandle}
                     placeholderText={"Select Schedule date"}
                     dateFormat="dd-MM-yyyy"
-                    className="w-full h-[46px] border-[1px] border-[#000000] text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none rounded-[10px]"
+                    className="w-full h-[46px] text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none "
                 />
+                </span>
             </div>
 
             <div className="flex flex-col items-start md:w-1/2 justify-center">

@@ -39,6 +39,7 @@ const RootLayoutComponent = ({
                     // style={{ minHeight: "calc(100vh - 70px)" }}
                     style={{
                         minHeight: "100vh",
+                        overflowY:'hidden'
                         // backgroundColor: ,
                     }}
                 >

@@ -59,7 +59,8 @@ export async function fetchAppointmentsByLocation(locationId: number | null) {
     .select(`*,location:Locations (
       id,
       title,
-      address
+      address,  
+      phone
     )`);
 
   if (locationId) {
