@@ -121,7 +121,7 @@ export const Add_Appointment_Modal = ({
 }: {
   newAddedRow: (e: any) => void;
 }) => {
-  const { locations } = useLocationClinica();
+  const { locations } : any = useLocationClinica();
   const [formData, setFormData] = useState<any>({});
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);

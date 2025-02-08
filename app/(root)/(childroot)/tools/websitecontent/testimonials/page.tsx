@@ -32,7 +32,7 @@ const inputLabelandValue = [
 
 const Testimonials = () => {
 
-    const { locations, set_location_handle, selected_location } = useLocationClinica()
+    const { locations, set_location_handle, selected_location }: any = useLocationClinica()
     const [filteredData, setfilteredData] = useState<any>([])
 
 

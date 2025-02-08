@@ -22,6 +22,36 @@ export interface Location {
   id: number;
   title: string;
   address: string;
+  created_at?: string;
+  phone?: string;
+  direction?: string;
+  email?: string;
+  mon_timing?: string;
+  tuesday_timing?: string;
+  wednesday_timing?: string;
+  thursday_timing?: string;
+  friday_timing?: string;
+  saturday_timing?: string;
+  sunday_timing?: string;
+  Group?: string;
+}
+
+export interface Locationinterference {
+  id: number;
+  title: string;
+  address: string;
+  created_at: string;
+  phone: string;
+  direction: string;
+  email: string;
+  mon_timing: string;
+  tuesday_timing: string;
+  wednesday_timing: string;
+  thursday_timing: string;
+  friday_timing: string;
+  saturday_timing: string;
+  sunday_timing: string;
+  Group: string;
 }
 
 interface RenderDetailKey {
@@ -47,23 +77,6 @@ export interface Appointment {
   new_patient: boolean;
 }
 
-export interface LocationInterface {
-  id: number;
-  created_at: string;
-  phone: string;
-  direction: string;
-  email: string;
-  address: string;
-  mon_timing: string;
-  tuesday_timing: string;
-  wednesday_timing: string;
-  thursday_timing: string;
-  friday_timing: string;
-  saturday_timing: string;
-  sunday_timing: string;
-  title: string;
-  Group: string;
-}
 
 interface RenderDetailFields {
   label: string;
@@ -229,7 +242,7 @@ const Appoinments = () => {
 
   const find_locations = (location_id: number) => {
     const find_location = locations.find(
-      (location: LocationInterface) => location.id === location_id
+      (location: any) => location.id === location_id
     );
     return find_location;
   };

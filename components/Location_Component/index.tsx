@@ -4,7 +4,7 @@ import { Select } from 'flowbite-react'
 import React from 'react'
 
 const Location_Component = () => {
-    const { locations, set_location_handle, selected_location } = useLocationClinica({ defaultSetFirst: true })
+    const { locations, set_location_handle, selected_location } :any = useLocationClinica({ defaultSetFirst: true })
 
     const select_location_handle = (val: React.ChangeEvent<HTMLSelectElement>) => {
         const value = val.target.value

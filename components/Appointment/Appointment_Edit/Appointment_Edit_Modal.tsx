@@ -5,18 +5,18 @@ import ScheduleDateTime, { DayTimings } from './ScheduleDateTime'
 import moment from 'moment'
 import { update_appointment_service } from '@/utils/supabase/data_services/data_services'
 import { toast } from 'react-toastify'
-import { Appointment, LocationInterface } from '@/app/(root)/(childroot)/appoinments/page'
+import { Appointment, Locationinterference } from '@/app/(root)/(childroot)/appoinments/page'
 import { sendEmail } from '@/utils/emailService'
 import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 
 interface Appointment_Edit_Modal_Props {
-    location_data: LocationInterface;
+    location_data: any;
     appointment_details: Appointment;
     update_available_data: (data_and_time: string) => void;
     default_data_time: string;
 }
 
-export const Appointment_Edit_Modal: FC<Appointment_Edit_Modal_Props> = ({ location_data, appointment_details, update_available_data, default_data_time }) => {
+export const Appointment_Edit_Modal: FC<Appointment_Edit_Modal_Props> = ({ location_data, appointment_details, update_available_data, default_data_time }: any) => {
 
     const [openModal, setOpenModal] = useState<boolean>(false)
     const [LoadingUpdate, setLoadingUpdate] = useState(false)

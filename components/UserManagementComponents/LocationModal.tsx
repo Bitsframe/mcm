@@ -13,7 +13,7 @@ interface LocationModalProps {
 const LocationModal: React.FC<LocationModalProps> = ({ onChange,selectionLocationIds }) => {
   const [open, setOpen] = useState(false);
   const [selectedLocationList, setSelectedLocationList] = useState<number[]>(selectionLocationIds);
-  const { locations } = useLocationClinica(); // Assuming this hook provides location data.
+  const { locations } : any = useLocationClinica(); // Assuming this hook provides location data.
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
