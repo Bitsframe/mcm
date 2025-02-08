@@ -36,7 +36,7 @@ const ChangeLocationModal = () => {
         <div>
             <button
                 onClick={handleOpen}
-                className="text-white text-xs text-start"
+                className=""
             >
                 <div className=''>
                     <span>

@@ -15,7 +15,6 @@ import { toast } from 'react-toastify';
 import { validateFormData } from '@/utils/validationCheck';
 import { LocationContext } from '@/context';
 import PhoneNumberInput from '@/components/PhoneNumberInput';
-import { CiFilter } from 'react-icons/ci';
 import { formatPhoneNumber } from '@/utils/getCountryName';
 
 interface PatientDetailsInterface {

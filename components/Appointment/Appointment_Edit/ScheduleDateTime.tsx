@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { FC, useState, useEffect, MouseEvent, KeyboardEvent } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -127,9 +127,6 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({ data, selectDateTimeSlotH
 
     }, [])
 
-
-
-    console.log(splitDateAndTime('date'), '-------------------------->', date, availableTimes)
 
     return (
         <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">

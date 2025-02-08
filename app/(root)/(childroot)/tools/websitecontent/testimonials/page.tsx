@@ -37,7 +37,6 @@ const Testimonials = () => {
 
 
     const {
-        default_data,
         data_list,
         data,
         is_edited,

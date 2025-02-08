@@ -9,7 +9,6 @@ export async function getUserEmail(): Promise<any> {
         "email,treatmenttype,firstname,gender,onsite,locationid,Locations (title)"
       );
 
-
     return data;
   } catch (error) {
     console.error("Unexpected error:", error);
@@ -23,8 +22,6 @@ export async function getServices(): Promise<any> {
       .from("services") // Replace 'user' with the actual name of your table
       .select("title");
 
-    console.log(data);
-
     return data;
   } catch (error) {
     console.error("Unexpected error:", error);
@@ -36,8 +33,6 @@ export async function getLocations(): Promise<any> {
     const { data, error } = await supabase
       .from("Locations") // Replace 'user' with the actual name of your table
       .select("title");
-
-    console.log(data);
 
     return data;
   } catch (error) {

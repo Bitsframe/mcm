@@ -1,33 +1,30 @@
-'use server'
-import { redirect } from 'next/navigation'
+"use server";
+import { redirect } from "next/navigation";
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from "@/utils/supabase/server";
 
 export async function login(formData: FormData) {
-  const supabase = createClient()
+  const supabase = createClient();
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
   const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+  };
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    console.log(error.message)
+    console.log(error.message);
 
-    redirect(`/login?error_message=${error.message}`)
+    redirect(`/login?error_message=${error.message}`);
   }
 
   // revalidatePath('/', 'layout')
 
-  return redirect('/')
+  return redirect("/");
 }
-
-
-
 
 export async function signOut() {
   const supabase = createClient();
@@ -45,5 +42,5 @@ export async function signOut() {
   // revalidatePath('/', 'layout');
 
   // Redirect to the homepage or another page after successful sign out
-  return redirect('/');
+  return redirect("/");
 }

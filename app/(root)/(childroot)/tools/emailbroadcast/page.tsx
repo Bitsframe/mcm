@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import moment from 'moment';
+import moment from "moment";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -84,7 +84,7 @@ const EmailBroadcast: React.FC = () => {
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    setIsFilterOn(true)
+    setIsFilterOn(true);
     setSelectedGender((prev) =>
       prev.includes(value)
         ? prev.filter((gender) => gender !== value)
@@ -93,7 +93,7 @@ const EmailBroadcast: React.FC = () => {
   };
 
   const handleVisitChange = (type: boolean) => {
-    setIsFilterOn(true)
+    setIsFilterOn(true);
     setOnsite(type);
   };
   const handleCheckboxChange = (
@@ -101,7 +101,7 @@ const EmailBroadcast: React.FC = () => {
     emailObj: any
   ) => {
     const isChecked = event.target.checked;
-    setIsFilterOn(true)
+    setIsFilterOn(true);
 
     setCheckedItems((prevCheckedItems: any[]) =>
       isChecked
@@ -115,7 +115,7 @@ const EmailBroadcast: React.FC = () => {
     setOnsite(undefined);
     setLocation("");
     setTreatmentType("");
-    setIsFilterOn(false)
+    setIsFilterOn(false);
   };
 
   const handleSelectAndDeselectAll = (isSelected: boolean) => {
@@ -130,65 +130,67 @@ const EmailBroadcast: React.FC = () => {
     const SelectedTemplateComponent = templates.find(
       (template) => template.value === selectedTemplate
     )?.component;
-    
+
     if (SelectedTemplateComponent) {
       return (
         <SelectedTemplateComponent
           userFirstname={"[Patient]"}
           reason={reason || "[Reason]"}
           clinicName={clinicName || "[ClinicName]"}
-          name={name || '[Name]'}
+          name={name || "[Name]"}
           buttonText={buttonText || "[Button Text]"}
           buttonLink={buttonLink || "[buttonLink]"}
           startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
           endDate={moment(endDate).format("MM/DD/YYYY") || "[End Date]"}
-          price={price||"0"}
+          price={price || "0"}
         />
       );
     }
     return null;
   };
 
-
   const filterEmails = () => {
     let filteredEmails = emailList;
-  
+
     if (selectedGender.length > 0) {
       filteredEmails = filteredEmails?.filter((item) =>
         selectedGender.includes(item.gender)
       );
     }
-  
+
     if (treatmentType) {
       filteredEmails = filteredEmails?.filter(
         (item) => item.treatmenttype === treatmentType
       );
     }
-  
+
     if (location) {
       filteredEmails = filteredEmails?.filter(
         (item) => item.Locations?.title === location
       );
     }
-  
+
     if (typeof onsite === "boolean") {
       filteredEmails = filteredEmails?.filter((item) => item.onsite === onsite);
     }
-  
+
     // Split filtered emails into selected and unselected
     const selectedEmails = filteredEmails.filter((email) =>
-      checkedItems.some((checkedItem:any) => checkedItem.email === email.email)
+      checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
     );
     const unselectedEmails = filteredEmails.filter(
-      (email) => !checkedItems.some((checkedItem:any) => checkedItem.email === email.email)
+      (email) =>
+        !checkedItems.some(
+          (checkedItem: any) => checkedItem.email === email.email
+        )
     );
-  
+
     // Combine selected at the top, followed by unselected
     return [...selectedEmails, ...unselectedEmails].filter((email) =>
       email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
   };
-  
+
   const filteredEmails = filterEmails();
 
   useEffect(() => {
@@ -216,16 +218,12 @@ const EmailBroadcast: React.FC = () => {
       return;
     }
     try {
-      if (
-        !subject ||
-        !name ||
-        !price
-      ) {
+      if (!subject || !name || !price) {
         toast.error("All fields are necessary.", { position: "top-center" });
         return;
       }
 
-     // console.log(selectedGender, onsite, location, treatmentType);
+      // console.log(selectedGender, onsite, location, treatmentType);
 
       const toastId = toast.loading("Loading...");
       const res = await fetch("/api/sendEmail", {
@@ -241,10 +239,10 @@ const EmailBroadcast: React.FC = () => {
           name,
           clinicName,
           reason,
-          startDate:moment(startDate).format('MM/DD/YYYY'),
-          endDate:moment(endDate).format('MM/DD/YYYY'),
+          startDate: moment(startDate).format("MM/DD/YYYY"),
+          endDate: moment(endDate).format("MM/DD/YYYY"),
           email: checkedItems,
-          price
+          price,
         }),
       });
       if (res.ok) {
@@ -296,14 +294,14 @@ const EmailBroadcast: React.FC = () => {
                       <div className="flex items-center justify-between ">
                         <div className="flex items-center ">
                           <h1>Search</h1>
-                          <div   className="ml-2 border border-gray-300 rounded-lg" >
-                          <input
-                            placeholder="Search by email"
-                            type="text"
-                            className="p-2  border border-gray-300 rounded-lg"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
+                          <div className="ml-2 border border-gray-300 rounded-lg">
+                            <input
+                              placeholder="Search by email"
+                              type="text"
+                              className="p-2  border border-gray-300 rounded-lg"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                           </div>
                         </div>
                         {!isFilterOn ? (
@@ -332,7 +330,6 @@ const EmailBroadcast: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between  ">
                         <div className="flex items-center ">
-                      
                           <input
                             type="checkbox"
                             className="border bg-gray-300 rounded p-2 "
@@ -344,7 +341,7 @@ const EmailBroadcast: React.FC = () => {
                               handleSelectAndDeselectAll(e.target.checked)
                             }
                           />
-                       
+
                           <h2 className="ml-2">Name/Email</h2>
                         </div>
                         <h2>Gender</h2>
@@ -445,7 +442,7 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="Female"
-                                    className="border bg-gray-300 rounded p-2 "
+                                className="border bg-gray-300 rounded p-2 "
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("Female")}
                               />
@@ -455,7 +452,7 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="other"
-                                    className="border bg-gray-300 rounded p-2 "
+                                className="border bg-gray-300 rounded p-2 "
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("other")}
                               />
@@ -559,20 +556,17 @@ const EmailBroadcast: React.FC = () => {
               </AlertDialogContent>
             </AlertDialog>
 
-
             <select
-          className="p-2  rounded my-2 border border-gray-300 text-gray-500 "
-          value={selectedTemplate}
-          onChange={(e) => setSelectedTemplate(e.target.value)}
-        >
-          {templates.map((template) => (
-            <option key={template.value} value={template.value}>
-              {template.label}
-            </option>
-          ))}
-        </select>
-
-        
+              className="p-2  rounded my-2 border border-gray-300 text-gray-500 "
+              value={selectedTemplate}
+              onChange={(e) => setSelectedTemplate(e.target.value)}
+            >
+              {templates.map((template) => (
+                <option key={template.value} value={template.value}>
+                  {template.label}
+                </option>
+              ))}
+            </select>
 
             <div className="border-gray-300 mb-2 border w-full rounded">
               <input
@@ -585,7 +579,7 @@ const EmailBroadcast: React.FC = () => {
                 className="w-full p-2  rounded"
               />
             </div>
-        
+
             <div className="border-gray-300 mb-2 border w-full rounded">
               <input
                 type="text"
@@ -608,15 +602,13 @@ const EmailBroadcast: React.FC = () => {
                 onChange={(e) => setPrice(e.target.value)}
               />
             </div>
-     
-
           </div>
           <br />
           <Button onClick={sendEmail}>Submit</Button>
         </div>
       </div>
       <div className="w-[40%]  flex items-center justify-center   p-5">
-      <RenderTemplate/>
+        <RenderTemplate />
       </div>
     </main>
   );

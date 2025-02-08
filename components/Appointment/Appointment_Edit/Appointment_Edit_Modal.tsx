@@ -7,7 +7,7 @@ import { update_appointment_service } from '@/utils/supabase/data_services/data_
 import { toast } from 'react-toastify'
 import { Appointment, LocationInterface } from '@/app/(root)/(childroot)/appoinments/page'
 import { sendEmail } from '@/utils/emailService'
-import { EmailBodyInterface, EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
+import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 
 interface Appointment_Edit_Modal_Props {
     location_data: LocationInterface;

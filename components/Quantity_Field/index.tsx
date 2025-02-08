@@ -1,4 +1,4 @@
-import { Label, Select } from 'flowbite-react'
+import { Label } from 'flowbite-react'
 import React, { FC, useEffect, useState } from 'react'
 import { AiFillPlusCircle } from "react-icons/ai";
 import { AiFillMinusCircle } from "react-icons/ai";

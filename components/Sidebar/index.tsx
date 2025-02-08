@@ -2,13 +2,38 @@
 
 import Image from "next/image";
 import { Logo } from "@/assets/images";
-
-import { Clinic } from "./Clinic";
 import { SidebarPanel } from "./SidebarPanel";
+import { SidebarProvider } from "../ui/sidebar";
+import ChangeLocationModal from "./ChangeLocationModal";
+import * as React from "react"
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+import { Clinic } from "./Clinic";
+
 
 export const SidebarSection = () => {
   return (
+
+<SidebarProvider>
+    <Sidebar collapsible="icon">
+
+
+        
+      
+      
+      
+
+ 
+     
+      
     <div className="w-full h-full flex flex-col gap-5 items-center py-5 bg-white">
+      <SidebarHeader>
       <div className="flex justify-center w-full">
         <Image
           src={Logo}
@@ -16,11 +41,22 @@ export const SidebarSection = () => {
           className="w-[155px] aspect-auto object-contain"
         />
       </div>
-
+      </SidebarHeader>
+      <SidebarContent>
       <div className="flex-1 overflow-y-auto">
       <SidebarPanel />
       </div>
-      <Clinic />
+      </SidebarContent>
+      <SidebarFooter>
+      {/* <ChangeLocationModal /> */}
+      <Clinic/>
+      </SidebarFooter>
+      
     </div>
+    </Sidebar>
+    
+    </SidebarProvider>
   );
 };
+
+

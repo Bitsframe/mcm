@@ -87,13 +87,13 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
                     if (!locationRecord) {
                         findLocation = filterLocations[0]
-                        localStorage.setItem(LOCAL_STORAGE_KEY, findLocation.id.toLocaleString())
+                        localStorage.setItem(LOCAL_STORAGE_KEY, findLocation?.id.toLocaleString())
                     }
                 }
                 else {
-                    localStorage.setItem(LOCAL_STORAGE_KEY, findLocation.id.toLocaleString())
+                    localStorage.setItem(LOCAL_STORAGE_KEY, findLocation?.id.toLocaleString())
                 }
-                setSelected_location(findLocation.id);
+                setSelected_location(findLocation?.id);
                 setSelected_location_data(findLocation)
                 setSelectedLocation(findLocation)
                 setChange_data(findLocation)

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { routeList } from "./constant";
 
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext, TabContext } from "@/context";
 import { FaChevronRight } from "react-icons/fa";
 
@@ -25,14 +25,16 @@ interface Route {
 export const SidebarPanel = () => {
 	const pathname = usePathname();
 
-	const { allowedLocations, userRole, permissions } = useContext(AuthContext);
+	const { userRole, permissions } = useContext(AuthContext);
+	const { setActiveTitle } = useContext(TabContext);
+	const [cachedRoutes, setCachedRoutes] = useState<Route[]>(routeList);
 
 	const memoizedRouteList = useMemo((): Route[] => {
 
 		if(userRole === 'super admin'){
 			return routeList
 		}else{
-		const allowedRoutes = permissions;
+		const allowedRoutes = permissions || [];
 
 		const filterRoutes = (routes: Route[]): Route[] => {
 			return routes
@@ -61,7 +63,13 @@ export const SidebarPanel = () => {
 		return filterRoutes(routeList);
 		}
 		
-	}, []);
+	}, [permissions, userRole]);
+
+	useEffect(() => {
+		if (memoizedRouteList.length > 0) {
+		  setCachedRoutes(memoizedRouteList);
+		}
+	  }, [memoizedRouteList]);
 
 	const customTheme: CustomFlowbiteTheme["sidebar"] = {
 		root: {
@@ -73,8 +81,6 @@ export const SidebarPanel = () => {
 	const sidebarStyle = {
 		marginBottom: `80px`,
 	};
-
-	const { setActiveTitle } = useContext(TabContext);
 
 	useEffect(() => {
 		let activeItem;
@@ -101,96 +107,89 @@ export const SidebarPanel = () => {
 
 	return (
 		<Sidebar
-			aria-label="Sidebar with multi-level dropdown"
-			className="w-full relative"
-			theme={customTheme}
-			style={sidebarStyle}
+		  aria-label="Sidebar with multi-level dropdown"
+		  className="w-full relative"
+		  theme={customTheme}
+		  style={sidebarStyle}
 		>
-			<Sidebar.Items className="pl-5 w-[210px] bg-white">
-				<Sidebar.ItemGroup className="flex flex-col gap-5 ">
-					{memoizedRouteList.map((list, index) => {
-						if (!list.children) {
-							const isRouteActive = list.route === pathname;
-
-							return (
-								<div key={list.id} className="relative w-full">
-									{isRouteActive && (
-										<div
-											style={{ zIndex: 30 }}
-											className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
-										/>
-									)}
-									<Sidebar.Item
-										key={list.id}
-										href={list.route}
-										icon={() => (
-											<div className="flex items-center">
-												<Image
-													src={list?.icon?.src || ""}
-													alt="Icon"
-													height={list?.icon?.height}
-													width={list?.icon?.width}
-												/>
-											</div>
-										)}
-										label={
-											<div className="text-[15px] -mr-1">
-												<FaChevronRight />
-											</div>
-										}
-										labelColor="transparent"
-										className={`text-[#3A3541] hover:bg-[#0F4698] hover:bg-opacity-30  ${isRouteActive ? "bg-[#0F4698] bg-opacity-30" : ""
-											}`}
-									>
-										<h3>{list.name}</h3>
-									</Sidebar.Item>
-								</div>
-							);
-						} else {
-							const isRouteActive = list.children.some(
-								(item) => pathname === item.route
-							);
-
-							return (
-								<div key={list.id} className="relative w-full">
-									{isRouteActive && (
-										<div
-											style={{ zIndex: 30 }}
-											className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
-										/>
-									)}
-									<Sidebar.Collapse
-										icon={() => (
-											<Image
-												src={list?.icon?.src || ""}
-												alt="Icon"
-												height={list?.icon?.height}
-												width={list?.icon?.width}
-											/>
-										)}
-										label={list.name}
-										className={`text-[#3A3541] hover:bg-[#0F4698] transition-all ease-out delay-75 hover:bg-opacity-30  ${isRouteActive ? "bg-[#0F4698] bg-opacity-30" : ""
-											}`}
-										// onClick={() => handleCollapseClick(list.id)}
-										open={isRouteActive}
-									>
-										{list.children.map((item, index) => (
-											<Sidebar.Item
-												key={item.id}
-												href={item.route}
-												className={`text-[#3A3541] text-left text-sm ${pathname === item.route ? "text-[#0F4698]" : ""
-													}`}
-											>
-												{item.name}
-											</Sidebar.Item>
-										))}
-									</Sidebar.Collapse>
-								</div>
-							);
+		  <Sidebar.Items className="pl-5 w-[210px] bg-white">
+			<Sidebar.ItemGroup className="flex flex-col gap-5">
+			  {cachedRoutes.map((list) => {
+				const isRouteActive =
+				  list.route === pathname ||
+				  (list.children && list.children.some((item) => pathname === item.route));
+	  
+				return (
+				  <div key={list.id} className="relative w-full">
+					{isRouteActive && (
+					  <div
+						style={{ zIndex: 30 }}
+						className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
+					  />
+					)}
+					{!list.children ? (
+					  <Sidebar.Item
+						key={list.id}
+						href={list.route}
+						icon={() => (
+						  <div className="flex items-center">
+							<Image
+							  src={list?.icon?.src || ""}
+							  alt="Icon"
+							  height={list?.icon?.height}
+							  width={list?.icon?.width}
+							/>
+						  </div>
+						)}
+						label={
+						  <div className="text-[15px] -mr-1">
+							<FaChevronRight />
+						  </div>
 						}
-					})}
-				</Sidebar.ItemGroup>
-			</Sidebar.Items>
+						labelColor="transparent"
+						className={`text-[#3A3541] hover:bg-[#0F4698] hover:bg-opacity-30 ${
+						  isRouteActive ? "bg-[#0F4698] bg-opacity-30" : ""
+						}`}
+					  >
+						<h3>{list.name}</h3>
+					  </Sidebar.Item>
+					) : (
+
+					  <Sidebar.Collapse
+						key={list.id}
+						icon={() => (
+						  <Image
+							src={list?.icon?.src || ""}
+							alt="Icon"
+							height={list?.icon?.height}
+							width={list?.icon?.width}
+						  />
+						)}
+						label={list.name}
+						className={`text-[#3A3541] hover:bg-[#0F4698] transition-all ease-out delay-75 hover:bg-opacity-30 ${
+						  isRouteActive ? "bg-[#0F4698] bg-opacity-30" : ""
+						}`}
+						open={isRouteActive}
+					  >
+						{list.children.map((item) => (
+						  <Sidebar.Item
+							key={item.id}
+							href={item.route}
+							className={`text-[#3A3541] text-left text-sm ${
+							  pathname === item.route ? "text-[#0F4698]" : ""
+							}`}
+						  >
+							{item.name}
+						  </Sidebar.Item>
+						))}
+					  </Sidebar.Collapse>
+					)}
+				  </div>
+				);
+			  })}
+			</Sidebar.ItemGroup>
+		  </Sidebar.Items>
 		</Sidebar>
-	);
+	  );
+	  
 };

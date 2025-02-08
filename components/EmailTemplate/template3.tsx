@@ -1,16 +1,9 @@
 import {
-    Body,
-    Button,
-    Container,
-    Head,
     Hr,
-    Html,
     Img,
-    Preview,
     Section,
     Text,
   } from "@react-email/components";
-  import cliniclogo from "@/assets/images/Logos/Logo.png";
   import * as React from "react";
   
   interface KoalaWelcomeEmailProps {

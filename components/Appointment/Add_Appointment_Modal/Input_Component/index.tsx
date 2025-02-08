@@ -1,4 +1,4 @@
-import { Label, Select } from 'flowbite-react'
+import { Label } from 'flowbite-react'
 import React, { FC } from 'react'
 
 interface Props {

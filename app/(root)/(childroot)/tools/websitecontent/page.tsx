@@ -23,7 +23,6 @@ const only_fields_to_render = {
 const Home = () => {
 
     const {
-        default_data,
         data,
         is_edited,
         update_loading,
