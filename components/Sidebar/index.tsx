@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Logo } from "@/assets/images";
 import { SidebarPanel } from "./SidebarPanel";
 import { SidebarProvider } from "../ui/sidebar";
-import ChangeLocationModal from "./ChangeLocationModal";
 import * as React from "react"
 
 import {
@@ -12,7 +11,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar"
 import { Clinic } from "./Clinic";
 
@@ -22,16 +20,6 @@ export const SidebarSection = () => {
 
 <SidebarProvider>
     <Sidebar collapsible="icon">
-
-
-        
-      
-      
-      
-
- 
-     
-      
     <div className="w-full h-full flex flex-col gap-5 items-center py-5 bg-white">
       <SidebarHeader>
       <div className="flex justify-center w-full">
@@ -48,7 +36,6 @@ export const SidebarSection = () => {
       </div>
       </SidebarContent>
       <SidebarFooter>
-      {/* <ChangeLocationModal /> */}
       <Clinic/>
       </SidebarFooter>
       

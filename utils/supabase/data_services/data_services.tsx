@@ -45,6 +45,8 @@ export async function fetchLocations() {
     .from('Locations')
     .select('*')
 
+    console.log("LOCATIONS FETCH ->", data)
+    console.log("LOCATION ERRIR ->",error)
   if (error) {
     throw new Error(error.message)
   }
