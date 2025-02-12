@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
 import { login } from "@/actions/supabase_auth/action";
-import { Logo } from "@/assets/images";
-import Image from "next/image";
 import { CircularProgress } from "@mui/material";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,9 +23,6 @@ function Login({ searchParams }: { searchParams: { error_message: string } }) {
 
   return (
     <main className="h-screen w-full flex">
-      <div className="flex-1 text-white flex items-start justify-start p-8">
-        <Image className="w-32" src={Logo} alt="Logo" />
-      </div>
 
       <div className="flex-1 flex items-center justify-center">
         <Card className="w-full max-w-[450px]">

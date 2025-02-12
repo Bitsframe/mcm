@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ActiveTabProvider, AuthProvider, LocationProvider } from '@/context';
 import ClientLayout from '@/components/ClientLayout';
+import { ThemeProvider } from 'next-themes';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ThemeProvider attribute="class">
       <AuthProvider>
           <ActiveTabProvider>
             <LocationProvider>
@@ -41,6 +43,7 @@ export default function RootLayout({
           pauseOnHover
           theme="light"
         />
+        </ThemeProvider>
       </body>
     </html>
   )
