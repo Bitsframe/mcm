@@ -1,61 +1,57 @@
-import { login_bottom_right_arrows, login_left_circle, login_top_right_circle } from "@/assets/SVGs";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 
-export default function layout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (<div>
+interface LayoutProps {
+  children: React.ReactNode;
+}
 
-    <div className="hidden -z-20  absolute w-screen lg:flex justify-between">
-      <div className="min-h-screen flex items-center">
-        <Image
-          // className=""
-          src={login_left_circle}
-          // className="object-scale-down h-96"
-          alt="Icon"
-        // height={500}
-        // width={250}
-        // width={list?.icon?.width}
-        />
+export default function Layout({ children }: LayoutProps) {
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <div
+      className={`min-h-screen flex ${resolvedTheme === "dark" ? "dark" : ""}`}
+    >
+      <div
+        className={`w-1/2 p-3 ${
+          resolvedTheme === "dark" ? "bg-gray-900" : "bg-gray-100"
+        }`}
+      >
+        {resolvedTheme === "dark" ? (
+          <Image src={Lightlogo} alt="Logo" className="w-48 opacity-90" />
+        ) : (
+          <Image src={Darklogo} alt="Logo" className="w-48 opacity-90" />
+        )}
       </div>
 
+      <div
+        className={`w-1/2 relative ${
+          resolvedTheme === "dark" ? "bg-gray-800" : "bg-gray-200"
+        }`}
+      >
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
+        >
+          {resolvedTheme === "dark" ? <Moon /> : <Sun />}
+        </button>
 
-      <div className="flex flex-col min-h-screen justify-between items-end">
-        <div className="">
-          <Image
-            className=""
-            src={login_top_right_circle}
-            // className="object-scale-down h-96"
-            alt="Icon"
-          // height={500}
-          // width={250}
-          // width={list?.icon?.width}
-          />
-        </div>
-        <div className="">
-          <Image
-            className=""
-            src={login_bottom_right_arrows}
-            // className="object-scale-down h-96"
-            alt="Icon"
-          // height={500}
-          // width={250}
-          // width={list?.icon?.width}
-          />
+        <div className="h-full flex items-center justify-center">
+          {children}
         </div>
       </div>
     </div>
-
-
-
-
-    <div className="grid place-items-center min-h-screen">
-      {children}
-    </div>
-
-  </div>
-
-  )
+  );
 }
