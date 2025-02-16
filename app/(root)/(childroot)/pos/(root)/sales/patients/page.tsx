@@ -419,9 +419,6 @@ const Patients = () => {
         return;
       }
     }
-
-
-
     const { data, error } = await create_content_service({ table: 'pos', language: '', post_data: postData })
 
     if (error) {
@@ -435,19 +432,11 @@ const Patients = () => {
       setCreateActionData({})
       fetch_handle(selectedLocation?.id)
     }
-
-
   }
-
-
-
   return (
     <main className="w-full  font-[500] text-[20px]">
-
-
       <div className='w-full h-[75.5dvh] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className='bg-[#B8C8E1] h-[100%]  col-span-2 rounded-md py-2   ' >
-
           <div className='space-y-6 px-3 pb-4 flex items-center space-x-4'>
             <div>
               <h1 className='text-xl font-bold'>
@@ -455,36 +444,23 @@ const Patients = () => {
               </h1>
               <input onChange={onChangeHandle} type="text" placeholder="" className=' px-1 py-2 w-72 text-sm rounded-md focus:outline-none bg-white' />
             </div>
-
-
-
             <div className='space-x-3'>
               {
                 ['Today', 'Past records'].map((elem: string, index: number) => <Action_Button key={index} onClick={() => setActiveFilterBtn(index)} label={elem} bg_color={index === activeFilterBtn ? 'bg-[#13787E]' : 'bg-gray-500'} />)
               }
             </div>
-
-
-
           </div>
           <div className='h-[1px] w-full bg-black' />
-
           <div className='h-[70dvh] !overflow-auto space-y-4 px-3 py-4'>
-
-
             {dataList.map((elem, ind) => {
               const { firstname, lastname, created_at, phone, updated_at } = elem
               return <div key={ind} className='space-y-6 px-3'>
-
-
                 <div className='bg-[#D9D9D9] rounded-md px-4 py-3'>
                   <div>
                     <p className='text-xl'>
                       {`${firstname} ${lastname}`}
                     </p>
-
                   </div>
-
                   <div className='flex items-start'>
                     <p className='text-lg flex-1 text-gray-600'>
                       {formatPhoneNumber(phone)}
@@ -494,46 +470,22 @@ const Patients = () => {
                         <Action_Button onClick={() => editHandle(elem)} label='Edit' bg_color='bg-[#13787E]' />
                         {/* <Action_Button onClick={() => deleteHandle(elem)} label='Delete' bg_color='bg-[#FF6363]' /> */}
                         <Action_Button onClick={() => selectHandle(elem)} label='Select' bg_color='bg-[#00720B]' />
-
                       </div>
                       <p className='text-sm text-gray-600'>{moment.utc(updated_at, 'YYYY-MM-DD h:mm s').local().format('DD/MM/YYYY h:mm A')}</p>
                     </div>
                   </div>
                 </div>
-
-
               </div>
             })}
-
-
-
-
           </div>
-
         </div>
-
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col' >
-
           <div className='px-4 py-4 bg-[#11252C80]  border-b-[1px] border-b-[#817B7B] flex items-center'>
             <h1 className='text-xl font-normal text-white text-center w-full'>
               Add new Patient
             </h1>
           </div>
-
-
           <div className='overflow-auto h-[100%] px-4 py-4'>
-
-
-            {/* <div className='space-x-3'>
-              <button className='bg-[#202B40] py-2 px-3 text-white text-sm rounded-lg'>
-                New Patient
-              </button>
-              <button className='bg-white py-2 px-3 text-[#202B40] text-sm rounded-lg'>
-                Returning patient
-              </button>
-            </div> */}
-
-
             <div className='w-2/3 space-y-4'>
               <Input_Component value={createActionData.firstname} onChange={(e: string) => addPatientFieldsChange(e, 'firstname')} label='First Name' />
               <Input_Component value={createActionData.lastname} onChange={(e: string) => addPatientFieldsChange(e, 'lastname')} label='Last Name' />
@@ -547,68 +499,35 @@ const Patients = () => {
               <Select_Dropdown value={createActionData.treatmenttype} bg_color='#fff' start_empty={true} options_arr={services?.map((service) => ({ value: service, label: service }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'treatmenttype')}
                 label='Treatment Type' />
             </div>
-
-
-
-
           </div>
-
-
           <div>
             <button onClick={createNewDataHandle} className='bg-[#11252C] py-3 w-full text-center text-white'>
               Add Patient
             </button>
           </div>
-
-
-
         </div>
-
       </div>
-
-
-
-
       <Custom_Modal disabled={!canModalSubmit} submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
-
         {activeModalMode === 'delete' ? <div>
           <h1>
             Are you sure you want to delete this POS?
           </h1>
-
-
         </div> : <div className='grid grid-cols-2 gap-4'>
-          {/* {
-            fields.filter(({ editable }: any) => editable).sort((a, b) => a.details_order - b.details_order).map(({ id, label, type, col_span_01, col_span_01_modal }: any) => {
-              return  */}
-
-          {/* <div key={id} className={col_span_01 || col_span_01_modal ? 'col-span-1' : 'col-span-2'}> */}
-
-
           <div className={'col-span-1'}>
-
             <Input_Component value={actionData ? actionData['firstname'] : ''} type='text' border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, 'firstname')} label={'First Name'} />
           </div>
           <div className={'col-span-1'}>
-
             <Input_Component value={actionData ? actionData['lastname'] : ''} type='text' border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, 'lastname')} label={'Last Name'} />
           </div>
           <div className={'col-span-2'}>
-
             <Input_Component value={actionData ? actionData['email'] : ''} type='text' border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, 'email')} label={'Email'} />
           </div>
-
-
           <div className={'col-span-2'}>
             <PhoneNumberInput value={actionData['phone']} onChange={(e: string) => modalInputChangeHandle(e, 'phone')} label='Phone Number' placeholder={''} breakpoint={false} />
           </div>
-
           {/* @ts-ignore */}
           <Select_Dropdown value={actionData['treatmenttype']} bg_color='#fff' start_empty={true} options_arr={services?.map((service) => ({ value: service, label: service }))} required={true} on_change_handle={(e: string) => modalInputChangeHandle(e.target.value, 'treatmenttype')}
             label='Treatment Type' />
-
-
-
           {/* @ts-ignore */}
           <Select_Dropdown value={actionData['gender']} bg_color='#fff' start_empty={true} options_arr={['Male', 'Female'].map((gender) => ({ value: gender, label: gender }))} required={true} on_change_handle={(e: string) => modalInputChangeHandle(e.target.value, 'gender')} label='Gender' />
         </div>}

@@ -172,8 +172,7 @@ const List_Item = ({ data, click_handle, is_selected }: { data: any, click_handl
       <h3 className={`${is_selected ? 'text-white' : 'text-text_primary_color'} font-normal text-lg`}>
         {sex || '-'}
       </h3>
-      <h3 className={`${is_selected ? 'text-white' : 'text-text_primary_color'} font-normal text-xs`}>
-        {/* 2024-06-28 21:28:52.532542+00 */}
+      <h3 className={`${is_selected ? 'text-white' : 'text-text_primary_color'} font-normal text-sm`}>
         {data.date_and_time ? `Appointment: ${moment(formattedDateTime(), 'DD-MM-YYYY h:mm A').format('DD/MM/YYYY - hh:mm A')}` : '---'}
       </h3>
     </div>
@@ -382,44 +381,24 @@ const Appoinments = () => {
                   Appointment slot
                 </button>
               </div>
-
             </div>
-
           </div>
           <div className="w-1/4 ">
             <div >
               <DatePicker onChange={filterHandle} className="bg-[#D9D9D9] py-2 w-full" placeholder="Filter by date appointment" />
-
             </div>
           </div>
         </div>
-       
       </div>
-
-
-
-
       <div className="flex flex-row  h-[80vh] space-x-5 ">
-
-
         <div className="w-3/4 bg-[#EFEFEF] h-full overflow-scroll px-3 py-3 rounded-lg space-y-5">
-
-
-
-
           {appoint_loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
             <Spinner size='xl' />
-
-
           </div> : appointments.length === 0 ? <div className="flex h-full flex-1 flex-col justify-center items-center">
             <h1>No Appointment is available</h1>
           </div> : appointments.map((appointment: Appointment, index: any) => <List_Item is_selected={appointment_details && appointment_details.id === appointment.id} click_handle={select_for_details_handle} key={index} data={appointment} />)}
-
-
         </div>
         <div className="w-1/4 bg-[#EFEFEF] overflow-scroll px-3 py-3 rounded-lg text-lg ">
-
-
           {appointment_details ?
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-end space-x-5 text-black">
@@ -436,14 +415,12 @@ const Appoinments = () => {
                   </p>
                 </div>
               </div>
-
               <div className=" font-semibold space-y-4 flex-1 text-black">
                 {render_detail_keys.map((elem, index: any) => {
                   const key: string = elem.key
                   return <h1 key={index}>{elem.label}: <span className="font-normal">{elem.date_format ? Moment(appointment_details['created_at']).format('LLL') : elem.type === 'date_slot' && appointment_details?.date_and_time ? appointment_details?.date_and_time?.split('|')?.[1]?.split(' - ')[0] : elem.type === 'time_slot' && appointment_details?.date_and_time ? appointment_details?.date_and_time?.split('|')?.[1]?.split(' - ')[1] : elem.key === 'location' ? appointment_details?.location?.address : key === 'phone' ? formatPhoneNumber(appointment_details?.phone) : appointment_details ? appointment_details[key as keyof typeof Appoinments] : '-'}</span></h1>
                 })}
               </div>
-
               <div className="w-full flex mt-3 gap-3">
                 <button onClick={() => delete_appointments_handle(appointment_details.id)} className="border-red-700 flex-1 text-red-700 border-2 active:opacity-60 rounded-md px-4 py-1 hover:bg-text_primary_color_hover">Delete</button>
                 <Appointment_Edit_Modal default_data_time={appointment_details.date_and_time} update_available_data={update_reflect_on_close_modal} appointment_details={appointment_details} location_data={find_locations(appointment_details.location_id)!} />
@@ -453,15 +430,7 @@ const Appoinments = () => {
               <h1>Select appointment to view details</h1>
             </div>}
         </div>
-
-
       </div>
-
-
-
-
-
-
     </main>
   );
 };
