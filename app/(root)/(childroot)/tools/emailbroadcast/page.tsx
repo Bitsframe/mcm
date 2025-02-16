@@ -130,7 +130,7 @@ const EmailBroadcast: React.FC = () => {
     const SelectedTemplateComponent = templates.find(
       (template) => template.value === selectedTemplate
     )?.component;
-    
+
     if (SelectedTemplateComponent) {
       return (
         <SelectedTemplateComponent
@@ -142,7 +142,7 @@ const EmailBroadcast: React.FC = () => {
           buttonLink={buttonLink || "[buttonLink]"}
           startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
           endDate={moment(endDate).format("MM/DD/YYYY") || "[End Date]"}
-          price={price||"0"}
+          price={price || "0"}
         />
       );
     }
@@ -152,43 +152,43 @@ const EmailBroadcast: React.FC = () => {
 
   const filterEmails = () => {
     let filteredEmails = emailList;
-  
+
     if (selectedGender.length > 0) {
       filteredEmails = filteredEmails?.filter((item) =>
         selectedGender.includes(item.gender)
       );
     }
-  
+
     if (treatmentType) {
       filteredEmails = filteredEmails?.filter(
         (item) => item.treatmenttype === treatmentType
       );
     }
-  
+
     if (location) {
       filteredEmails = filteredEmails?.filter(
         (item) => item.Locations?.title === location
       );
     }
-  
+
     if (typeof onsite === "boolean") {
       filteredEmails = filteredEmails?.filter((item) => item.onsite === onsite);
     }
-  
+
     // Split filtered emails into selected and unselected
     const selectedEmails = filteredEmails.filter((email) =>
-      checkedItems.some((checkedItem:any) => checkedItem.email === email.email)
+      checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
     );
     const unselectedEmails = filteredEmails.filter(
-      (email) => !checkedItems.some((checkedItem:any) => checkedItem.email === email.email)
+      (email) => !checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
     );
-  
+
     // Combine selected at the top, followed by unselected
     return [...selectedEmails, ...unselectedEmails].filter((email) =>
       email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
   };
-  
+
   const filteredEmails = filterEmails();
 
   useEffect(() => {
@@ -225,7 +225,7 @@ const EmailBroadcast: React.FC = () => {
         return;
       }
 
-     // console.log(selectedGender, onsite, location, treatmentType);
+      // console.log(selectedGender, onsite, location, treatmentType);
 
       const toastId = toast.loading("Loading...");
       const res = await fetch("/api/sendEmail", {
@@ -241,8 +241,8 @@ const EmailBroadcast: React.FC = () => {
           name,
           clinicName,
           reason,
-          startDate:moment(startDate).format('MM/DD/YYYY'),
-          endDate:moment(endDate).format('MM/DD/YYYY'),
+          startDate: moment(startDate).format('MM/DD/YYYY'),
+          endDate: moment(endDate).format('MM/DD/YYYY'),
           email: checkedItems,
           price
         }),
@@ -275,14 +275,14 @@ const EmailBroadcast: React.FC = () => {
           <div className="w-full flex flex-col">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-              <button className="w-full p-2 my-1 border text-[16px] text-gray-500 text-left border-gray-300 rounded">
-      {checkedItems.length > 0
-        ? checkedItems
-            .slice(0, 2)
-            .map((email:{email:string}) => email.email)
-            .join(", ") + (checkedItems.length > 2 ? ` +${checkedItems.length - 2} more` : "")
-        : "Select Option"}
-    </button>
+                <button className="w-full p-2 my-1 border text-[16px] text-gray-500 text-left border-gray-300 rounded">
+                  {checkedItems.length > 0
+                    ? checkedItems
+                      .slice(0, 2)
+                      .map((email: { email: string }) => email.email)
+                      .join(", ") + (checkedItems.length > 2 ? ` +${checkedItems.length - 2} more` : "")
+                    : "Select Option"}
+                </button>
               </AlertDialogTrigger>
 
               <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 ">
@@ -301,14 +301,14 @@ const EmailBroadcast: React.FC = () => {
                       <div className="flex items-center justify-between ">
                         <div className="flex items-center ">
                           <h1>Search</h1>
-                          <div   className="ml-2 border border-gray-300 rounded-lg" >
-                          <input
-                            placeholder="Search by email"
-                            type="text"
-                            className="p-2  border border-gray-300 rounded-lg"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
+                          <div className="ml-2 border border-gray-300 rounded-lg" >
+                            <input
+                              placeholder="Search by email"
+                              type="text"
+                              className="p-2  border border-gray-300 rounded-lg"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                           </div>
                         </div>
                         {!isFilterOn ? (
@@ -337,7 +337,7 @@ const EmailBroadcast: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between  ">
                         <div className="flex items-center ">
-                      
+
                           <input
                             type="checkbox"
                             className="border bg-gray-300 rounded p-2 "
@@ -349,7 +349,7 @@ const EmailBroadcast: React.FC = () => {
                               handleSelectAndDeselectAll(e.target.checked)
                             }
                           />
-                       
+
                           <h2 className="ml-2">Name/Email</h2>
                         </div>
                         <h2>Gender</h2>
@@ -416,8 +416,8 @@ const EmailBroadcast: React.FC = () => {
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
-                                    ? "F"
-                                    : "O"}
+                                      ? "F"
+                                      : "O"}
                                 </Label>
                               </div>
                             </div>
@@ -450,7 +450,7 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="Female"
-                                    className="border bg-gray-300 rounded p-2 "
+                                className="border bg-gray-300 rounded p-2 "
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("Female")}
                               />
@@ -460,7 +460,7 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="other"
-                                    className="border bg-gray-300 rounded p-2 "
+                                className="border bg-gray-300 rounded p-2 "
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("other")}
                               />
@@ -566,18 +566,18 @@ const EmailBroadcast: React.FC = () => {
 
 
             <select
-          className="p-2  rounded my-2 border border-gray-300 text-gray-500 "
-          value={selectedTemplate}
-          onChange={(e) => setSelectedTemplate(e.target.value)}
-        >
-          {templates.map((template) => (
-            <option key={template.value} value={template.value}>
-              {template.label}
-            </option>
-          ))}
-        </select>
+              className="p-2  rounded my-2 border border-gray-300 text-gray-500 "
+              value={selectedTemplate}
+              onChange={(e) => setSelectedTemplate(e.target.value)}
+            >
+              {templates.map((template) => (
+                <option key={template.value} value={template.value}>
+                  {template.label}
+                </option>
+              ))}
+            </select>
 
-        
+
 
             <div className="border-gray-300 mb-2 border w-full rounded">
               <input
@@ -590,7 +590,7 @@ const EmailBroadcast: React.FC = () => {
                 className="w-full p-2  rounded"
               />
             </div>
-        
+
             <div className="border-gray-300 mb-2 border w-full rounded">
               <input
                 type="text"
@@ -613,7 +613,7 @@ const EmailBroadcast: React.FC = () => {
                 onChange={(e) => setPrice(e.target.value)}
               />
             </div>
-     
+
 
           </div>
           <br />
@@ -621,7 +621,7 @@ const EmailBroadcast: React.FC = () => {
         </div>
       </div>
       <div className="w-[40%]  flex items-center justify-center   p-5">
-      <RenderTemplate/>
+        <RenderTemplate />
       </div>
     </main>
   );
