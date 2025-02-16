@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -8,21 +9,79 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogAction,
-  AlertDialogCancel
+  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Input } from "../ui/input";
 
-const EditPatientModal: React.FC = () => {
+
+interface EditPatientModalProps {
+  patientDetails: {
+    id: number; 
+    firstname: string;
+    lastname: string;
+    phone: string;
+    email: string;
+    treatmenttype: string;
+  };
+}
+
+const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) => {
+  const supabase = createClient(); 
+  console.log("patientDetails",patientDetails);
   const [patientData, setPatientData] = useState({
-    name: "Alexa Williams",
-    phone: "(467) 895-2947",
-    email: "ecarroll@ortiz-guerrero.com",
-    treatmentType: "Seniors",
-    gender: "Other"
+    firstname: "",
+    lastname: "",
+    phone: "",
+    email: "",
+    treatmenttype: "",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (patientDetails) {
+      setPatientData({
+        firstname: patientDetails.firstname || "",
+        lastname: patientDetails.lastname || "",
+        phone: patientDetails.phone || "",
+        email: patientDetails.email || "",
+        treatmenttype: patientDetails.treatmenttype || "",
+      });
+    }
+  }, [patientDetails]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    setErrorMessage("");
+  
+    console.log("Existing patient details:", patientDetails);
+    console.log("Updated patient data:", patientData);
+  
+    try {
+      const { error, data, status } = await supabase
+        .from("allpatients")
+        .update({
+          firstname: patientData?.firstname,
+          lastname: patientData?.lastname,
+          email: patientData?.email,
+          phone: patientData?.phone,
+          treatmenttype: patientData?.treatmenttype,
+        })
+        .eq("id", Number(patientDetails.id))
+        .select(); 
+        
+      console.log("Supabase Response:", { status, data, error });
+  
+    } catch (error: any) {
+      console.log("Error updating patient details:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,39 +100,49 @@ const EditPatientModal: React.FC = () => {
             Make changes to the patient's information and save them.
           </AlertDialogDescription>
         </AlertDialogHeader>
-
-        {/* Input Fields */}
+        
         <div className="space-y-4 mt-3">
+          {errorMessage && (
+            <p className="text-red-500 text-sm">{errorMessage}</p>
+          )}
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Patient Name</label>
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
             <Input
               type="text"
-              name="name"
-              value={patientData.name}
+              name="firstname"
+              value={patientData.firstname}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Patient Phone</label>
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <Input
+              type="text"
+              name="lastname"
+              value={patientData.lastname}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
             <Input
               type="text"
               name="phone"
               value={patientData.phone}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Patient Email</label>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <Input
               type="email"
               name="email"
               value={patientData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -81,32 +150,23 @@ const EditPatientModal: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
             <Input
               type="text"
-              name="treatmentType"
-              value={patientData.treatmentType}
+              name="treatmenttype"
+              value={patientData.treatmenttype}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Gender</label>
-            <Input
-              type="text"
-              name="gender"
-              value={patientData.gender}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
-        {/* Footer Buttons */}
         <AlertDialogFooter className="mt-4 flex justify-end gap-2">
           <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition">
-            Save Changes
+          <AlertDialogAction
+            onClick={handleSaveChanges}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Changes"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

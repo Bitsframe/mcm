@@ -98,21 +98,6 @@ const gender_options: RadioButtonOptionsInterface[] = [
     }
 ]
 
-const required_fields = {
-    location_id: { required: true, label: 'Location' },
-    first_name: { required: true, label: 'First Name' },
-    last_name: { required: true, label: 'Last Name' },
-    email_address: { required: true, label: 'Email Address' },
-    dob: { required: true, label: 'Date of Birth' },
-    sex: { required: true, label: 'Sex' },
-    service: { required: true, label: 'Service' },
-    in_office_patient: { required: false, label: 'Type of visit' },
-    new_patient: { required: false, label: 'Are you a new or returning patient?' },
-    address: { required: true, label: 'Address' },
-    phone: { required: true, label: 'Treatment' },
-    date_and_time: { required: true, label: 'Date and Time Slot' },
-}
-
 export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) => void }) => {
 
     const { locations } = useLocationClinica()
@@ -120,8 +105,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
     const [open, setOpen] = useState(false)
     const [services, setServices] = useState<string[] | null | undefined>([]);
     const [loading, setLoading] = useState(false)
-
-
 
     const close_handle = () => {
         setOpen(false)
@@ -192,17 +175,13 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             "first_name",
             "last_name",
             "email_address",
-            "dob",
-            "sex",
             "phone",
-            'state',
-            'zipcode',
-            'street_address',
             "service",
             "date_and_time",
         ];
 
         const validateData = validateFormData({ ...formData, email: email_address }, true)
+        
 
         if (!validateData) {
             setLoading(false)
@@ -217,7 +196,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             }
         }
 
-
         const postData = {
             ...appointmentDetails,
             address: `${formData.street_address}, ${formData.state}, ${formData.zipcode}`,
@@ -228,13 +206,11 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             .insert([postData])
             .select();
 
-
         newAddedRow(data?.[0])
 
         if (error) {
             if (error?.message === 'duplicate key value violates unique constraint "Appoinments_date_and_time_key"') {
                 toast.error(`Sorry, Appointment time slot is not available, Please select any other time slot`);
-
             }
             else { toast.error(`Error submitting appointment: ${error?.message}`); }
         } else {
@@ -265,24 +241,14 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             <button onClick={open_handle} className='text-lg bg-gray-300 px-5 py-2 rounded-md font-bold text-black'>
                 Add an Appointment
             </button>
-
-
             <Modal show={open} onClose={close_handle}>
-
                 <Modal.Header>
                     <div className='flex items-center justify-between'>
                         <h1 className='font-bold'>Add an Appointment</h1>
-                        {/* <IoCloseOutline size={25} /> */}
                     </div>
-
                 </Modal.Header>
-
                 <Modal.Body>
                     <div className="space-y-5">
-
-
-
-
                         <div className='space-y-8'>
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
@@ -295,7 +261,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     </Select>
                                 </div>
                             </div>
-
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
                                     name='in_office_patient'
@@ -303,7 +268,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     options={in_office_patient_options}
                                     selectedValue={formData.in_office_patient}
                                     onChange={(e) => select_change_handle('in_office_patient', e)}
-
                                 />
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
@@ -313,7 +277,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     options={patient_type_options}
                                     selectedValue={formData.new_patient}
                                     onChange={(e) => select_change_handle('new_patient', e)}
-
                                 />
                             </div>
                             <div className='grid grid-cols-2 gap-4'>
@@ -324,7 +287,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     <Input_Component_Appointment onChange={(e: string) => select_change_handle('last_name', e)} placeholder='@peduarte' label='Last Name' />
                                 </div>
                             </div>
-
                             <div className='w-full'>
                                 <Input_Component_Appointment onChange={(e: string) => select_change_handle('email_address', e)} placeholder='Enter you current email address' label='Email' />
                             </div>
@@ -341,10 +303,8 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     options={gender_options}
                                     selectedValue={formData.sex}
                                     onChange={(e) => select_change_handle('sex', e)}
-
                                 />
                             </div>
-
                             <div className='w-full grid grid-cols-2 gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <Label htmlFor='locations' className='font-bold'>
@@ -362,8 +322,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     <Input_Component_Appointment label='Street Address' onChange={(e: string) => select_change_handle('street_address', e)} placeholder='Enter your address with zipcode' />
                                 </div>
                             </div>
-
-
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
                                     Treatment
@@ -375,15 +333,12 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     </Select>
                                 </div>
                             </div>
-
                             {locations.length > 0 && <div>
                                 <ScheduleDateTime data={locations[0]} selectDateTimeSlotHandle={selectDateTimeSlotHandle} />
                             </div>}
                         </div>
                     </div>
                 </Modal.Body>
-
-
                 <Modal.Footer>
                     <div className='flex w-full justify-end'>
 
@@ -392,9 +347,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                         </button>
                     </div>
                 </Modal.Footer>
-
             </Modal>
-
         </div >
     )
 }

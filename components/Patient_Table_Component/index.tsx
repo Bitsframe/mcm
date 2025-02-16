@@ -6,19 +6,7 @@ import { fetch_content_service } from '@/utils/supabase/data_services/data_servi
 import { PiCaretUpDownBold } from 'react-icons/pi';
 import { formatPhoneNumber } from '@/utils/getCountryName';
 import { LocationContext } from '@/context';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import EditPatientModel from './edit-patient.modal';
-
 
 const queries: QueriesInterface = {
   all: null,
@@ -164,74 +152,73 @@ const Patient_Table_Component: FC<Props> = ({ renderType = 'all' }) => {
           </div>
         </div>
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
-  <div className='px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex items-center justify-between'>
-    <h1 className='text-xl font-normal text-white text-center flex-1'>
-      Patient Detail
-    </h1>
-    <EditPatientModel />
-  </div>
-  {patientDetails && (
-    <div className='overflow-auto h-[100%] px-4 py-4'>
-      <div className='flex items-start justify-between font-semibold mb-4'>
-        <dl>
-          <dd className='font-bold text-2xl'>{patientDetails?.id}</dd>
-          <dt className='text-lg text-[#707070]'>Patient ID</dt>
-        </dl>
-        {renderType === 'all' && (
-          <div>
-            <p className='px-2 py-[2px] text-[16px] rounded-md bg-text_primary_color text-white'>
-              {patientDetails?.onsite ? 'On-site' : 'Off-site'} Patient
-            </p>
+          <div className='px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex items-center justify-between'>
+            <h1 className='text-xl font-normal text-white text-center flex-1'>
+              Patient Detail
+            </h1>
+            {patientDetails && <EditPatientModel patientDetails={patientDetails} />}
           </div>
-        )}
-      </div>
-      <dl>
-        <dd className='font-bold text-2xl'>
-          {patientDetails?.firstname} {patientDetails?.lastname}
-        </dd>
-        <dt className='text-lg text-[#707070]'>Patient Name</dt>
-      </dl>
-      <div className='h-[1px] w-full bg-black my-3' />
+          {patientDetails && (
+            <div className='overflow-auto h-[100%] px-4 py-4'>
+              <div className='flex items-start justify-between font-semibold mb-4'>
+                <dl>
+                  <dd className='font-bold text-2xl'>{patientDetails?.id}</dd>
+                  <dt className='text-lg text-[#707070]'>Patient ID</dt>
+                </dl>
+                {renderType === 'all' && (
+                  <div>
+                    <p className='px-2 py-[2px] text-[16px] rounded-md bg-text_primary_color text-white'>
+                      {patientDetails?.onsite ? 'On-site' : 'Off-site'} Patient
+                    </p>
+                  </div>
+                )}
+              </div>
+              <dl>
+                <dd className='font-bold text-2xl'>
+                  {patientDetails?.firstname} {patientDetails?.lastname}
+                </dd>
+                <dt className='text-lg text-[#707070]'>Patient Name</dt>
+              </dl>
+              <div className='h-[1px] w-full bg-black my-3' />
 
-      <div className='space-y-7'>
-        <dl>
-          <dd className='font-semibold text-lg'>
-            {formatPhoneNumber(patientDetails?.phone)}
-          </dd>
-          <dt className='text-sm text-[#707070]'>Patient Phone</dt>
-        </dl>
-        <dl>
-          <dd className='font-semibold text-lg'>{patientDetails?.email}</dd>
-          <dt className='text-sm text-[#707070]'>Patient Email</dt>
-        </dl>
-        <dl>
-          <dd className='font-semibold text-lg'>{patientDetails?.treatmenttype}</dd>
-          <dt className='text-sm text-[#707070]'>Treatment Type</dt>
-        </dl>
-        <dl>
-          <dd className='font-semibold text-lg'>{patientDetails?.gender}</dd>
-          <dt className='text-sm text-[#707070]'>Gender</dt>
-        </dl>
+              <div className='space-y-7'>
+                <dl>
+                  <dd className='font-semibold text-lg'>
+                    {formatPhoneNumber(patientDetails?.phone)}
+                  </dd>
+                  <dt className='text-sm text-[#707070]'>Patient Phone</dt>
+                </dl>
+                <dl>
+                  <dd className='font-semibold text-lg'>{patientDetails?.email}</dd>
+                  <dt className='text-sm text-[#707070]'>Patient Email</dt>
+                </dl>
+                <dl>
+                  <dd className='font-semibold text-lg'>{patientDetails?.treatmenttype}</dd>
+                  <dt className='text-sm text-[#707070]'>Treatment Type</dt>
+                </dl>
+                <dl>
+                  <dd className='font-semibold text-lg'>{patientDetails?.gender}</dd>
+                  <dt className='text-sm text-[#707070]'>Gender</dt>
+                </dl>
 
-        <div className='flex items-center flex-1'>
-          <dl className='flex-1'>
-            <dd className='font-semibold text-lg'>
-              {moment(patientDetails?.created_at, 'YYYY-MM-DD h:mm s').format('MMM DD, YYYY')}
-            </dd>
-            <dt className='text-sm text-[#707070]'>Created at</dt>
-          </dl>
-          <dl className='flex-1'>
-            <dd className='font-semibold text-lg'>
-              {moment(patientDetails?.lastvisit, 'YYYY-MM-DD h:mm s').format('MMM DD, YYYY')}
-            </dd>
-            <dt className='text-sm text-[#707070]'>Last Visit</dt>
-          </dl>
+                <div className='flex items-center flex-1'>
+                  <dl className='flex-1'>
+                    <dd className='font-semibold text-lg'>
+                      {moment(patientDetails?.created_at, 'YYYY-MM-DD h:mm s').format('MMM DD, YYYY')}
+                    </dd>
+                    <dt className='text-sm text-[#707070]'>Created at</dt>
+                  </dl>
+                  <dl className='flex-1'>
+                    <dd className='font-semibold text-lg'>
+                      {moment(patientDetails?.lastvisit, 'YYYY-MM-DD h:mm s').format('MMM DD, YYYY')}
+                    </dd>
+                    <dt className='text-sm text-[#707070]'>Last Visit</dt>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
-  )}
-</div>
-
       </div>
     </main>
   )
