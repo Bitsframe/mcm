@@ -275,12 +275,17 @@ const EmailBroadcast: React.FC = () => {
           <div className="w-full flex flex-col">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button className="w-full p-2 my-1 border text-[16px] text-gray-500 text-left border-gray-300 rounded">
-                  Select Option
-                </button>
+              <button className="w-full p-2 my-1 border text-[16px] text-gray-500 text-left border-gray-300 rounded">
+      {checkedItems.length > 0
+        ? checkedItems
+            .slice(0, 2)
+            .map((email:{email:string}) => email.email)
+            .join(", ") + (checkedItems.length > 2 ? ` +${checkedItems.length - 2} more` : "")
+        : "Select Option"}
+    </button>
               </AlertDialogTrigger>
 
-              <AlertDialogContent>
+              <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 ">
                 <AlertDialogHeader>
                   {!filter ? (
                     <>
