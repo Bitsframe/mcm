@@ -136,15 +136,6 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
 });
 
 const Page = () => {
-  const [loading, setLoading] = useState(false);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen w-full">
-        <Spinner color="info" aria-label="Loading" size="lg" />
-      </div>
-    );
-  }
 
   if (!cronitorSampleData) {
     return (

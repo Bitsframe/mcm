@@ -5,7 +5,7 @@ import ScheduleDateTime, { DayTimings } from './ScheduleDateTime'
 import moment from 'moment'
 import { update_appointment_service } from '@/utils/supabase/data_services/data_services'
 import { toast } from 'react-toastify'
-import { Appointment, LocationInterface } from '@/app/(root)/(childroot)/appoinments/page'
+import { Appointment, LocationInterface } from '@/app/(root)/(childroot)/appointments/page'
 import { sendEmail } from '@/utils/emailService'
 import { EmailBodyInterface, EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 
