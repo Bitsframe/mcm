@@ -13,6 +13,8 @@ import { Appointment_Edit_Modal } from "@/components/Appointment/Appointment_Edi
 import { Add_Appointment_Modal } from "@/components/Appointment/Add_Appointment_Modal";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { LocationContext } from "@/context";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PiCaretUpDownBold } from "react-icons/pi";
 
 export interface Location {
   id: number;
@@ -189,6 +191,7 @@ const Appoinments = () => {
   const [appoint_loading, setAppoint_loading] = useState<boolean>(true)
   const [appointment_details, setAppointment_details] = useState<Appointment | null>(null)
   const [sortOrder, setSortOrder] = useState(-1)
+  const [sortColumn, setSortColumn] = useState('')
 
 
   const { selectedLocation } = useContext(LocationContext);
@@ -249,15 +252,16 @@ const Appoinments = () => {
       const filteredAppointments = allAppointments.filter((appoint: any) => {
 
         if (appoint.date_and_time) {
-          const str = appoint.date_and_time.split('|')[1].split(' - ')[0]
-          const formattedDate = moment(str, 'DD-MM-YYYY').format('YYYY-MM-DD')
-          return formattedDate === dateToMoment
-
+          // Remove any digits and a pipe at the start (like "17|")
+          const cleanedStr = appoint.date_and_time.replace(/^\d+\|/, '');
+          // Now, split by " - " and take the first part which is the date
+          const dateStr = cleanedStr.split(' - ')[0];
+          const formattedDate = moment(dateStr, 'DD-MM-YYYY').format('YYYY-MM-DD');
+          return formattedDate === dateToMoment;
         }
-
-
-
-
+        
+        
+        
       })
       setAppointments(filteredAppointments)
     }
@@ -329,7 +333,21 @@ const Appoinments = () => {
       sortedList = sortOrder === 1
         ? appointments.sort((a, b) => a.sex.localeCompare(b.sex))
         : appointments.sort((a, b) => b.sex.localeCompare(a.sex));
-    } else {
+    }else if (column === 'name') {
+      sortedList = sortOrder === 1
+        ? appointments.sort((a, b) =>
+            (a.first_name + " " + a.last_name).localeCompare(b.first_name + " " + b.last_name)
+          )
+        : appointments.sort((a, b) =>
+            (b.first_name + " " + b.last_name).localeCompare(a.first_name + " " + a.last_name)
+          );
+    }else if (column === "service") {
+      sortedList = sortOrder === 1
+        ? appointments.sort((a, b) => a.service.localeCompare(b.service))
+        : appointments.sort((a, b) => b.service.localeCompare(a.service));
+    } 
+    
+    else {
       sortedList = appointments.sort((a, b) => {
         let a_formatted_date = '';
         let b_formatted_date = '';
@@ -356,7 +374,11 @@ const Appoinments = () => {
 
     setSortOrder((order) => (order === -1 ? 1 : -1));
     setAppointments([...sortedList]);
+    setSortColumn(column)
   };
+
+
+  
 
   return (
     <main className=" mt-20 w-full h-full text-[#B6B6B6] font-[500] text-[20px] space-y-5">
@@ -364,14 +386,14 @@ const Appoinments = () => {
 
 
 
-      <div className="flex justify-end items-end ps-3 gap-3 ">
+      <div className="flex justify-end items-end gap-3 ">
 
-        <div className="flex justify-between pe-2 items-center flex-1">
+        <div className="flex justify-between items-center flex-1">
 
           <div className="flex  items-center space-x-5">
             <Add_Appointment_Modal newAddedRow={newAddedRow} />
 
-            <div >
+            {/* <div >
               <h1 className="text-sm">Sort by</h1>
               <div className="flex text-sm items-center space-x-3">
                 <button onClick={() => sortHandle('gender')} className="bg-text_primary_color px-2 py-1 rounded-md text-white active:opacity-60">
@@ -381,7 +403,10 @@ const Appoinments = () => {
                   Appointment slot
                 </button>
               </div>
-            </div>
+
+            </div> */}
+
+
           </div>
           <div className="w-1/4 ">
             <div >
@@ -391,13 +416,87 @@ const Appoinments = () => {
         </div>
       </div>
       <div className="flex flex-row  h-[80vh] space-x-5 ">
-        <div className="w-3/4 bg-[#EFEFEF] h-full overflow-scroll px-3 py-3 rounded-lg space-y-5">
-          {appoint_loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-            <Spinner size='xl' />
-          </div> : appointments.length === 0 ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-            <h1>No Appointment is available</h1>
-          </div> : appointments.map((appointment: Appointment, index: any) => <List_Item is_selected={appointment_details && appointment_details.id === appointment.id} click_handle={select_for_details_handle} key={index} data={appointment} />)}
-        </div>
+
+
+      <div className="w-3/4 bg-[#EFEFEF] h-full overflow-scroll px-3 py-3 rounded-lg space-y-5">
+  {appoint_loading ? (
+    <div className="flex h-full flex-1 flex-col justify-center items-center">
+      <Spinner size="xl" />
+    </div>
+  ) : appointments.length === 0 ? (
+    <div className="flex h-full flex-1 flex-col justify-center items-center">
+      <h1>No Appointment is available</h1>
+    </div>
+  ) : (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-lg">Name
+
+          <button onClick={() => sortHandle("name")} className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70">
+                      <PiCaretUpDownBold
+                        className={`inline ${sortColumn === "name" ? "text-green-600" : ""}`}
+                      />
+                    </button>
+          </TableHead>
+          <TableHead className="text-lg">Gender
+
+          <button onClick={() => sortHandle("gender")} className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70">
+                      <PiCaretUpDownBold
+                        className={`inline ${sortColumn === "gender" ? "text-green-600" : ""}`}
+                      />
+                    </button>
+          </TableHead>
+          <TableHead className="text-lg">Service
+
+          <button onClick={() => sortHandle("service")} className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70">
+                      <PiCaretUpDownBold
+                        className={`inline ${sortColumn === "service" ? "text-green-600" : ""}`}
+                      />
+                    </button>
+          </TableHead>
+          <TableHead className="text-lg">Date
+
+          <button onClick={() => sortHandle("slot")} className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70">
+                      <PiCaretUpDownBold
+                        className={`inline ${sortColumn === "slot" ? "text-green-600" : ""}`}
+                      />
+                    </button>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {appointments.map((appointment, index) => {
+          const isSelected =
+            appointment_details && appointment_details.id === appointment.id
+
+          return (
+            <TableRow
+              key={index}
+              onClick={() => select_for_details_handle(appointment)}
+              className={`cursor-pointer ${isSelected ? "bg-gray-200" : ""}`}
+            >
+              <TableCell className="text-black text-base">
+                {appointment.first_name} {appointment.last_name}
+              </TableCell>
+              <TableCell className="text-black text-base">{appointment.sex}</TableCell>
+              <TableCell className="text-black text-base">{appointment.service}</TableCell>
+              <TableCell className="text-black text-base">{(appointment.date_and_time)}</TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
+  )}
+</div>
+
+
+
+
+
+
+        
+
         <div className="w-1/4 bg-[#EFEFEF] overflow-scroll px-3 py-3 rounded-lg text-lg ">
           {appointment_details ?
             <div className="flex flex-col h-full">

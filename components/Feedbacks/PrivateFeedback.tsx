@@ -4,6 +4,7 @@ import { Spinner } from 'flowbite-react';
 import moment from 'moment';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { PiCaretUpDownBold } from 'react-icons/pi';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 interface DataListInterface {
     feedback_id: number;
@@ -177,59 +178,106 @@ const PrivateFeedbackComponent: FC<Props> = () => {
 
 
                     </div>
-                    <div className='h-[1px] w-full bg-black' />
+                    {/* <div className='h-[1px] w-full bg-gray-200' /> */}
 
-                    <div className='px-3 pt-5'>
-                        {/* Table goes here */}
+                    <div className="px-3 pt-5">
+  <Table>
+    <TableHeader>
+      <TableRow className="font-semibold">
+        <TableHead className="text-start text-lg">
+          Patient Name
+          <button onClick={() => sortHandle("name")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "name" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-center text-lg">
+          Order ID
+          <button onClick={() => sortHandle("order_id")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "order_id" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-center text-lg">
+          Feedback date
+          <button onClick={() => sortHandle("date")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "date" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-end text-lg">
+          Rating
+          <button onClick={() => sortHandle("rating")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "rating" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell colSpan={4}>
+            <div className="flex h-full flex-1 flex-col justify-center items-center">
+              <Spinner size="xl" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ) : dataList.length > 0 ? (
+        dataList.map((elem) => {
+          const {
+            order_id,
+            pos: { firstname, lastname },
+            rating,
+            created_at,
+            feedback_id,
+          } = elem;
+          return (
+            <TableRow
+              key={feedback_id}
+              onClick={() => detailsViewHandle(elem)}
+              className="cursor-pointer rounded-md px-3 py-2 text-base hover:bg-gray-50 hover:text-inherit"
+            >
+              <TableCell className="text-start">{firstname} {lastname}</TableCell>
+              <TableCell className="text-center">{order_id}</TableCell>
+              <TableCell className="text-center">
+                {moment(created_at, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")}
+              </TableCell>
+              <TableCell className="text-end pr-4">{rating}/5</TableCell>
+            </TableRow>
+          );
+        })
+      ) : (
+        <TableRow>
+          <TableCell colSpan={4}>
+            <div className="flex h-full flex-1 flex-col py-2 text-base justify-center items-center">
+              <h1>No patient found!</h1>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+</div>
 
-                        <div className='flex items-center flex-1 font-semibold'>
-                            <h1 className='flex-1 text-start'>
-                                Patient Name <button onClick={() => sortHandle('name')} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === 'name' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>
-                            </h1>
-                            <h1 className='flex-1 text-center'>
-                                Order ID <button onClick={() => sortHandle('order_id')} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === 'id' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>
-                            </h1>
-                            <h1 className='flex-1 text-center'>
-                                Feedback date <button onClick={() => sortHandle('date')} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === 'date' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>
-                            </h1>
-                            <h1 className='flex-1 text-end'>
-                                Rating <button onClick={() => sortHandle('rating')} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === 'date' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>
-                            </h1>
-                        </div>
 
 
 
 
 
 
-
-                        <div className='mt-5 h-[60dvh] overflow-y-scroll space-y-5'>
-                            {loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-                                <Spinner size='xl' />
-                            </div> :
-                                dataList.length > 0 ? dataList.map((elem) => {
-                                    const { order_id, pos: { firstname, lastname }, rating, created_at, feedback_id } = elem
-                                    return <div key={feedback_id} onClick={() => detailsViewHandle(elem)} className='cursor-pointer hover:bg-gray-500 hover:text-white flex items-center flex-1 font-semibold bg-white px-3 py-4 rounded-md '>
-                                        <h1 className='flex-1 text-start'>
-                                            {firstname} {lastname}
-                                        </h1>
-                                        <h1 className='flex-1 text-center'>
-                                            {order_id}
-                                        </h1>
-                                        <h1 className='flex-1 text-center'>
-                                            {moment(created_at, 'YYYY-MM-DD h:mm s').format('MMM DD, YYYY')}
-                                        </h1>
-                                        <h1 className='flex-1 text-end me-4'>
-                                            {rating}/5
-                                        </h1>
-                                    </div>
-                                }) : <div className="flex h-full flex-1 flex-col justify-center items-center">
-                                    <h1>
-                                        No patient found!
-                                    </h1>
-                                </div>}
-                        </div>
-                    </div>
 
 
                 </div>

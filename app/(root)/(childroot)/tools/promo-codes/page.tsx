@@ -8,6 +8,7 @@ import { Custom_Modal } from '@/components/Modal_Components/Custom_Modal';
 import { Input_Component } from '@/components/Input_Component';
 import { Action_Button } from '@/components/Action_Button';
 import { toast } from 'react-toastify';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const fields = [
   {
@@ -425,49 +426,91 @@ const Page = () => {
 
           </div>
 
-          <div className='pt-5 '>
-            {/* Table goes here */}
+          <div className="pt-5">
+  <Table>
+    <TableHeader>
+      <TableRow>
+        {fields
+          .filter(({ table_column }) => table_column)
+          .map(({ id, label, align, type }, ind) => (
+            <TableHead
+              key={ind}
+              className={`${
+                align || "text-center"
+              } text-[#71717A] font-medium text-lg px-4 py-2`}
+            >
+              {label}
+              <button
+                onClick={() => sortHandle(id, type)}
+                className="active:opacity-50 ml-1"
+              >
+                <PiCaretUpDownBold
+                  className={`inline ${
+                    sortColumn === id ? "text-green-600" : "text-gray-400/50"
+                  } hover:text-gray-600 active:text-gray-500`}
+                />
+              </button>
+            </TableHead>
+          ))}
+      </TableRow>
+    </TableHeader>
 
-            <div className='flex items-center flex-1 font-semibold px-4'>
-              {
-                fields.filter(({ table_column }) => table_column).map(({ id, label, align, type }, ind) => {
-                  return <h1 key={ind} className={`flex-1 ${align || "text-center"} text-[#71717A] font-medium text-base`}>
-                    {label} <button onClick={() => sortHandle(id, type)} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === id ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>
-                  </h1>
-                })
-              }
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell
+            colSpan={fields.filter(({ table_column }) => table_column).length}
+          >
+            <div className="flex h-full flex-1 flex-col justify-center items-center">
+              <Spinner size="xl" />
             </div>
+          </TableCell>
+        </TableRow>
+      ) : dataList.length > 0 ? (
+        dataList.map((elem) => {
+          const { id } = elem
+          return (
+            <TableRow
+              key={id}
+              onClick={() => detailsViewHandle(elem)}
+              className={`cursor-pointer hover:bg-gray-50`}
+            >
+              {fields
+                .filter(({ table_column }) => table_column)
+                .map(({ id: fieldKey, align, render_value } : any) => {
+                  // @ts-ignore
+                  const extract_val = render_value
+                    ? render_value(elem[fieldKey])
+                    : elem[fieldKey]
 
-
-
-
-
-
-
-            <div className='mt-5 h-[65dvh] overflow-y-scroll flex-1'>
-              {loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-                <Spinner size='xl' />
-              </div> :
-                dataList.length > 0 ? dataList.map((elem) => {
-                  const { id, firstname, lastname, created_at } = elem
-                  return <div key={id} onClick={() => detailsViewHandle(elem)} className={`cursor-pointer hover:bg-[#B8C8E1] flex items-center flex-1 font-semibold px-5 py-5 ${id === detailsView?.id ? 'bg-[#B8C8E1]' : ''}`}>
-                    {
-                      fields.filter(({ table_column }) => table_column).map(({ id, label, align, type, render_value }) => {
-                        // @ts-ignore
-                        const extract_val = render_value ? render_value(elem[id]) : elem[id]
-                        return <h1 key={id} className={`flex-1 ${align || "text-center"} font-normal text-base`}>
-                          {extract_val}
-                        </h1>
-                      })
-                    }
-                  </div>
-                }) : <div className="flex h-full flex-1 flex-col justify-center items-center">
-                  <h1>
-                    No Data found!
-                  </h1>
-                </div>}
+                  return (
+                    <TableCell
+                      key={fieldKey}
+                      className={`${
+                        align || "text-center"
+                      } font-normal text-base px-5 py-2`}
+                    >
+                      {extract_val}
+                    </TableCell>
+                  )
+                })}
+            </TableRow>
+          )
+        })
+      ) : (
+        <TableRow>
+          <TableCell
+            colSpan={fields.filter(({ table_column }) => table_column).length}
+          >
+            <div className="flex h-full flex-1 flex-col justify-center items-center">
+              <h1>No Data found!</h1>
             </div>
-          </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+</div>
 
 
         </div>

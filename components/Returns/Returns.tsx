@@ -5,6 +5,7 @@ import { delete_content_service, fetch_content_service, update_content_service }
 import { PiCaretUpDownBold } from 'react-icons/pi';
 import { toast } from 'react-toastify';
 import { LocationContext } from '@/context';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 interface DataListInterface {
     return_id: number;
@@ -287,76 +288,118 @@ const Returns: FC<Props> = () => {
 
 
                     </div>
-                    <div className='h-[1px] w-full bg-black' />
+                    {/* <div className='h-[1px] w-full bg-gray-200' /> */}
 
-                    <div className='px-3 pt-5'>
-                        {/* Table goes here */}
+                    <div className="px-3 pt-5">
+  <Table>
+    <TableHeader>
+      <TableRow className="font-semibold">
+        <TableHead className="text-start text-lg">
+          Return ID
+          <button onClick={() => sortHandle("return_id")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "return_id" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-center text-lg">
+          Order ID
+          <button onClick={() => sortHandle("order_id")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "order_id" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-center text-lg">
+          Quantity
+          <button onClick={() => sortHandle("quantity")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "order_id" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-center text-lg">
+          Product
+          <button onClick={() => sortHandle("date")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "date" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+        <TableHead className="text-end text-lg">
+          Category
+          <button onClick={() => sortHandle("category")} className="active:opacity-50 ml-1">
+            <PiCaretUpDownBold
+              className={`inline ${
+                sortColumn === "category" ? "text-green-600" : "text-gray-400/50"
+              } hover:text-gray-600 active:text-gray-500`}
+            />
+          </button>
+        </TableHead>
+      </TableRow>
+    </TableHeader>
 
-                        <div className='flex items-center flex-1 font-semibold'>
-                            <h1 className='flex-1 text-start'>
-                                Return ID <button onClick={() => sortHandle('return_id')} className='active:opacity-50'>
-                                    <PiCaretUpDownBold className={`inline ${sortColumn === 'return_id' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} />
-                                </button>
-                            </h1>
-                            <h1 className='flex-1 text-center'>
-                                Order ID <button onClick={() => sortHandle('order_id')} className='active:opacity-50'>
-                                    <PiCaretUpDownBold className={`inline ${sortColumn === 'order_id' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} />
-                                </button>
-                            </h1>
-                            <h1 className='flex-1 text-center'>
-                                Quantity <button onClick={() => sortHandle('quantity')} className='active:opacity-50'>
-                                    <PiCaretUpDownBold className={`inline ${sortColumn === 'order_id' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} />
-                                </button>
-                            </h1>
-                            <h1 className='flex-1 text-center'>
-                                Product <button onClick={() => sortHandle('date')} className='active:opacity-50'>
-                                    <PiCaretUpDownBold className={`inline ${sortColumn === 'date' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} />
-                                </button>
-                            </h1>
-                            <h1 className='flex-1 text-end'>
-                                Category <button onClick={() => sortHandle('category')} className='active:opacity-50'>
-                                    <PiCaretUpDownBold className={`inline ${sortColumn === 'category' ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} />
-                                </button>
-                            </h1>
-                        </div>
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <div className="flex h-full flex-1 flex-col justify-center items-center">
+              <Spinner size="xl" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ) : dataList.length > 0 ? (
+        dataList.map((elem) => {
+          const {
+            return_id,
+            quantity,
+            sales_history: { order_id },
+            inventory: {
+              products: {
+                product_name,
+                categories: { category_name },
+              },
+            },
+          } = elem;
+          return (
+            <TableRow
+              key={return_id}
+              onClick={() => detailsViewHandle(elem)}
+              className="cursor-pointer text-base rounded-md px-3 py-1 hover:bg-gray-50 hover:text-inherit"
+            >
+              <TableCell className="text-start pl-4">{return_id}</TableCell>
+              <TableCell className="text-center">{order_id}</TableCell>
+              <TableCell className="text-center">{quantity}</TableCell>
+              <TableCell className="text-center">{product_name}</TableCell>
+              <TableCell className="text-end pr-4">{category_name}</TableCell>
+            </TableRow>
+          );
+        })
+      ) : (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center">
+              <h1>No data found!</h1>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+</div>
 
 
 
 
 
-
-
-
-                        <div className='mt-5 h-[60dvh] overflow-y-scroll space-y-5'>
-                            {loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-                                <Spinner size='xl' />
-                            </div> :
-                                dataList.length > 0 ? dataList.map((elem) => {
-                                    const { return_id, quantity, sales_history: { order_id }, inventory: { products: { product_name, categories: { category_name } } } } = elem
-                                    return <div key={return_id} onClick={() => detailsViewHandle(elem)} className='cursor-pointer hover:bg-gray-500 hover:text-white flex items-center flex-1 font-semibold bg-white px-3 py-4 rounded-md '>
-                                        <h1 className='ms-4 flex-1 text-start'>
-                                            {return_id}
-                                        </h1>
-                                        <h1 className='flex-1 text-center'>
-                                            {order_id}
-                                        </h1>
-                                        <h1 className='flex-1 text-center'>
-                                            {quantity}
-                                        </h1>
-                                        <h1 className='flex-1 text-center'>
-                                            {product_name}
-                                        </h1>
-                                        <h1 className='flex-1 text-end me-4'>
-                                            {category_name}
-                                        </h1>
-                                    </div>
-                                }) : <div className="flex h-full flex-1 flex-col justify-center items-center">
-                                    <h1>
-                                        No data found!
-                                    </h1>
-                                </div>}
-                        </div>
-                    </div>
 
 
                 </div>
