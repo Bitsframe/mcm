@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
+
 import { Moon, Sun } from "lucide-react";
 
 interface LayoutProps {
@@ -11,6 +12,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ export default function Layout({ children }: LayoutProps) {
         }`}
       >
         {theme === "dark" ? (
+
           <Image src={Lightlogo} alt="Logo" className="w-48 opacity-90" />
         ) : (
           <Image src={Darklogo} alt="Logo" className="w-48 opacity-90" />
@@ -47,6 +50,7 @@ export default function Layout({ children }: LayoutProps) {
           className="absolute top-4 right-4 p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
         >
           {theme === "dark" ? <Moon /> : <Sun />}
+
         </button>
 
         <div className="h-full flex items-center justify-center">
@@ -56,3 +60,4 @@ export default function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+

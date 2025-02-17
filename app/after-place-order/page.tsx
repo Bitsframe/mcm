@@ -9,7 +9,7 @@ const ThankYouPage: React.FC = () => {
       <div className='max-w-3xl'>
         <div className="mb-8">
           <img
-            src="/assets/feedback_request_icon.png" // Ensure this image is in the public folder
+            src="/assets/feedback_request_icon.png" 
             alt="MyClinic Logo"
             className="w-20"
           />

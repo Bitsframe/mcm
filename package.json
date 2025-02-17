@@ -52,6 +52,7 @@
     "react-phone-input-2": "^2.15.1",
     "react-toastify": "^10.0.5",
     "recharts": "^2.12.7",
+    "sonner": "^1.7.4",
     "styled-components": "^6.1.11",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",

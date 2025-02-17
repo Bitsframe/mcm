@@ -10,7 +10,6 @@ interface DataInterface {
 
 export const validateFormData = (data: DataInterface, address = false) => {
     const { email, phone, state, zipcode, street_address } = data
-    console.log('------------------>',zipcode)
 
     if (email) {
         const isValidEmail = String(email)
@@ -34,31 +33,7 @@ export const validateFormData = (data: DataInterface, address = false) => {
         }
     }
     if (address) {
-        if (!state) {
-            toast.warning(`Please select state`);
-            return false
-        }
-        if (!zipcode) {
-            toast.error(`Please enter Zipcode`);
-            return false
-        }
-        else {
-            console.log('456789',zipcode)
-            const isValidZipCode = String(zipcode)
-                .match(/^[0-9]{5}(?:-[0-9]{4})?$/);
-            if (!isValidZipCode) {
-                toast.error(`Please enter a valid Zipcode`);
-                return false
-            }
-        }
-        if (!street_address) {
-            toast.warning(`Please enter street address`);
-            return false
-        }
     }
-
-
     return true
-
 
 }
