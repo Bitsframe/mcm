@@ -174,6 +174,8 @@ const SalesHistory = () => {
   useEffect(() => {
     fetchReasonsList()
   }, [])
+
+  
   
   return (
     <main className="w-full h-full font-[500] text-[20px]">
@@ -191,6 +193,7 @@ const SalesHistory = () => {
           dataList={dataList}
           openModal={openModal}
           searchHandle={onChangeHandle}
+          searchInputplaceholder = "Search by Order ID"
 
         />
       </div>

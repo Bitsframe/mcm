@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+function Content({ children }: LayoutProps) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -21,9 +21,7 @@ export default function Layout({ children }: LayoutProps) {
   if (!mounted) return null;
 
   return (
-    <div
-      className={`min-h-screen flex ${resolvedTheme === "dark" ? "dark" : ""}`}
-    >
+    <div className={`min-h-screen flex ${resolvedTheme === "dark" ? "dark" : ""}`}>
       <div
         className={`w-1/2 p-3 ${
           resolvedTheme === "dark" ? "bg-gray-900" : "bg-gray-100"
@@ -53,5 +51,13 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="light">
+      <Content>{children}</Content>
+    </ThemeProvider>
   );
 }

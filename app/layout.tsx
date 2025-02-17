@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <ThemeProvider>
+      {/* <ThemeProvider> */}
       <body className={inter.className}>{children}
       
       <ToastContainer
@@ -37,7 +37,7 @@ export default function RootLayout({
       theme="light"
       />
       </body>
-      </ThemeProvider>
+      {/* </ThemeProvider> */}
     </html>
   )
 }

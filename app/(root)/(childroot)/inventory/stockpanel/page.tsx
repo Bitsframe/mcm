@@ -137,7 +137,7 @@ const StockPanel = () => {
         <InventoryCards archived={getDataArchiveType} />
         <TableComponent
           tableHeight='h-[71.5dvh]'
-          tableBodyHeight='h-[55dvh]'
+          tableBodyHeight='h-[12dvh]'
           tableHeader={tableHeader}
           loading={loading}
           dataList={dataList}
