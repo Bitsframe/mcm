@@ -1,60 +1,45 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { updateSession } from './utils/supabase/middleware'
+import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from './utils/supabase/server';
 
 export async function middleware(request: NextRequest) {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession();
-
+  const supabase = createClient();
   const { url, nextUrl } = request;
-  const pathname = nextUrl.pathname
+  const pathname = nextUrl.pathname;
 
-  // Retrieve user session
-  const path_start_with = pathname.startsWith('/login')
+  const isLoginPage = pathname.startsWith('/login');
 
-  // if (pathname.startsWith('/set-password')) {
-  //   return NextResponse.next()
-  // }
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    console.log('session:', session);
 
-  // await updateSession(request);
-
-  if (session) {
-    if (path_start_with) {
-      return NextResponse.redirect(new URL('/', url));
+    if (error) {
+      console.error('Error fetching session:', error.message);
     }
-    return NextResponse.next()
-  }
-  else{
-    if (!path_start_with) {
-      return NextResponse.redirect(new URL('/login', url));
+
+    if (session) {
+      // If logged in and on the login page, redirect to home
+      if (isLoginPage) {
+        return NextResponse.redirect(new URL('/', url));
+      }
+      return NextResponse.next(); // Allow access to the requested page
+    } else {
+      if (!isLoginPage) {
+        console.log('No session found, redirecting to login');
+        return NextResponse.redirect(new URL('/login', url));
+      }
+      return NextResponse.next(); // Allow access to the login page
     }
-    return NextResponse.next()
+  } catch (err) {
+    console.error('Unexpected error in middleware:', err);
+    return NextResponse.redirect(new URL('/login', url));
   }
-
-
-  // return 
-
-  // return NextResponse.next(); // Pass through for non-protected routes or with valid session
-
-
-
 }
 
 export const config = {
   matcher: [
     '/login',
     '/',
-    // '/dashboard',
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-}
-
-
-
+};

@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: any) => {
                 const response = await axios.get('/api/user');
                 const { role, permissions, locations, profile } = response.data.data;
 
+                console.log("RESPONSE -> ", response);
                 setAuthState({
                     checkingAuth: false,
                     userProfile: profile,
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }: any) => {
                     authError: null
                 });
             } catch (error) {
+                console.log("ERROR -> ", error);
                 setAuthState(prev => ({
                     ...prev,
                     checkingAuth: false,
