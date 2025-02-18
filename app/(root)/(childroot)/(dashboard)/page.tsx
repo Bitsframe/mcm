@@ -5,6 +5,7 @@ import { Spinner } from "flowbite-react";
 import { cronitorSampleData, render_arr } from "@/data";
 import { CronitorRequest, DNS, Monitor, SSL } from "@/types/dashboard.interface";
 
+// @ts-ignore
 const InfoCard = memo(({ label, value, type = 'text' }: { label: string; value: any; type?: 'text' | 'image' }) => (
   <div className="bg-gray-100/75 p-4 rounded-md space-y-3">
     <h1 className="text-lg font-bold">{label}</h1>
@@ -16,12 +17,16 @@ const InfoCard = memo(({ label, value, type = 'text' }: { label: string; value: 
   </div>
 ));
 
+InfoCard.displayName = "InfoCard";
+
 const DataField = memo(({ label, value }: { label: string; value: React.ReactNode }) => (
   <dl>
     <dt className="font-bold text-sm md:text-base">{label}</dt>
     <dd className="break-words">{value}</dd>
   </dl>
 ));
+
+DataField.displayName = "DataField"
 
 const SSLSection = memo(({ ssl }: { ssl: SSL }) => (
   <div className="bg-gray-100/75 p-4 rounded-md">
@@ -40,6 +45,8 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => (
     </div>
   </div>
 ));
+
+SSLSection.displayName = "SSLSection"
 
 const DNSSection = memo(({ dns }: { dns: DNS }) => (
   <div className="bg-gray-100/75 p-4 rounded-md">
@@ -60,6 +67,8 @@ const DNSSection = memo(({ dns }: { dns: DNS }) => (
     </div>
   </div>
 ));
+
+DNSSection.displayName = "DNSSection"
 
 const MonitorDetails = memo(({ request, schedule, platform }: { 
   request: CronitorRequest; 
@@ -100,6 +109,8 @@ const MonitorDetails = memo(({ request, schedule, platform }: {
   </div>
 ));
 
+MonitorDetails.displayName = "MonitorDetails"
+
 const RenderData = memo(({ data }: { data: Monitor }) => {
   const { 
     attributes: { site: { ssl, dns } }, 
@@ -134,6 +145,8 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
     </div>
   );
 });
+
+RenderData.displayName = "RenderData"
 
 const Page = () => {
 

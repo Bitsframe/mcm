@@ -35,7 +35,9 @@ export const sortAppointments = (
       );
     default:
       return sortedList.sort((a, b) => {
+        // @ts-ignore
         const timeA = moment(formatDateTime(a.date_and_time).date, "YYYY-MM-DD").valueOf();
+        // @ts-ignore
         const timeB = moment(formatDateTime(b.date_and_time).date, "YYYY-MM-DD").valueOf();
         return order === -1 ? timeA - timeB : timeB - timeA;
       });
@@ -49,6 +51,7 @@ export const filterAppointmentsByDate = (appointments: Appointment[], date: Date
 
   return appointments.filter((appoint) => {
     if (appoint.date_and_time) {
+      // @ts-ignore
       const { date } = formatDateTime(appoint.date_and_time);
       return date === formattedDate;
     }

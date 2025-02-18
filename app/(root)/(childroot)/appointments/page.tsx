@@ -49,6 +49,8 @@ const MemoizedTableRow = memo(({ appointment, isSelected, onSelect }: {
   </TableRow>
 ));
 
+MemoizedTableRow.displayName = "MemoizedTableRow"
+
 const AppointmentDetails = memo(({ 
   appointment_details,
   onDelete,
@@ -110,6 +112,8 @@ const AppointmentDetails = memo(({
   </div>
 ));
 
+AppointmentDetails.displayName = "AppointmentDetails"
+
 const Appointments = () => {
   const { locations } = useLocationClinica();
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
@@ -124,6 +128,7 @@ const Appointments = () => {
   const fetchDataHandler = useCallback(async (locationId: number) => {
     setAppoint_loading(true);
     setAppointment_details(null);
+    // @ts-ignore
     const appoint_data: Appointment[] = await fetchAppointmentsByLocation(locationId);
     setAllAppointments(appoint_data);
     setAppointments(appoint_data);

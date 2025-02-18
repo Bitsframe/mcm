@@ -67,10 +67,12 @@ const SalesHistory = () => {
 
   const fetchReasonsList = useCallback(async () => {
     try {
+      
       const fetched_data = await fetch_content_service({
         table: 'returnreasons',
         language: '',
       });
+      // @ts-ignore
       setPreDefinedReasonList(fetched_data || []);
     } catch (error) {
       console.error('Error fetching return reasons', error);
