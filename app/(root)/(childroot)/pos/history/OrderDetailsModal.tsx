@@ -1,12 +1,9 @@
-import { inventory } from '@/assets/SVGs';
 import { currencyFormatHandle } from '@/helper/common_functions';
 import { create_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { CircularProgress } from '@mui/material';
 import { Button } from 'flowbite-react';
-import moment from 'moment';
 import React, { FC, useEffect, useState } from 'react';
 import { CiSearch } from 'react-icons/ci';
-import { FaSquareCheck } from 'react-icons/fa6';
 import { IoCloseOutline } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 
@@ -36,15 +33,6 @@ interface PatientDetailsInterface {
         title: string
     }
 }
-
-// const rtnReasonsList = [
-//     "Incorrect Item",
-//     "Expired Product",
-//     "Not Needed Anymore",
-//     "Damaged or Defective",
-//     "Other"
-// ]
-
 
 interface PatientDetailsRenderPropsInterface {
     patientData: PatientDetailsInterface;
@@ -105,7 +93,7 @@ const tableHeader = [
 
 
 
-const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({ patientData, paymentType }) => {
+const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({ patientData, paymentType = 'Cash' }) => {
 
     const { firstname = '', lastname = '', gender = '', email = '', phone = '', id, treatmenttype, Locations } = patientData
     return <div className="py-4 space-y-3">

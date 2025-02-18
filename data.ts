@@ -1,3 +1,4 @@
+import { CronitorData, LatestEvent, RenderArrInterface } from "./types/dashboard.interface"
 
 export const render_arr: RenderArrInterface[] = [
     {
@@ -115,3 +116,80 @@ export const cronitorSampleData: CronitorData = {
   "total_monitor_count": 1,
   "version": "2020-10-01"
 }
+
+export const render_detail_keys: RenderDetailFields[] = [
+  {
+    label: 'First Name',
+    key: 'first_name',
+    can_sort: true
+
+  },
+  {
+    label: 'Last Name',
+    key: 'last_name',
+    can_sort: true
+
+  },
+  {
+    label: 'Email Address',
+    key: 'email_address',
+    can_sort: true
+
+  },
+  {
+    label: 'D.O.B',
+    key: 'dob',
+    can_sort: true
+
+  },
+  {
+    label: 'Sex',
+    key: 'sex',
+    can_sort: true
+
+  },
+  {
+    label: 'Service',
+    key: 'service',
+    can_sort: true
+
+  },
+  {
+    label: 'Location',
+    key: 'location',
+    can_sort: true
+
+  },
+  {
+    label: 'Phone',
+    key: 'phone',
+
+  },
+  {
+    label: 'Address',
+    key: 'address',
+    can_sort: true
+
+  },
+  {
+    label: 'Date slot',
+    key: 'date_and_time',
+    type: 'date_slot',
+    can_sort: true
+
+
+  },
+  {
+    label: 'Time slot',
+    key: 'date_and_time',
+    type: 'time_slot',
+    can_sort: true
+
+
+  },
+  {
+    label: 'Created at',
+    key: 'created_at',
+    date_format: true
+  },
+]
