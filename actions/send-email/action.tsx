@@ -20,7 +20,7 @@ export async function getUserEmail(): Promise<any> {
 export async function getServices(): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("services") // Replace 'user' with the actual name of your table
+      .from("services") 
       .select("title");
 
     console.log(data);

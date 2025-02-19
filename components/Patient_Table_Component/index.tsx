@@ -7,7 +7,16 @@ import { PiCaretUpDownBold } from 'react-icons/pi'
 import { formatPhoneNumber } from '@/utils/getCountryName'
 import { LocationContext } from '@/context'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
-import { createClient } from "@/utils/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -20,9 +29,11 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Input } from "../ui/input";
-import { redirect } from 'next/navigation'
+import { getServices } from '@/actions/send-email/action'
+import { ScrollArea } from '../ui/scroll-area'
 interface EditPatientModalProps {
   patientDetails: Patient
+  serviceList:{title:string}[]
 }
 
 interface Patient {
@@ -82,6 +93,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     }
   }, [selectedLocation?.id, fetchPatients])
 
+
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
   }, [])
@@ -95,15 +107,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
   const filteredAndSortedPatients = useMemo(() => {
     let result = [...patients]
-    
+
     // Filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      result = result.filter(patient => 
+      result = result.filter(patient =>
         `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower)
       )
     }
-    
+
     // Sort
     if (sortConfig.key) {
       result.sort((a, b) => {
@@ -123,7 +135,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         return 0
       })
     }
-    
+
     return result
   }, [patients, searchTerm, sortConfig])
 
@@ -136,7 +148,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>All patients</h1>
       </div>
-      
+
       <div className='w-full min-h-[81.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
           <div className="flex items-center justify-between mb-4">
@@ -156,7 +168,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                 <TableRow className="border-b border-gray-200">
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
                     Patient ID
-                    <button 
+                    <button
                       onClick={() => handleSort('id')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
@@ -165,7 +177,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
                     Patient Name
-                    <button 
+                    <button
                       onClick={() => handleSort('name')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
@@ -174,7 +186,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
                     Created at
-                    <button 
+                    <button
                       onClick={() => handleSort('date')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
@@ -235,7 +247,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               Patient Detail
             </h1>
           </div>
-          
+
           {selectedPatient && (
             <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate} />
           )}
@@ -245,14 +257,29 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   )
 }
 
-const PatientDetails: FC<{ 
-  patient: Patient; 
+const PatientDetails: FC<{
+  patient: Patient;
   renderType: Props['renderType'];
   formatDate: (date: string) => string;
 }> = ({ patient, renderType, formatDate }) => {
+  const [serviceList, setServiceList] = useState([]);
+
+  useEffect(() => {
+    fetchServiceList();
+  }, [])
+
+  const fetchServiceList = async () => {
+    try {
+      const services = await getServices();
+      setServiceList(services);
+    } catch (error) {
+      console.error("Failed to fetch email:", error);
+    }
+  };
+
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
-      <EditPatientModal patientDetails={patient} />
+      <EditPatientModal patientDetails={patient} serviceList={serviceList} />
       <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
           <dd className='font-bold text-2xl'>{patient.id}</dd>
@@ -306,8 +333,7 @@ const PatientDetails: FC<{
   )
 }
 
-const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) => {
-  console.log("patientDetails",patientDetails);
+const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serviceList }) => {
   const [patientData, setPatientData] = useState({
     firstname: "",
     lastname: "",
@@ -339,12 +365,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) =
   const handleSaveChanges = async () => {
     setLoading(true);
     setErrorMessage("");
-  
-    console.log("Existing patient details:", patientDetails);
-    console.log("Updated patient data:", patientData);
-  
+
     try {
-      const data = await fetch("/api/user",{
+      const data = await fetch("/api/user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,6 +382,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) =
         }),
       })
 
+      console.log("Patient details updated successfully:", data);
     } catch (error: any) {
       console.log("Error updating patient details:", error.message);
     } finally {
@@ -367,92 +391,83 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) =
   };
 
   return (
-    <AlertDialog key={'edit-patient-modal'} >
-      <AlertDialogTrigger asChild>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
-          Edit
-        </button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-            Edit Patient Details
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm text-gray-600">
-            Make changes to the patient's information and save them.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        
-        <div className="space-y-4 mt-3">
-          {errorMessage && (
-            <p className="text-red-500 text-sm">{errorMessage}</p>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
-            <Input
-              type="text"
-              name="firstname"
-              value={patientData.firstname}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
-            <Input
-              type="text"
-              name="lastname"
-              value={patientData.lastname}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
-            <Input
-              type="text"
-              name="phone"
-              value={patientData.phone}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <Input
-              type="email"
-              name="email"
-              value={patientData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
-            <Input
-              type="text"
-              name="treatmenttype"
-              value={patientData.treatmenttype}
-              onChange={handleChange}
-            />
-          </div>
+    <AlertDialog key={'edit-patient-modal'}>
+    <AlertDialogTrigger asChild>
+      <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
+        Edit
+      </button>
+    </AlertDialogTrigger>
+    <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white">
+      <AlertDialogHeader>
+        <AlertDialogTitle className="text-lg font-semibold text-gray-900">
+          Edit Patient Details
+        </AlertDialogTitle>
+        <AlertDialogDescription className="text-sm text-gray-600">
+          Make changes to the patient's information and save them.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+  
+      <div className="space-y-4 mt-3">
+        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+  
+        <div>
+          <label className="block text-sm font-medium text-gray-700">First Name</label>
+          <Input type="text" name="firstname" value={patientData.firstname} onChange={handleChange} />
         </div>
-
-        <AlertDialogFooter className="mt-4 flex justify-end gap-2">
-          <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleSaveChanges}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
-            disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+  
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Last Name</label>
+          <Input type="text" name="lastname" value={patientData.lastname} onChange={handleChange} />
+        </div>
+  
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Phone</label>
+          <Input type="text" name="phone" value={patientData.phone} onChange={handleChange} />
+        </div>
+  
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <Input type="email" name="email" value={patientData.email} onChange={handleChange} />
+        </div>
+  
+        {/* Treatment Type Dropdown */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
+          <DropdownMenu modal={true}>
+            <DropdownMenuTrigger>{patientData.treatmenttype || "Select Treatment"}</DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Treatment Types</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <ScrollArea className="h-72 w-48 overflow-y-auto">
+                {serviceList.map((service) => (
+                  <DropdownMenuItem
+                    key={service.title}
+                    onSelect={() => setPatientData(prev => ({ ...prev, treatmenttype: service.title }))}
+                  >
+                    {service.title}
+                  </DropdownMenuItem>
+                ))}
+              </ScrollArea>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+  
+      <AlertDialogFooter className="mt-4 flex justify-end gap-2">
+        <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
+          Cancel
+        </AlertDialogCancel>
+        <AlertDialogAction
+          onClick={handleSaveChanges}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save Changes"}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+  
   );
 };
 
