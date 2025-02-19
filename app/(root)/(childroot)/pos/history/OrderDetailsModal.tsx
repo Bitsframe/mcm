@@ -104,7 +104,7 @@ const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({ patientD
             <p>Gender: <strong>{gender}</strong> </p>
             <p>Phone: <strong>{phone}</strong></p>
             <p className=''>Email: <strong>{email}</strong></p>
-            <p className=''>payment Type: <strong>{paymentType}</strong></p>
+            <p className=''>Payment Type: <strong>{paymentType}</strong></p>
             <p>Treatment Type: <strong>{treatmenttype}</strong></p>
             <p>Location: <strong>{Locations?.title}</strong></p>
         </div>

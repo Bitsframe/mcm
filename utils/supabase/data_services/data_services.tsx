@@ -52,16 +52,41 @@ export async function fetchLocations() {
   return data
 }
 
-
-export async function fetchAppointmentsByLocation(locationId: number | null) {
+export async function fetchApprovedAppointmentsByLocation(locationId: number | null) {
   let query = supabase
     .from('Appoinments')
-    .select(`*,location:Locations (
+    .select(`*, location:Locations (
       id,
       title,
       address,  
       phone
-    )`);
+    )`)
+    .eq('isApproved', true); 
+
+  if (locationId) {
+    query = query.eq('location_id', locationId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.log(error.message);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export async function fetchUnapprovedAppointmentsByLocation(locationId: number | null) {
+  let query = supabase
+    .from('Appoinments')
+    .select(`*, location:Locations (
+      id,
+      title,
+      address,  
+      phone
+    )`)
+    .eq('isApproved', false); 
 
   if (locationId) {
     query = query.eq('location_id', locationId);
