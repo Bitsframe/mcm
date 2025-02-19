@@ -18,7 +18,7 @@
     sex: string;
     phone: string;
     created_at: string;
-    location?: Location;
+    location?: LocationInterface;
     in_office_patient: boolean;
     new_patient: boolean;
   }
