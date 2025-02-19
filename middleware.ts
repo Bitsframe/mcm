@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     
-    console.log('session:', session);
+    // console.log('session:', session);
 
     if (error) {
       console.error('Error fetching session:', error.message);

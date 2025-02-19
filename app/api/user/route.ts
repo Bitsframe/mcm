@@ -3,24 +3,6 @@ import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-interface Profile {
-    id: string;
-    role_id: string;
-    // Add other profile fields as needed
-}
-
-interface UserPermission {
-    permissions: {
-        id: string;
-        permission: string;
-    };
-}
-
-interface UserRole {
-    id: string;
-    name: string;
-}
-
 export const GET = async (req: Request) => {
     const supabase = supabaseCreateClient();
 
@@ -85,7 +67,6 @@ export const GET = async (req: Request) => {
             }, 
             { status: 200 }
         );
-
     } catch (error) {
         console.error('User details error:', error);
         return NextResponse.json(
@@ -93,6 +74,50 @@ export const GET = async (req: Request) => {
                 success: false,
                 message: error instanceof Error ? error.message : 'Internal Server Error'
             }, 
+            { status: 500 }
+        );
+    }
+};
+
+
+
+export const POST = async (req: Request) => {
+    try {
+        const supabase = supabaseCreateClient();
+        const patientData = await req.json(); 
+
+        console.log('patientData:', patientData);
+        
+        const { data, error } = await supabase
+            .from("allpatients")
+            .update({
+                firstname: patientData.firstname,
+                lastname: patientData.lastname,
+                email: patientData.email,
+                phone: patientData.phone,
+                treatmenttype: patientData.treatmenttype,
+            })
+            .eq("id", Number(patientData.id)) 
+            .select();
+
+        if (error) {
+            return NextResponse.json(
+                { success: false, message: error.message },
+                { status: 400 }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "User details updated successfully.",
+                data,
+            },
+            { status: 200 }
+        );
+    } catch (error:any) {
+        return NextResponse.json(
+            { success: false, message: "An error occurred.", error: error.message  || "Internal Server Error" },
             { status: 500 }
         );
     }

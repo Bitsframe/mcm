@@ -307,7 +307,6 @@ const PatientDetails: FC<{
 }
 
 const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) => {
-  const supabase = createClient(); 
   console.log("patientDetails",patientDetails);
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -345,19 +344,21 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) =
     console.log("Updated patient data:", patientData);
   
     try {
-      const { error, data, status } = await supabase
-        .from("allpatients")
-        .update({
+      const data = await fetch("/api/user",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: patientDetails?.id,
           firstname: patientData?.firstname,
           lastname: patientData?.lastname,
           email: patientData?.email,
           phone: patientData?.phone,
           treatmenttype: patientData?.treatmenttype,
-        })
-        .eq("id", Number(patientDetails.id))
-        .select(); 
-        redirect('/patients/all')
-  
+        }),
+      })
+
     } catch (error: any) {
       console.log("Error updating patient details:", error.message);
     } finally {
