@@ -79,5 +79,7 @@ const AppointmentDetails = memo(({
       </div>
     </div>
   ));
+
+  AppointmentDetails.displayName = 'AppointmentDetails';
   
   export default AppointmentDetails;

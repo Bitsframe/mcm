@@ -1,13 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { PureComponent } from "react";
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import {
-  PageFansRemoves,
   PostFansLocale,
-  PageAgeByGender,
-  PageFansCountry,
-  FansCountryKeys,
   FansLocaleKeys,
 } from "../../../utils/facebook";
 

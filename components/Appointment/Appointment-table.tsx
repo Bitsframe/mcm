@@ -100,7 +100,7 @@ interface AppointmentsTableProps {
     </TableRow>
   ));
   
+  MemoizedTableRow.displayName = "MemoizedTableRow";
+
   
-
-
   export default AppointmentsTable;
