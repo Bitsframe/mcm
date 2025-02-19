@@ -148,6 +148,7 @@ const Appointments = () => {
         </TabsList>
         <TabsContent value={activeTab} className="flex flex-row h-[80vh] space-x-5">
           <AppointmentsTable
+          isUnapproved={activeTab == 'request'}
             appointments={activeTab == 'approval' ? filteredApproved : filteredUnapproved}
             appointLoading={appointLoading}
             onSelect={selectForDetailsHandle}

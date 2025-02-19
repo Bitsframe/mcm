@@ -102,7 +102,20 @@ export async function fetchUnapprovedAppointmentsByLocation(locationId: number |
   return data;
 }
 
+export async function ApproveAppointment  (id: number) {
+  const { data, error } = await supabase
+    .from('Appoinments')
+    .update({isApproved:true})
+    .eq('id', id)
+    .select('*')
 
+  if (error) {
+    console.log(error.message);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
 
 
 export async function fetch_content_service({

@@ -2,6 +2,8 @@ import { Spinner } from "flowbite-react";
 import { memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PiCaretUpDownBold } from "react-icons/pi";
+import { ApproveAppointment } from "@/utils/supabase/data_services/data_services";
+import { toast } from "react-toastify";
 
 interface AppointmentsTableProps {
     appointments: Appointment[];
@@ -9,9 +11,10 @@ interface AppointmentsTableProps {
     onSelect: (appointment: Appointment) => void;
     sortHandle: (column: string) => void;
     sortColumn: string;
+    isUnapproved?: boolean;
   }
   
-  const AppointmentsTable: React.FC<AppointmentsTableProps> = ({ appointments, appointLoading, onSelect, sortHandle, sortColumn }) => {
+  const AppointmentsTable: React.FC<AppointmentsTableProps> = ({ appointments, appointLoading, onSelect, sortHandle, sortColumn,isUnapproved }) => {
     return (
       <div className="w-full bg-gray-200 h-full overflow-scroll px-3 py-3 rounded-lg space-y-5">
         {appointLoading ? (
@@ -32,6 +35,7 @@ interface AppointmentsTableProps {
                   { label: 'Service', sort: 'service' },
                   { label: 'Date', sort: 'slot' }
                 ].map(({ label, sort }) => (
+                
                   <TableHead key={sort} className="text-lg">
                     {label}
                     <button
@@ -53,6 +57,7 @@ interface AppointmentsTableProps {
                   appointment={appointment}
                   isSelected={false}
                   onSelect={onSelect}
+                  isUnapproved={isUnapproved}
                 />
               ))}
             </TableBody>
@@ -61,10 +66,10 @@ interface AppointmentsTableProps {
       </div>
     );
   };
-  
-  const MemoizedTableRow = memo(({ appointment, isSelected, onSelect }: {
+  const MemoizedTableRow = memo(({ appointment, isSelected, onSelect, isUnapproved }: {
     appointment: Appointment;
     isSelected: boolean;
+    isUnapproved?: boolean;
     onSelect: (appointment: Appointment) => void;
   }) => (
     <TableRow
@@ -77,8 +82,25 @@ interface AppointmentsTableProps {
       <TableCell className="text-black text-base">{appointment.sex}</TableCell>
       <TableCell className="text-black text-base">{appointment.service}</TableCell>
       <TableCell className="text-black text-base">{appointment.date_and_time}</TableCell>
+      {isUnapproved && (
+        <TableCell className="text-black text-base">
+          <button
+            className="bg-green-500 text-white px-2 py-1 rounded-lg"
+            onClick={(event) => {
+              toast.success("Appointment Approved");
+              event.stopPropagation(); 
+              console.log("Approve button clicked");
+              ApproveAppointment(appointment.id);
+            }}
+          >
+            Approve
+          </button>
+        </TableCell>
+      )}
     </TableRow>
   ));
+  
+  
 
 
   export default AppointmentsTable;
