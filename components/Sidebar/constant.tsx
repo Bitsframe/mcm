@@ -104,10 +104,13 @@ export const routeList: Route[] = [
     id: 'inventory',
     name: "Inventory",
     icon: inventory,
-    children: [
-      { id: 'inventory-stock', name: "Stock panel", route: ROUTES.INVENTORY.STOCK_PANEL },
-      { id: 'inventory-manage', name: "Manage", route: ROUTES.INVENTORY.MANAGE },
-    ],
+    route: ROUTES.INVENTORY.MANAGE,
+  },
+  {
+    id:'inventory-stock',
+    name: "Stock Panel",
+    icon: inventory,
+    route: ROUTES.INVENTORY.STOCK_PANEL
   },
   {
     id: 'tools',
