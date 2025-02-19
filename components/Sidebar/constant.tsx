@@ -1,113 +1,169 @@
 import {
   home,
   appointment,
-  inbox,
   inventory,
   patients,
-  phone_leads,
   pos,
   reputation,
   tools,
-  cronitor,
 } from "@/assets/SVGs";
 
+// Types
+interface Icon {
+  src: string;
+  height: number;
+  width: number;
+}
+
 interface Route {
-  id: number;
+  id: string;
   name: string;
-  icon?: {
-    src: string;
-    height: number;
-    width: number;
-  };
+  icon?: Icon;
   route?: string;
   children?: Route[];
 }
 
+// Route path constants
+const ROUTES = {
+  HOME: '/',
+  PATIENTS: {
+    ALL: '/patients/all',
+    ONSITE: '/patients/onsite',
+    OFFSITE: '/patients/offsite'
+  },
+  APPOINTMENTS: '/appointments',
+  REPUTATION: {
+    PRIVATE_FEEDBACK: '/reputation/privatefeedback'
+  },
+  POS: {
+    SALES: '/pos/sales',
+    RETURN: '/pos/return',
+    HISTORY: '/pos/history'
+  },
+  INVENTORY: {
+    STOCK_PANEL: '/inventory/stockpanel',
+    MANAGE: '/inventory/manage'
+  },
+  TOOLS: {
+    EMAIL_BROADCAST: '/tools/emailbroadcast',
+    WEBSITE_CONTENT: '/tools/websitecontent',
+    PROMO_CODES: '/tools/promo-codes',
+    ROLES_PERMISSIONS: '/tools/roles-permissions',
+    USER_MANAGEMENT: '/tools/user-management'
+  }
+} as const;
 
 export const routeList: Route[] = [
   {
-    id: 1,
+    id: 'home',
     name: "Home",
     icon: home,
     children: [
-      { id: 1, name: "Dashboard", route: "/" },
-      { id: 2, name: "Profiles", route: "/profiles" },
-      // { id: 4, name: "SEO", route: "/seo" },
+      { id: 'home-dashboard', name: "Dashboard", route: ROUTES.HOME },
     ],
   },
   {
-    id: 2,
+    id: 'patients',
     name: "Patients",
     icon: patients,
     children: [
-      { id: 1, name: "All Patients", route: "/patients/all" },
-      { id: 2, name: "On-site", route: "/patients/onsite" },
-      { id: 3, name: "Off-site", route: "/patients/offsite" },
+      { id: 'patients-all', name: "All Patients", route: ROUTES.PATIENTS.ALL },
+      { id: 'patients-onsite', name: "On-site", route: ROUTES.PATIENTS.ONSITE },
+      { id: 'patients-offsite', name: "Off-site", route: ROUTES.PATIENTS.OFFSITE },
     ],
   },
-  // {
-  //   id: 3,
-  //   name: "Inbox",
-  //   icon: inbox,
-  //   children: [
-  //     { id: 1, name: "Text", route: "/inbox/text" },
-  //     { id: 2, name: "Whatsapp", route: "/inbox/whatsapp" },
-  //   ],
-  // },
   {
-    id: 4,
+    id: 'appointments',
     name: "Appointments",
     icon: appointment,
-    // children: [],
-    route: "/appoinments",
+    route: ROUTES.APPOINTMENTS,
   },
   {
-    id: 6,
+    id: 'reputation',
     name: "Reputation",
     icon: reputation,
     children: [
-      { id: 2, name: "Private Feedback", route: "/reputation/privatefeedback" },
+      { 
+        id: 'reputation-private-feedback', 
+        name: "Private Feedback", 
+        route: ROUTES.REPUTATION.PRIVATE_FEEDBACK 
+      },
     ],
   },
   {
-    id: 7,
+    id: 'pos',
     name: "POS",
     icon: pos,
     children: [
-      { id: 1, name: "Sales", route: "/pos/sales" },
-      { id: 2, name: "Return", route: "/pos/return" },
-      { id: 3, name: "History", route: "/pos/history" },
+      { id: 'pos-sales', name: "Sales", route: ROUTES.POS.SALES },
+      { id: 'pos-return', name: "Return", route: ROUTES.POS.RETURN },
+      { id: 'pos-history', name: "History", route: ROUTES.POS.HISTORY },
     ],
   },
   {
-    id: 8,
+    id: 'inventory',
     name: "Inventory",
     icon: inventory,
-    children: [
-      { id: 1, name: "Stock panel", route: "/inventory/stockpanel" },
-      { id: 2, name: "Manage", route: "/inventory/manage" },
-    ],
+    route: ROUTES.INVENTORY.MANAGE,
   },
-  // {
-  //   id: 9,
-  //   name: "Cronitor panel",
-  //   icon: cronitor,
-  //   children: [
-  //     { id: 1, name: "Stock panel", route: "/inventory/stockpanel" },
-  //     { id: 2, name: "Manage", route: "/inventory/manage" },
-  //   ],
-  // },
   {
-    id: 10,
+    id:'inventory-stock',
+    name: "Stock Panel",
+    icon: inventory,
+    route: ROUTES.INVENTORY.STOCK_PANEL
+  },
+  {
+    id: 'tools',
     name: "Tools",
     icon: tools,
     children: [
-      { id: 1, name: "Email Broadcast", route: "/tools/emailbroadcast" },
-      { id: 2, name: "Website Content", route: "/tools/websitecontent" },
-      // { id: 3, name: "Text Broadcast", route: "/tools/textbroadcast" },
-      { id: 4, name: "Promo Codes", route: "/tools/promo-codes" },
-      { id: 4, name: "Roles and Permissions", route: "/tools/roles-permissions" },
-      { id: 4, name: "User Management", route: "/tools/user-management" },
+      { 
+        id: 'tools-email', 
+        name: "Email Broadcast", 
+        route: ROUTES.TOOLS.EMAIL_BROADCAST 
+      },
+      { 
+        id: 'tools-website', 
+        name: "Website Content", 
+        route: ROUTES.TOOLS.WEBSITE_CONTENT 
+      },
+      { 
+        id: 'tools-promo', 
+        name: "Promo Codes", 
+        route: ROUTES.TOOLS.PROMO_CODES 
+      },
+      { 
+        id: 'tools-roles', 
+        name: "Roles and Permissions", 
+        route: ROUTES.TOOLS.ROLES_PERMISSIONS 
+      },
+      { 
+        id: 'tools-users', 
+        name: "User Management", 
+        route: ROUTES.TOOLS.USER_MANAGEMENT 
+      },
     ],
   },
 ];
+
+// Helper type to extract all route paths
+type RoutePaths = typeof ROUTES;
+
+// Helper functions
+export const isActiveRoute = (currentPath: string, route?: string): boolean => {
+  if (!route) return false;
+  return currentPath.startsWith(route);
+};
+
+export const findRouteByPath = (path: string, routes: Route[]): Route | null => {
+  for (const route of routes) {
+    if (route.route === path) return route;
+    if (route.children) {
+      const found = findRouteByPath(path, route.children);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+export type { Route, RoutePaths };

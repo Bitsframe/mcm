@@ -1,108 +1,126 @@
 'use client'
-import React, { FC, useState } from 'react'
+
+import React, { FC, useState, useCallback, useMemo } from 'react'
 import { Custom_Modal } from '../../Modal_Components/Custom_Modal'
-import ScheduleDateTime, { DayTimings } from './ScheduleDateTime'
+import ScheduleDateTime from './ScheduleDateTime'
 import moment from 'moment'
 import { update_appointment_service } from '@/utils/supabase/data_services/data_services'
 import { toast } from 'react-toastify'
-import { Appointment, LocationInterface } from '@/app/(root)/(childroot)/appoinments/page'
 import { sendEmail } from '@/utils/emailService'
-import { EmailBodyInterface, EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
+import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 
-interface Appointment_Edit_Modal_Props {
-    location_data: LocationInterface;
-    appointment_details: Appointment;
-    update_available_data: (data_and_time: string) => void;
-    default_data_time: string;
+
+interface AppointmentEditModalProps {
+  locationData: LocationInterface;
+  appointmentDetails: Appointment;
+  updateAvailableData: (dataAndTime: string) => void;
+  defaultDateTime: string;
 }
 
-export const Appointment_Edit_Modal: FC<Appointment_Edit_Modal_Props> = ({ location_data, appointment_details, update_available_data, default_data_time }) => {
+export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
+  locationData,
+  appointmentDetails,
+  updateAvailableData,
+  defaultDateTime
+}) => {
+  const [openModal, setOpenModal] = useState(false);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [isDateSelected, setIsDateSelected] = useState(false);
+  const [isTimeSelected, setIsTimeSelected] = useState(false);
+  const [selectedVal, setSelectedVal] = useState('');
 
-    const [openModal, setOpenModal] = useState<boolean>(false)
-    const [LoadingUpdate, setLoadingUpdate] = useState(false)
-    const [isDateSelected, setIsDateSelected] = useState(false)
-    const [isTimeSelected, setIsTimeSelected] = useState(false)
-    const [selectedVal, setselectedVal] = useState('')
+  const handleCreateContent = useCallback(async () => {
+    if (!selectedVal) return;
 
+    setLoadingUpdate(true);
+    try {
+      const { error } = await update_appointment_service(appointmentDetails.id, selectedVal);
+      
+      if (!error) {
+        const [dateStr, timeStr] = selectedVal.split('|')[1].split(' - ');
+        const [oldDateStr, oldTimeStr] = appointmentDetails.date_and_time
+          ? appointmentDetails.date_and_time.split('|')[1].split(' - ')
+          : ['-', '-'];
 
-    const create_content_handle = async () => {
-        setLoadingUpdate(true)
+        const emailData = {
+          email: appointmentDetails.email_address,
+          name: `${appointmentDetails.first_name} ${appointmentDetails.last_name}`,
+          location: {
+            title: appointmentDetails.location?.title || '',
+            address: appointmentDetails.location?.address || '',
+            phone: appointmentDetails.location?.phone || ''
+          },
+          service: appointmentDetails.service,
+          date: dateStr,
+          time: timeStr,
+          oldDate: oldDateStr,
+          oldTime: oldTimeStr
+        };
 
-        if (selectedVal) {
-            const { error, data } = await update_appointment_service(appointment_details.id, selectedVal)
-            if (!error) {
-                const lang = 'en'
-                const emailType = EmailBodyTempEnum.UPDATE_TO_YOUR_APPOINTMENT_DETAILS
+        await sendEmail({
+          lang: 'en',
+          emailType: EmailBodyTempEnum.UPDATE_TO_YOUR_APPOINTMENT_DETAILS,
+          data: emailData
+        });
 
-                const { email_address, location, first_name, last_name, service, date_and_time } = appointment_details
-                const data: any = {
-                    email: email_address,
-                    name: `${first_name} ${last_name}`,
-                    location: location,
-                    service: service,
-                    date: selectedVal ? selectedVal?.split?.('|')?.[1]?.split?.(' - ')?.[0] : '-',
-
-                    time: selectedVal ? selectedVal?.split?.(' - ')?.[1] : '-',
-                    oldDate: date_and_time ? date_and_time?.split?.('|')?.[1]?.split?.(' - ')?.[0] : '-',
-                    oldTime: date_and_time ? date_and_time?.split?.(' - ')?.[1] : '-'
-
-                }
-                await sendEmail({ lang, emailType, data })
-                toast.success('Updated successfully');
-                // Update appointment time slot in the database
-                update_available_data(selectedVal)
-                setOpenModal(false)
-            }
-
-        }
-
-        console.log(appointment_details)
-        setLoadingUpdate(false)
-
+        toast.success('Updated successfully');
+        updateAvailableData(selectedVal);
+        setOpenModal(false);
+      }
+    } catch (error) {
+      toast.error('Failed to update appointment');
+    } finally {
+      setLoadingUpdate(false);
     }
+  }, [appointmentDetails, selectedVal, updateAvailableData]);
 
-    const openModalHandle = () => {
-        setOpenModal(true)
+  const handleOpenModal = useCallback(() => setOpenModal(true), []);
+  const handleCloseModal = useCallback(() => setOpenModal(false), []);
+
+  const handleSelectDateTimeSlot = useCallback((date: Date | '', time?: string) => {
+    if (date && time) {
+      const formattedDate = moment(date).format('DD-MM-YYYY');
+      const createSlotForDB = `${appointmentDetails.location_id}|${formattedDate} - ${time}`;
+      setSelectedVal(createSlotForDB);
+      setIsDateSelected(true);
+      setIsTimeSelected(true);
+    } else {
+      setSelectedVal('');
+      setIsDateSelected(!!date);
+      setIsTimeSelected(!!time);
     }
-    const closeModalHandle = () => {
-        setOpenModal(false)
-    }
+  }, [appointmentDetails.location_id]);
 
+  const triggerButton = useMemo(() => (
+    <button
+      onClick={handleOpenModal}
+      className="border-text_primary_color flex-1 text-text_primary_color border-2 active:opacity-60 rounded-md px-4 py-1 ml-2 hover:bg-text_primary_color_hover"
+    >
+      Edit
+    </button>
+  ), [handleOpenModal]);
 
-    const selectDateTimeSlotHandle = (date: Date | '', time?: string | '') => {
-        if (date && time) {
-            const formated_date = moment(date).format('DD-MM-YYYY')
+  const isUpdateDisabled = !isDateSelected || !isTimeSelected;
 
-            const createSlotForDB = `${appointment_details.location_id}|${formated_date} - ${time}`
-            console.log({ createSlotForDB })
-            setselectedVal(createSlotForDB)
-        } else {
-            setselectedVal('')
-
-        }
-
-        if (date) {
-            setIsDateSelected(true)
-
-        }
-
-        if (time) {
-            setIsTimeSelected(true)
-        }
-    }
-
-
-
-    return (
-        <Custom_Modal disabled={!isDateSelected || !isTimeSelected} Trigger_Button={<button onClick={openModalHandle} className="border-text_primary_color flex-1 text-text_primary_color border-2 active:opacity-60 rounded-md px-4 py-1 ml-2 hover:bg-text_primary_color_hover">Edit</button>} create_new_handle={create_content_handle} open_handle={openModalHandle} close_handle={closeModalHandle} is_open={openModal} Title='Update Appointment Time Slot' buttonLabel='Update' loading={LoadingUpdate} >
-            <div className='grid grid-cols-1 gap-4'>
-
-                <ScheduleDateTime default_data_time={default_data_time} selectDateTimeSlotHandle={selectDateTimeSlotHandle} data={location_data} />
-
-
-
-            </div>
-
-        </Custom_Modal>
-    )
-}
+  return (
+    <Custom_Modal
+      disabled={isUpdateDisabled}
+      Trigger_Button={triggerButton}
+      create_new_handle={handleCreateContent}
+      open_handle={handleOpenModal}
+      close_handle={handleCloseModal}
+      is_open={openModal}
+      Title="Update Appointment Time Slot"
+      buttonLabel="Update"
+      loading={loadingUpdate}
+    >
+      <div className="grid grid-cols-1 gap-4">
+        <ScheduleDateTime
+          default_data_time={defaultDateTime}
+          selectDateTimeSlotHandle={handleSelectDateTimeSlot}
+          data={locationData}
+        />
+      </div>
+    </Custom_Modal>
+  );
+};

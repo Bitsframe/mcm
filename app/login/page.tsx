@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Loader2 } from "lucide-react";
 
-function Login({ searchParams }: { searchParams: { error_message: string } }) {
+function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -68,12 +68,6 @@ function Login({ searchParams }: { searchParams: { error_message: string } }) {
                   "Login"
                 )}
               </Button>
-
-              {searchParams?.error_message && (
-                <p className="mt-4 p-4 bg-red-600/10 w-full rounded-xl text-red-600 text-foreground border-[1px] border-red-600/25">
-                  {searchParams.error_message}
-                </p>
-              )}
             </form>
           </CardContent>
         </Card>

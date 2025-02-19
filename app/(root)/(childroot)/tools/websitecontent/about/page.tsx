@@ -51,7 +51,7 @@ const fields: FieldsType = {
     image: ({ value, on_change_handle, label }) => {
         return <div className='flex flex-col space-y-2'>
             {/* <Label>{label}</Label> */}
-            <img className='w-1/2' src="https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z" />
+            <img className='w-1/2' src="https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z" alt='picture'/>
         </div>
 
     }

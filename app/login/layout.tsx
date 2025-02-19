@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+
 import { Moon, Sun } from "lucide-react";
 
 interface LayoutProps {
@@ -11,7 +11,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { setTheme, resolvedTheme } = useTheme();
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,16 +21,19 @@ export default function Layout({ children }: LayoutProps) {
 
   if (!mounted) return null;
 
+  const toggleTheme = () => {
+    setTheme(prev => prev === "dark" ? "light" : "dark");
+  };
+
   return (
-    <div
-      className={`min-h-screen flex ${resolvedTheme === "dark" ? "dark" : ""}`}
-    >
+    <div className={`min-h-screen flex ${theme === "dark" ? "dark" : ""}`}>
       <div
         className={`w-1/2 p-3 ${
-          resolvedTheme === "dark" ? "bg-gray-900" : "bg-gray-100"
+          theme === "dark" ? "bg-gray-900" : "bg-gray-100"
         }`}
       >
-        {resolvedTheme === "dark" ? (
+        {theme === "dark" ? (
+
           <Image src={Lightlogo} alt="Logo" className="w-48 opacity-90" />
         ) : (
           <Image src={Darklogo} alt="Logo" className="w-48 opacity-90" />
@@ -38,14 +42,15 @@ export default function Layout({ children }: LayoutProps) {
 
       <div
         className={`w-1/2 relative ${
-          resolvedTheme === "dark" ? "bg-gray-800" : "bg-gray-200"
+          theme === "dark" ? "bg-gray-800" : "bg-gray-200"
         }`}
       >
         <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          onClick={toggleTheme}
           className="absolute top-4 right-4 p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
         >
-          {resolvedTheme === "dark" ? <Moon /> : <Sun />}
+          {theme === "dark" ? <Moon /> : <Sun />}
+
         </button>
 
         <div className="h-full flex items-center justify-center">
@@ -55,3 +60,4 @@ export default function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+
