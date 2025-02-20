@@ -29,8 +29,13 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Input } from "../ui/input";
+
+import { redirect } from 'next/navigation'
+import { Button } from '../ui/button'
+
 import { getServices } from '@/actions/send-email/action'
 import { ScrollArea } from '../ui/scroll-area'
+
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList:{title:string}[]
@@ -242,10 +247,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         </div>
 
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
-          <div className='px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex items-center'>
-            <h1 className='text-xl font-normal text-white text-center w-full'>
+        <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
+            <div className='text-xl font-normal text-white text-center'>
               Patient Detail
-            </h1>
+            </div>
+            <div>
+            {selectedPatient && <EditPatientModal patientDetails={selectedPatient}/>}
+            </div>
           </div>
 
           {selectedPatient && (
@@ -279,7 +287,10 @@ const PatientDetails: FC<{
 
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
+
+
       <EditPatientModal patientDetails={patient} serviceList={serviceList} />
+
       <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
           <dd className='font-bold text-2xl'>{patient.id}</dd>
@@ -391,28 +402,81 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
   };
 
   return (
-    <AlertDialog key={'edit-patient-modal'}>
-    <AlertDialogTrigger asChild>
-      <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
-        Edit
-      </button>
-    </AlertDialogTrigger>
-    <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white">
-      <AlertDialogHeader>
-        <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-          Edit Patient Details
-        </AlertDialogTitle>
-        <AlertDialogDescription className="text-sm text-gray-600">
-          Make changes to the patient's information and save them.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-  
-      <div className="space-y-4 mt-3">
-        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
-  
-        <div>
-          <label className="block text-sm font-medium text-gray-700">First Name</label>
-          <Input type="text" name="firstname" value={patientData.firstname} onChange={handleChange} />
+
+    <AlertDialog key={'edit-patient-modal'} >
+      <AlertDialogTrigger asChild>
+        {/* <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
+          Edit
+        </button> */}
+        <Button className="bg-[#aec2e4] text-black text-base hover:bg-[#EFEFEF] border-black w-20">
+          Edit
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-lg font-semibold text-gray-900">
+            Edit Patient Details
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-sm text-gray-600">
+            Make changes to the patient's information and save them.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        
+        <div className="space-y-4 mt-3">
+          {errorMessage && (
+            <p className="text-red-500 text-sm">{errorMessage}</p>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
+            <Input
+              type="text"
+              name="firstname"
+              value={patientData.firstname}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <Input
+              type="text"
+              name="lastname"
+              value={patientData.lastname}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <Input
+              type="text"
+              name="phone"
+              value={patientData.phone}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <Input
+              type="email"
+              name="email"
+              value={patientData.email}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
+            <Input
+              type="text"
+              name="treatmenttype"
+              value={patientData.treatmenttype}
+              onChange={handleChange}
+            />
+          </div>
+
         </div>
   
         <div>
