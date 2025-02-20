@@ -75,6 +75,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     key: '',
     direction: -1
   })
+  const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
+
+
+  const fetchServiceList = async () => {
+    try {
+      const services = await getServices();
+      setServiceList(services);
+    } catch (error) {
+      console.error('Failed to fetch services:', error);
+    }
+  };
 
   const fetchPatients = useCallback(async (locationId: number) => {
     setLoading(true)
@@ -94,7 +105,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
   useEffect(() => {
     if (selectedLocation?.id) {
-      fetchPatients(selectedLocation.id)
+      fetchPatients(selectedLocation.id);
+      fetchServiceList();
     }
   }, [selectedLocation?.id, fetchPatients])
 
@@ -252,7 +264,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               Patient Detail
             </div>
             <div>
-            {selectedPatient && <EditPatientModal patientDetails={selectedPatient}/>}
+            {selectedPatient && <EditPatientModal patientDetails={selectedPatient} serviceList={serviceList}/>}
             </div>
           </div>
 
@@ -270,26 +282,26 @@ const PatientDetails: FC<{
   renderType: Props['renderType'];
   formatDate: (date: string) => string;
 }> = ({ patient, renderType, formatDate }) => {
-  const [serviceList, setServiceList] = useState([]);
+  // const [serviceList, setServiceList] = useState([]);
 
-  useEffect(() => {
-    fetchServiceList();
-  }, [])
+  // useEffect(() => {
+  //   fetchServiceList();
+  // }, [])
 
-  const fetchServiceList = async () => {
-    try {
-      const services = await getServices();
-      setServiceList(services);
-    } catch (error) {
-      console.error("Failed to fetch email:", error);
-    }
-  };
+  // const fetchServiceList = async () => {
+  //   try {
+  //     const services = await getServices();
+  //     setServiceList(services);
+  //   } catch (error) {
+  //     console.error("Failed to fetch email:", error);
+  //   }
+  // };
 
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
 
 
-      <EditPatientModal patientDetails={patient} serviceList={serviceList} />
+      {/* <EditPatientModal patientDetails={patient} serviceList={serviceList} /> */}
 
       <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
@@ -515,7 +527,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      
   
       <AlertDialogFooter className="mt-4 flex justify-end gap-2">
         <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
