@@ -3,16 +3,14 @@
 import { useEffect, useState } from "react";
 import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
-
 import { Moon, Sun } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function ClientLayout({ children }: LayoutProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -22,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   if (!mounted) return null;
 
   const toggleTheme = () => {
-    setTheme(prev => prev === "dark" ? "light" : "dark");
+    setTheme(prev => (prev === "dark" ? "light" : "dark"));
   };
 
   return (
@@ -33,11 +31,14 @@ export default function Layout({ children }: LayoutProps) {
         }`}
       >
         {theme === "dark" ? (
-
           <Image src={Lightlogo} alt="Logo" className="w-48 opacity-90" />
         ) : (
           <Image src={Darklogo} alt="Logo" className="w-48 opacity-90" />
         )}
+
+        <div className="text-3xl font-semibold mt-28 dark:text-white px-10">
+          Streamline your Clinic Management with <span className="text-[#58646b]"><b>MyclinicMD</b></span>
+        </div>
       </div>
 
       <div
@@ -50,7 +51,6 @@ export default function Layout({ children }: LayoutProps) {
           className="absolute top-4 right-4 p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
         >
           {theme === "dark" ? <Moon /> : <Sun />}
-
         </button>
 
         <div className="h-full flex items-center justify-center">
@@ -60,4 +60,3 @@ export default function Layout({ children }: LayoutProps) {
     </div>
   );
 }
-

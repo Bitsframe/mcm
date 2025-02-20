@@ -6,10 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Loader2 } from "lucide-react";
+// import initTranslations from '@/app/i18n'
+// import TranslationsProvider from "@/components/TranslationsProvider"
+import { useTranslation } from "react-i18next";
 
-function Login() {
+// const i18nNamespaces = ['Login']
+
+function Login( ) {
+  const {t, i18n} = useTranslation();
+  // const { resources } = await initTranslations(locale, i18nNamespaces)
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  console.log("changed langugae====>>",t("Login_k1"));
+  
+  
+
+  const params = new URLSearchParams(window.location.search);
+        const lang = params.get("lng") || 'en';
+
+        console.log("Changing language to:", lang);
+        i18n.changeLanguage(lang);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,11 +38,12 @@ function Login() {
   };
 
   return (
+    // <TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
     <main className="h-screen w-full flex">
       <div className="flex-1 flex items-center justify-center">
         <Card className="w-full max-w-[450px]">
           <CardHeader className="text-center">
-            <h1 className="text-xl font-bold">Login</h1>
+            <h1 className="text-xl font-bold">{t("Login_k1")}</h1>
           </CardHeader>
           <CardContent>
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -73,6 +90,7 @@ function Login() {
         </Card>
       </div>
     </main>
+    // </TranslationsProvider>
   );
 }
 
