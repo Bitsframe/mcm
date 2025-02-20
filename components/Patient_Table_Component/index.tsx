@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "../ui/input";
 import { redirect } from 'next/navigation'
+import { Button } from '../ui/button'
 interface EditPatientModalProps {
   patientDetails: Patient
 }
@@ -230,10 +231,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         </div>
 
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
-          <div className='px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex items-center'>
-            <h1 className='text-xl font-normal text-white text-center w-full'>
+        <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
+            <div className='text-xl font-normal text-white text-center'>
               Patient Detail
-            </h1>
+            </div>
+            <div>
+            {selectedPatient && <EditPatientModal patientDetails={selectedPatient}/>}
+            </div>
           </div>
           
           {selectedPatient && (
@@ -252,7 +256,7 @@ const PatientDetails: FC<{
 }> = ({ patient, renderType, formatDate }) => {
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
-      <EditPatientModal patientDetails={patient} />
+      {/* <EditPatientModal patientDetails={patient} /> */}
       <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
           <dd className='font-bold text-2xl'>{patient.id}</dd>
@@ -369,9 +373,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails }) =
   return (
     <AlertDialog key={'edit-patient-modal'} >
       <AlertDialogTrigger asChild>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
+        {/* <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
           Edit
-        </button>
+        </button> */}
+        <Button className="bg-[#aec2e4] text-black text-base hover:bg-[#EFEFEF] border-black w-20">
+          Edit
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
         <AlertDialogHeader>

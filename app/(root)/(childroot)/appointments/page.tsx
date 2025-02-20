@@ -117,6 +117,8 @@ const Appointments = () => {
             return a.service.localeCompare(b.service);
           case 'slot':
             return a.date_and_time.localeCompare(b.date_and_time);
+          case 'time':
+            return a.date_and_time.localeCompare(b.date_and_time);
           default:
             return 0;
         }

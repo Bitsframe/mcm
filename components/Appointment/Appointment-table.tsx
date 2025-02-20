@@ -33,7 +33,8 @@ interface AppointmentsTableProps {
                   { label: 'Name', sort: 'name' },
                   { label: 'Gender', sort: 'gender' },
                   { label: 'Service', sort: 'service' },
-                  { label: 'Date', sort: 'slot' }
+                  { label: 'Date', sort: 'slot' },
+                  { label: 'Time', sort: 'time'}
                 ].map(({ label, sort }) => (
                 
                   <TableHead key={sort} className="text-lg">
@@ -81,7 +82,8 @@ interface AppointmentsTableProps {
       </TableCell>
       <TableCell className="text-black text-base">{appointment.sex}</TableCell>
       <TableCell className="text-black text-base">{appointment.service}</TableCell>
-      <TableCell className="text-black text-base">{appointment.date_and_time}</TableCell>
+      <TableCell className="text-black text-base">{appointment.date_and_time.split('|')[1].split(' - ')[0]}</TableCell>
+      <TableCell className="text-black text-base">{appointment.date_and_time.split(' - ')[1]}</TableCell>
       {isUnapproved && (
         <TableCell className="text-black text-base">
           <button
