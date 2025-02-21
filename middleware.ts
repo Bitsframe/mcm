@@ -35,9 +35,8 @@ export async function middleware(request: NextRequest) {
         console.error('Unexpected error in middleware:', err);
         return NextResponse.redirect(new URL('/login', url));
     }
-    
-    // Apply i18next middleware
-    return i18nRouter(request, i18nConfig);
+
+    return NextResponse.next();
 }
 
 export const config = {

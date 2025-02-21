@@ -30,12 +30,14 @@ export default async function initTranslations(
     defaultNS: namespaces[0],
     fallbackNS: namespaces[0],
     ns: namespaces,
-    preload: resources ? [] : i18nConfig.locales
+    preload: resources ? [] : i18nConfig.locales,
+
   });
 
   return {
     i18n: i18nInstance,
     resources: { [locale]: i18nInstance.services.resourceStore.data[locale] },
-    t: i18nInstance.t
+    t: i18nInstance.t,
+    
   };
 }

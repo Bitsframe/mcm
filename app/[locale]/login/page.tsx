@@ -1,44 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { login } from "@/actions/supabase_auth/action";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Loader2 } from "lucide-react";
-// import initTranslations from '@/app/i18n'
-// import TranslationsProvider from "@/components/TranslationsProvider"
 import { useTranslation } from "react-i18next";
+import { useParams } from "next/navigation";
 
-// const i18nNamespaces = ['Login']
-
-function Login( ) {
-  const {t, i18n} = useTranslation();
-  // const { resources } = await initTranslations(locale, i18nNamespaces)
+function Login() {
+  const { t, i18n } = useTranslation('Login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  console.log("changed langugae====>>",t("Login_k1"));
+  const params = useParams();
   
-  
-
-  const params = new URLSearchParams(window.location.search);
-        const lang = params.get("lng") || 'en';
-
-        console.log("Changing language to:", lang);
-        i18n.changeLanguage(lang);
+  useEffect(() => {
+    const locale = params.locale as string;
+    if (locale && i18n.language !== locale) {
+      i18n.changeLanguage(locale);
+    }
+  }, [params.locale, i18n]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-
-    // Wait for the server action to process the form submission
     await login(new FormData(event.currentTarget));
-
     setLoading(false);
   };
 
   return (
-    // <TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
     <main className="h-screen w-full flex">
       <div className="flex-1 flex items-center justify-center">
         <Card className="w-full max-w-[450px]">
@@ -52,7 +43,7 @@ function Login( ) {
                 name="email"
                 type="email"
                 required
-                placeholder="Email"
+                placeholder={t("email")}
                 className="w-full"
               />
 
@@ -62,7 +53,7 @@ function Login( ) {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder="Password"
+                  placeholder={t("password")}
                   className="w-full pr-10"
                 />
                 <button
@@ -82,7 +73,7 @@ function Login( ) {
                 {loading ? (
                   <Loader2 className="animate-spin text-white" size={20} />
                 ) : (
-                  "Login"
+                  t("login_button")
                 )}
               </Button>
             </form>
@@ -90,7 +81,6 @@ function Login( ) {
         </Card>
       </div>
     </main>
-    // </TranslationsProvider>
   );
 }
 
