@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -69,6 +68,19 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [serviceList, setServiceList] = useState([]);
+
+  const [patientData,setPatientData] = useState({
+    firstname: "",
+    lastname: "",
+    phone: "",
+    email: "",
+    treatmenttype: "",
+    gender: "",
+    onsite: true,
+    locationId: 0,
+  })
+
   const [sortConfig, setSortConfig] = useState({
     key: '',
     direction: -1
@@ -148,13 +160,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const firstname = formData.get("firstname") as string;
-    const lastname = formData.get("lastname") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
-    const treatmenttype = formData.get("treatmenttype") as string
-
+    console.log("HANDLE SUBMIT VALUE ->",patientData)
+    console.log("SELECTED LOCATION ->",selectedLocation)
     try {
       const response = await fetch("/api/user", {
         method: "POST",
@@ -162,11 +169,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstname,
-          lastname,
-          email,
-          phone,
-          treatmenttype,
+          firstname: patientData.firstname,
+          lastname: patientData.lastname,
+          email: patientData.email,
+          phone: patientData.phone,
+          treatmenttype: patientData.treatmenttype,
+          locationid: selectedLocation?.id || 17,
+          lastvisit: new Date(),
+          onsite: patientData.onsite,
         }),
       });
 
@@ -174,8 +184,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     } catch (error: any) {
       console.error("Failed to add patient:", error.message);
     }
-
   }
+
+
+  useEffect(() => {
+    fetchServiceList();
+  }, [])
+
+  const fetchServiceList = async () => {
+    try {
+      const services = await getServices();
+      setServiceList(services);
+    } catch (error) {
+      console.error("Failed to fetch email:", error);
+    }
+  };
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
@@ -183,13 +207,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
       </div>
       <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" className='text-black'>Add a Patient</Button>
+        <Button variant="outline" className="text-black">
+          Add a Patient
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Add New Patient</AlertDialogTitle>
-          <AlertDialogDescription>
-            Enter the patient's information below. Click save when you're done.
+          <AlertDialogDescription className="flex gap-3 flex-wrap" asChild>
+            <div>
+              <p>Enter the patient's information below. Click save when you're done.</p>
+              <p className="">
+                Current Location
+                <br />
+                {selectedLocation?.title}
+              </p>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit}>
@@ -198,45 +231,74 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               <Label htmlFor="firstname" className="text-right">
                 First Name
               </Label>
-              <Input id="firstname" className="col-span-3" placeholder='Enter firstname'/>
+              <Input
+                id="firstname"
+                className="col-span-3"
+                placeholder="Enter firstname"
+                onChange={(e) => setPatientData({ ...patientData, firstname: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="lastname" className="text-right">
                 Last Name
               </Label>
-              <Input id="lastname" className="col-span-3" placeholder='Enter lastname'/>
+              <Input
+                id="lastname"
+                className="col-span-3"
+                placeholder="Enter lastname"
+                onChange={(e) => setPatientData({ ...patientData, lastname: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
                 Email
               </Label>
-              <Input id="email" type="email" className="col-span-3"  placeholder='Enter Email'/>
+              <Input
+                id="email"
+                type="email"
+                className="col-span-3"
+                placeholder="Enter Email"
+                onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="phone" className="text-right">
                 Phone
               </Label>
-              <Input id="phone" type="tel" className="col-span-3" placeholder='Enter phone'/>
+              <Input
+                id="phone"
+                type="tel"
+                className="col-span-3"
+                placeholder="Enter phone"
+                onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="treatmenttype" className="text-right">
                 Treatment Type
               </Label>
-              <Select>
+              <Select onValueChange={(value) => {
+                console.log("VALUE ->",value)
+                setPatientData({ ...patientData, treatmenttype: value })}}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select treatment type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="consultation">Consultation</SelectItem>
-                  <SelectItem value="therapy">Therapy</SelectItem>
-                  <SelectItem value="surgery">Surgery</SelectItem>
-                  <SelectItem value="followup">Follow-up</SelectItem>
+                  {serviceList.map((service:{title:string}) => (
+                    <SelectItem key={service.title} value={service.title}>
+                      {service.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Gender</Label>
-              <RadioGroup defaultValue="female" className="col-span-3 flex">
+              <RadioGroup
+                defaultValue="female"
+                className="col-span-3 flex"
+                onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="male" id="male" />
                   <Label htmlFor="male">Male</Label>
@@ -251,13 +313,30 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                 </div>
               </RadioGroup>
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Location</Label>
+              <RadioGroup
+                defaultValue="true"
+                className="col-span-3 flex"
+                onValueChange={(value) => setPatientData({ ...patientData, onsite: value === "true" })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="onsite" />
+                  <Label htmlFor="onsite">On site</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="false" id="offsite" />
+                  <Label htmlFor="offsite">Off site</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
-              <Button variant={'destructive'} className='text-black'>
+              <Button variant={"destructive"} className="text-black">
                 Cancel
               </Button>
-              </AlertDialogCancel>
+            </AlertDialogCancel>
             <AlertDialogAction type="submit">Save</AlertDialogAction>
           </AlertDialogFooter>
         </form>
@@ -363,7 +442,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           </div>
 
           {selectedPatient && (
-            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate} />
+            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate}  serviceList={serviceList}/>
           )}
         </div>
       </div>
@@ -373,23 +452,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
 const PatientDetails: FC<{
   patient: Patient;
+  serviceList: { title: string }[];
   renderType: Props['renderType'];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate }) => {
-  const [serviceList, setServiceList] = useState([]);
-
-  useEffect(() => {
-    fetchServiceList();
-  }, [])
-
-  const fetchServiceList = async () => {
-    try {
-      const services = await getServices();
-      setServiceList(services);
-    } catch (error) {
-      console.error("Failed to fetch email:", error);
-    }
-  };
+}> = ({ patient, renderType, formatDate ,serviceList}) => {
+  
 
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>

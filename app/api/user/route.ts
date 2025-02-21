@@ -14,7 +14,6 @@ export const GET = async (req: Request) => {
             return NextResponse.json({ message: 'User not authenticated.' }, { status: 401 });
         }
 
-        // Parallel execution of database queries
         const [
             profileResult,
             locationsResult,
@@ -84,12 +83,15 @@ export const POST = async (req: Request) => {
         const supabase = supabaseCreateClient();
         const patientData = await req.json(); 
 
-        console.log('patientData:', patientData);
+        console.log('patientData from api:', patientData);
         
         const { data, error } = await supabase
             .from("allpatients")
             .insert([
-                {
+                {   
+                    locationid:patientData.locationid,
+                    lastvisit: patientData.lastvisit,
+                    onsite: patientData.onsite,
                     firstname: patientData.firstname,
                     lastname: patientData.lastname,
                     email: patientData.email,
@@ -99,12 +101,14 @@ export const POST = async (req: Request) => {
             ]);
 
         if (error) {
+            console.log("ERROR ->",error);
             return NextResponse.json(
                 { success: false, message: error.message },
                 { status: 400 }
             );
         }
 
+        console.log("DATA",data);
         return NextResponse.json(
             {
                 success: true,
@@ -114,6 +118,7 @@ export const POST = async (req: Request) => {
             { status: 200 }
         );
     } catch (error:any) {
+        console.log("ERROR ->",error);
         return NextResponse.json(
             { success: false, message: "An error occurred.", error: error.message  || "Internal Server Error" },
             { status: 500 }
