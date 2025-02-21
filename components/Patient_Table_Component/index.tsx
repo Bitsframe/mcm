@@ -146,6 +146,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")
   }, [])
 
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const firstname = formData.get("firstname") as string;
+    const lastname = formData.get("lastname") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const treatmenttype = formData.get("treatmenttype") as string
+
+
+  }
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
@@ -153,7 +164,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
       </div>
       <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline">Add a Patient</Button>
+        <Button variant="outline" className='text-black'>Add a Patient</Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
@@ -162,7 +173,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
             Enter the patient's information below. Click save when you're done.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <form >
+        <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="firstname" className="text-right">
