@@ -180,13 +180,14 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             "date_and_time",
         ];
 
-        const validateData = validateFormData({ ...formData, email: email_address }, true)
+        // const validateData = validateFormData({ ...formData, email: email_address }, true)
 
 
-        if (!validateData) {
-            setLoading(false)
-            return
-        }
+        // if (!validateData) {
+        //     console.log(validateData)
+        //     setLoading(false)
+        //     return
+        // }
 
         for (const field of requiredFields) {
             if (!formData[field]) {
