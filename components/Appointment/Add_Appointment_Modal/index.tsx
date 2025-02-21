@@ -180,15 +180,6 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             "date_and_time",
         ];
 
-        // const validateData = validateFormData({ ...formData, email: email_address }, true)
-
-
-        // if (!validateData) {
-        //     console.log(validateData)
-        //     setLoading(false)
-        //     return
-        // }
-
         for (const field of requiredFields) {
             if (!formData[field]) {
                 toast.warning(`Please fill in the ${field}`);

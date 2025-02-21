@@ -1,6 +1,6 @@
 'use client'
 import React, { FC, useContext, useEffect, useState, useMemo, useCallback } from 'react'
-import { Spinner } from 'flowbite-react'
+import { Label, Spinner } from 'flowbite-react'
 import moment from 'moment'
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
 import { PiCaretUpDownBold } from 'react-icons/pi'
@@ -31,6 +31,9 @@ import {
 import { Input } from "../ui/input";
 import { getServices } from '@/actions/send-email/action'
 import { ScrollArea } from '../ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
+import { Button } from '../ui/button'
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList:{title:string}[]
@@ -148,7 +151,88 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>All patients</h1>
       </div>
-
+      <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline">Add a Patient</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="sm:max-w-[425px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Add New Patient</AlertDialogTitle>
+          <AlertDialogDescription>
+            Enter the patient's information below. Click save when you're done.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <form >
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="firstname" className="text-right">
+                First Name
+              </Label>
+              <Input id="firstname" className="col-span-3" placeholder='Enter firstname'/>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lastname" className="text-right">
+                Last Name
+              </Label>
+              <Input id="lastname" className="col-span-3" placeholder='Enter lastname'/>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input id="email" type="email" className="col-span-3"  placeholder='Enter Email'/>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Phone
+              </Label>
+              <Input id="phone" type="tel" className="col-span-3" placeholder='Enter phone'/>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="treatmenttype" className="text-right">
+                Treatment Type
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select treatment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="therapy">Therapy</SelectItem>
+                  <SelectItem value="surgery">Surgery</SelectItem>
+                  <SelectItem value="followup">Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Gender</Label>
+              <RadioGroup defaultValue="female" className="col-span-3 flex">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="male" id="male" />
+                  <Label htmlFor="male">Male</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="female" id="female" />
+                  <Label htmlFor="female">Female</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="other" id="other" />
+                  <Label htmlFor="other">Other</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant={'destructive'} className='text-black'>
+                Cancel
+              </Button>
+              </AlertDialogCancel>
+            <AlertDialogAction type="submit">Save</AlertDialogAction>
+          </AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
       <div className='w-full min-h-[81.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
           <div className="flex items-center justify-between mb-4">
