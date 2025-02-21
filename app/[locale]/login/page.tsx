@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
 
 function Login() {
-  const { t, i18n } = useTranslation('Login');
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
@@ -43,7 +43,7 @@ function Login() {
                 name="email"
                 type="email"
                 required
-                placeholder={t("email")}
+                placeholder={t("Login_k2")}
                 className="w-full"
               />
 

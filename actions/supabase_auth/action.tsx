@@ -45,5 +45,5 @@ export async function signOut() {
   // revalidatePath('/', 'layout');
 
   // Redirect to the homepage or another page after successful sign out
-  return redirect('/');
+  return redirect('/login');
 }

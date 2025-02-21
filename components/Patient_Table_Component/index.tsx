@@ -479,7 +479,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
             <Input
               type="text"
@@ -487,11 +487,11 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
               value={patientData.treatmenttype}
               onChange={handleChange}
             />
-          </div>
+          </div> */}
 
         </div>
   
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700">Last Name</label>
           <Input type="text" name="lastname" value={patientData.lastname} onChange={handleChange} />
         </div>
@@ -504,7 +504,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
         <div>
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <Input type="email" name="email" value={patientData.email} onChange={handleChange} />
-        </div>
+        </div> */}
   
         {/* Treatment Type Dropdown */}
         <div>
