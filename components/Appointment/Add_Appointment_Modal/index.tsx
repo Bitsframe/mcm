@@ -181,7 +181,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
         ];
 
         const validateData = validateFormData({ ...formData, email: email_address }, true)
-        
+
 
         if (!validateData) {
             setLoading(false)
@@ -255,9 +255,16 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     Locations
                                 </Label>
                                 <div className='flex-1'>
-                                    <Select onChange={(e) => select_change_handle('location_id', e.target.value)} id="locations" required>
-                                        <option selected value=''>All locations</option>
-                                        {locations.map((location: any, index: any) => <option key={index} value={location.id}>{location.address}</option>)}
+                                    <Select
+                                        value={formData.location_id}
+                                        onChange={(e) => select_change_handle('location_id', e.target.value)}
+                                        id="locations"
+                                        required
+                                    >
+                                        <option value=''>All locations</option>
+                                        {locations.map((location: any, index: any) => (
+                                            <option key={index} value={location.id}>{location.address}</option>
+                                        ))}
                                     </Select>
                                 </div>
                             </div>
@@ -310,9 +317,16 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     <Label htmlFor='locations' className='font-bold'>
                                         State
                                     </Label>
-                                    <Select style={{ paddingBottom: '13px', paddingTop: '13px' }} className='flex-1' sizing='md' onChange={(e) => select_change_handle('state', e.target.value)} id="state" required>
-                                        <option selected disabled value=''>State</option>
-                                        {usStates?.map(({ value, name }, index: any) => <option key={index} value={name}>{`${name} - ${value}`}</option>)}
+                                    <Select
+                                        value={formData.state}
+                                        onChange={(e) => select_change_handle('state', e.target.value)}
+                                        id="state"
+                                        required
+                                    >
+                                        <option disabled value=''>State</option>
+                                        {usStates?.map(({ value, name }, index: any) => (
+                                            <option key={index} value={name}>{`${name} - ${value}`}</option>
+                                        ))}
                                     </Select>
                                 </div>
                                 <div className=''>
@@ -327,9 +341,16 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     Treatment
                                 </Label>
                                 <div className='flex-1'>
-                                    <Select onChange={(e) => select_change_handle('service', e.target.value)} id="services" required>
-                                        <option selected value=''>Select Treatment type</option>
-                                        {services?.map((service: string, index: any) => <option key={index} value={service}>{service}</option>)}
+                                    <Select
+                                        value={formData.service}
+                                        onChange={(e) => select_change_handle('service', e.target.value)}
+                                        id="services"
+                                        required
+                                    >
+                                        <option value=''>Select Treatment type</option>
+                                        {services?.map((service: string, index: any) => (
+                                            <option key={index} value={service}>{service}</option>
+                                        ))}
                                     </Select>
                                 </div>
                             </div>
