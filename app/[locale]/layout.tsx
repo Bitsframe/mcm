@@ -24,18 +24,7 @@
 //       <ThemeProvider>
 //       <body className={inter.className}>{children}
       
-//       <ToastContainer
-//       position="top-center"
-//       autoClose={5000}
-//       hideProgressBar={true}
-//       newestOnTop={false}
-//       closeOnClick
-//       rtl={false}
-//       pauseOnFocusLoss
-//       draggable
-//       pauseOnHover
-//       theme="light"
-//       />
+
 //       </body>
 //       </ThemeProvider>
 //     </html>
@@ -45,6 +34,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeProviderWrapper from "@/provider/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -62,6 +52,19 @@ export default function RootLayout({
     <html lang="en" className="light" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProviderWrapper>{children}</ThemeProviderWrapper>
+        <Toaster />
+       {/* <ToastContainer
+       position="top-center"
+       autoClose={5000}
+       hideProgressBar={true}
+       newestOnTop={false}
+       closeOnClick
+       rtl={false}
+       pauseOnFocusLoss
+       draggable
+       pauseOnHover
+       theme="light"
+       /> */}
       </body>
     </html>
   );
