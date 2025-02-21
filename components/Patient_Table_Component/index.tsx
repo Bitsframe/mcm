@@ -155,6 +155,25 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     const phone = formData.get("phone") as string;
     const treatmenttype = formData.get("treatmenttype") as string
 
+    try {
+      const response = await fetch("/api/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstname,
+          lastname,
+          email,
+          phone,
+          treatmenttype,
+        }),
+      });
+
+      console.log("Patient added successfully:", response);
+    } catch (error: any) {
+      console.error("Failed to add patient:", error.message);
+    }
 
   }
   return (
@@ -463,7 +482,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
 
     try {
       const data = await fetch("/api/user", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

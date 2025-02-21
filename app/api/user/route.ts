@@ -79,9 +79,49 @@ export const GET = async (req: Request) => {
     }
 };
 
-
-
 export const POST = async (req: Request) => {
+    try {
+        const supabase = supabaseCreateClient();
+        const patientData = await req.json(); 
+
+        console.log('patientData:', patientData);
+        
+        const { data, error } = await supabase
+            .from("allpatients")
+            .insert([
+                {
+                    firstname: patientData.firstname,
+                    lastname: patientData.lastname,
+                    email: patientData.email,
+                    phone: patientData.phone,
+                    treatmenttype: patientData.treatmenttype,
+                }
+            ]);
+
+        if (error) {
+            return NextResponse.json(
+                { success: false, message: error.message },
+                { status: 400 }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "User added successfully.",
+                data,
+            },
+            { status: 200 }
+        );
+    } catch (error:any) {
+        return NextResponse.json(
+            { success: false, message: "An error occurred.", error: error.message  || "Internal Server Error" },
+            { status: 500 }
+        );
+    }
+}
+
+export const PUT = async (req: Request) => {
     try {
         const supabase = supabaseCreateClient();
         const patientData = await req.json(); 
