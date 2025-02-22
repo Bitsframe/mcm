@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
 import { Moon, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,8 @@ interface LayoutProps {
 export default function ClientLayout({ children }: LayoutProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
+    const { t, i18n } = useTranslation();
+  
 
   useEffect(() => {
     setMounted(true);
@@ -37,7 +40,7 @@ export default function ClientLayout({ children }: LayoutProps) {
         )}
 
         <div className="text-3xl font-semibold mt-28 dark:text-white px-10">
-          Streamline your Clinic Management with <span className="text-[#58646b]"><b>MyclinicMD</b></span>
+          {t("Login_k4")} <span className="text-[#58646b]"><b>{t("Login_k5")}</b></span>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { CircularProgress } from '@mui/material';
 import { currencyFormatHandle } from '@/helper/common_functions'
 import { create_content_service } from '@/utils/supabase/data_services/data_services';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Searchable_Dropdown } from '@/components/Searchable_Dropdown';
 import PromoCodeComponent from '@/components/PromoCodeComponent';
 import { PromoCodeDataInterface } from '@/types/typesInterfaces';
@@ -307,7 +307,7 @@ const Orders = () => {
                     setCartArray([]);
                     localStorage.removeItem('@pos-patient')
                     setSelectedPatient(null)
-                    router.push('/after-place-order')
+                    // router.push('/after-place-order')
                 }
             }
         } catch (err: any) {

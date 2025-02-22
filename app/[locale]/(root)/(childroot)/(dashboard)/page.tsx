@@ -1,9 +1,11 @@
 'use client'
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import moment from "moment";
 import { Spinner } from "flowbite-react";
 import { cronitorSampleData, render_arr } from "@/data";
 import { CronitorRequest, DNS, Monitor, SSL } from "@/types/dashboard.interface";
+import { useTranslation } from "react-i18next";
+import { useParams } from "next/navigation";
 
 // @ts-ignore
 const InfoCard = memo(({ label, value, type = 'text' }: { label: string; value: any; type?: 'text' | 'image' }) => (
@@ -74,9 +76,23 @@ const MonitorDetails = memo(({ request, schedule, platform }: {
   request: CronitorRequest; 
   schedule: string; 
   platform: string; 
-}) => (
+}) => {
+  const params = useParams();
+
+  const { t, i18n } = useTranslation();
+
+   useEffect(() => {
+      const locale = params.locale as string;
+      if (locale && i18n.language !== locale) {
+        // @ts-ignore
+        i18n.changeLanguage(locale);
+      }
+    }, [params.locale, i18n]);
+
+
+  return(
   <div className="col-span-1 md:col-span-2 bg-gray-100/75 rounded-lg p-4">
-    <h1 className="mb-3 text-xl md:text-2xl">Monitor Details</h1>
+    <h1 className="mb-3 text-xl md:text-2xl">{t("Dashboard:Dashboard_k11")}</h1>
     <div className="space-y-6">
       <DataField 
         label="Request" 
@@ -107,7 +123,8 @@ const MonitorDetails = memo(({ request, schedule, platform }: {
         />
     </div>
   </div>
-));
+  )
+});
 
 MonitorDetails.displayName = "MonitorDetails"
 
