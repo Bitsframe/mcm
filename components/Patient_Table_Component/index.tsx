@@ -1,6 +1,6 @@
 'use client'
 import React, { FC, useContext, useEffect, useState, useMemo, useCallback } from 'react'
-import { Spinner } from 'flowbite-react'
+import { Label, Spinner } from 'flowbite-react'
 import moment from 'moment'
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
 import { PiCaretUpDownBold } from 'react-icons/pi'
@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -31,6 +30,9 @@ import {
 import { Input } from "../ui/input";
 import { getServices } from '@/actions/send-email/action'
 import { ScrollArea } from '../ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
+import { Button } from '../ui/button'
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList:{title:string}[]
@@ -66,6 +68,19 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [serviceList, setServiceList] = useState([]);
+
+  const [patientData,setPatientData] = useState({
+    firstname: "",
+    lastname: "",
+    phone: "",
+    email: "",
+    treatmenttype: "",
+    gender: "",
+    onsite: true,
+    locationId: 0,
+  })
+
   const [sortConfig, setSortConfig] = useState({
     key: '',
     direction: -1
@@ -143,12 +158,190 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")
   }, [])
 
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("HANDLE SUBMIT VALUE ->",patientData)
+    console.log("SELECTED LOCATION ->",selectedLocation)
+    try {
+      const response = await fetch("/api/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstname: patientData.firstname,
+          lastname: patientData.lastname,
+          email: patientData.email,
+          phone: patientData.phone,
+          treatmenttype: patientData.treatmenttype,
+          locationid: selectedLocation?.id || 17,
+          lastvisit: new Date(),
+          onsite: patientData.onsite,
+        }),
+      });
+
+      console.log("Patient added successfully:", response);
+    } catch (error: any) {
+      console.error("Failed to add patient:", error.message);
+    }
+  }
+
+
+  useEffect(() => {
+    fetchServiceList();
+  }, [])
+
+  const fetchServiceList = async () => {
+    try {
+      const services = await getServices();
+      setServiceList(services);
+    } catch (error) {
+      console.error("Failed to fetch email:", error);
+    }
+  };
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>All patients</h1>
       </div>
-
+      <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="text-black">
+          Add a Patient
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="sm:max-w-[425px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Add New Patient</AlertDialogTitle>
+          <AlertDialogDescription className="flex gap-3 flex-wrap" asChild>
+            <div>
+              <p>Enter the patient's information below. Click save when you're done.</p>
+              <p className="">
+                Current Location
+                <br />
+                {selectedLocation?.title}
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="firstname" className="text-right">
+                First Name
+              </Label>
+              <Input
+                id="firstname"
+                className="col-span-3"
+                placeholder="Enter firstname"
+                onChange={(e) => setPatientData({ ...patientData, firstname: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lastname" className="text-right">
+                Last Name
+              </Label>
+              <Input
+                id="lastname"
+                className="col-span-3"
+                placeholder="Enter lastname"
+                onChange={(e) => setPatientData({ ...patientData, lastname: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                className="col-span-3"
+                placeholder="Enter Email"
+                onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                className="col-span-3"
+                placeholder="Enter phone"
+                onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="treatmenttype" className="text-right">
+                Treatment Type
+              </Label>
+              <Select onValueChange={(value) => {
+                console.log("VALUE ->",value)
+                setPatientData({ ...patientData, treatmenttype: value })}}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select treatment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {serviceList.map((service:{title:string}) => (
+                    <SelectItem key={service.title} value={service.title}>
+                      {service.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Gender</Label>
+              <RadioGroup
+                defaultValue="female"
+                className="col-span-3 flex"
+                onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="male" id="male" />
+                  <Label htmlFor="male">Male</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="female" id="female" />
+                  <Label htmlFor="female">Female</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="other" id="other" />
+                  <Label htmlFor="other">Other</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Location</Label>
+              <RadioGroup
+                defaultValue="true"
+                className="col-span-3 flex"
+                onValueChange={(value) => setPatientData({ ...patientData, onsite: value === "true" })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="onsite" />
+                  <Label htmlFor="onsite">On site</Label>
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <RadioGroupItem value="false" id="offsite" />
+                  <Label htmlFor="offsite">Off site</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant={"destructive"} className="text-black">
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction type="submit">Save</AlertDialogAction>
+          </AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
       <div className='w-full min-h-[81.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
           <div className="flex items-center justify-between mb-4">
@@ -249,7 +442,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           </div>
 
           {selectedPatient && (
-            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate} />
+            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate}  serviceList={serviceList}/>
           )}
         </div>
       </div>
@@ -259,23 +452,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
 const PatientDetails: FC<{
   patient: Patient;
+  serviceList: { title: string }[];
   renderType: Props['renderType'];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate }) => {
-  const [serviceList, setServiceList] = useState([]);
-
-  useEffect(() => {
-    fetchServiceList();
-  }, [])
-
-  const fetchServiceList = async () => {
-    try {
-      const services = await getServices();
-      setServiceList(services);
-    } catch (error) {
-      console.error("Failed to fetch email:", error);
-    }
-  };
+}> = ({ patient, renderType, formatDate ,serviceList}) => {
+  
 
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
@@ -368,7 +549,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
 
     try {
       const data = await fetch("/api/user", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
