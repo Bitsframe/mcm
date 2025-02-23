@@ -1,15 +1,16 @@
 "use client";
 
-import { Avatar } from "@/assets/images";
-import Image from "next/image";
 import { HiOutlineBell } from "react-icons/hi";
 
 import { useContext } from "react";
 import { TabContext } from "@/context";
 import MenuWithAvatar from "./MenuWithAvatar";
+import LanguageChanger from "../LanguageChanger";
+import { useLocale } from "next-intl";
 
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
+  const locale = useLocale();
 
   return (
     <header
@@ -18,7 +19,9 @@ export const Navbar = ({ width }: { width: string }) => {
     >
       <div className="text-[#121111] text-[16px] font-[700]">{activeTitle}</div>
       <div className="flex gap-4 items-center pr-5">
-        <div>En</div>
+        <div className="z-50">
+          <LanguageChanger locale={locale} />
+        </div>
         <div className="text-[#000000] text-[16px]">
           <HiOutlineBell />
         </div>

@@ -3,7 +3,7 @@ import { memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PiCaretUpDownBold } from "react-icons/pi";
 import { ApproveAppointment } from "@/utils/supabase/data_services/data_services";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 interface AppointmentsTableProps {
     appointments: Appointment[];
@@ -89,10 +89,10 @@ interface AppointmentsTableProps {
           <button
             className="bg-green-500 text-white px-2 py-1 rounded-lg"
             onClick={(event) => {
-              toast.success("Appointment Approved");
               event.stopPropagation(); 
               console.log("Approve button clicked");
               ApproveAppointment(appointment.id);
+              toast.success("Appointment Approved");
             }}
           >
             Approve

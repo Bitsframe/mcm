@@ -4,46 +4,49 @@ import { i18nRouter } from "next-i18n-router";
 import i18nConfig from "./i18config";
 
 export async function middleware(request: NextRequest) {
-  // Handle i18n routing first
-  const i18nResponse = await i18nRouter(request, i18nConfig);
-  if (i18nResponse) return i18nResponse;
-
   const supabase = createClient();
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
-  const isLoginPage = pathname.startsWith("/login");
+
+  const localeMatch = pathname.match(/^\/(en|es)/);
+  const locale = localeMatch ? localeMatch[1] : i18nConfig.defaultLocale || "en";
+
+  const isLoginPage = pathname === "/login" || pathname.startsWith(`/${locale}/login`);
+
+  const i18nResponse = await i18nRouter(request, i18nConfig);
+  const response = i18nResponse || NextResponse.next();
 
   try {
     const {
       data: { session },
       error,
     } = await supabase.auth.getSession();
+    
     if (error) {
       console.error("Error fetching session:", error.message);
     }
 
     if (session) {
       if (isLoginPage) {
-        return NextResponse.redirect(new URL("/", url));
+        return NextResponse.redirect(new URL(`/${locale}`, url));
       }
     } else {
       if (!isLoginPage) {
-        console.log("No session found, redirecting to login");
-        return NextResponse.redirect(new URL("/login", url));
+        return NextResponse.redirect(new URL(`/${locale}/login`, url));
       }
     }
   } catch (err) {
-    console.error("Unexpected error in middleware:", err);
-    return NextResponse.redirect(new URL("/login", url));
+    return NextResponse.redirect(new URL(`/${locale}/login`, url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
   matcher: [
     "/login",
-    "/",
+    "/en/login",
+    "/es/login",
     "/((?!_next/static|_next/image|favicon.ico|.\\.(?:svg|png|jpg|jpeg|gif|webp)$).)",
     "/((?!api|_next|.\\..).*)",
   ],
