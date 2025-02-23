@@ -53,7 +53,7 @@ function Login() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder={t("password")}
+                  placeholder={t("Login_k3")}
                   className="w-full pr-10"
                 />
                 <button
@@ -73,7 +73,7 @@ function Login() {
                 {loading ? (
                   <Loader2 className="animate-spin text-white" size={20} />
                 ) : (
-                  t("login_button")
+                  t("Login_k1")
                 )}
               </Button>
             </form>
