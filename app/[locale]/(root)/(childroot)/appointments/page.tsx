@@ -21,7 +21,10 @@ const Appointments = () => {
   const [appointLoading, setAppointLoading] = useState(true);
   const [appointmentDetails, setAppointmentDetails] = useState<Appointment | null>(null);
   const [sortColumn, setSortColumn] = useState<string>("");
-  const [activeTab, setActiveTab] = useState("request");
+  const [activeTab, setActiveTab] = useState("approval");
+
+
+  
 
   const { selectedLocation } = useContext(LocationContext);
 
@@ -35,8 +38,6 @@ const Appointments = () => {
         fetchUnapprovedAppointmentsByLocation(locationId)
       ]);
 
-      console.log("unapprovedData ->", unapprovedData);
-      console.log("approvedData ->", approvedData);
 
       setApprovedAppointments(approvedData as any);
       setFilteredApproved(approvedData as any);
@@ -143,7 +144,7 @@ const Appointments = () => {
           <DatePicker onChange={filterHandle} className="bg-gray-300 py-2 w-full" placeholder="Filter by date" />
         </div>
       </div>
-      <Tabs  className="w-full" onValueChange={setActiveTab}>
+      <Tabs  className="w-full" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex justify-center space-x-5">
           <TabsTrigger value="approval">Approval Appointment</TabsTrigger>
           <TabsTrigger value="request">Request Approval Appointment</TabsTrigger>
