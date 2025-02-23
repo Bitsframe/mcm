@@ -9,31 +9,32 @@ export const GET = async (req: Request) => {
     try {
         // Get session and user in a single operation
         const { data, error: sessionError } = await supabase.auth.getUser();
-        
+
         if (sessionError || !data) {
             return NextResponse.json({ message: 'User not authenticated.' }, { status: 401 });
         }
 
-        const [
-            profileResult,
-            locationsResult,
-            permissionsResult
-        ] = await Promise.all([
-            supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', data.user.id)
-                .single(),
-            
+        const profileResult = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+        if (!profileResult || profileResult.error) {
+            console.error('Error fetching profile:', profileResult.error);
+            return;
+        }
+
+        const [locationsResult, permissionsResult] = await Promise.all([
             supabase
                 .from('user_locations')
                 .select('location_id')
                 .eq('profile_id', data.user.id),
-            
+
             supabase
                 .from('user_permissions')
-                .select('*, permissions(id,permission)')
-                .eq('roles', data.user.id)
+                .select('*, permissions(id, permission)')
+                .eq('roles', profileResult.data.role_id)
         ]);
 
         // Early error checking
@@ -42,12 +43,12 @@ export const GET = async (req: Request) => {
         }
 
         // Only fetch role if profile exists and has role_id
-        const roleResult = profileResult.data.role_id ? 
+        const roleResult = profileResult.data.role_id ?
             await supabase
                 .from('roles')
                 .select('*')
                 .eq('id', profileResult.data.role_id)
-                .single() : 
+                .single() :
             { data: { name: 'admin' } };
 
         // Construct response data with null checks and type casting
@@ -59,20 +60,20 @@ export const GET = async (req: Request) => {
         };
 
         return NextResponse.json(
-            { 
-                success: true, 
-                message: 'User details retrieved successfully.', 
-                data: userData 
-            }, 
+            {
+                success: true,
+                message: 'User details retrieved successfully.',
+                data: userData
+            },
             { status: 200 }
         );
     } catch (error) {
         console.error('User details error:', error);
         return NextResponse.json(
-            { 
+            {
                 success: false,
                 message: error instanceof Error ? error.message : 'Internal Server Error'
-            }, 
+            },
             { status: 500 }
         );
     }
@@ -81,14 +82,14 @@ export const GET = async (req: Request) => {
 export const POST = async (req: Request) => {
     try {
         const supabase = supabaseCreateClient();
-        const patientData = await req.json(); 
+        const patientData = await req.json();
 
         console.log('patientData from api:', patientData);
-        
+
         const { data, error } = await supabase
             .from("allpatients")
             .insert([
-                {   
+                {
                     locationid:patientData.locationid,
                     lastvisit: patientData.lastvisit,
                     onsite: patientData.onsite,
@@ -129,10 +130,10 @@ export const POST = async (req: Request) => {
 export const PUT = async (req: Request) => {
     try {
         const supabase = supabaseCreateClient();
-        const patientData = await req.json(); 
+        const patientData = await req.json();
 
         console.log('patientData:', patientData);
-        
+
         const { data, error } = await supabase
             .from("allpatients")
             .update({
@@ -142,7 +143,7 @@ export const PUT = async (req: Request) => {
                 phone: patientData.phone,
                 treatmenttype: patientData.treatmenttype,
             })
-            .eq("id", Number(patientData.id)) 
+            .eq("id", Number(patientData.id))
             .select();
 
         if (error) {
