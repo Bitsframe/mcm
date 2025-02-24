@@ -95,6 +95,7 @@ export const POST = async (req: Request) => {
                     onsite: patientData.onsite,
                     firstname: patientData.firstname,
                     lastname: patientData.lastname,
+                    gender: patientData.gender,
                     email: patientData.email,
                     phone: patientData.phone,
                     treatmenttype: patientData.treatmenttype,

@@ -295,7 +295,7 @@ const EmailBroadcast: React.FC = () => {
                         </div>
                         <AlertDialogCancel>
                           {" "}
-                          <X />{" "}
+                          <X color="gray" />{" "}
                         </AlertDialogCancel>
                       </div>
                       <div className="flex items-center justify-between ">

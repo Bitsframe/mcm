@@ -17,8 +17,8 @@ export default function LanguageChanger({ locale }) {
         onChange={handleChange}
         className="cursor-pointer appearance-none bg-transparent flex justify-between gap-3 items-center"
       >
-        <option value="en">en</option>
-        <option value="es">es</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
       </select>
     </div>
   );
