@@ -184,6 +184,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           lastname: patientData.lastname,
           email: patientData.email,
           phone: patientData.phone,
+          gender: patientData.gender,
           treatmenttype: patientData.treatmenttype,
           locationid: selectedLocation?.id || 17,
           lastvisit: new Date(),
