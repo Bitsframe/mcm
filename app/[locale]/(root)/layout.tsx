@@ -14,7 +14,7 @@ export default async function layout({
 	params: { locale },
 }: {
 	children: React.ReactNode;
-	params: { locale: string };
+	params: any;
 }) {
   const { resources } = await initTranslations(locale, i18nNamespaces);
 

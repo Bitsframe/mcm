@@ -4,7 +4,7 @@ import { Label, Modal, Radio, Select } from 'flowbite-react'
 import React, { useEffect, useState } from 'react'
 import ScheduleDateTime from './ScheduleDateTime';
 import { supabase } from '@/services/supabase';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import moment from 'moment';
 import { usStates } from '@/us-states';
 import { validateFormData } from '@/utils/validationCheck';
@@ -147,14 +147,15 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             first_name,
             last_name,
             email_address,
-            address,
+            street_address,
             in_office_patient,
             new_patient,
             dob,
             sex,
             phone,
             date_and_time,
-            service } = formData
+            service,state,
+            zipcode } = formData
         let appointmentDetails: any = {
             location_id,
             first_name,
@@ -176,6 +177,10 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             "last_name",
             "email_address",
             "phone",
+            'sex',
+            "state",
+            "zipcode",
+            "street_address",
             "service",
             "date_and_time",
         ];

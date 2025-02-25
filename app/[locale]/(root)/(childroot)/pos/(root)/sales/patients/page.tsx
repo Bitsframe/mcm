@@ -435,7 +435,7 @@ const Patients = () => {
   }
   return (
     <main className="w-full  font-[500] text-[20px]">
-      <div className='w-full h-[75.5dvh] py-2 px-2 grid grid-cols-3 gap-2'>
+      <div className='w-full h-[65.5dvh] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className='bg-[#B8C8E1] h-[100%]  col-span-2 rounded-md py-2   ' >
           <div className='space-y-6 px-3 pb-4 flex items-center space-x-4'>
             <div>
@@ -451,7 +451,7 @@ const Patients = () => {
             </div>
           </div>
           <div className='h-[1px] w-full bg-black' />
-          <div className='h-[70dvh] !overflow-auto space-y-4 px-3 py-4'>
+          <div className='h-[63dvh] !overflow-auto space-y-4 px-3 py-4'>
             {dataList.map((elem, ind) => {
               const { firstname, lastname, created_at, phone, updated_at } = elem
               return <div key={ind} className='space-y-6 px-3'>

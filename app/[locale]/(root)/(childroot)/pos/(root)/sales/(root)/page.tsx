@@ -339,8 +339,8 @@ const Orders = () => {
         <main className="w-full  h-full font-[500] text-[20px]">
 
 
-            <div className='w-full min-h-[78dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
-                <div className='bg-[#B8C8E1] h-[100%]  col-span-2 rounded-md py-2   ' >
+            <div className='w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2 '>
+                <div className='bg-[#B8C8E1] h-[75dvh] overflow-auto  col-span-2 rounded-md py-2   ' >
 
                     <span>
                         <div className='space-y-6 px-3 py-4'>
@@ -421,7 +421,7 @@ const Orders = () => {
 
                 </div>
 
-                <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col' >
+                <div className='bg-[#B8C8E1] h-[75dvh] overflow-auto rounded-md  flex flex-col' >
 
                     <div className='px-4 py-4 bg-[#e9e9e980] border-b-[1px] border-b-[#817B7B] flex items-center'>
                         <div className='flex-1'>

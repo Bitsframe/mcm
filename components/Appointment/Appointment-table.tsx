@@ -83,8 +83,8 @@ interface AppointmentsTableProps {
       </TableCell>
       <TableCell className="text-black text-base">{appointment.sex}</TableCell>
       <TableCell className="text-black text-base">{appointment.service}</TableCell>
-      <TableCell className="text-black text-base">{renderFormattedDate(appointment.date_and_time.split('|')[1].split(' - ')[0])}</TableCell>
-      <TableCell className="text-black text-base">{appointment.date_and_time.split(' - ')[1]}</TableCell>
+      <TableCell className="text-black text-base">{renderFormattedDate(appointment.date_and_time?.split('|')[1]?.split(' - ')[0])}</TableCell>
+      <TableCell className="text-black text-base">{appointment.date_and_time?.split(' - ')?.[1]}</TableCell>
       {isUnapproved && (
         <TableCell className="text-black text-base">
           <button

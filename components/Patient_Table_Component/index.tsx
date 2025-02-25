@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Button } from '../ui/button'
 import axios from 'axios'
+import { toast } from 'sonner'
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList: { title: string }[]
@@ -72,6 +73,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -89,6 +91,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     direction: -1
   })
   const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
 
   const fetchServiceList = async () => {
@@ -177,6 +180,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     e.preventDefault();
     console.log("HANDLE SUBMIT VALUE ->", patientData)
     console.log("SELECTED LOCATION ->", selectedLocation)
+    if (!isFormValid) {
+      toast.error("Please fill in all required fields.");
+      return; 
+    }
+  
+    setIsSubmitting(true);
     try {
       const response = await axios.post("/api/user",
         {
@@ -192,12 +201,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
 
         });
         fetchPatients(selectedLocation.id)
+        setIsModalOpen(false);
 
-        
+        toast.success("Patient added successfully!");
 
       console.log("Patient added successfully:", response);
-    } catch (error: any) {
-      console.error("Failed to add patient:", error.message);
+    }  catch (error) {
+      toast.error("Failed to add patient. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -221,14 +233,24 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     fetchServiceList();
   }, [])
 
+  const isFormValid = useMemo(() => {
+    return patientData.firstname &&
+           patientData.lastname &&
+           patientData.email &&
+           patientData.phone &&
+           patientData.treatmenttype &&
+           patientData.gender &&
+           patientData.onsite !== undefined;
+  }, [patientData]);
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>All patients</h1>
       </div>
-      <AlertDialog>
+      <AlertDialog open={isModalOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" className="text-black">
+          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black">
             Add a Patient
           </Button>
         </AlertDialogTrigger>
@@ -355,16 +377,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel asChild>
-                <Button variant={"destructive"} className="text-black">
+                <Button onClick={()=>setIsModalOpen(false)} variant={"destructive"} className="text-black">
                   Cancel
                 </Button>
               </AlertDialogCancel>
-              <AlertDialogAction type="submit">Save</AlertDialogAction>
+              <AlertDialogAction type="submit" disabled={isSubmitting}>Save</AlertDialogAction>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <div className='w-full min-h-[81.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
+      <div className='w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
           <div className="flex items-center justify-between mb-4">
             <input
@@ -412,7 +434,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               </TableHeader>
             </Table>
 
-            <div className="h-[60vh] overflow-y-auto">
+            <div className="h-[52vh] overflow-y-auto">
               <Table>
                 <TableBody>
                   {loading ? (
@@ -456,7 +478,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           </div>
         </div>
 
-        <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
+        <div className='bg-[#B8C8E1] h-[72dvh] rounded-md overflow-auto flex flex-col'>
           <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
             <div className='text-xl font-normal text-white text-center'>
               Patient Detail
