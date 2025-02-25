@@ -1,5 +1,7 @@
+import { translationConstant } from '@/utils/translationConstants';
 import { Label } from 'flowbite-react';
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface OptionArrayInterface {
     value: string | number;
@@ -78,11 +80,13 @@ export const Searchable_Dropdown = ({
         };
     }, [dropdownRef]);
 
+
+    const {t} = useTranslation(translationConstant.POSSALES)
     return (
         <div className="w-full relative" ref={dropdownRef}>
-            {label && <Label htmlFor="searchable-select" value={label} className="font-bold" />}
+            {label && <Label htmlFor="searchable-select" value={t(label)} className="font-bold" />}
             <div onClick={() => {setShowDropdown(true), setSearchTerm('')}} className="w-full p-2 border border-gray-300 rounded" style={{ backgroundColor: bg_color }}>
-                <p className='text-base'>{options_arr.find((opt) => opt.value === selectedValue)?.label || label}</p>
+                <p className='text-base'>{options_arr.find((opt) => opt.value === selectedValue)?.label || t(label as any) }</p>
             </div>
             {/* <input
                 type="text"

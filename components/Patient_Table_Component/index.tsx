@@ -35,6 +35,9 @@ import { ScrollArea } from '../ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Button } from '../ui/button'
+import { useTranslation } from 'react-i18next'
+import { translationConstant } from '@/utils/translationConstants'
+import { t } from 'i18next'
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList:{title:string}[]
@@ -204,15 +207,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     fetchServiceList();
   }, [])
 
+  const {t} = useTranslation(translationConstant.PATIENTS);
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
-        <h1 className='text-xl font-bold'>All patients</h1>
+        <h1 className='text-xl font-bold'>{t("Patients_k1")}</h1>
       </div>
       <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="outline" className="text-black">
-          Add a Patient
+        {t("Patients_k2")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[425px]">
@@ -353,7 +358,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               onChange={handleSearch}
               value={searchTerm}
               type="text"
-              placeholder="Search by patient name"
+              placeholder={t("Patients_k3")}
               className="w-72 px-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
             />
           </div>
@@ -364,7 +369,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               <TableHeader>
                 <TableRow className="border-b border-gray-200">
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    Patient ID
+                  {t("Patients_k4")}
                     <button
                       onClick={() => handleSort('id')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
@@ -373,7 +378,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                     </button>
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    Patient Name
+                  {t("Patients_k5")}
                     <button
                       onClick={() => handleSort('name')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
@@ -382,7 +387,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
                     </button>
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    Created at
+                  {t("Patients_k6")}
                     <button
                       onClick={() => handleSort('date')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
@@ -441,7 +446,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
         <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
             <div className='text-xl font-normal text-white text-center'>
-              Patient Detail
+            {t("Patients_k7")}
             </div>
             <div>
             {selectedPatient && <EditPatientModal patientDetails={selectedPatient} serviceList={serviceList}/>}
@@ -464,7 +469,7 @@ const PatientDetails: FC<{
   formatDate: (date: string) => string;
 }> = ({ patient, renderType, formatDate ,serviceList}) => {
   
-
+const {t} = useTranslation(translationConstant.PATIENTS)
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
 
@@ -474,7 +479,7 @@ const PatientDetails: FC<{
       <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
           <dd className='font-bold text-2xl'>{patient.id}</dd>
-          <dt className='text-lg text-[#707070]'>Patient ID</dt>
+          <dt className='text-lg text-[#707070]'>{t("Patients_k4")}</dt>
         </dl>
         {renderType === 'all' && (
           <div>
@@ -488,35 +493,35 @@ const PatientDetails: FC<{
         <dd className='font-bold text-2xl'>
           {patient.firstname} {patient.lastname}
         </dd>
-        <dt className='text-lg text-[#707070]'>Patient Name</dt>
+        <dt className='text-lg text-[#707070]'>{t("Patients_k5")}</dt>
       </dl>
       <div className='h-[1px] w-full bg-black my-3' />
       <div className='space-y-7'>
         <dl>
           <dd className='font-semibold text-lg'>{formatPhoneNumber(patient.phone)}</dd>
-          <dt className='text-sm text-[#707070]'>Patient Phone</dt>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k9")}</dt>
         </dl>
         <dl>
           <dd className='font-semibold text-lg'>{patient.email}</dd>
-          <dt className='text-sm text-[#707070]'>Patient Email</dt>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k10")}</dt>
         </dl>
         <dl>
           <dd className='font-semibold text-lg'>{patient.treatmenttype}</dd>
-          <dt className='text-sm text-[#707070]'>Treatment Type</dt>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k11")}</dt>
         </dl>
         <dl>
           <dd className='font-semibold text-lg'>{patient.gender}</dd>
-          <dt className='text-sm text-[#707070]'>Gender</dt>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k12")}</dt>
         </dl>
 
         <div className='flex items-center flex-1'>
           <dl className='flex-1'>
             <dd className='font-semibold text-lg'>{formatDate(patient.created_at)}</dd>
-            <dt className='text-sm text-[#707070]'>Created at</dt>
+            <dt className='text-sm text-[#707070]'>{t("Patients_k13")}</dt>
           </dl>
           <dl className='flex-1'>
             <dd className='font-semibold text-lg'>{formatDate(patient.lastvisit)}</dd>
-            <dt className='text-sm text-[#707070]'>Last Visit</dt>
+            <dt className='text-sm text-[#707070]'>{t("Patients_k14")}</dt>
           </dl>
         </div>
       </div>
@@ -581,6 +586,8 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
     }
   };
 
+  const {t} = useTranslation(translationConstant.PATIENTS);
+
   return (
 
     <AlertDialog key={'edit-patient-modal'} >
@@ -589,16 +596,16 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           Edit
         </button> */}
         <Button className="bg-[#aec2e4] text-black text-base hover:bg-[#EFEFEF] border-black w-20">
-          Edit
+         {t("Patients_k8")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
         <AlertDialogHeader>
           <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-            Edit Patient Details
+          {t("Patients_k15")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-gray-600">
-            Make changes to the patient's information and save them.
+          {t("Patients_k16")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
@@ -608,7 +615,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k17")}</label>
             <Input
               type="text"
               name="firstname"
@@ -618,7 +625,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k18")}</label>
             <Input
               type="text"
               name="lastname"
@@ -628,7 +635,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k19")}</label>
             <Input
               type="text"
               name="phone"
@@ -638,7 +645,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k20")}</label>
             <Input
               type="email"
               name="email"
@@ -676,11 +683,11 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
   
         {/* Treatment Type Dropdown */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Treatment Type</label>
+          <label className="block text-sm font-medium text-gray-700">{t("Patients_k11")}</label>
           <DropdownMenu modal={true}>
             <DropdownMenuTrigger>{patientData.treatmenttype || "Select Treatment"}</DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>Treatment Types</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("Patients_k11")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <ScrollArea className="h-72 w-48 overflow-y-auto">
                 {serviceList.map((service) => (
@@ -699,7 +706,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
   
       <AlertDialogFooter className="mt-4 flex justify-end gap-2">
         <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
-          Cancel
+          {t("Patients_k21")}
         </AlertDialogCancel>
         <AlertDialogAction
           onClick={handleSaveChanges}

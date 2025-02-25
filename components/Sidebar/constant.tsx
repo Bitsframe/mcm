@@ -56,90 +56,90 @@ const ROUTES = {
 export const routeList: Route[] = [
   {
     id: 'home',
-    name: "Home",
+    name: "Sidebar_k1",
     icon: home,
     children: [
-      { id: 'home-dashboard', name: "Dashboard", route: ROUTES.HOME },
+      { id: 'home-dashboard', name: "Sidebar_k2", route: ROUTES.HOME },
     ],
   },
   {
     id: 'patients',
-    name: "Patients",
+    name: "Sidebar_k3",
     icon: patients,
     children: [
-      { id: 'patients-all', name: "All Patients", route: ROUTES.PATIENTS.ALL },
-      { id: 'patients-onsite', name: "On-site", route: ROUTES.PATIENTS.ONSITE },
-      { id: 'patients-offsite', name: "Off-site", route: ROUTES.PATIENTS.OFFSITE },
+      { id: 'patients-all', name: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
+      { id: 'patients-onsite', name: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
+      { id: 'patients-offsite', name: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
     ],
   },
   {
     id: 'appointments',
-    name: "Appointments",
+    name: "Sidebar_k7",
     icon: appointment,
     route: ROUTES.APPOINTMENTS,
   },
   {
     id: 'reputation',
-    name: "Reputation",
+    name: "Sidebar_k8",
     icon: reputation,
     children: [
       { 
         id: 'reputation-private-feedback', 
-        name: "Private Feedback", 
+        name: "Sidebar_k9", 
         route: ROUTES.REPUTATION.PRIVATE_FEEDBACK 
       },
     ],
   },
   {
     id: 'pos',
-    name: "POS",
+    name: "Sidebar_k10",
     icon: pos,
     children: [
-      { id: 'pos-sales', name: "Sales", route: ROUTES.POS.SALES },
-      { id: 'pos-return', name: "Return", route: ROUTES.POS.RETURN },
-      { id: 'pos-history', name: "History", route: ROUTES.POS.HISTORY },
+      { id: 'pos-sales', name: "Sidebar_k19", route: ROUTES.POS.SALES },
+      { id: 'pos-return', name: "Sidebar_k20", route: ROUTES.POS.RETURN },
+      { id: 'pos-history', name: "Sidebar_k21", route: ROUTES.POS.HISTORY },
     ],
   },
   {
     id: 'inventory',
-    name: "Inventory",
+    name: "Sidebar_k11",
     icon: inventory,
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
     id:'inventory-stock',
-    name: "Stock Panel",
+    name: "Sidebar_k12",
     icon: inventory,
     route: ROUTES.INVENTORY.STOCK_PANEL
   },
   {
     id: 'tools',
-    name: "Tools",
+    name: "Sidebar_k13",
     icon: tools,
     children: [
       { 
         id: 'tools-email', 
-        name: "Email Broadcast", 
+        name: "Sidebar_k14", 
         route: ROUTES.TOOLS.EMAIL_BROADCAST 
       },
       { 
         id: 'tools-website', 
-        name: "Website Content", 
+        name: "Sidebar_k15", 
         route: ROUTES.TOOLS.WEBSITE_CONTENT 
       },
       { 
         id: 'tools-promo', 
-        name: "Promo Codes", 
+        name: "Sidebar_k16", 
         route: ROUTES.TOOLS.PROMO_CODES 
       },
       { 
         id: 'tools-roles', 
-        name: "Roles and Permissions", 
+        name: "Sidebar_k17", 
         route: ROUTES.TOOLS.ROLES_PERMISSIONS 
       },
       { 
         id: 'tools-users', 
-        name: "User Management", 
+        name: "Sidebar_k18", 
         route: ROUTES.TOOLS.USER_MANAGEMENT 
       },
     ],

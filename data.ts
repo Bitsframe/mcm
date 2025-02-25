@@ -2,22 +2,22 @@ import { CronitorData, LatestEvent, RenderArrInterface } from "./types/dashboard
 
 export const render_arr: RenderArrInterface[] = [
     {
-      label: 'Status',
+      label: 'Dashboard_k1',
       key: 'public_badge_url',
       type: 'image'
     },
     {
-      label: 'Response Time',
+      label: 'Dashboard_k2',
       key: 'latest_event',
       render_value: (val: { latest_event: LatestEvent }) => val.latest_event.metrics.duration
     },
     {
-      label: 'Checks',
+      label: 'Dashboard_k3',
       key: 'schedule',
       type: 'text'
     },
     {
-      label: 'Alerts',
+      label: 'Dashboard_k5',
       key: 'realert_interval'
     },
   ]

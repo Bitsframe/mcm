@@ -6,6 +6,8 @@ import { PiCaretUpDownBold } from 'react-icons/pi';
 import { toast } from 'react-toastify';
 import { LocationContext } from '@/context';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface DataListInterface {
     return_id: number;
@@ -255,13 +257,13 @@ const Returns: FC<Props> = () => {
     // }
 
 
-
+    const {t} = useTranslation(translationConstant.POSRETURN);
     return (
         <main className="w-full  h-full font-[500] text-[20px]">
 
             <div className='flex justify-between items-center px-4 py-4 space-x-2'>
                 <h1 className='text-xl font-bold'>
-                    Returns
+                    {t("POS-Returnk1")}
                 </h1>
 
                 {/* <div >
@@ -279,7 +281,7 @@ const Returns: FC<Props> = () => {
 
                     <div className='space-y-6 px-3 pb-4 flex justify-between'>
                         <div>
-                            <input onChange={onChangeHandle} type="text" placeholder="Product Name  " className=' px-2 py-3 w-72 text-sm rounded-md focus:outline-none mt-2' />
+                            <input onChange={onChangeHandle} type="text" placeholder={t("POS-Returnk2")} className=' px-2 py-3 w-72 text-sm rounded-md focus:outline-none mt-2' />
                         </div>
 
 
@@ -295,7 +297,7 @@ const Returns: FC<Props> = () => {
     <TableHeader>
       <TableRow className="font-semibold">
         <TableHead className="text-start text-lg">
-          Return ID
+        {t("POS-Returnk3")}
           <button onClick={() => sortHandle("return_id")} className="active:opacity-50 ml-1">
             <PiCaretUpDownBold
               className={`inline ${
@@ -305,7 +307,7 @@ const Returns: FC<Props> = () => {
           </button>
         </TableHead>
         <TableHead className="text-center text-lg">
-          Order ID
+        {t("POS-Returnk4")}
           <button onClick={() => sortHandle("order_id")} className="active:opacity-50 ml-1">
             <PiCaretUpDownBold
               className={`inline ${
@@ -315,7 +317,7 @@ const Returns: FC<Props> = () => {
           </button>
         </TableHead>
         <TableHead className="text-center text-lg">
-          Quantity
+        {t("POS-Returnk5")}
           <button onClick={() => sortHandle("quantity")} className="active:opacity-50 ml-1">
             <PiCaretUpDownBold
               className={`inline ${
@@ -325,7 +327,7 @@ const Returns: FC<Props> = () => {
           </button>
         </TableHead>
         <TableHead className="text-center text-lg">
-          Product
+        {t("POS-Returnk6")}
           <button onClick={() => sortHandle("date")} className="active:opacity-50 ml-1">
             <PiCaretUpDownBold
               className={`inline ${
@@ -335,7 +337,7 @@ const Returns: FC<Props> = () => {
           </button>
         </TableHead>
         <TableHead className="text-end text-lg">
-          Category
+        {t("POS-Returnk7")}
           <button onClick={() => sortHandle("category")} className="active:opacity-50 ml-1">
             <PiCaretUpDownBold
               className={`inline ${
@@ -387,7 +389,7 @@ const Returns: FC<Props> = () => {
         <TableRow>
           <TableCell colSpan={5}>
             <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center">
-              <h1>No data found!</h1>
+              <h1>{t("POS-Returnk8")}</h1>
             </div>
           </TableCell>
         </TableRow>
@@ -408,7 +410,7 @@ const Returns: FC<Props> = () => {
 
                     <div className='px-4 py-4  border-b-[1px]'>
                         <h1 className='text-2xl  font-bold w-full'>
-                            Details
+                        {t("POS-Returnk9")}
                         </h1>
                     </div>
 

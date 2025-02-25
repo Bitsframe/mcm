@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from 'react';
 import PermissionToggle from './PermissionToggle';
 import RoleInput from './RoleInput';
@@ -6,6 +8,8 @@ import { Switch } from 'antd';
 import { useRolesAndPermissions } from '@/hooks/useRolesAndPermissions';
 import { CircularProgress } from '@mui/material';
 import { TrashIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 
 const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, editStateId, editHandle, selectRoleHandle, selectedRole }: any) => {
@@ -85,7 +89,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
         toggleAllPermissions(allowed)
     };
 
-
+    const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
 
     return (
         <div className="p-6 bg-white rounded shadow-lg w-full mx-auto max-h-[87dvh] ">
@@ -94,12 +98,12 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 <div className="w-full h-full flex  flex-col flex-1">
                     <div className='flex items-center justify-between px-2 mb-3'>
                         <div>
-                            <h2 className="text-lg font-bold ">User roles</h2>
+                            <h2 className="text-lg font-bold ">{t("RP_k7")}</h2>
                         </div>
 
                         <div>
                             <button onClick={() => toggleActivateAddNewRoleHandle(true)} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
-                                Add New Role
+                               {t("RP_K6")}
                             </button>
                         </div>
                     </div>
@@ -121,9 +125,9 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 {/* Permissions Section */}
                 <div className="w-full ">
                     <div className="flex items-center justify-between mb-4 px-2">
-                        <h2 className="text-lg font-bold">Permissions</h2>
+                        <h2 className="text-lg font-bold">{t("RP_K2")}</h2>
                         {selectedRole ? <label className="flex items-center gap-2">
-                            <span>Allow all</span>
+                            <span>{t("RP_K1")}</span>
                             <Switch className='disabled:opacity-65' disabled={selectedRole?.id === 1}  onChange={(e) => handleAllowAll(e)} 
                             
                             checked={permissions?.every((perm:any) => perm.allowed) || selectedRole?.id === 1} 

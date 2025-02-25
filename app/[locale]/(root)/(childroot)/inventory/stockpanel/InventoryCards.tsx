@@ -1,6 +1,8 @@
 import { LocationContext } from '@/context';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { translationConstant } from '@/utils/translationConstants';
 import React, { useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next';
 
 const InventoryCards = ({archived}:{archived:boolean}) => {
     const [procucts_count, setProcucts_count] = useState(0)
@@ -65,23 +67,25 @@ const InventoryCards = ({archived}:{archived:boolean}) => {
         minimumFractionDigits: 0,
     });
 
+    const {t} = useTranslation(translationConstant.STOCKPANEL)
+
     return (
         <div className='py-3 space-x-20 my-5 flex flex-1 items-center'>
             <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
                 <h1 className='text-5xl'>{procucts_count}</h1>
-                <h4 className='text-base'>Products</h4>
+                <h4 className='text-base'>{t("SP_k12")}</h4>
             </div>
             <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
                 <h1 className='text-5xl'>{categories_count}</h1>
-                <h4 className='text-base'>Total Categories</h4>
+                <h4 className='text-base'>{t("SP_k11")}</h4>
             </div>
             <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
                 <h1 className='text-5xl'>{usdFormatter.format(stock_value)}</h1>
-                <h4 className='text-base'>Stock Value</h4>
+                <h4 className='text-base'>{t("SP_k10")}</h4>
             </div>
             <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
                 <h1 className='text-5xl'>20%</h1>
-                <h4 className='text-base'>low stock alerts</h4>
+                <h4 className='text-base'>{t("SP_k9")}</h4>
             </div>
         </div>
     )

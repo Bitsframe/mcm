@@ -4,33 +4,39 @@ import { fetch_content_service } from '@/utils/supabase/data_services/data_servi
 import InventoryCards from './InventoryCards';
 import TableComponent from '@/components/TableComponent';
 import { LocationContext } from '@/context';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface DataListInterface {
   [key: string]: any; // This allows dynamic property access
 }
 
+// const {t} = useTranslation(translationConstant.STOCKPANEL)
+
 const tableHeader = [
-  { id: 'product_id', label: 'Product ID' },
+
+  
+  { id: 'product_id', label: 'SP_k7' },
   {
     id: 'category',
-    label: 'Category',
+    label: 'SP_k6',
     render_value: (val: string, elem?: any) => elem?.categories?.category_name || '-',
   },
   {
     id: 'name',
-    label: 'Name',
+    label: 'SP_k5',
     render_value: (val: any, elem?: any) => elem?.product_name || '-',
     align: 'text-center',
   },
   {
     id: 'price',
-    label: 'Price',
+    label: 'SP_k2',
     render_value: (val: any, elem?: any) => elem?.price,
     align: 'text-center',
   },
   {
     id: 'quantity_in_stock',
-    label: 'Quantity Available',
+    label: 'SP_k1',
     render_value: (val: any, elem?: any) => elem?.quantity_available,
     align: 'text-center',
   },
@@ -110,6 +116,9 @@ const StockPanel = () => {
     setGetDataArchiveType(true);
   }, []);
 
+  
+  const {t} = useTranslation(translationConstant.STOCKPANEL);
+
   const RightSideComponent = useMemo(
     () => (
       <div className='text-sm text-gray-500 space-x-4 flex items-center'>
@@ -117,13 +126,13 @@ const StockPanel = () => {
           onClick={handleActiveClick}
           className={`${!getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
         >
-          Active
+          {t("SP_k4")}
         </button>
         <button
           onClick={handleArchiveClick}
           className={`${getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
         >
-          Archive
+          {t("SP_k3")}
         </button>
 
       </div>
@@ -141,7 +150,7 @@ const StockPanel = () => {
           tableHeader={tableHeader}
           loading={loading}
           dataList={dataList}
-          searchInputplaceholder="Search by product id"
+          searchInputplaceholder="SP_k8"
           searchHandle={onChangeHandle}
           RightSideComponent={() => RightSideComponent}
         />

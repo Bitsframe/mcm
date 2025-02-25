@@ -15,10 +15,10 @@ export default function LanguageChanger({ locale }) {
       <select
         value={locale}
         onChange={handleChange}
-        className="cursor-pointer appearance-none bg-transparent flex justify-between gap-3 items-center"
+        className="dark:bg-gray-700 dark:text-white dark:border-gray-600 cursor-pointer appearance-none bg-transparent flex justify-between gap-3 items-center"
       >
-        <option value="en">en</option>
-        <option value="es">es</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
       </select>
     </div>
   );

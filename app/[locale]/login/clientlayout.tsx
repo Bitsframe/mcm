@@ -5,6 +5,8 @@ import { Darklogo, Lightlogo } from "@/assets/images";
 import Image from "next/image";
 import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LanguageChanger from "@/components/LanguageChanger";
+import { useLocale } from "next-intl";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +16,7 @@ export default function ClientLayout({ children }: LayoutProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
     const { t, i18n } = useTranslation();
+    const locale = useLocale()
   
 
   useEffect(() => {
@@ -49,12 +52,15 @@ export default function ClientLayout({ children }: LayoutProps) {
           theme === "dark" ? "bg-gray-800" : "bg-gray-200"
         }`}
       >
-        <button
-          onClick={toggleTheme}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
-        >
-          {theme === "dark" ? <Moon /> : <Sun />}
-        </button>
+        <div className="absolute top-4 right-4 flex items-center gap-4">
+          <LanguageChanger locale={locale} />
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
+          >
+            {theme === "dark" ? <Moon /> : <Sun />}
+          </button>
+        </div>
 
         <div className="h-full flex items-center justify-center">
           {children}

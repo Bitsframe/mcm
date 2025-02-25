@@ -1,8 +1,10 @@
 import { currencyFormatHandle } from '@/helper/common_functions';
 import { create_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { translationConstant } from '@/utils/translationConstants';
 import { CircularProgress } from '@mui/material';
 import { Button } from 'flowbite-react';
 import React, { FC, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CiSearch } from 'react-icons/ci';
 import { IoCloseOutline } from 'react-icons/io5';
 import { toast } from 'react-toastify';
@@ -61,7 +63,7 @@ const tableHeader = [
     // Same table headers as before
     {
         id: 'category',
-        label: 'Category',
+        label: 'POS-Historyk23',
         align: 'text-center',
         flex: 'flex-1',
         render_value: (val: string, elem: any) => elem?.inventory?.products?.categories?.category_name,
@@ -69,23 +71,23 @@ const tableHeader = [
     },
     {
         id: 'product_name',
-        label: 'Product',
+        label: 'POS-Historyk24',
         render_value: (val: string, elem: any) => elem?.inventory?.products?.product_name,
 
     },
     {
         id: 'quantity_sold',
-        label: 'Quantity',
+        label: 'POS-Historyk25',
         flex: 'flex-1',
     },
     {
         id: 'total_price',
-        label: 'Amount',
+        label: 'POS-Historyk26',
         render_value: (val: any, elem?: any) => currencyFormatHandle(val)
     },
     {
         id: 'actions',
-        label: 'Action',
+        label: 'POS-Historyk27',
         align: 'text-center',
         flex: 'flex-1',
     },
@@ -95,18 +97,20 @@ const tableHeader = [
 
 const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({ patientData, paymentType = 'Cash' }) => {
 
+    const {t} = useTranslation(translationConstant.POSHISTORY)
+
     const { firstname = '', lastname = '', gender = '', email = '', phone = '', id, treatmenttype, Locations } = patientData
     return <div className="py-4 space-y-3">
-        <h3 className="font-bold">Patient Details</h3>
+        <h3 className="font-bold">{t("POS-Historyk12")}</h3>
         <div className="text-base grid grid-cols-3 gap-6">
-            <p>Patient ID: <strong>{id}</strong> </p>
-            <p>Patient Name: <strong>{firstname} {lastname}</strong> </p>
-            <p>Gender: <strong>{gender}</strong> </p>
-            <p>Phone: <strong>{phone}</strong></p>
-            <p className=''>Email: <strong>{email}</strong></p>
-            <p className=''>Payment Type: <strong>{paymentType}</strong></p>
-            <p>Treatment Type: <strong>{treatmenttype}</strong></p>
-            <p>Location: <strong>{Locations?.title}</strong></p>
+            <p>{t("POS-Historyk13")}: <strong>{id}</strong> </p>
+            <p>{t("POS-Historyk14")}: <strong>{firstname} {lastname}</strong> </p>
+            <p>{t("POS-Historyk15")}: <strong>{gender}</strong> </p>
+            <p>{t("POS-Historyk16")}: <strong>{phone}</strong></p>
+            <p className=''>{t("POS-Historyk17")}: <strong>{email}</strong></p>
+            <p className=''>{t("POS-Historyk18")}: <strong>{paymentType}</strong></p>
+            <p>{t("POS-Historyk19")}: <strong>{treatmenttype}</strong></p>
+            <p>{t("POS-Historyk20")}: <strong>{Locations?.title}</strong></p>
         </div>
     </div>
 }
@@ -350,14 +354,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
         setIsAnyReturned(() => val)
     }
 
-
+    const {t} = useTranslation(translationConstant.POSHISTORY)
     return (
         isOpen ? <div className="fixed inset-0 z-30 bg-black bg-opacity-50 flex items-center justify-center">
             {loading ? <div className='h-full w-full flex justify-center items-center '>
                 <CircularProgress />
             </div> : <div className="bg-white rounded-lg w-3/4 p-6">
                 <div className="flex justify-between items-center border-b pb-3">
-                    <h2 className="text-xl font-bold">Order# {order_id} Details</h2>
+                    <h2 className="text-xl font-bold">{t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700">&times;</button>
                 </div>
 
@@ -373,9 +377,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
 
 
                 <div className='flex items-center justify-between'>
-                    <h3 className="font-bold">Order Details</h3>
+                    <h3 className="font-bold">{t("POS-Historyk21")}</h3>
 
-                    <p className='text-base'>Sales Amount: <strong>{calcTotalAmount(dataList)}</strong></p>
+                    <p className='text-base'>{t("POS-Historyk22")}: <strong>{calcTotalAmount(dataList)}</strong></p>
                 </div>
 
                 <div className='h-[1px] w-full mt-3 bg-[#E2E8F0]' />
@@ -397,7 +401,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                     <div className='pb-3 flex text-base text-[#71717A] items-center flex-1 font-normal border-b-2 border-b-[#E4E4E7]'>
                         {tableHeader.map(({ label, align, flex }, index) => (
                             <h1 key={index} className={`${flex ? flex : 'flex-[4]'} ${align || 'text-center'}`}>
-                                {label}
+                                {t(label)}
                             </h1>
                         ))}
                     </div>

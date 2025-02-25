@@ -8,6 +8,8 @@ import { update_appointment_service } from '@/utils/supabase/data_services/data_
 import { toast } from 'react-toastify'
 import { sendEmail } from '@/utils/emailService'
 import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
+import { useTranslation } from 'react-i18next'
+import { translationConstant } from '@/utils/translationConstants'
 
 
 interface AppointmentEditModalProps {
@@ -91,14 +93,19 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
     }
   }, [appointmentDetails.location_id]);
 
-  const triggerButton = useMemo(() => (
+  const {t} = useTranslation(translationConstant.APPOINMENTS)
+  const triggerButton = useMemo(() => {
+
+
+    return(
     <button
       onClick={handleOpenModal}
       className="border-text_primary_color flex-1 text-text_primary_color border-2 active:opacity-60 rounded-md px-4 py-1 ml-2 hover:bg-text_primary_color_hover"
     >
-      Edit
+      {t("Appoinments_k34")}
     </button>
-  ), [handleOpenModal]);
+    )
+}, [handleOpenModal]);
 
   const isUpdateDisabled = !isDateSelected || !isTimeSelected;
 

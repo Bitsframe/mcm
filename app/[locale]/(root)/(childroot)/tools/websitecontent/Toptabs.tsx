@@ -2,25 +2,27 @@
 import Link from "next/link";
 import { GoDotFill } from "react-icons/go";
 import { usePathname } from 'next/navigation'
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const TopTabs = () => {
     const pathname = usePathname()
 
     const WebsiteContentMenu = [
         {
-            title: "Home",
+            title: "WebCont_k1",
             url: "/"
         },
         {
-            title: "About",
+            title: "WebCont_k2",
             url: "about"
         },
         {
-            title: "Testimonials",
+            title: "WebCont_k3",
             url: "testimonials"
         },
         {
-            title: "Career",
+            title: "WebCont_k4",
             url: "career"
         },
         // {
@@ -28,7 +30,7 @@ const TopTabs = () => {
         //     url: "blogs"
         // },
         {
-            title: "Locations",
+            title: "WebCont_k5",
             url: "locations"
         },
         // {
@@ -36,11 +38,12 @@ const TopTabs = () => {
         //     url: "specials"
         // },
         {
-            title: "FAQs",
+            title: "WebCont_k6",
             url: "faqs"
         }
     ];
 
+    const {t} = useTranslation(translationConstant.WEBCONT)
 
     return (
         <nav className="" >
@@ -51,7 +54,7 @@ const TopTabs = () => {
                             className={`flex gap-2 items-center ${pathname === `/tools/websitecontent/${menuItem.url}` || (pathname === "/tools/websitecontent" && menuItem.url === "/") ? 'text-text_primary_color underline underline-offset-8' : 'text-gray-500'}`}
                             href={`/tools/websitecontent/${menuItem.url}`}>
                             <span> {<GoDotFill size={15} />}</span>
-                            <span className="text-lg font-bold" > {menuItem.title}</span>
+                            <span className="text-lg font-bold" > {t(menuItem.title)}</span>
                         </Link>
 
                     </li>

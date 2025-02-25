@@ -5,6 +5,8 @@ import { Select_Dropdown } from '@/components/Select_Dropdown'
 import { about_section_options, langage_list_options } from '@/utils/list_options/dropdown_list_options'
 import { Form_Component } from '@/components/Form_Component';
 import WebsiteContentLayout from '../Layout';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 
 const only_fields_to_render: any = {
@@ -82,13 +84,15 @@ const About = () => {
 
     }
 
+    const {t} = useTranslation(translationConstant.WEBCONT)
+
     return (
         <WebsiteContentLayout>
             <div className='mb-5 px-3' >
                 <div className='grid grid-cols-5 lg:flex-row lg:gap-24 my-5'>
 
                     {/* <Select_Dropdown value={''} label='Section' options_arr={about_section_options} on_change_handle={select_section_handle} required={true} /> */}
-                    <Select_Dropdown value={selected_language} label='Language' options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                    <Select_Dropdown value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                 </div>
                 <div className="border-t my-3 border-black"></div>
 
