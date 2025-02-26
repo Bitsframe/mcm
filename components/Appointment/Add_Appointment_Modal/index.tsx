@@ -4,9 +4,6 @@ import { Label, Modal, Radio, Select } from 'flowbite-react'
 import React, { useEffect, useState } from 'react'
 import ScheduleDateTime from './ScheduleDateTime';
 import { supabase } from '@/services/supabase';
-
-import { toast } from 'sonner';
-
 import moment from 'moment';
 import { toast } from 'sonner'
 import { usStates } from '@/us-states';

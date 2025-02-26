@@ -208,9 +208,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         fetchPatients(selectedLocation.id)
         setIsModalOpen(false);
 
-        toast.success("Patient added successfully!");
-
-      if(response.ok){
+      if(response){
         toast(
           <div className="flex justify-between">
             <p>New patient added successfully.</p>
@@ -640,7 +638,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
       }
 
 
-      if(data.ok){
+      if(data){
         toast(
           <div className="flex justify-between">
             <p>Patient details updated successfully.</p>
