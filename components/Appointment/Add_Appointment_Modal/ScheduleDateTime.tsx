@@ -96,7 +96,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
 
             <div className="flex gap-x-3 items-center md:w-1/2 justify-center">
                 <label className="text-[16px] text-customGray font-poppins font-bold">
-                {t("Appoinments_k1")}
+                {t("Appoinments_k1")}<span className='text-red-700'>&nbsp;*</span>
                 </label>
                 <select
                     value={selectedSlot}
@@ -125,7 +125,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
 
             <div className="flex gap-x-3 items-center md:w-1/2 justify-center">
                 <label className="text-[16px] text-customGray font-poppins font-bold">
-                {t("Appoinments_k2")}
+                {t("Appoinments_k2")}<span className='text-red-700'>&nbsp;*</span>
                 </label>
                 <div className='!border-[1px] !border-[#CBD5E1] !border-solid rounded-[10px]'>
                 <ReactDatePicker
