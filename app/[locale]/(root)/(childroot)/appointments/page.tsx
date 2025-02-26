@@ -153,7 +153,7 @@ const Appointments = () => {
           <TabsTrigger value="approval">{t("Appoinments_k24")}</TabsTrigger>
           <TabsTrigger value="request">{t("Appoinments_k25")}</TabsTrigger>
         </TabsList>
-        <TabsContent value={activeTab} className="flex flex-row h-[80vh] space-x-5">
+        <TabsContent value={activeTab} className="flex flex-row h-[68vh] space-x-5">
           <AppointmentsTable
           isUnapproved={activeTab == 'request'}
             appointments={activeTab == 'approval' ? filteredApproved : filteredUnapproved}
