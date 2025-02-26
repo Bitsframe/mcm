@@ -89,7 +89,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
         toggleAllPermissions(allowed)
     };
 
-    const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
+    const {t} = useTranslation("RolesandPermissions")
 
     return (
         <div className="p-6 bg-white rounded shadow-lg w-full mx-auto max-h-[87dvh] ">
@@ -98,7 +98,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 <div className="w-full h-full flex  flex-col flex-1">
                     <div className='flex items-center justify-between px-2 mb-3'>
                         <div>
-                            <h2 className="text-lg font-bold ">{t("RP_k7")}</h2>
+                            <h2 className="text-lg font-bold ">{t("RP_K1")}</h2>
                         </div>
 
                         <div>

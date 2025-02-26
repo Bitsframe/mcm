@@ -5,7 +5,7 @@ import { Custom_Modal } from '../../Modal_Components/Custom_Modal'
 import ScheduleDateTime from './ScheduleDateTime'
 import moment from 'moment'
 import { update_appointment_service } from '@/utils/supabase/data_services/data_services'
-import { toast } from 'react-toastify'
+import { toast } from "sonner"
 import { sendEmail } from '@/utils/emailService'
 import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 import { useTranslation } from 'react-i18next'
@@ -65,7 +65,15 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
           data: emailData
         });
 
-        toast.success('Updated successfully');
+        toast.success(<div className="flex justify-between">
+                    <p>Appointment details updated successfully.</p>
+                    <button
+                      onClick={() => toast.dismiss()} 
+                      className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+                    >
+                      <span className="text-sm">&#x2715;</span>
+                    </button>
+                  </div>,);
         updateAvailableData(selectedVal);
         setOpenModal(false);
       }

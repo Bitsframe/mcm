@@ -38,7 +38,9 @@ import { Button } from '../ui/button'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
 import { t } from 'i18next'
+
 import axios from 'axios'
+
 import { toast } from 'sonner'
 interface EditPatientModalProps {
   patientDetails: Patient
@@ -207,6 +209,20 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         setIsModalOpen(false);
 
         toast.success("Patient added successfully!");
+
+      if(response.ok){
+        toast(
+          <div className="flex justify-between">
+            <p>New patient added successfully.</p>
+            <button
+              onClick={() => toast.dismiss()} 
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>,
+        );
+      }
 
       console.log("Patient added successfully:", response);
     }  catch (error) {
@@ -623,6 +639,20 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
 
       }
 
+
+      if(data.ok){
+        toast(
+          <div className="flex justify-between">
+            <p>Patient details updated successfully.</p>
+            <button
+              onClick={() => toast.dismiss()} 
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>,
+        );
+      }
 
       console.log("Patient details updated successfully:", data);
     } catch (error: any) {

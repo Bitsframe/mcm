@@ -4,8 +4,11 @@ import { Label, Modal, Radio, Select } from 'flowbite-react'
 import React, { useEffect, useState } from 'react'
 import ScheduleDateTime from './ScheduleDateTime';
 import { supabase } from '@/services/supabase';
+
 import { toast } from 'sonner';
+
 import moment from 'moment';
+import { toast } from 'sonner'
 import { usStates } from '@/us-states';
 import { validateFormData } from '@/utils/validationCheck';
 import { useTranslation } from 'react-i18next';
@@ -221,7 +224,15 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             }
             else { toast.error(`Error submitting appointment: ${error?.message}`); }
         } else {
-            toast.success("Appointment Submitted");
+            toast.success(<div className="flex justify-between">
+                        <p>Appointment scheduled successfully.</p>
+                        <button
+                          onClick={() => toast.dismiss()} 
+                          className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+                        >
+                          <span className="text-sm">&#x2715;</span>
+                        </button>
+                      </div>);
             console.log(data, "Appointment Submitted");
             close_handle()
         }

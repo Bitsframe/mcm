@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function Login() {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
+  const router = useRouter();
   
   useEffect(() => {
     const locale = params.locale as string;
@@ -25,8 +27,29 @@ function Login() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-    await login(new FormData(event.currentTarget));
-    setLoading(false);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const result = await login(formData);
+      // @ts-ignore
+      if (result?.error) {
+        
+        toast(
+          <div className="flex justify-between">
+            <p>Incorrect Credentials. Please try again.</p>
+            <button
+              onClick={() => toast.dismiss()} 
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>
+        )}else {
+          setTimeout(() => router.push("/?toast=login_success"), 1500);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

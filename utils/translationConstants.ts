@@ -5,7 +5,7 @@ export const translationConstant = {
     APPOINMENTS:"Appoinments",
     PRIVATEFEEDBACK:"Privatefeedback",
     STOCKPANEL:"Stockpanel",
-    ROLESANDPERMISSIONS:"Rolesandpermissions",
+    ROLESANDPERMISSIONS:"RolesandPermissions",
     POSSALES:"POS-Sales",
     POSRETURN:"POS-Return",
     POSHISTORY:"POS-History",
