@@ -14,6 +14,8 @@ import { error } from "console";
 import { toast } from "react-toastify";
 import { delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { TrashIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 
 interface DataListInterface {
@@ -31,10 +33,10 @@ interface DataListInterface {
 
 const tableHeader = [
     // { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
-    { id: 'full_name', label: 'Name', align: 'text-start', classNames: 'w-72' },
-    { id: 'role', label: 'Role', classNames: 'w-72' },
+    { id: 'full_name', label: 'UM_k4', align: 'text-start', classNames: 'w-72' },
+    { id: 'role', label: 'UM_k5', classNames: 'w-72' },
     // { id: 'email', label: 'Email' },
-    { id: 'locations', label: 'Location(s)', },
+    { id: 'locations', label: 'UM_k6', },
     // { id: 'password', label: 'Password' },
     { id: 'actions', label: '', classNames: 'w-28' },
 ];
@@ -161,6 +163,7 @@ const UserManagementComponent = () => {
         handleOpen()
     }
 
+    const {t} = useTranslation(translationConstant.USERMANAGEMENT)
 
     return (
         <div className="mt-16 bg-gray-50 flex justify-center px-4 py-3">
@@ -171,16 +174,16 @@ const UserManagementComponent = () => {
             <div className='px-3 pt-1 pb-4 w-full bg-white'>
 
                 <div className='space-y-6 px-3 pb-4 flex justify-between items-center'>
-                    <h1 className="text-xl font-bold pt-5">Users</h1>
+                    <h1 className="text-xl font-bold pt-5">{t("UM_k1")}</h1>
 
                     <div className="flex items-center space-x-3 ">
                         <div className='pl-1 pr-3 w-72 text-sm rounded-md bg-[#F5F7F9] flex items-center '>
-                            <input onChange={onChangeHandle} className="bg-transparent flex-1 focus:outline-none placeholder:text-[#B5B5BE]" type="text" placeholder="Search for a user" />
+                            <input onChange={onChangeHandle} className="bg-transparent flex-1 focus:outline-none placeholder:text-[#B5B5BE]" type="text" placeholder={t("UM_k3")} />
                             <IoSearchOutline size={24} color="#B5B5BE" />
                         </div>
 
                         <button onClick={handleOpen} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
-                            Add New User
+                        {t("UM_k2")}
                         </button>
                     </div>
 
@@ -193,7 +196,7 @@ const UserManagementComponent = () => {
                 <div className='pb-4 pt-3 flex text-base text-[#71717A] items-center flex-1 font-normal w-full px-3'>
                     {tableHeader.map(({ label, align, classNames }, index: number) => (
                         <h1 key={index} className={`${classNames ? classNames : 'flex-1'} ${align || 'text-start'}`}>
-                            {label}
+                            {t(label)}
                         </h1>
                     ))}
                 </div>
