@@ -4,6 +4,9 @@ import { Label, Modal, Radio, Select } from 'flowbite-react'
 import React, { useEffect, useState } from 'react'
 import ScheduleDateTime from './ScheduleDateTime';
 import { supabase } from '@/services/supabase';
+
+import { toast } from 'sonner';
+
 import moment from 'moment';
 import { toast } from 'sonner'
 import { usStates } from '@/us-states';
@@ -17,20 +20,20 @@ interface RadioButtonOptionsInterface {
 }
 
 const RadioButton = ({ value, name, label, checked, onChange }: any) => {
-    const {t} = useTranslation(translationConstant.APPOINMENTS);
-    return(
-    <div className="flex items-center justify-start gap-3">
-        <input
-            id={`${name}-${value}`}
-            type="radio"
-            value={value}
-            name={name}
-            checked={checked}
-            onChange={onChange}
-            className="w-[25px] h-[25px] !border-solid !border-[2px] !border-gray-300"
-        />{" "}
-        <label htmlFor={`${name}-${value}`} className="text-[16px] text-customGray font-poppins">{t(label)}</label>
-    </div>
+    const { t } = useTranslation(translationConstant.APPOINMENTS);
+    return (
+        <div className="flex items-center justify-start gap-3">
+            <input
+                id={`${name}-${value}`}
+                type="radio"
+                value={value}
+                name={name}
+                checked={checked}
+                onChange={onChange}
+                className="w-[25px] h-[25px] !border-solid !border-[2px] !border-gray-300"
+            />{" "}
+            <label htmlFor={`${name}-${value}`} className="text-[16px] text-customGray font-poppins">{t(label)}</label>
+        </div>
     )
 
 }
@@ -41,16 +44,19 @@ const RadioButtons = ({
     label,
     selectedValue,
     onChange,
+    required = false
+
 }: {
     name: string;
     options: RadioButtonOptionsInterface[];
     label: string;
     selectedValue: string;
     onChange: (value: string) => void;
+    required?: boolean;
 }) => (
     <div className="flex flex-col md:flex-row items-start justify-start gap-4">
         <label className="text-[16px] text-customGray font-poppins font-bold">
-            {label}:
+            {label}{required ? <span className='text-red-700'> *</span> : null}:
         </label>
         <div className="flex flex-wrap gap-4">
             {options.map(({ label, value }, index) => (
@@ -152,14 +158,15 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
             first_name,
             last_name,
             email_address,
-            address,
+            street_address,
             in_office_patient,
             new_patient,
             dob,
             sex,
             phone,
             date_and_time,
-            service } = formData
+            service, state,
+            zipcode } = formData
         let appointmentDetails: any = {
             location_id,
             first_name,
@@ -177,10 +184,16 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
 
         const requiredFields = [
             "location_id",
+            "in_office_patient",
+            "new_patient",
             "first_name",
             "last_name",
             "email_address",
             "phone",
+            'sex',
+            "state",
+            "zipcode",
+            "street_address",
             "service",
             "date_and_time",
         ];
@@ -242,9 +255,9 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
     }, []);
     console.log(formData)
 
-    const {t} = useTranslation(translationConstant.APPOINMENTS);
+    const { t } = useTranslation(translationConstant.APPOINMENTS);
 
-    
+
     return (
         <div>
             <button onClick={open_handle} className='text-lg bg-gray-300 px-5 py-2 rounded-md font-bold text-black'>
@@ -261,7 +274,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                         <div className='space-y-8'>
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
-                                {t("Appoinments_k16")}
+                                    {t("Appoinments_k16")} <span className='text-red-700'>*</span>
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
@@ -279,8 +292,9 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
+                                required
                                     name='in_office_patient'
-                                    label= {t("Appoinments_k17")}
+                                    label={t("Appoinments_k17")}
                                     options={in_office_patient_options}
                                     selectedValue={formData.in_office_patient}
                                     onChange={(e) => select_change_handle('in_office_patient', e)}
@@ -288,6 +302,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
+                                required
                                     name='new_patient'
                                     label={t("Appoinments_k20")}
                                     options={patient_type_options}
@@ -297,17 +312,17 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             </div>
                             <div className='grid grid-cols-2 gap-4'>
                                 <div className='w-full'>
-                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('first_name', e)} placeholder='@peduarte' label={t("Appoinments_k13")} />
+                                    <Input_Component_Appointment required onChange={(e: string) => select_change_handle('first_name', e)} placeholder='@peduarte' label={t("Appoinments_k13")} />
                                 </div>
                                 <div className='w-full'>
-                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('last_name', e)} placeholder='@peduarte' label={t("Appoinments_k12")} />
+                                    <Input_Component_Appointment required onChange={(e: string) => select_change_handle('last_name', e)} placeholder='@peduarte' label={t("Appoinments_k12")} />
                                 </div>
                             </div>
                             <div className='w-full'>
-                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('email_address', e)} placeholder='Enter you current email address' label={t("Appoinments_k11")} />
+                                <Input_Component_Appointment required onChange={(e: string) => select_change_handle('email_address', e)} placeholder='Enter you current email address' label={t("Appoinments_k11")} />
                             </div>
                             <div className='w-full'>
-                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('phone', e)} placeholder='Enter you phone number' label={t("Appoinments_k10")} />
+                                <Input_Component_Appointment required onChange={(e: string) => select_change_handle('phone', e)} placeholder='Enter you phone number' label={t("Appoinments_k10")} />
                             </div>
                             <div className='w-full'>
                                 <Input_Component_Appointment type='date' onChange={(e: string) => select_change_handle('dob', e)} placeholder='Your date of birth' label={t("Appoinments_k9")} />
@@ -318,13 +333,14 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     label={t("Appoinments_k8")}
                                     options={gender_options}
                                     selectedValue={formData.sex}
+                                    required
                                     onChange={(e) => select_change_handle('sex', e)}
                                 />
                             </div>
                             <div className='w-full grid grid-cols-2 gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <Label htmlFor='locations' className='font-bold'>
-                                    {t("Appoinments_k6")}
+                                        {t("Appoinments_k6")}<span className='text-red-700'> *</span>
                                     </Label>
                                     <Select
                                         value={formData.state}
@@ -339,15 +355,15 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     </Select>
                                 </div>
                                 <div className=''>
-                                    <Input_Component_Appointment max={5} label={t("Appoinments_k5")} onChange={(e: string) => select_change_handle('zipcode', e)} placeholder='Enter zipcode' />
+                                    <Input_Component_Appointment required max={5} label={t("Appoinments_k5")} onChange={(e: string) => select_change_handle('zipcode', e)} placeholder='Enter zipcode' />
                                 </div>
                                 <div className='col-span-2'>
-                                    <Input_Component_Appointment label={t("Appoinments_k4")} onChange={(e: string) => select_change_handle('street_address', e)} placeholder='Enter your address with zipcode' />
+                                    <Input_Component_Appointment required label={t("Appoinments_k4")} onChange={(e: string) => select_change_handle('street_address', e)} placeholder='Enter your address with zipcode' />
                                 </div>
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
-                                {t("Appoinments_k3")}
+                                    {t("Appoinments_k3")}<span className='text-red-700'> *</span>
                                 </Label>
                                 <div className='flex-1'>
                                     <Select

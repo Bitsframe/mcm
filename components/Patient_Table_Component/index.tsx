@@ -38,10 +38,14 @@ import { Button } from '../ui/button'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
 import { t } from 'i18next'
+
+import axios from 'axios'
+
 import { toast } from 'sonner'
 interface EditPatientModalProps {
   patientDetails: Patient
-  serviceList:{title:string}[]
+  serviceList: { title: string }[]
+  callAfterUpdate: (data: any) => void
 }
 
 interface Patient {
@@ -74,8 +78,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [patientData,setPatientData] = useState({
+  const [patientData, setPatientData] = useState({
     firstname: "",
     lastname: "",
     phone: "",
@@ -91,6 +96,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     direction: -1
   })
   const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   const fetchServiceList = async () => {
@@ -175,27 +181,34 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")
   }, [])
 
-   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("HANDLE SUBMIT VALUE ->",patientData)
-    console.log("SELECTED LOCATION ->",selectedLocation)
+    console.log("HANDLE SUBMIT VALUE ->", patientData)
+    console.log("SELECTED LOCATION ->", selectedLocation)
+    if (!isFormValid) {
+      toast.error("Please fill in all required fields.");
+      return; 
+    }
+  
+    setIsSubmitting(true);
     try {
-      const response = await fetch("/api/user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post("/api/user",
+        {
           firstname: patientData.firstname,
           lastname: patientData.lastname,
           email: patientData.email,
           phone: patientData.phone,
+          gender: patientData.gender,
           treatmenttype: patientData.treatmenttype,
           locationid: selectedLocation?.id || 17,
           lastvisit: new Date(),
           onsite: patientData.onsite,
-        }),
-      });
+
+        });
+        fetchPatients(selectedLocation.id)
+        setIsModalOpen(false);
+
+        toast.success("Patient added successfully!");
 
       if(response.ok){
         toast(
@@ -212,9 +225,26 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
       }
 
       console.log("Patient added successfully:", response);
-    } catch (error: any) {
-      console.error("Failed to add patient:", error.message);
+    }  catch (error) {
+      toast.error("Failed to add patient. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
+  }
+
+
+  const updateOnEdit = (data: any) => {
+    setPatients((pre: any) => {
+      return pre.map((elem: any) => {
+        if (data.id === elem.id) {
+          return { ...data }
+        }
+        else {
+          return elem
+        }
+      })
+    })
+    setSelectedPatient((pre: any) => ({ ...pre, ...data }))
   }
 
 
@@ -223,150 +253,160 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   }, [])
 
   const {t} = useTranslation(translationConstant.PATIENTS);
+  const isFormValid = useMemo(() => {
+    return patientData.firstname &&
+           patientData.lastname &&
+           patientData.email &&
+           patientData.phone &&
+           patientData.treatmenttype &&
+           patientData.gender &&
+           patientData.onsite !== undefined;
+  }, [patientData]);
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>{t("Patients_k1")}</h1>
       </div>
-      <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="outline" className="text-black">
-        {t("Patients_k2")}
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[425px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Add New Patient</AlertDialogTitle>
-          <AlertDialogDescription className="flex gap-3 flex-wrap" asChild>
-            <div>
-              <p>Enter the patient's information below. Click save when you're done.</p>
-              <p className="">
-                Current Location
-                <br />
-                {selectedLocation?.title}
-              </p>
+      <AlertDialog open={isModalOpen}>
+        <AlertDialogTrigger asChild>
+          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black">
+            Add a Patient
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add New Patient</AlertDialogTitle>
+            <AlertDialogDescription className="flex gap-3 flex-wrap" asChild>
+              <div>
+                <p>Enter the patient's information below. Click save when you're done.</p>
+                <p className="">
+                  Current Location
+                  <br />
+                  {selectedLocation?.title}
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="firstname" className="text-right">
+                  First Name
+                </Label>
+                <Input
+                  id="firstname"
+                  className="col-span-3"
+                  placeholder="Enter firstname"
+                  onChange={(e) => setPatientData({ ...patientData, firstname: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="lastname" className="text-right">
+                  Last Name
+                </Label>
+                <Input
+                  id="lastname"
+                  className="col-span-3"
+                  placeholder="Enter lastname"
+                  onChange={(e) => setPatientData({ ...patientData, lastname: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  className="col-span-3"
+                  placeholder="Enter Email"
+                  onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  className="col-span-3"
+                  placeholder="Enter phone"
+                  onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="treatmenttype" className="text-right">
+                  Treatment Type
+                </Label>
+                <Select onValueChange={(value) => {
+                  console.log("VALUE ->", value)
+                  setPatientData({ ...patientData, treatmenttype: value })
+                }}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select treatment type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serviceList.map((service: { title: string }) => (
+                      <SelectItem key={service.title} value={service.title}>
+                        {service.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Gender</Label>
+                <RadioGroup
+                  defaultValue="female"
+                  className="col-span-3 flex"
+                  onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="male" id="male" />
+                    <Label htmlFor="male">Male</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <RadioGroupItem value="female" id="female" />
+                    <Label htmlFor="female">Female</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <RadioGroupItem value="other" id="other" />
+                    <Label htmlFor="other">Other</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Location</Label>
+                <RadioGroup
+                  defaultValue="true"
+                  className="col-span-3 flex"
+                  onValueChange={(value) => setPatientData({ ...patientData, onsite: value === "true" })}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="true" id="onsite" />
+                    <Label htmlFor="onsite">On site</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <RadioGroupItem value="false" id="offsite" />
+                    <Label htmlFor="offsite">Off site</Label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="firstname" className="text-right">
-                First Name
-              </Label>
-              <Input
-                id="firstname"
-                className="col-span-3"
-                placeholder="Enter firstname"
-                onChange={(e) => setPatientData({ ...patientData, firstname: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="lastname" className="text-right">
-                Last Name
-              </Label>
-              <Input
-                id="lastname"
-                className="col-span-3"
-                placeholder="Enter lastname"
-                onChange={(e) => setPatientData({ ...patientData, lastname: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                className="col-span-3"
-                placeholder="Enter Email"
-                onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
-                Phone
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                className="col-span-3"
-                placeholder="Enter phone"
-                onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="treatmenttype" className="text-right">
-                Treatment Type
-              </Label>
-              <Select onValueChange={(value) => {
-                console.log("VALUE ->",value)
-                setPatientData({ ...patientData, treatmenttype: value })}}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select treatment type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {serviceList.map((service:{title:string}) => (
-                    <SelectItem key={service.title} value={service.title}>
-                      {service.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Gender</Label>
-              <RadioGroup
-                defaultValue="female"
-                className="col-span-3 flex"
-                onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="male" id="male" />
-                  <Label htmlFor="male">Male</Label>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <RadioGroupItem value="female" id="female" />
-                  <Label htmlFor="female">Female</Label>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <RadioGroupItem value="other" id="other" />
-                  <Label htmlFor="other">Other</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Location</Label>
-              <RadioGroup
-                defaultValue="true"
-                className="col-span-3 flex"
-                onValueChange={(value) => setPatientData({ ...patientData, onsite: value === "true" })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="onsite" />
-                  <Label htmlFor="onsite">On site</Label>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <RadioGroupItem value="false" id="offsite" />
-                  <Label htmlFor="offsite">Off site</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel asChild>
-              <Button variant={"destructive"} className="text-black">
-                Cancel
-              </Button>
-            </AlertDialogCancel>
-            <AlertDialogAction type="submit">Save</AlertDialogAction>
-          </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
-    </AlertDialog>
-      <div className='w-full min-h-[81.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
+            <AlertDialogFooter>
+              <AlertDialogCancel asChild>
+                <Button onClick={()=>setIsModalOpen(false)} variant={"destructive"} className="text-black">
+                  Cancel
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction type="submit" disabled={isSubmitting}>Save</AlertDialogAction>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className='w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
           <div className="flex items-center justify-between mb-4">
             <input
@@ -414,7 +454,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
               </TableHeader>
             </Table>
 
-            <div className="h-[60vh] overflow-y-auto">
+            <div className="h-[52vh] overflow-y-auto">
               <Table>
                 <TableBody>
                   {loading ? (
@@ -458,18 +498,20 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           </div>
         </div>
 
-        <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col'>
-        <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
+        <div className='bg-[#B8C8E1] h-[72dvh] rounded-md overflow-auto flex flex-col'>
+          <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
             <div className='text-xl font-normal text-white text-center'>
             {t("Patients_k7")}
             </div>
             <div>
-            {selectedPatient && <EditPatientModal patientDetails={selectedPatient} serviceList={serviceList}/>}
+              {selectedPatient && <EditPatientModal callAfterUpdate={
+                updateOnEdit
+              } patientDetails={selectedPatient} serviceList={serviceList} />}
             </div>
           </div>
 
           {selectedPatient && (
-            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate}  serviceList={serviceList}/>
+            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate} serviceList={serviceList} />
           )}
         </div>
       </div>
@@ -485,6 +527,8 @@ const PatientDetails: FC<{
 }> = ({ patient, renderType, formatDate ,serviceList}) => {
   
 const {t} = useTranslation(translationConstant.PATIENTS)
+
+
   return (
     <div className='overflow-auto h-[100%] px-4 py-4'>
 
@@ -544,7 +588,7 @@ const {t} = useTranslation(translationConstant.PATIENTS)
   )
 }
 
-const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serviceList }) => {
+const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, serviceList, callAfterUpdate }) => {
   const [patientData, setPatientData] = useState({
     firstname: "",
     lastname: "",
@@ -554,6 +598,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
   });
 
   const [loading, setLoading] = useState(false);
+  const { selectedLocation } = useContext(LocationContext)
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -578,20 +623,22 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
     setErrorMessage("");
 
     try {
-      const data = await fetch("/api/user", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const data = await axios.put("/api/user",
+        {
           id: patientDetails?.id,
           firstname: patientData?.firstname,
           lastname: patientData?.lastname,
           email: patientData?.email,
           phone: patientData?.phone,
           treatmenttype: patientData?.treatmenttype,
-        }),
-      })
+
+        })
+
+      if (data?.data?.success === true) {
+        callAfterUpdate(data?.data?.data?.[0])
+
+      }
+
 
       if(data.ok){
         toast(
@@ -637,7 +684,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           {t("Patients_k16")}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         <div className="space-y-4 mt-3">
           {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>
@@ -694,7 +741,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           </div> */}
 
         </div>
-  
+
         {/* <div>
           <label className="block text-sm font-medium text-gray-700">Last Name</label>
           <Input type="text" name="lastname" value={patientData.lastname} onChange={handleChange} />
@@ -709,7 +756,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails,serv
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <Input type="email" name="email" value={patientData.email} onChange={handleChange} />
         </div> */}
-  
+
         {/* Treatment Type Dropdown */}
         <div>
           <label className="block text-sm font-medium text-gray-700">{t("Patients_k11")}</label>

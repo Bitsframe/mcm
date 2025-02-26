@@ -1,9 +1,7 @@
 import { routeList } from "@/components/Sidebar/constant";
 import { AuthContext } from "@/context";
-import { supabase } from "@/services/supabase";
 import { rolePermissions } from "@/utils/permissions";
 import { CircularProgress } from "@mui/material";
-import axios from "axios";
 import { usePathname } from "next/navigation";
 import React, { useContext, useEffect, useState } from "react";
 
@@ -63,7 +61,7 @@ const withAuthorization = (
 
         const isAllowed = memoizedRouteList.some((route) => {
           const checkRoute = (route: any): boolean => {
-            if (pathname === route.path) return true;
+            if (pathname === route.route) return true;
             if (route.children) {
               return route.children.some((childRoute: any) => pathname === childRoute.route);
             }

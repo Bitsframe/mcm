@@ -7,12 +7,13 @@ interface Props {
     type?: string;
     onChange: (e: string) => void;
     max?: number | undefined;
+    required?: boolean;
 }
 
-export const Input_Component_Appointment: FC<Props> = ({ label, onChange, placeholder, type = 'text', max=undefined }) => {
+export const Input_Component_Appointment: FC<Props> = ({ label, onChange, placeholder, type = 'text', max=undefined , required = false}) => {
     return (
         <div className='w-full flex flex-1 items-center space-x-2'>
-            {label && <Label htmlFor="section" value={label} className='font-bold break-words' />}
+            {label && <><Label htmlFor="section" value={label} className='font-bold break-words' />{required ?<span className='text-red-700'>*</span> : null}</> }
             <div className='border-[1px] border-[#CBD5E1] flex-1 rounded-lg'>
                 <input
                     maxLength={max || undefined}
