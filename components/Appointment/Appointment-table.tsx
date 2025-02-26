@@ -97,7 +97,15 @@ interface AppointmentsTableProps {
               event.stopPropagation(); 
               console.log("Approve button clicked");
               ApproveAppointment(appointment.id);
-              toast.success("Appointment Approved");
+              toast.success(<div className="flex justify-between">
+                          <p>Appointment has been approved successfully.</p>
+                          <button
+                            onClick={() => toast.dismiss()} 
+                            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+                          >
+                            <span className="text-sm">&#x2715;</span>
+                          </button>
+                        </div>,);
             }}
           >
             Approve
