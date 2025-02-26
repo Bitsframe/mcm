@@ -1,4 +1,6 @@
 import { translationConstant } from '@/utils/translationConstants';
+
+import { renderFormattedDate } from '@/helper/common_functions';
 import React, { FC, useState, useEffect } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -26,17 +28,11 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
     const [selectedSlot, setSelectedSlot] = useState('')
 
     const getTimingKey = (date: Date): keyof DayTimings => {
+        // const formatDate =  renderFormattedDate(date)
         const days = ['sunday_timing', 'mon_timing', 'tuesday_timing', 'wednesday_timing', 'thursday_timing', 'friday_timing', 'saturday_timing'] as const;
         return days[date.getDay()];
     };
 
-    const parseTime = (timeStr: string) => {
-        const [time, modifier] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
-        if (modifier === 'PM' && hours < 12) hours += 12;
-        if (modifier === 'AM' && hours === 12) hours = 0;
-        return { hours, minutes };
-    };
 
     const generateTimeSlots = (timing: string) => {
         const [start, end] = timing.split('-').map(str => str.trim());
@@ -137,7 +133,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     selected={date}
                     onChange={dateTimeChangeHandle}
                     placeholderText={"Select Schedule date"}
-                    dateFormat="dd-MM-yyyy"
+                    dateFormat="MM-dd-yyyy"
                     className="w-full h-[46px]  text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none "
                 />
                 </div>

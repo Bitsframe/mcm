@@ -6,6 +6,9 @@ import { AppointmentEditModal } from "../Appointment/Appointment_Edit/Appointmen
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 
+import { renderFormattedDate } from "@/helper/common_functions";
+
+
 const render_detail_keys: RenderDetailFields[] = [
   { label: 'Appoinments_k13', key: 'first_name', can_sort: true },
   { label: 'Appoinments_k12', key: 'last_name', can_sort: true },
@@ -20,6 +23,9 @@ const render_detail_keys: RenderDetailFields[] = [
   { label: 'Appoinments_k31', key: 'date_and_time', type: 'time_slot', can_sort: true },
   { label: 'Appoinments_k30', key: 'created_at', date_format: true },
 ];
+
+
+
 
 const AppointmentDetails = memo(({ 
     appointment_details,
@@ -55,14 +61,14 @@ const AppointmentDetails = memo(({
               {elem.date_format
                 ? moment(appointment_details['created_at']).format('LLL')
                 : elem.type === 'date_slot' && appointment_details?.date_and_time
-                ? appointment_details?.date_and_time?.split('|')?.[1]?.split(' - ')[0]
+                ? renderFormattedDate(appointment_details?.date_and_time?.split('|')?.[1]?.split(' - ')[0])
                 : elem.type === 'time_slot' && appointment_details?.date_and_time
                 ? appointment_details?.date_and_time?.split('|')?.[1]?.split(' - ')[1]
                 : elem.key === 'location'
                 ? (appointment_details?.location?.address ?? '-')
                 : elem.key === 'phone'
                 ? (formatPhoneNumber(appointment_details?.phone) ?? '-')
-                : typeof appointment_details[elem.key as keyof typeof appointment_details] === 'object'
+                : elem.key === 'dob' ?  renderFormattedDate(appointment_details[elem.key as keyof typeof appointment_details], 'YYYY-MM-DD' ) : typeof appointment_details[elem.key as keyof typeof appointment_details] === 'object'
                 ? '-'
                 : String(appointment_details[elem.key as keyof typeof appointment_details] ?? '-')}
             </span>

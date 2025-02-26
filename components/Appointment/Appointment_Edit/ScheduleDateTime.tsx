@@ -143,7 +143,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({ data, selectDateTimeSlotH
                     selected={date }
                     onChange={dateTimeChangeHandle}
                     placeholderText={"Select Schedule date"}
-                    dateFormat="dd-MM-yyyy"
+                    dateFormat="MM-dd-yyyy"
                     className="w-full h-[46px] text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none "
                 />
                 </span>

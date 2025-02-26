@@ -6,6 +6,7 @@ import { ApproveAppointment } from "@/utils/supabase/data_services/data_services
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { renderFormattedDate } from "@/helper/common_functions";
 
 interface AppointmentsTableProps {
     appointments: Appointment[];
@@ -87,8 +88,8 @@ interface AppointmentsTableProps {
       </TableCell>
       <TableCell className="text-black text-base">{appointment.sex}</TableCell>
       <TableCell className="text-black text-base">{appointment.service}</TableCell>
-      <TableCell className="text-black text-base">{appointment.date_and_time.split('|')[1].split(' - ')[0]}</TableCell>
-      <TableCell className="text-black text-base">{appointment.date_and_time.split(' - ')[1]}</TableCell>
+      <TableCell className="text-black text-base">{renderFormattedDate(appointment.date_and_time?.split('|')[1]?.split(' - ')[0])}</TableCell>
+      <TableCell className="text-black text-base">{appointment.date_and_time?.split(' - ')?.[1]}</TableCell>
       {isUnapproved && (
         <TableCell className="text-black text-base">
           <button
