@@ -94,7 +94,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
     direction: -1
   })
   const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   const fetchServiceList = async () => {
