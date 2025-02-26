@@ -8,13 +8,17 @@ import { toast } from 'sonner';
 import moment from 'moment';
 import { usStates } from '@/us-states';
 import { validateFormData } from '@/utils/validationCheck';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface RadioButtonOptionsInterface {
     label: string;
     value: string;
 }
 
-const RadioButton = ({ value, name, label, checked, onChange }: any) => (
+const RadioButton = ({ value, name, label, checked, onChange }: any) => {
+    const {t} = useTranslation(translationConstant.APPOINMENTS);
+    return(
     <div className="flex items-center justify-start gap-3">
         <input
             id={`${name}-${value}`}
@@ -25,10 +29,11 @@ const RadioButton = ({ value, name, label, checked, onChange }: any) => (
             onChange={onChange}
             className="w-[25px] h-[25px] !border-solid !border-[2px] !border-gray-300"
         />{" "}
-        <label htmlFor={`${name}-${value}`} className="text-[16px] text-customGray font-poppins">{label}</label>
+        <label htmlFor={`${name}-${value}`} className="text-[16px] text-customGray font-poppins">{t(label)}</label>
     </div>
+    )
 
-)
+}
 
 const RadioButtons = ({
     name,
@@ -65,35 +70,35 @@ const RadioButtons = ({
 
 const in_office_patient_options: RadioButtonOptionsInterface[] = [
     {
-        label: 'Office visit',
+        label: 'Appoinments_k18',
         value: 'true'
     },
     {
-        label: 'Virtual visit',
+        label: 'Appoinments_k19',
         value: 'false'
     }
 ]
 const patient_type_options: RadioButtonOptionsInterface[] = [
     {
-        label: 'New',
+        label: "Appoinments_k21",
         value: 'true'
     },
     {
-        label: 'Coming back',
+        label: 'Appoinments_k14',
         value: 'false'
     }
 ]
 const gender_options: RadioButtonOptionsInterface[] = [
     {
-        label: 'Male',
+        label: 'Appoinments_k35',
         value: 'Male'
     },
     {
-        label: 'Female',
+        label: 'Appoinments_k36',
         value: 'Female'
     },
     {
-        label: 'Other',
+        label: 'Appoinments_k37',
         value: 'Other'
     }
 ]
@@ -233,15 +238,19 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
         fetchServices();
     }, []);
     console.log(formData)
+
+    const {t} = useTranslation(translationConstant.APPOINMENTS);
+
+    
     return (
         <div>
             <button onClick={open_handle} className='text-lg bg-gray-300 px-5 py-2 rounded-md font-bold text-black'>
-                Add an Appointment
+                {t("Appoinments_k15")}
             </button>
             <Modal show={open} onClose={close_handle}>
                 <Modal.Header>
                     <div className='flex items-center justify-between'>
-                        <h1 className='font-bold'>Add an Appointment</h1>
+                        <h1 className='font-bold'>{t("Appoinments_k15")}</h1>
                     </div>
                 </Modal.Header>
                 <Modal.Body>
@@ -249,7 +258,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                         <div className='space-y-8'>
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
-                                    Locations
+                                {t("Appoinments_k16")}
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
@@ -268,7 +277,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
                                     name='in_office_patient'
-                                    label='Type of visit'
+                                    label= {t("Appoinments_k17")}
                                     options={in_office_patient_options}
                                     selectedValue={formData.in_office_patient}
                                     onChange={(e) => select_change_handle('in_office_patient', e)}
@@ -277,7 +286,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
                                     name='new_patient'
-                                    label='Are you a new or returning patient?'
+                                    label={t("Appoinments_k20")}
                                     options={patient_type_options}
                                     selectedValue={formData.new_patient}
                                     onChange={(e) => select_change_handle('new_patient', e)}
@@ -285,25 +294,25 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             </div>
                             <div className='grid grid-cols-2 gap-4'>
                                 <div className='w-full'>
-                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('first_name', e)} placeholder='@peduarte' label='First Name' />
+                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('first_name', e)} placeholder='@peduarte' label={t("Appoinments_k13")} />
                                 </div>
                                 <div className='w-full'>
-                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('last_name', e)} placeholder='@peduarte' label='Last Name' />
+                                    <Input_Component_Appointment onChange={(e: string) => select_change_handle('last_name', e)} placeholder='@peduarte' label={t("Appoinments_k12")} />
                                 </div>
                             </div>
                             <div className='w-full'>
-                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('email_address', e)} placeholder='Enter you current email address' label='Email' />
+                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('email_address', e)} placeholder='Enter you current email address' label={t("Appoinments_k11")} />
                             </div>
                             <div className='w-full'>
-                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('phone', e)} placeholder='Enter you phone number' label='Phone number' />
+                                <Input_Component_Appointment onChange={(e: string) => select_change_handle('phone', e)} placeholder='Enter you phone number' label={t("Appoinments_k10")} />
                             </div>
                             <div className='w-full'>
-                                <Input_Component_Appointment type='date' onChange={(e: string) => select_change_handle('dob', e)} placeholder='Your date of birth' label='Your date of birth' />
+                                <Input_Component_Appointment type='date' onChange={(e: string) => select_change_handle('dob', e)} placeholder='Your date of birth' label={t("Appoinments_k9")} />
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
                                 <RadioButtons
                                     name='sex'
-                                    label='Sex'
+                                    label={t("Appoinments_k8")}
                                     options={gender_options}
                                     selectedValue={formData.sex}
                                     onChange={(e) => select_change_handle('sex', e)}
@@ -312,7 +321,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                             <div className='w-full grid grid-cols-2 gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <Label htmlFor='locations' className='font-bold'>
-                                        State
+                                    {t("Appoinments_k6")}
                                     </Label>
                                     <Select
                                         value={formData.state}
@@ -327,15 +336,15 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                                     </Select>
                                 </div>
                                 <div className=''>
-                                    <Input_Component_Appointment max={5} label='Zipcode' onChange={(e: string) => select_change_handle('zipcode', e)} placeholder='Enter zipcode' />
+                                    <Input_Component_Appointment max={5} label={t("Appoinments_k5")} onChange={(e: string) => select_change_handle('zipcode', e)} placeholder='Enter zipcode' />
                                 </div>
                                 <div className='col-span-2'>
-                                    <Input_Component_Appointment label='Street Address' onChange={(e: string) => select_change_handle('street_address', e)} placeholder='Enter your address with zipcode' />
+                                    <Input_Component_Appointment label={t("Appoinments_k4")} onChange={(e: string) => select_change_handle('street_address', e)} placeholder='Enter your address with zipcode' />
                                 </div>
                             </div>
                             <div className='flex flex-1 items-center gap-4'>
                                 <Label htmlFor='locations' className='font-bold'>
-                                    Treatment
+                                {t("Appoinments_k3")}
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
@@ -361,7 +370,7 @@ export const Add_Appointment_Modal = ({ newAddedRow }: { newAddedRow: (e: any) =
                     <div className='flex w-full justify-end'>
 
                         <button disabled={loading} onClick={submitHandle} className={`bg-[#0F172A] ${loading && 'opacity-70'} w-40 py-3 rounded-lg text-white`}>
-                            {loading ? 'Submitting...' : 'Submit'}
+                            {loading ? 'Submitting...' : t("Appoinments_k22")}
                         </button>
                     </div>
                 </Modal.Footer>

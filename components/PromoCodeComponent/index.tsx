@@ -3,6 +3,8 @@ import React, { FC, useState } from 'react'
 import { IoCloseOutline } from 'react-icons/io5'
 import PromoCodeModal from './PromoCodeModal'
 import { PromoCodeDataInterface } from '@/types/typesInterfaces';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface Props {
     applyDiscountHandle: (codeData: PromoCodeDataInterface | null, discount: number) => void;
@@ -35,11 +37,14 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
         applyDiscountHandle(null, 0)
 
     }
+
+    const {t} = useTranslation(translationConstant.POSSALES)
+
     return (
 
         <div className='flex items-center py-2'>
             <h1 className='text-lg flex-1'>
-                Promo code
+               {t("POS-Sales_k11")}
             </h1>
             {promoCode ? <div className='w-52 flex rounded-md  items-center p-2 px-2'>
                 <div className='flex-1 text-sm'>

@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppointmentDetails from "@/components/Appointment-details/Appointment-Details";
 import { useLocationClinica } from '@/hooks/useLocationClinica';
 import AppointmentsTable from "@/components/Appointment/Appointment-table";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -136,6 +138,8 @@ const Appointments = () => {
     }
   }, [selectedLocation, fetchDataHandler]);
 
+  const {t} = useTranslation(translationConstant.APPOINMENTS)
+
   return (
     <main className="mt-20 w-full h-full text-gray-600 font-medium text-lg space-y-5">
       <div className="flex justify-between items-center gap-3">
@@ -146,8 +150,8 @@ const Appointments = () => {
       </div>
       <Tabs  className="w-full" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex justify-center space-x-5">
-          <TabsTrigger value="approval">Approval Appointment</TabsTrigger>
-          <TabsTrigger value="request">Request Approval Appointment</TabsTrigger>
+          <TabsTrigger value="approval">{t("Appoinments_k24")}</TabsTrigger>
+          <TabsTrigger value="request">{t("Appoinments_k25")}</TabsTrigger>
         </TabsList>
         <TabsContent value={activeTab} className="flex flex-row h-[80vh] space-x-5">
           <AppointmentsTable

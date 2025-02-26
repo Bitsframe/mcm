@@ -9,6 +9,8 @@ import { Input_Component } from '@/components/Input_Component';
 import { Action_Button } from '@/components/Action_Button';
 import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 const fields = [
   {
@@ -24,7 +26,7 @@ const fields = [
   },
   {
     id: 'active',
-    label: 'Stauts',
+    label: 'Procode_k4',
     type: 'boolean',
     editable: false,
     table_column: true,
@@ -35,8 +37,8 @@ const fields = [
   },
   {
     id: 'typename',
-    label: 'Name',
-    details_label: 'Promo Code Title',
+    label: 'Procode_k5',
+    details_label: 'Procode_k9',
     type: 'text',
     editable: true,
     table_column: true,
@@ -45,7 +47,7 @@ const fields = [
   },
   {
     id: 'multiple',
-    label: 'Multiple',
+    label: 'Procode_k12',
     type: 'boolean',
     editable: true,
     table_column: false,
@@ -55,7 +57,7 @@ const fields = [
   },
   {
     id: 'percentage',
-    label: 'Percentage',
+    label: 'Procode_k6',
     type: 'number',
     editable: true,
     table_column: true,
@@ -67,7 +69,7 @@ const fields = [
   },
   {
     id: 'expiry',
-    label: 'Expiry',
+    label: 'Procode_k7',
     type: 'date',
     editable: true,
     table_column: true,
@@ -80,7 +82,7 @@ const fields = [
   },
   {
     id: 'created_at',
-    label: 'Created at',
+    label: 'Procode_k14',
     type: 'date',
     editable: false,
     table_column: false,
@@ -392,17 +394,17 @@ const Page = () => {
 
   }
 
-
+  const {t} = useTranslation(translationConstant.PROCODE)
   return (
     <main className="w-full  h-full font-[500] text-[20px] mt-16">
 
       <div className='grid grid-cols-3'>
         <div className='flex justify-between items-center  px-4 py-2 space-x-2 col-span-2'>
           <h1 className='text-xl font-bold'>
-            Promo Codes
+           {t("Procode_k1")}
           </h1>
           <button onClick={addNewHandle} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
-            Add new
+          {t("Procode_k2")}
           </button>
         </div>
       </div>
@@ -413,7 +415,7 @@ const Page = () => {
 
           <div className='space-y-6 px-3 pb-4 flex justify-between mt-3'>
             <div className='flex-1'>
-              <input onChange={onChangeHandle} type="text" placeholder="Search Promo Code" className='w-3/5 px-2 py-3 text-sm rounded-md focus:outline-none bg-white' />
+              <input onChange={onChangeHandle} type="text" placeholder={t("Procode_k3")} className='w-3/5 px-2 py-3 text-sm rounded-md focus:outline-none bg-white' />
             </div>
 
 
@@ -439,7 +441,7 @@ const Page = () => {
                 align || "text-center"
               } text-[#71717A] font-medium text-lg px-4 py-2`}
             >
-              {label}
+              {t(label)}
               <button
                 onClick={() => sortHandle(id, type)}
                 className="active:opacity-50 ml-1"
@@ -519,7 +521,7 @@ const Page = () => {
 
           <div className='px-4 pt-5 '>
             <h1 className='text-xl font-bold w-full'>
-              Code Information
+              {t("Procode_k8")}
             </h1>
           </div>
 
@@ -539,7 +541,7 @@ const Page = () => {
                     return <div key={ind} className={`${col_span_01 ? 'col-span-1' : 'col-span-2'}`}>
                       <div >
                         <h1 className='text-sm text-black'>
-                          {details_label || label}
+                          {t(details_label || label)}
                         </h1>
                         <p className='font-bold text-lg'>
                           {extract_val}
@@ -552,8 +554,8 @@ const Page = () => {
               </div>
             </div>
             <div className=' flex items-center space-x-6'>
-              <Action_Button onClick={editHandle} width='w-full' height='h-12' label='Edit' bg_color='bg-[#B6B6B6]' />
-              <Action_Button onClick={deleteHandle} width='w-full' height='h-12' label='Delete' bg_color='bg-[#EF4343]' />
+              <Action_Button onClick={editHandle} width='w-full' height='h-12' label={t("Procode_k15")} bg_color='bg-[#B6B6B6]' />
+              <Action_Button onClick={deleteHandle} width='w-full' height='h-12' label={t("Procode_k16")} bg_color='bg-[#EF4343]' />
             </div>
 
 

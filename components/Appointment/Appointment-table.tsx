@@ -1,9 +1,11 @@
 import { Spinner } from "flowbite-react";
-import { memo } from "react";
+import { memo, useTransition } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PiCaretUpDownBold } from "react-icons/pi";
 import { ApproveAppointment } from "@/utils/supabase/data_services/data_services";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 import { renderFormattedDate } from "@/helper/common_functions";
 
 interface AppointmentsTableProps {
@@ -16,6 +18,9 @@ interface AppointmentsTableProps {
   }
   
   const AppointmentsTable: React.FC<AppointmentsTableProps> = ({ appointments, appointLoading, onSelect, sortHandle, sortColumn,isUnapproved }) => {
+
+    const {t} = useTranslation(translationConstant.APPOINMENTS);
+
     return (
       <div className="w-full bg-gray-200 h-full overflow-scroll px-3 py-3 rounded-lg space-y-5">
         {appointLoading ? (
@@ -31,11 +36,11 @@ interface AppointmentsTableProps {
             <TableHeader>
               <TableRow>
                 {[
-                  { label: 'Name', sort: 'name' },
-                  { label: 'Gender', sort: 'gender' },
-                  { label: 'Service', sort: 'service' },
-                  { label: 'Date', sort: 'slot' },
-                  { label: 'Time', sort: 'time'}
+                  { label: t("Appoinments_k26"), sort: 'name' },
+                  { label: t("Appoinments_k27"), sort: 'gender' },
+                  { label: t("Appoinments_k28"), sort: 'service' },
+                  { label: t("Appoinments_k1"), sort: 'slot' },
+                  { label: t("Appoinments_k2"), sort: 'time'}
                 ].map(({ label, sort }) => (
                 
                   <TableHead key={sort} className="text-lg">

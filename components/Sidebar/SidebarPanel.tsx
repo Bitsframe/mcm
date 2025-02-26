@@ -1,3 +1,5 @@
+"use client"
+
 import { CustomFlowbiteTheme, Sidebar } from "flowbite-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -5,6 +7,8 @@ import { useContext, useEffect, useMemo } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { AuthContext, TabContext } from "@/context";
 import { routeList, Route } from "./constant";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const THEME: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -42,7 +46,11 @@ interface SingleRouteProps {
   isActive: boolean;
 }
 
-const SingleRoute = ({ route, isActive }: SingleRouteProps) => (
+const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
+
+  const {t} = useTranslation(translationConstant.SIDEBAR);
+
+  return(
   <div className="relative w-full">
     {isActive && <ActiveIndicator />}
     <Sidebar.Item
@@ -57,10 +65,11 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => (
       className={`text-[#3A3541] hover:bg-[#0F4698] hover:bg-opacity-30 
         ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
     >
-      <h3>{route.name}</h3>
+      <h3>{t(route.name)}</h3>
     </Sidebar.Item>
   </div>
-);
+  )
+};
 
 interface CollapsibleRouteProps {
   route: Route;
@@ -68,12 +77,16 @@ interface CollapsibleRouteProps {
   currentPath: string;
 }
 
-const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProps) => (
+const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProps) => {
+  
+  const {t} = useTranslation(translationConstant.SIDEBAR);
+
+  return(
   <div className="relative w-full">
     {isActive && <ActiveIndicator />}
     <Sidebar.Collapse
       icon={() => <RouteIcon icon={route.icon} />}
-      label={route.name}
+      label={t(route.name)}
       className={`text-[#3A3541] hover:bg-[#0F4698] transition-all ease-out delay-75 
         hover:bg-opacity-30 ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
       open={isActive}
@@ -85,12 +98,13 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
           className={`text-[#3A3541] text-left text-sm 
             ${currentPath === item.route ? "text-[#0F4698]" : ""}`}
         >
-          {item.name}
+          {t(item.name)}
         </Sidebar.Item>
       ))}
     </Sidebar.Collapse>
   </div>
-);
+  )
+};
 
 // Main component
 export const SidebarPanel = () => {

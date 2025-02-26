@@ -16,6 +16,8 @@ import { Searchable_Dropdown } from '@/components/Searchable_Dropdown';
 import PromoCodeComponent from '@/components/PromoCodeComponent';
 import { PromoCodeDataInterface } from '@/types/typesInterfaces';
 import { formatPhoneNumber } from '@/utils/getCountryName';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface CartItemComponentInterface {
     data: CartArrayInterface,
@@ -334,7 +336,7 @@ const Orders = () => {
 
 
 
-
+    const {t} = useTranslation(translationConstant.POSSALES);
     return (
         <main className="w-full  h-full font-[500] text-[20px]">
 
@@ -345,7 +347,7 @@ const Orders = () => {
                     <span>
                         <div className='space-y-6 px-3 py-4'>
                             <h1 className='text-xl font-bold'>
-                                Patients Details
+                               {t("POS-Sales_k3")}
                             </h1>
                             {fetchingDataLoading ? <div className='w-full flex flex-col  justify-center h-full space-y-3'>
                                 <CircularProgress size={24} />
@@ -358,7 +360,7 @@ const Orders = () => {
                                             <dt>{label}</dt>
                                             <dd className='font-normal'>{extracted_val}</dd>
                                         </dl>
-                                    }) : <div><h1 className='text-red-600'>No Selected Patient found!</h1></div>}
+                                    }) : <div><h1 className='text-red-600'>{t("POS-Sales_k4")}</h1></div>}
                                 </div>}
 
                         </div>
@@ -366,13 +368,13 @@ const Orders = () => {
 
                         <div className='space-y-6 px-3 py-4'>
                             <h1 className='text-xl font-bold'>
-                                Product Details
+                                {t("POS-Sales_k3")}
                             </h1>
 
 
                             <div className='space-y-6'>
                                 <div className='w-1/3'>
-                                    <Searchable_Dropdown disabled={!selectedPatient} initialValue={0} value={selectedCategory} bg_color='#fff' start_empty={true} options_arr={categories.map(({ category_id, category_name }: any) => ({ value: category_id, label: category_name }))} required={true} on_change_handle={category_change_handle} label='Select Category' />
+                                    <Searchable_Dropdown disabled={!selectedPatient} initialValue={0} value={selectedCategory} bg_color='#fff' start_empty={true} options_arr={categories.map(({ category_id, category_name }: any) => ({ value: category_id, label: category_name }))} required={true} on_change_handle={category_change_handle} label='POS-Sales_k6' />
                                 </div>
                                 <div className='w-1/3'>
                                     {loadingProducts ? <div className='text-sm text-gray-400'>
@@ -406,7 +408,7 @@ const Orders = () => {
 
                                 <div className='flex'>
                                     <button disabled={!productQty} onClick={addToCartHandle} className='bg-[#8CB3F0] text-[#fff] font-bold py-3 px-9 rounded-md hover:opacity-80 active:opacity-50 disabled:opacity-60' type='submit'>
-                                        Add to cart
+                                    {t("POS-Sales_k8")}
                                     </button>
 
 
@@ -426,9 +428,9 @@ const Orders = () => {
                     <div className='px-4 py-4 bg-[#e9e9e980] border-b-[1px] border-b-[#817B7B] flex items-center'>
                         <div className='flex-1'>
                             <h1 className='text-xl '>
-                                Cart Items
+                            {t("POS-Sales_k9")}
                             </h1>
-                            <p className='text-sm'>Order # --</p>
+                            <p className='text-sm'>{t("POS-Sales_k10")} # --</p>
                         </div>
 
                         {/* <RxReload size={30} /> */}
@@ -451,7 +453,7 @@ const Orders = () => {
                             <PromoCodeComponent patientId={selectedPatient?.id} applyDiscountHandle={applyDiscountHandle} />
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                    Payment method
+                                {t("POS-Sales_k12")}
                                 </h1> 
                                 <Payment_Method_Select selectedMethod={selectedMethod} handleSelectChange={selectPaymentHandle} />
                             </div>
@@ -461,7 +463,7 @@ const Orders = () => {
                             <div className='flex items-center'>
                                 <div className='flex items-center flex-1 space-x-2'>
                                     <h1 className='text-lg'>
-                                        Discount
+                                    {t("POS-Sales_k13")}
                                     </h1>
                                     {appliedDiscount ? <span className='text-sm text-red-500'>- {appliedDiscount}% off </span> : null}
                                 </div>
@@ -475,7 +477,7 @@ const Orders = () => {
 
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                    Sub total
+                                {t("POS-Sales_k14")}
                                 </h1>
                                 <div className='flex items-center space-x-1'>
                                     <p className='text-start'>

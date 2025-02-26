@@ -2,6 +2,8 @@ import { Rating } from "@mui/material"
 import { Checkbox, TimePicker } from "antd"
 import React, { useState } from "react"
 import Moment from 'moment';
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "../translationConstants";
 
 // Interface for the data being passed
 interface DataInterface {
@@ -25,8 +27,10 @@ export const fields_list_components: fieldsListComponentsInterface = {
     input: {
 
         Component_Render: ({ on_change_handle, label, key_id, data }) => {
+
+            const {t} = useTranslation(translationConstant.WEBCONT)
             return <div>
-                <p className='font-bold text-primary_color'>{label} :</p>
+                <p className='font-bold text-primary_color'>{t(label)} :</p>
                 <input
                     value={data[key_id] || ''}
                     type="text"
@@ -38,6 +42,8 @@ export const fields_list_components: fieldsListComponentsInterface = {
     },
     textarea: {
         Component_Render: ({ on_change_handle, label, key_id, data }) => {
+
+            const {t} = useTranslation(translationConstant.WEBCONT)
             return <div>
                 <p className='font-bold text-primary_color'>{label} :</p>
                 <textarea
