@@ -26,6 +26,8 @@ const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, edi
         }
     };
 
+    const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
+
     return (
         <div className={`px-3 py-2 border-2 border-gray-100 rounded focus:outline-none hover:bg-gray-200 ${selectedRole.id === data.id ? 'bg-gray-200' : ''}`}>
             {editStateId === data.id ? (
@@ -41,13 +43,13 @@ const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, edi
                             className="px-3 py-1 text-white bg-text_primary_color rounded hover:opacity-70"
                             onClick={handleUpdate}
                         >
-                            Update
+                           {t("RP_k8")}
                         </button>
                         <button
                             className="px-3 py-1 text-gray-400 border-gray-400 border-[1px] rounded"
                             onClick={handleCancel}
                         >
-                            Cancel
+                           {t("RP_k4")}
                         </button>
                     </div>
                 </div>
@@ -89,7 +91,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
         toggleAllPermissions(allowed)
     };
 
-    const {t} = useTranslation("RolesandPermissions")
+    const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
 
     return (
         <div className="p-6 bg-white rounded shadow-lg w-full mx-auto max-h-[87dvh] ">
@@ -98,12 +100,12 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 <div className="w-full h-full flex  flex-col flex-1">
                     <div className='flex items-center justify-between px-2 mb-3'>
                         <div>
-                            <h2 className="text-lg font-bold ">{t("RP_K1")}</h2>
+                            <h2 className="text-lg font-bold ">{t("RP_k1")}</h2>
                         </div>
 
                         <div>
                             <button onClick={() => toggleActivateAddNewRoleHandle(true)} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
-                               {t("RP_K6")}
+                               {t("RP_k6")}
                             </button>
                         </div>
                     </div>
@@ -125,9 +127,9 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 {/* Permissions Section */}
                 <div className="w-full ">
                     <div className="flex items-center justify-between mb-4 px-2">
-                        <h2 className="text-lg font-bold">{t("RP_K2")}</h2>
+                        <h2 className="text-lg font-bold">{t("RP_k2")}</h2>
                         {selectedRole ? <label className="flex items-center gap-2">
-                            <span>{t("RP_K1")}</span>
+                            <span>{t("RP_k1")}</span>
                             <Switch className='disabled:opacity-65' disabled={selectedRole?.id === 1}  onChange={(e) => handleAllowAll(e)} 
                             
                             checked={permissions?.every((perm:any) => perm.allowed) || selectedRole?.id === 1} 

@@ -54,7 +54,7 @@ const TableComponent: React.FC<Props> = ({
   RightSideComponent,
 }) => {
 
-  const {t} = useTranslation([translationConstant.STOCKPANEL, translationConstant.POSHISTORY]);
+  const { t } = useTranslation([translationConstant.STOCKPANEL, translationConstant.POSHISTORY])
 
   return (
     <div

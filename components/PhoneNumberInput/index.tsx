@@ -3,6 +3,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
 const PhoneNumberInput = ({
+    className,
     label,
     placeholder,
     breakpoint,
@@ -10,7 +11,8 @@ const PhoneNumberInput = ({
     type = 'text',
     onChange,
 }: {
-    label: string;
+    className?: string;
+    label?: string;
     placeholder: string;
     breakpoint: boolean;
     value: string;
@@ -21,7 +23,7 @@ const PhoneNumberInput = ({
         <div className={`flex ${breakpoint ? 'sm:flex-row' : 'flex-col'} items-start w-full`}>
             {/* Label for the phone input */}
             <label className="text-[16px] text-customGray font-poppins font-bold mb-2">
-                {label}:
+                {label}
             </label>
 
             {/* Phone Input */}

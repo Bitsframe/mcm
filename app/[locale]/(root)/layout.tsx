@@ -2,10 +2,12 @@ import RootLayoutComponent from "@/components/RootLayoutComponent";
 import { ActiveTabProvider, AuthProvider, LocationProvider } from "@/context";
 import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/TranslationsProvider";
+import { NextIntlClientProvider } from "next-intl";
 
 
 
-const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandpermissions', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont'];
+
+const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandper', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont'];
 
 
 
