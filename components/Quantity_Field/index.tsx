@@ -1,5 +1,7 @@
+import { translationConstant } from '@/utils/translationConstants';
 import { Label, Select } from 'flowbite-react'
 import React, { FC, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next';
 import { AiFillPlusCircle } from "react-icons/ai";
 import { AiFillMinusCircle } from "react-icons/ai";
 
@@ -38,10 +40,12 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({ quantity, quantityH
     }, [quantity, maxAvailability])
 
 
+    const {t} = useTranslation(translationConstant.POSSALES)
+
 
     return (
         <div className={`w-28 ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            <Label htmlFor="quantity" value="Quantity" className='font-bold' />
+            <Label htmlFor="quantity" value={t("POS-Sales_k7")} className='font-bold' />
             <div className='bg-white py-1 px-3 rounded-lg flex items-center'>
                 <p className='flex-1'>{quantity}</p>
                 <div>

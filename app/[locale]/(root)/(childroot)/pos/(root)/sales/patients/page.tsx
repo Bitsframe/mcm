@@ -17,6 +17,8 @@ import { LocationContext } from '@/context';
 import PhoneNumberInput from '@/components/PhoneNumberInput';
 import { CiFilter } from 'react-icons/ci';
 import { formatPhoneNumber } from '@/utils/getCountryName';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface PatientDetailsInterface {
   firstname: string;
@@ -433,6 +435,9 @@ const Patients = () => {
       fetch_handle(selectedLocation?.id)
     }
   }
+
+  const {t} = useTranslation(translationConstant.POSSALES)
+
   return (
     <main className="w-full  font-[500] text-[20px]">
       <div className='w-full h-[65.5dvh] py-2 px-2 grid grid-cols-3 gap-2'>
@@ -440,13 +445,13 @@ const Patients = () => {
           <div className='space-y-6 px-3 pb-4 flex items-center space-x-4'>
             <div>
               <h1 className='text-xl font-bold'>
-                search
+              {t("POS-Sales_k15")}
               </h1>
               <input onChange={onChangeHandle} type="text" placeholder="" className=' px-1 py-2 w-72 text-sm rounded-md focus:outline-none bg-white' />
             </div>
             <div className='space-x-3'>
               {
-                ['Today', 'Past records'].map((elem: string, index: number) => <Action_Button key={index} onClick={() => setActiveFilterBtn(index)} label={elem} bg_color={index === activeFilterBtn ? 'bg-[#13787E]' : 'bg-gray-500'} />)
+                ['POS-Sales_k16', 'POS-Sales_k17'].map((elem: string, index: number) => <Action_Button key={index} onClick={() => setActiveFilterBtn(index)} label={t(elem)} bg_color={index === activeFilterBtn ? 'bg-[#13787E]' : 'bg-gray-500'} />)
               }
             </div>
           </div>
@@ -482,27 +487,27 @@ const Patients = () => {
         <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col' >
           <div className='px-4 py-4 bg-[#11252C80]  border-b-[1px] border-b-[#817B7B] flex items-center'>
             <h1 className='text-xl font-normal text-white text-center w-full'>
-              Add new Patient
+            {t("POS-Sales_k18")}
             </h1>
           </div>
           <div className='overflow-auto h-[100%] px-4 py-4'>
             <div className='w-2/3 space-y-4'>
-              <Input_Component value={createActionData.firstname} onChange={(e: string) => addPatientFieldsChange(e, 'firstname')} label='First Name' />
-              <Input_Component value={createActionData.lastname} onChange={(e: string) => addPatientFieldsChange(e, 'lastname')} label='Last Name' />
+              <Input_Component value={createActionData.firstname} onChange={(e: string) => addPatientFieldsChange(e, 'firstname')} label= {t("POS-Sales_k19")} />
+              <Input_Component value={createActionData.lastname} onChange={(e: string) => addPatientFieldsChange(e, 'lastname')} label={t("POS-Sales_k20")} />
               {/* @ts-ignore */}
-              <Select_Dropdown value={createActionData.gender} bg_color='#fff' start_empty={true} options_arr={['Male', 'Female'].map((gender) => ({ value: gender, label: gender }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'gender')} label='Gender' />
-              <Input_Component value={createActionData.email} onChange={(e: string) => addPatientFieldsChange(e, 'email')} label='Email Address' />
+              <Select_Dropdown value={createActionData.gender} bg_color='#fff' start_empty={true} options_arr={['Male', 'Female'].map((gender) => ({ value: gender, label: gender }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'gender')} label={t("POS-Sales_k21")} />
+              <Input_Component value={createActionData.email} onChange={(e: string) => addPatientFieldsChange(e, 'email')} label={t("POS-Sales_k22")} />
               {/* <Input_Component value={createActionData.phone} onChange={(e: string) => addPatientFieldsChange(e, 'phone')} label='Phone Number' /> */}
-              <PhoneNumberInput value={createActionData.phone} onChange={(e: string) => addPatientFieldsChange(e, 'phone')} label='Phone Number' placeholder={''} breakpoint={false} />
+              <PhoneNumberInput value={createActionData.phone} onChange={(e: string) => addPatientFieldsChange(e, 'phone')} label={t("POS-Sales_k23")} placeholder={''} breakpoint={false} />
 
               {/* @ts-ignore */}
               <Select_Dropdown value={createActionData.treatmenttype} bg_color='#fff' start_empty={true} options_arr={services?.map((service) => ({ value: service, label: service }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'treatmenttype')}
-                label='Treatment Type' />
+                label={t("POS-Sales_k24")} />
             </div>
           </div>
           <div>
             <button onClick={createNewDataHandle} className='bg-[#11252C] py-3 w-full text-center text-white'>
-              Add Patient
+            {t("POS-Sales_k25")}
             </button>
           </div>
         </div>

@@ -5,6 +5,8 @@ import moment from 'moment';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { PiCaretUpDownBold } from 'react-icons/pi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface DataListInterface {
   feedback_id: number;
@@ -100,6 +102,8 @@ const PrivateFeedbackComponent: FC = () => {
     [dataDetails]
   );
 
+  const {t} = useTranslation(translationConstant.PRIVATEFEEDBACK)
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
@@ -112,7 +116,7 @@ const PrivateFeedbackComponent: FC = () => {
             <input
               onChange={onChangeHandle}
               type="text"
-              placeholder="Patient Name"
+              placeholder={t("Privatefeedback_k1")}
               className="px-2 py-3 w-72 text-sm rounded-md focus:outline-none mt-2"
             />
           </div>
@@ -122,25 +126,25 @@ const PrivateFeedbackComponent: FC = () => {
               <TableHeader>
                 <TableRow className="font-semibold">
                   <TableHead className="text-start text-lg">
-                    Patient Name
+                  {t("Privatefeedback_k1")}
                     <button onClick={() => sortHandle('name')} className="ml-1 active:opacity-50">
                       {sortIcon('name')}
                     </button>
                   </TableHead>
                   <TableHead className="text-center text-lg">
-                    Order ID
+                  {t("Privatefeedback_k2")}
                     <button onClick={() => sortHandle('order_id')} className="ml-1 active:opacity-50">
                       {sortIcon('order_id')}
                     </button>
                   </TableHead>
                   <TableHead className="text-center text-lg">
-                    Feedback Date
+                  {t("Privatefeedback_k3")}
                     <button onClick={() => sortHandle('date')} className="ml-1 active:opacity-50">
                       {sortIcon('date')}
                     </button>
                   </TableHead>
                   <TableHead className="text-end text-lg">
-                    Rating
+                  {t("Privatefeedback_k4")}
                     <button onClick={() => sortHandle('rating')} className="ml-1 active:opacity-50">
                       {sortIcon('rating')}
                     </button>
@@ -176,7 +180,7 @@ const PrivateFeedbackComponent: FC = () => {
                   <TableRow>
                     <TableCell colSpan={4}>
                       <div className="flex h-full flex-1 flex-col py-2 text-base justify-center items-center">
-                        <h1>No patient found!</h1>
+                        <h1>{t("Privatefeedback_k5")}</h1>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -188,12 +192,12 @@ const PrivateFeedbackComponent: FC = () => {
 
         <div className="bg-[#EFEFEF] h-full rounded-md overflow-hidden flex flex-col">
           <div className="px-4 py-4 border-b-[1px]">
-            <h1 className="text-2xl font-bold w-full">Details</h1>
+            <h1 className="text-2xl font-bold w-full">{t("Privatefeedback_k6")}</h1>
           </div>
 
           {dataDetails ? details : (
             <div className="h-full flex items-center justify-center text-xl font-semibold">
-              <h1>Select feedback from list</h1>
+              <h1>{t("Privatefeedback_k7")}</h1>
             </div>
           )}
         </div>

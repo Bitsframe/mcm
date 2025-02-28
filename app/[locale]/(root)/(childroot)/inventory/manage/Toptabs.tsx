@@ -4,26 +4,29 @@ import { GoDotFill } from "react-icons/go";
 import { usePathname } from 'next/navigation'
 import EditIcon from "@/assets/svg_icons/Edit_Icon";
 import Location_Component from "@/components/Location_Component";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const TopTabs = () => {
     const pathname = usePathname()
 
     const PosTopMenu = [
         {
-            title: "Categories",
+            title: "Inventory_k1",
             url: "/"
         },
         {
-            title: "Products",
+            title: "Inventory_k2",
             url: "products"
         },
         {
-            title: "Inventory",
+            title: "Inventory_k3",
             url: "inventory"
         },
 
     ];
 
+    const {t} = useTranslation(translationConstant.INVENTORY)
 
     return (
         <nav className="flex items-center justify-between" >
@@ -34,7 +37,7 @@ const TopTabs = () => {
                             className={`flex gap-2 items-center ${pathname === `/inventory/manage/${menuItem.url}` || (pathname === "/inventory/manage" && menuItem.url === "/") ? 'text-text_primary_color underline underline-offset-8' : 'text-gray-500'}`}
                             href={`/inventory/manage/${menuItem.url}`}>
                             <span> {<GoDotFill size={15} />}</span>
-                            <span className="text-lg font-bold" > {menuItem.title}</span>
+                            <span className="text-lg font-bold" > {t(menuItem.title)}</span>
                         </Link>
 
                     </li>

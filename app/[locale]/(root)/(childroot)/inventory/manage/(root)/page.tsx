@@ -8,6 +8,8 @@ import { create_content_service, fetch_content_service, update_content_service }
 import { toast } from 'react-toastify';
 import { Custom_Modal } from '@/components/Modal_Components/Custom_Modal';
 import { Input_Component } from '@/components/Input_Component';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 interface DataListInterface {
   [key: string]: any; // This allows dynamic property access
 }
@@ -16,17 +18,17 @@ interface DataListInterface {
 const tableHeader = [
   {
     id: 'category_id',
-    label: 'Category ID',
+    label: 'Inventory_k7',
     align: 'text-start',
   },
   {
     id: 'category_name',
-    label: 'Name',
+    label: 'Inventory_k8',
     align: 'text-center'
   },
   {
     id: 'actions',
-    label: 'Action',
+    label: 'Inventory_k9',
     align: 'text-end',
     component: true,
     Render_Value: ({ val, onClickHandle, isLoading, getDataArchiveType }: { val?: string, onClickHandle?: () => void, isLoading?: boolean, getDataArchiveType: boolean }) => {
@@ -199,7 +201,7 @@ const Categories = () => {
   // }
 
 
-
+  const {t} = useTranslation(translationConstant.INVENTORY)
   return (
     <main className="w-full  h-full font-[500] text-[20px]">
 
@@ -218,7 +220,7 @@ const Categories = () => {
 
               <div className='flex items-center w-full justify-between gap-x-3'>
 
-                <input onChange={onChangeHandle} type="text" placeholder="Search by Category" className=' block px-1 py-3 w-72 text-sm rounded-md focus:outline-none bg-white' />
+                <input onChange={onChangeHandle} type="text" placeholder={t("Inventory_k4")} className=' block px-1 py-3 w-72 text-sm rounded-md focus:outline-none bg-white' />
                 <button className='block' onClick={() => openModalHandle(modalStateEnum.CREATE)} >
                   <Image
                     className="w-9"
@@ -246,7 +248,7 @@ const Categories = () => {
               {tableHeader.map(({ label, align }, index) => {
 
                 return <h1 key={index} className={`flex-1 ${align || 'text-start'}  `}>
-                  {label}
+                  {t(label)}
                 </h1>
               })}
             </div>

@@ -8,6 +8,8 @@ import { Form_Component } from '@/components/Form_Component';
 import { Custom_Modal } from '@/components/Modal_Components/Custom_Modal';
 import { fields_list_components } from '@/utils/list_options/fields_list_components';
 import { useLocationClinica } from '@/hooks/useLocationClinica';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 const inputLabelandValue = [
     // {
@@ -55,6 +57,7 @@ const Career = () => {
         fetch_data_by_parameter
     } = useSingleRowDataHandle({ table: 'career', list_data: true, required_fields: inputLabelandValue });
 
+    const {t} = useTranslation(translationConstant.WEBCONT)
 
     return (
         <WebsiteContentLayout>
@@ -67,13 +70,13 @@ const Career = () => {
                         <div className='flex w-2/5 items-end justify-center gap-4'>
                             <div className='flex flex-1'>
                                 <Select_Dropdown
-                                    value={selected_list_id} label='ID' start_empty={true} options_arr={data_list.map(({ id, }) => ({ value: id, label: id }))}
+                                    value={selected_list_id} label={t('WebCont_k14')} start_empty={true} options_arr={data_list.map(({ id, }) => ({ value: id, label: id }))}
                                     on_change_handle={change_selected_list_id}
                                     required={true} />
                             </div>
 
                             <div className='flex flex-1'>
-                                <Select_Dropdown value={selected_language} label='Language' options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                                <Select_Dropdown value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                             </div>
                         </div>
 

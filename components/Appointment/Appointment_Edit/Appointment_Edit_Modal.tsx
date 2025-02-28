@@ -5,9 +5,11 @@ import { Custom_Modal } from '../../Modal_Components/Custom_Modal'
 import ScheduleDateTime from './ScheduleDateTime'
 import moment from 'moment'
 import { update_appointment_service } from '@/utils/supabase/data_services/data_services'
-import { toast } from 'react-toastify'
+import { toast } from "sonner"
 import { sendEmail } from '@/utils/emailService'
 import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
+import { useTranslation } from 'react-i18next'
+import { translationConstant } from '@/utils/translationConstants'
 
 
 interface AppointmentEditModalProps {
@@ -63,7 +65,15 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
           data: emailData
         });
 
-        toast.success('Updated successfully');
+        toast.success(<div className="flex justify-between">
+                    <p>Appointment details updated successfully.</p>
+                    <button
+                      onClick={() => toast.dismiss()} 
+                      className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
+                    >
+                      <span className="text-sm">&#x2715;</span>
+                    </button>
+                  </div>,);
         updateAvailableData(selectedVal);
         setOpenModal(false);
       }
@@ -91,14 +101,19 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
     }
   }, [appointmentDetails.location_id]);
 
-  const triggerButton = useMemo(() => (
+  const {t} = useTranslation(translationConstant.APPOINMENTS)
+  const triggerButton = useMemo(() => {
+
+
+    return(
     <button
       onClick={handleOpenModal}
       className="border-text_primary_color flex-1 text-text_primary_color border-2 active:opacity-60 rounded-md px-4 py-1 ml-2 hover:bg-text_primary_color_hover"
     >
-      Edit
+      {t("Appoinments_k34")}
     </button>
-  ), [handleOpenModal]);
+    )
+}, [handleOpenModal]);
 
   const isUpdateDisabled = !isDateSelected || !isTimeSelected;
 

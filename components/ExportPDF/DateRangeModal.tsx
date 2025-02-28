@@ -4,6 +4,8 @@ import { DateRangePicker } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; // main styles for react-date-range
 import 'react-date-range/dist/theme/default.css'; // theme styles for react-date-range
 import moment from 'moment';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 const style = {
     position: 'absolute',
@@ -55,13 +57,16 @@ export default function DateRangeModal({
 
         generatePdfHandle(formattedStartDate, formattedEndDate)
     };
+
+    const {t} = useTranslation(translationConstant.POSHISTORY)
+
     return (
         <div>
             <button
                 onClick={handleOpen}
                 className="bg-black text-base px-3 py-2 text-white rounded-md"
             >
-                Export as PDF
+                {t("POS-Historyk1")}
             </button>
             <Modal
                 open={open}

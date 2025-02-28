@@ -4,7 +4,8 @@ import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/TranslationsProvider";
 
 
-const i18nNamespaces = ['Dashboard'];
+
+const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandpermissions', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont'];
 
 
 
@@ -23,12 +24,11 @@ export default async function layout({
 			<ActiveTabProvider>
 				<LocationProvider>
 					<AuthProvider >
+					<TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
 						<RootLayoutComponent >
-								<TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
-							
 							{children}
-							</TranslationsProvider>
 						</RootLayoutComponent>
+							</TranslationsProvider>
 					</AuthProvider>
 				</LocationProvider>
 			</ActiveTabProvider>

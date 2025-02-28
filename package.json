@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": " next dev --turbopack",
-    "fast-dev": "i18nexus pull && next dev --turbo",
+    "fast-dev": "next dev --turbo",
     "build": "i18nexus pull && cross-env NODE_OPTIONS='--no-deprecation' next build",
     "start": "next start",
     "lint": "next lint",

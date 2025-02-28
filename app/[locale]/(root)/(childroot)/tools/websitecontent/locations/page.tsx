@@ -6,6 +6,8 @@ import { Custom_Modal } from '@/components/Modal_Components/Custom_Modal';
 import { useSingleRowDataHandle } from '@/hooks/useSingleRowDataHandle';
 import { fields_list_components, find_fields } from '@/utils/list_options/fields_list_components';
 import { Form_Component } from '@/components/Form_Component';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 const Locations = () => {
 
@@ -78,7 +80,7 @@ const Locations = () => {
     });
 
 
-
+    const {t} = useTranslation(translationConstant.WEBCONT)
 
     return (
         <WebsiteContentLayout>
@@ -87,7 +89,7 @@ const Locations = () => {
                 <div className='flex items-end  justify-between p-0 my-5'>
                     <div className='w-1/2' >
                         <Select_Dropdown
-                            value={selected_list_id} label='Locations' start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
+                            value={selected_list_id} label={t('WebCont_k5')} start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
                             on_change_handle={change_selected_list_id}
                             required={true} />
 

@@ -6,18 +6,22 @@ import { cronitorSampleData, render_arr } from "@/data";
 import { CronitorRequest, DNS, Monitor, SSL } from "@/types/dashboard.interface";
 import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
+import { translationConstant } from "@/utils/translationConstants";
 
 // @ts-ignore
-const InfoCard = memo(({ label, value, type = 'text' }: { label: string; value: any; type?: 'text' | 'image' }) => (
+const InfoCard = memo(({ label, value, type = 'text' }: { label: string; value: any; type?: 'text' | 'image' }) => {
+  const {t} = useTranslation()
+  return(
   <div className="bg-gray-100/75 p-4 rounded-md space-y-3">
-    <h1 className="text-lg font-bold">{label}</h1>
+    <h1 className="text-lg font-bold">{t(label)}</h1>
     {type === 'image' ? (
       <img src={value} alt={label} className="text-green-500 font-bold" />
     ) : (
       <h1 className="break-words">{value}</h1>
     )}
   </div>
-));
+  )
+});
 
 InfoCard.displayName = "InfoCard";
 
@@ -30,45 +34,55 @@ const DataField = memo(({ label, value }: { label: string; value: React.ReactNod
 
 DataField.displayName = "DataField"
 
-const SSLSection = memo(({ ssl }: { ssl: SSL }) => (
+const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
+ 
+  const {t} = useTranslation(translationConstant.DASHBOARD);
+
+  return(
   <div className="bg-gray-100/75 p-4 rounded-md">
-    <h1 className="mb-3 text-xl md:text-2xl">SSL</h1>
+    <h1 className="mb-3 text-xl md:text-2xl">{t("Dashboard_k20")}</h1>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <DataField label="Issued to" value={ssl.issued_to} />
-      <DataField label="Issued By" value={ssl.issued_by} />
+      <DataField label={t("Dashboard_k6")} value={ssl.issued_to} />
+      <DataField label={t("Dashboard_k18")} value={ssl.issued_by} />
       <DataField 
-        label="Issued at" 
+        label={t("Dashboard_k7")} 
         value={moment(ssl.issued_at).format('DD/MM/YYYY, h:mm A')} 
       />
       <DataField 
-        label="Expires at" 
+        label={t("Dashboard_k8")}
         value={moment(ssl.expires_at).format('DD/MM/YYYY, h:mm A')} 
       />
     </div>
   </div>
-));
+  )
+});
 
 SSLSection.displayName = "SSLSection"
 
-const DNSSection = memo(({ dns }: { dns: DNS }) => (
+const DNSSection = memo(({ dns }: { dns: DNS }) => {
+
+  const {t} = useTranslation(translationConstant.DASHBOARD);
+
+  return(
   <div className="bg-gray-100/75 p-4 rounded-md">
-    <h1 className="mb-3 text-xl md:text-2xl">DNS</h1>
+    <h1 className="mb-3 text-xl md:text-2xl">{t("Dashboard_k21")}</h1>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <DataField label="Name" value={dns.name} />
+      <DataField label={t("Dashboard_k19")} value={dns.name} />
       <DataField 
-        label="Expires at" 
+        label={t("Dashboard_k8")} 
         value={moment(dns.expires_at).format('DD/MM/YYYY, h:mm A')} 
       />
-      <DataField label="Registrar" value={dns.registrar} />
+      <DataField label={t("Dashboard_k9")} value={dns.registrar} />
       <DataField 
-        label="Server Name" 
+        label={t("Dashboard_k10")} 
         value={dns.name_servers.map((name, ind) => (
           <p key={ind}>{name}</p>
         ))} 
       />
     </div>
   </div>
-));
+  )
+});
 
 DNSSection.displayName = "DNSSection"
 
@@ -92,25 +106,25 @@ const MonitorDetails = memo(({ request, schedule, platform }: {
 
   return(
   <div className="col-span-1 md:col-span-2 bg-gray-100/75 rounded-lg p-4">
-    <h1 className="mb-3 text-xl md:text-2xl">{t("Dashboard:Dashboard_k11")}</h1>
+    <h1 className="mb-3 text-xl md:text-2xl">{t("Dashboard_k11")}</h1>
     <div className="space-y-6">
       <DataField 
-        label="Request" 
+        label={t("Dashboard_k12")} 
         value={
           <>
-            <span className="rounded-md bg-slate-700 px-3 py-1 text-white text-xs">GET</span>
+            <span className="rounded-md bg-slate-700 px-3 py-1 text-white text-xs">{t("Dashboard_k4")}</span>
             <span className="ml-2 break-words">{request.url}</span>
           </>
         } 
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DataField label="Interval" value={schedule} />
-        <DataField label="Protocol" value={platform} />
-        <DataField label="Request Timeout" value={`${request.timeout_seconds} seconds`} />
-        <DataField label="Headers" value={Object.keys(request.headers).length || 'none'} />
+        <DataField label={t("Dashboard_k13")} value={schedule} />
+        <DataField label={t("Dashboard_k14")} value={platform} />
+        <DataField label={t("Dashboard_k15")} value={`${request.timeout_seconds} seconds`} />
+        <DataField label={t("Dashboard_k16")} value={Object.keys(request.headers).length || 'none'} />
       </div>
       <DataField 
-          label="Locations" 
+          label={t("Dashboard_k17")} 
           value={
             <div className="flex  space-x-2 flex-wrap w-[100%]">
               {request.regions?.map((region, index) => (

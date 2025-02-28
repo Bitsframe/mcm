@@ -1,3 +1,5 @@
+"use client"
+
 import { CircularProgress } from "@mui/material";
 import React from "react";
 import { CiSearch } from "react-icons/ci";
@@ -9,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 interface TableHeaderInterface {
   label: string;
@@ -49,6 +53,9 @@ const TableComponent: React.FC<Props> = ({
   searchInputplaceholder,
   RightSideComponent,
 }) => {
+
+  const {t} = useTranslation([translationConstant.STOCKPANEL, translationConstant.POSHISTORY]);
+
   return (
     <div
       className={`bg-[#EFEFEF] ${tableHeight} overflow-y-auto col-span-2 rounded-md pb-24 px-3`}
@@ -59,7 +66,8 @@ const TableComponent: React.FC<Props> = ({
           <input
             onChange={searchHandle}
             type="text"
-            placeholder={searchInputplaceholder}
+            // @ts-ignore
+            placeholder={t(searchInputplaceholder)}
             className="px-1 focus:outline-none placeholder-gray-400 text-sm font-light"
           />
         </div>
@@ -78,7 +86,7 @@ const TableComponent: React.FC<Props> = ({
                     flex ? flex : "flex-[4]"
                   } ${align || "text-center"}`}
                 >
-                  {label}
+                  {t(label)}
                 </TableHead>
               ))}
             </TableRow>

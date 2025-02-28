@@ -43,6 +43,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import moment from 'moment';
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -268,6 +270,8 @@ const EmailBroadcast: React.FC = () => {
     }
   };
 
+  const {t} = useTranslation(translationConstant.EMAILB)
+
   return (
     <main className="w-full  text-[#000000] text-[20px] flex flex-row justify-start  overflow-hidden items-center mt-5  p-4">
       <div className=" w-[60%] h-full flex items-start   justify-start flex-col ">
@@ -281,7 +285,7 @@ const EmailBroadcast: React.FC = () => {
                       .slice(0, 2)
                       .map((email: { email: string }) => email.email)
                       .join(", ") + (checkedItems.length > 2 ? ` +${checkedItems.length - 2} more` : "")
-                    : "Select Option"}
+                    : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
 
@@ -291,7 +295,7 @@ const EmailBroadcast: React.FC = () => {
                     <>
                       <div className="flex items-center cursor-pointer justify-between">
                         <div className="flex items-center">
-                          <AlertDialogTitle>Select Patients</AlertDialogTitle>
+                          <AlertDialogTitle>{t("EmailB_k7")}</AlertDialogTitle>
                         </div>
                         <AlertDialogCancel>
                           {" "}
@@ -300,10 +304,10 @@ const EmailBroadcast: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between ">
                         <div className="flex items-center ">
-                          <h1>Search</h1>
+                          <h1>{t("EmailB_k8")}</h1>
                           <div className="ml-2 border border-gray-300 rounded-lg" >
                             <input
-                              placeholder="Search by email"
+                              placeholder={t("EmailB_k9")}
                               type="text"
                               className="p-2  border border-gray-300 rounded-lg"
                               value={searchQuery}
@@ -350,9 +354,9 @@ const EmailBroadcast: React.FC = () => {
                             }
                           />
 
-                          <h2 className="ml-2">Name/Email</h2>
+                          <h2 className="ml-2">{t("EmailB_k10")}</h2>
                         </div>
-                        <h2>Gender</h2>
+                        <h2>{t("EmailB_k11")}</h2>
                       </div>
                     </>
                   ) : (
@@ -586,7 +590,7 @@ const EmailBroadcast: React.FC = () => {
                 name="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="Write Subject"
+                placeholder={t("EmailB_k3")}
                 className="w-full p-2  rounded"
               />
             </div>
@@ -596,7 +600,7 @@ const EmailBroadcast: React.FC = () => {
                 type="text"
                 id="name"
                 name="name"
-                placeholder="Name"
+                placeholder={t("EmailB_k4")}
                 className="w-full p-2  rounded"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -607,7 +611,7 @@ const EmailBroadcast: React.FC = () => {
                 type="text"
                 id="price"
                 name="price"
-                placeholder="Price"
+                placeholder={t("EmailB_k5")}
                 className="w-full p-2  rounded"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
@@ -617,7 +621,7 @@ const EmailBroadcast: React.FC = () => {
 
           </div>
           <br />
-          <Button onClick={sendEmail}>Submit</Button>
+          <Button onClick={sendEmail}>{t("EmailB_k6")}</Button>
         </div>
       </div>
       <div className="w-[40%]  flex items-center justify-center   p-5">

@@ -7,6 +7,8 @@ import { useSingleRowDataHandle } from '@/hooks/useSingleRowDataHandle';
 import { Form_Component } from '@/components/Form_Component'
 import { Custom_Modal } from '@/components/Modal_Components/Custom_Modal';
 import { fields_list_components, find_fields } from '@/utils/list_options/fields_list_components';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 const inputLabelandValue = [
     {
@@ -18,7 +20,7 @@ const inputLabelandValue = [
         key: "rating"
     },
     {
-        label: "Name",
+        label: "WebCont_k15",
         key: "name"
     },
     {
@@ -83,7 +85,7 @@ const Testimonials = () => {
 
 
 
-
+    const {t} = useTranslation(translationConstant.WEBCONT)
     return (
         <WebsiteContentLayout>
             <div className='mb-5 px-3' >
@@ -91,11 +93,11 @@ const Testimonials = () => {
                     <div className='grid grid-cols-5 lg:flex-row lg:gap-24 '>
 
                         <Select_Dropdown
-                            value={selected_location} label='Locations' start_empty={true} options_arr={locations.map(({ id, title }: { id: string, title: string }) => ({ value: id, label: title }))}
+                            value={selected_location} label={t('WebCont_k5')} start_empty={true} options_arr={locations.map(({ id, title }: { id: string, title: string }) => ({ value: id, label: title }))}
                             on_change_handle={select_location_handle}
                             required={true} />
                         <Select_Dropdown
-                            value={selected_list_id} label='ID' start_empty={true} options_arr={filteredData.map(({ id }: { id: string }) => ({ value: id, label: id }))}
+                            value={selected_list_id} label={t('WebCont_k14')} start_empty={true} options_arr={filteredData.map(({ id }: { id: string }) => ({ value: id, label: id }))}
                             on_change_handle={change_selected_list_id}
                             required={true} />
                     </div>
@@ -117,7 +119,7 @@ const Testimonials = () => {
                                     const { Component_Render } = fields_list_components[find_fields[item.key]]
                                     return (
                                     // @ts-ignore
-                                        <Component_Render key={index} on_change_handle={on_change_handle} label={item.label} key_id={item.key} data={create_data} />
+                                        <Component_Render key={index} on_change_handle={on_change_handle} label={t(item.label)} key_id={item.key} data={create_data} />
 
                                     );
                                 })

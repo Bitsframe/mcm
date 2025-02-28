@@ -8,6 +8,8 @@ import OrderDetailsModal from './OrderDetailsModal';
 import TableComponent from '@/components/TableComponent';
 import ExportAsPDF from '@/components/ExportPDF';
 import { LocationContext } from '@/context';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface DataListInterface {
   [key: string]: any; 
@@ -16,23 +18,24 @@ interface DataListInterface {
 const tableHeader = [
   {
     id: 'order_id',
-    label: 'Order ID',
+    label: 'POS-Historyk4',
     align: 'text-center',
     flex: 'flex-1',
   },
   {
     id: 'order_date',
-    label: 'Date',
+    label: 'POS-Historyk5',
     render_value: (val: string) => moment(val, 'YYYY-MM-DD HH:mm:ss').subtract(6, 'hours').format('DD-MMMM-YYYY'),
+
   },
   {
     id: 'name',
-    label: 'Patient Name',
+    label: 'POS-Historyk6',
     render_value: (val: any, elem?: any) => `${elem?.pos?.firstname} ${elem?.pos?.lastname}`,
   },
   {
     id: 'total_price',
-    label: 'Total Amount',
+    label: 'POS-Historyk7',
     render_value: (val: any, elem?: any) => {
       const totalVal = elem.sales_history?.reduce((a: number, b: { total_price: number }) => a + b?.total_price, 0);
       return currencyFormatHandle(totalVal);
@@ -40,12 +43,12 @@ const tableHeader = [
   },
   {
     id: 'payment_type',
-    label: 'Payment Type',
+    label: 'POS-Historyk8',
     render_value: () => 'Cash', 
   },
   {
     id: 'last_updated',
-    label: 'Action',
+    label: 'POS-Historyk9',
     render_value: (_val: string, elem: any, openModal: Function) => (
       <button onClick={() => openModal(elem)} className='bg-[#B8C8E1] text-base px-2 py-1 rounded-md'>
         Details
@@ -144,10 +147,12 @@ const SalesHistory = () => {
     }
   }, [allData]);
 
+  const {t} = useTranslation(translationConstant.POSHISTORY)
+
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
-        <h1 className='text-xl font-bold'>Sales History</h1>
+        <h1 className='text-xl font-bold'>{t("POS-Historyk1")}</h1>
         <div className='flex items-center space-x-3'>
           <ExportAsPDF />
         </div>
@@ -160,7 +165,7 @@ const SalesHistory = () => {
           dataList={dataList}
           openModal={openModal}
           searchHandle={onChangeHandle}
-          searchInputplaceholder="Search by Order ID"
+          searchInputplaceholder="POS-Historyk3"
         />
       </div>
 

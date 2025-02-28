@@ -5,6 +5,8 @@ import { Select_Dropdown } from '../Select_Dropdown';
 import LocationModal from './LocationModal';
 import { CreateUserModalDataInterface } from '@/types/typesInterfaces';
 import { useRolesAndPermissions } from '@/hooks/useRolesAndPermissions';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface PropsInterface {
     open: boolean;
@@ -73,6 +75,8 @@ export default function AddEditUserModal({
         handleClose()
     }
 
+    const {t} = useTranslation(translationConstant.USERMANAGEMENT)
+
     return (
         <div>
             <Modal
@@ -84,7 +88,7 @@ export default function AddEditUserModal({
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="bg-white rounded-md px-3 py-3 min-w-[650px]">
                         <h2 id="add-edit-user-modal-title" className="mb-4 font-bold">
-                            {editData ? "Edit " : "Add a new "}user
+                            {editData ?  t("UM_k15") : t("UM_k2")}
                         </h2>
 
                         <div className="flex flex-col w-full space-y-4">
@@ -92,7 +96,7 @@ export default function AddEditUserModal({
                                 <div >
                                     <Input_Component
                                         value={formData.fullName}
-                                        placeholder="Full Name"
+                                        placeholder={t("UM_k7")}
                                         border="border-[1px] border-gray-300 rounded-md"
                                         onChange={(value) => handleInputChange('fullName', value)}
                                     />
@@ -101,7 +105,7 @@ export default function AddEditUserModal({
                                 <div >
                                     <Select_Dropdown
                                         hideLabel={true}
-                                        label='Select Role'
+                                        label={t("UM_k8")}
                                         start_empty={true}
                                         bg_color="#fff"
                                         value={formData.roleId}
@@ -115,7 +119,7 @@ export default function AddEditUserModal({
                                     <Input_Component
                                         value={formData.email}
                                         disabled={editData ? true : false}
-                                        placeholder="Email"
+                                        placeholder={t("UM_k9")}
                                         type='email'
                                         border="border-[1px] border-gray-300 rounded-md"
                                         onChange={(value) => handleInputChange('email', value)}
@@ -126,7 +130,7 @@ export default function AddEditUserModal({
                                         value={formData.password}
                                         passwordEye
                                         disabled={editData ? true : false}
-                                        placeholder="Password"
+                                        placeholder={t("UM_k10")}
                                         type='password'
                                         border="border-[1px] border-gray-300 rounded-md"
                                         onChange={(value) => handleInputChange('password', value)}
@@ -146,7 +150,7 @@ export default function AddEditUserModal({
                                     onClick={handleClose}
                                     className="bg-[#F5F7F9] text-[#44444F] hover:bg-gray-200 px-4 py-2 rounded-md"
                                 >
-                                    Close
+                                    {t("UM_k12")}
                                 </button>
                                 <button
                                     onClick={handleSubmit}
@@ -154,10 +158,10 @@ export default function AddEditUserModal({
                                     className="bg-black border-2 border-black text-white px-4 py-2 rounded-md disabled:bg-gray-400 disabled:border-gray-400 col-span-3 w-full"
                                 >
                                     {editData ? <span>
-                                        {loading ? 'Updating...' : 'Edit User'}
+                                        {loading ? 'Updating...' : t("UM_k13")}
                                     </span> :
                                         <span>
-                                            {loading ? 'Adding...' : 'Add User'}
+                                            {loading ? 'Adding...' : t("UM_k14")}
                                         </span>}
                                 </button>
                             </div>

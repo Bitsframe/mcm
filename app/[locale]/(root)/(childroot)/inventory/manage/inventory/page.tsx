@@ -14,6 +14,8 @@ import { Searchable_Dropdown } from '@/components/Searchable_Dropdown';
 import { useMasterProductsClinica } from '@/hooks/useMasterProductsClinica';
 import { Price_Input } from '@/components/Price_Input';
 import { LocationContext } from '@/context';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 
 interface DataListInterface {
@@ -30,31 +32,31 @@ const modalStateEnum = {
 const tableHeader = [
   {
     id: 'product_id',
-    label: 'Product ID'
+    label: 'Inventory_k15'
   },
   {
     id: 'category',
-    label: 'Category',
+    label: 'Inventory_k1',
     can_sort: true
   },
   {
     id: 'product_name',
-    label: 'Name',
+    label: 'Inventory_k8',
     can_sort: true
   },
   {
     id: 'price',
-    label: 'Price',
+    label: 'Inventory_k18',
     can_sort: true
   },
   {
     id: 'quantity_available',
-    label: 'Units',
+    label: 'Inventory_k19',
     can_sort: true
   },
   {
     id: 'actions',
-    label: 'Action',
+    label: 'Inventory_k9',
     align: 'text-right',
     Render_Value: ({ clickHandle, getDataArchiveType }: { clickHandle: (state: string) => void, getDataArchiveType: boolean }) => {
 
@@ -381,7 +383,7 @@ const Inventory = () => {
   );
 
 
-
+  const {t} = useTranslation(translationConstant.INVENTORY)
   return (
     <main className="w-full  h-full font-[500] text-[20px]">
 
@@ -394,7 +396,7 @@ const Inventory = () => {
           <div className='px-3 py-4 flex justify-between items-center '>
             <div className='flex items-center gap-x-3 '>
 
-              <input onChange={onChangeHandle} type="text" placeholder="Search by Product" className=' px-1 py-3 w-72 text-sm rounded-md focus:outline-none bg-white' />
+              <input onChange={onChangeHandle} type="text" placeholder={t("Inventory_k20")} className=' px-1 py-3 w-72 text-sm rounded-md focus:outline-none bg-white' />
               <button onClick={() => openModalHandle(modalStateEnum.CREATE)}>
                 <Image
                   className="w-9"
@@ -424,7 +426,7 @@ const Inventory = () => {
               {tableHeader.map(({ label, align, can_sort, id }, index) => {
 
                 return <h1 key={index} className={`flex-1 ${align || 'text-start'}  `}>
-                  {label} {can_sort && <button onClick={() => sortHandle(id)} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === id ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>}
+                  {t(label)} {can_sort && <button onClick={() => sortHandle(id)} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === id ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>}
                 </h1>
               })}
             </div>
