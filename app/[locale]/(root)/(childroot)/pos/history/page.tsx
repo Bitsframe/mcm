@@ -25,7 +25,8 @@ const tableHeader = [
   {
     id: 'order_date',
     label: 'POS-Historyk5',
-    render_value: (val: string) => moment(val, 'YYYY-MM-DD h:mm s').format('DD-MMMM-YYYY'),
+    render_value: (val: string) => moment(val, 'YYYY-MM-DD HH:mm:ss').subtract(6, 'hours').format('DD-MMMM-YYYY'),
+
   },
   {
     id: 'name',
