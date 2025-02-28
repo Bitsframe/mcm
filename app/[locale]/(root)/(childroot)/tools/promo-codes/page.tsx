@@ -591,7 +591,7 @@ const Page = () => {
             fields.filter(({ editable }) => editable).map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
               return <div key={id} className={col_span_01 || col_span_01_modal ? 'col-span-1' : 'col-span-2'}>
                 {/* @ts-ignore */}
-                <Input_Component min={min || ''} max={max || ''} value={newDetails ? newDetails[id] : ''} type={type} border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, id)} label={label} />
+                <Input_Component min={min || ''} max={max || ''} value={newDetails ? newDetails[id] : ''} type={type} border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, id)} label={t(label)} />
               </div>
             })
           }

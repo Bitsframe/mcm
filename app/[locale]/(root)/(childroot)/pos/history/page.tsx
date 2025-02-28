@@ -165,7 +165,7 @@ const SalesHistory = () => {
           dataList={dataList}
           openModal={openModal}
           searchHandle={onChangeHandle}
-          searchInputplaceholder="POS-Historyk3"
+          searchInputplaceholder={t("POS-Historyk3")}
         />
       </div>
 
