@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { Slidercomp } from '@/components/sliderComp';
 
 const fields = [
   {
@@ -594,26 +595,42 @@ const Page = () => {
     </div>
   ) : (
     <form className="grid grid-cols-2 gap-4">
-      {fields
-        .filter(({ editable }) => editable)
-        .map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
-          return (
-            <div key={id} className={col_span_01 || col_span_01_modal ? "col-span-1" : "col-span-2"}>
-              <Input_Component
-                min={min || ""}
-                //@ts-ignore
-                max={max || ""}
+  {fields
+    .filter(({ editable }) => editable)
+    .map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
+      return (
+        <div
+          key={id}
+          className={`col-span-${col_span_01 || col_span_01_modal ? "1" : "2"} flex flex-col gap-1`}
+        >
+          {id === "percentage" ? (
+            <div className="flex flex-col w-full">
+              <label className="text-base font-semibold mb-4">Percentage</label>
+              <Slidercomp
+                className="w-full"
                 value={newDetails ? newDetails[id] : ""}
-                type={type}
-                border="border-2 border-gray-300 rounded-md"
+                // @ts-ignore
                 onChange={(e: string) => modalInputChangeHandle(e, id)}
-                label={t(label)}
-                isDate={type === "date"}
               />
             </div>
-          );
-        })}
-    </form>
+          ) : (
+            <Input_Component
+              min={min || ""}
+              //@ts-ignore
+              max={max || ""}
+              value={newDetails ? newDetails[id] : ""}
+              type={type}
+              border="border-2 border-gray-300 rounded-md w-full"
+              onChange={(e: string) => modalInputChangeHandle(e, id)}
+              label={t(label)}
+              isDate={type === "date"}
+            />
+          )}
+        </div>
+      );
+    })}
+</form>
+
   )}
 </Custom_Modal>
 
