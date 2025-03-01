@@ -578,25 +578,45 @@ const Page = () => {
           </div>}
         </div>
       </div>
-      <Custom_Modal submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
+      <Custom_Modal
+  submit_button_color={modal_titles[activeModalMode]?.button?.color}
+  loading={modalLoading}
+  buttonLabel={modal_titles[activeModalMode]?.button?.label}
+  is_open={isOpenModal}
+  Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+  close_handle={closeModalHandle}
+  open_handle={openModalHandle}
+  create_new_handle={modalSubmitHandle}
+>
+  {activeModalMode === "delete" ? (
+    <div>
+      <h1>Are you sure you want to delete this Promocode?</h1>
+    </div>
+  ) : (
+    <form className="grid grid-cols-2 gap-4">
+      {fields
+        .filter(({ editable }) => editable)
+        .map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
+          return (
+            <div key={id} className={col_span_01 || col_span_01_modal ? "col-span-1" : "col-span-2"}>
+              <Input_Component
+                min={min || ""}
+                //@ts-ignore
+                max={max || ""}
+                value={newDetails ? newDetails[id] : ""}
+                type={type}
+                border="border-2 border-gray-300 rounded-md"
+                onChange={(e: string) => modalInputChangeHandle(e, id)}
+                label={t(label)}
+                isDate={type === "date"}
+              />
+            </div>
+          );
+        })}
+    </form>
+  )}
+</Custom_Modal>
 
-        {activeModalMode === 'delete' ? <div>
-          <h1>
-            Are you sure you want to delete this Promocode?
-          </h1>
-
-
-        </div> : <form className='grid grid-cols-2 gap-4'>
-          {
-            fields.filter(({ editable }) => editable).map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
-              return <div key={id} className={col_span_01 || col_span_01_modal ? 'col-span-1' : 'col-span-2'}>
-                {/* @ts-ignore */}
-                <Input_Component min={min || ''} max={max || ''} value={newDetails ? newDetails[id] : ''} type={type} border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, id)} label={t(label)} />
-              </div>
-            })
-          }
-        </form>}
-      </Custom_Modal>
     </main>
   )
 }
