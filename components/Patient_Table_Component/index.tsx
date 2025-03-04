@@ -42,6 +42,7 @@ import { t } from 'i18next'
 import axios from 'axios'
 
 import { toast } from 'sonner'
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
 interface EditPatientModalProps {
   patientDetails: Patient
   serviceList: { title: string }[]
@@ -405,7 +406,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
         </AlertDialogContent>
       </AlertDialog>
       <div className='w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
-        <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
+        <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6 w-[150%]">
           <div className="flex items-center justify-between mb-4">
             <input
               onChange={handleSearch}
@@ -496,22 +497,41 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
           </div>
         </div>
 
-        <div className='bg-[#B8C8E1] h-[72dvh] rounded-md overflow-auto flex flex-col'>
-          <div className=' px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center'>
-            <div className='text-xl font-normal text-white text-center'>
+        <Sheet open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
+  <SheetContent className="p-0 overflow-hidden">
+    <div className='flex flex-col'>
+      {/* Header with spacing for close button */}
+      <div className='pt-12 px-4'> {/* Top padding added for close button space */}
+        <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
+          <div className='text-xl font-normal text-[#11252C]'>
             {t("Patients_k7")}
-            </div>
-            <div>
-              {selectedPatient && <EditPatientModal callAfterUpdate={
-                updateOnEdit
-              } patientDetails={selectedPatient} serviceList={serviceList} />}
-            </div>
           </div>
-
           {selectedPatient && (
-            <PatientDetails patient={selectedPatient} renderType={renderType} formatDate={formatDate} serviceList={serviceList} />
+            <EditPatientModal
+              callAfterUpdate={updateOnEdit}
+              patientDetails={selectedPatient}
+              serviceList={serviceList}
+            />
           )}
         </div>
+      </div>
+
+      {/* Content Section */}
+      {selectedPatient && (
+        <div className="p-4">
+          <PatientDetails
+            patient={selectedPatient}
+            renderType={renderType}
+            formatDate={formatDate}
+            serviceList={serviceList}
+          />
+        </div>
+      )}
+    </div>
+  </SheetContent>
+</Sheet>
+
+
       </div>
     </main>
   )
