@@ -61,7 +61,8 @@ import { t } from "i18next";
 
 import axios from "axios";
 
-import { toast } from "sonner";
+import { toast } from 'sonner'
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
 import PhoneNumberInput from "../PhoneNumberInput";
 interface EditPatientModalProps {
   patientDetails: Patient;
@@ -365,17 +366,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 />
               </div>
               <div className="flex  items-center gap-4">
-  <Label htmlFor="phone" className="text-center">
-    Phone
-  </Label>
-  <PhoneNumberInput
-    value={patientData.phone}
-    onChange={(e: string) => setPatientData({ ...patientData, phone: e })}
-    placeholder="Enter phone"
-    breakpoint={false}
-    className="w-3/4"
-  />
-</div>
+                <Label htmlFor="phone" className="text-center">
+                  Phone
+                </Label>
+                <PhoneNumberInput
+                  value={patientData.phone}
+                  onChange={(e: string) => setPatientData({ ...patientData, phone: e })}
+                  placeholder="Enter phone"
+                  breakpoint={false}
+                  className="w-3/4"
+                />
+              </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="treatmenttype" className="text-right">
@@ -459,8 +460,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <div className="w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6">
+      <div className='w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
+        <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6 w-[150%]">
           <div className="flex items-center justify-between mb-4">
             <input
               onChange={handleSearch}
@@ -483,9 +484,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${
-                          sortConfig.key === "id" ? "text-green-600" : ""
-                        }`}
+                        className={`inline ${sortConfig.key === "id" ? "text-green-600" : ""
+                          }`}
                       />
                     </button>
                   </TableHead>
@@ -496,9 +496,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${
-                          sortConfig.key === "name" ? "text-green-600" : ""
-                        }`}
+                        className={`inline ${sortConfig.key === "name" ? "text-green-600" : ""
+                          }`}
                       />
                     </button>
                   </TableHead>
@@ -509,9 +508,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${
-                          sortConfig.key === "date" ? "text-green-600" : ""
-                        }`}
+                        className={`inline ${sortConfig.key === "date" ? "text-green-600" : ""
+                          }`}
                       />
                     </button>
                   </TableHead>
@@ -563,31 +561,41 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
         </div>
 
-        <div className="bg-[#B8C8E1] h-[72dvh] rounded-md overflow-auto flex flex-col">
-          <div className=" px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B] flex justify-between items-center">
-            <div className="text-xl font-normal text-white text-center">
-              {t("Patients_k7")}
-            </div>
-            <div>
+        <Sheet open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
+          <SheetContent className="p-0 overflow-hidden">
+            <div className='flex flex-col'>
+              {/* Header with spacing for close button */}
+              <div className='pt-12 px-4'> {/* Top padding added for close button space */}
+                <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
+                  <div className='text-xl font-normal text-[#11252C]'>
+                    {t("Patients_k7")}
+                  </div>
+                  {selectedPatient && (
+                    <EditPatientModal
+                      callAfterUpdate={updateOnEdit}
+                      patientDetails={selectedPatient}
+                      serviceList={serviceList}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Content Section */}
               {selectedPatient && (
-                <EditPatientModal
-                  callAfterUpdate={updateOnEdit}
-                  patientDetails={selectedPatient}
-                  serviceList={serviceList}
-                />
+                <div className="p-4">
+                  <PatientDetails
+                    patient={selectedPatient}
+                    renderType={renderType}
+                    formatDate={formatDate}
+                    serviceList={serviceList}
+                  />
+                </div>
               )}
             </div>
-          </div>
+          </SheetContent>
+        </Sheet>
 
-          {selectedPatient && (
-            <PatientDetails
-              patient={selectedPatient}
-              renderType={renderType}
-              formatDate={formatDate}
-              serviceList={serviceList}
-            />
-          )}
-        </div>
+
       </div>
     </main>
   );

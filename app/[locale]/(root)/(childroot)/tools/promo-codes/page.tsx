@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const fields = [
   {
@@ -396,9 +397,9 @@ const Page = () => {
 
   const {t} = useTranslation(translationConstant.PROCODE)
   return (
-    <main className="w-full  h-full font-[500] text-[20px] mt-16">
+    <main className="w-full  h-full font-[500] text-[20px] mt-16 overflow-x-hidden">
 
-      <div className='grid grid-cols-3'>
+      <div className='grid grid-cols-3 w-[150%]'>
         <div className='flex justify-between items-center  px-4 py-2 space-x-2 col-span-2'>
           <h1 className='text-xl font-bold'>
            {t("Procode_k1")}
@@ -411,11 +412,11 @@ const Page = () => {
 
 
       <div className='w-full min-h-[84dvh] py-2 px-2 grid grid-cols-3 gap-2'>
-        <div className='bg-[#EFEFEF] h-[100%]  col-span-2 rounded-md py-2 flex flex-col flex-1  ' >
+        <div className='bg-[#EFEFEF] h-[100%]  col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%] ' >
 
           <div className='space-y-6 px-3 pb-4 flex justify-between mt-3'>
             <div className='flex-1'>
-              <input onChange={onChangeHandle} type="text" placeholder={t("Procode_k3")} className='w-3/5 px-2 py-3 text-sm rounded-md focus:outline-none bg-white' />
+              <input onChange={onChangeHandle} type="text" placeholder={t("Procode_k3")} className='w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white' />
             </div>
 
 
@@ -517,66 +518,74 @@ const Page = () => {
 
         </div>
 
-        <div className='bg-[#EFEFEF] h-[100%] rounded-md overflow-hidden flex flex-col' >
+        <Sheet
+  open={!!detailsView}
+  onOpenChange={(open) => !open && setDetailsView(null)}
+>
+  <SheetContent className="p-0 pt-10">
+    <div className="flex flex-col h-full">
+      
+      <div className='px-4 pt-2 pb-3'>
+        <h1 className='text-xl font-bold'>
+          {t("Procode_k8")}
+        </h1>
+      </div>
 
-          <div className='px-4 pt-5 '>
-            <h1 className='text-xl font-bold w-full'>
-              {t("Procode_k8")}
-            </h1>
+      {detailsView && (
+        <div className="flex-1 overflow-auto px-4">
+          <div className='grid grid-cols-2 gap-y-6'> 
+            {fields
+              .filter(({ details_section }) => details_section)
+              .sort((a, b) => a.details_order - b.details_order)
+              .map((field, ind) => {
+                // @ts-ignore - Temporary type handling
+                const extract_val = field.render_value 
+
+                // @ts-ignore
+                  ? field.render_value(detailsView[field.id]) 
+                  : detailsView[field.id];
+
+                return (
+                  <div 
+                    key={ind} 
+                    className={field.col_span_01 ? 'col-span-1' : 'col-span-2'}
+                  >
+                    <div>
+                      <h1 className='text-sm text-gray-600'>
+                        {t(field.details_label || field.label)}
+                      </h1>
+                      <p className='font-medium text-base'>
+                        {extract_val || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            }
           </div>
 
-          {/* Right side content goes here */}
-
-
-          {detailsView && <div className='overflow-auto h-[100%] px-4 py-4 flex flex-col'>
-
-            <div className='flex-1'>
-              <div className='grid grid-cols-2 space-y-6'>
-                {
-                  // @ts-ignore
-                  fields.filter(({ details_section }) => details_section).sort((a, b) => a.details_order - b.details_order).map(({ id, label, render_value, col_span_01, details_label }, ind) => {
-                    // @ts-ignore
-                    const extract_val = render_value ? render_value(detailsView[id]) : detailsView[id]
-
-                    return <div key={ind} className={`${col_span_01 ? 'col-span-1' : 'col-span-2'}`}>
-                      <div >
-                        <h1 className='text-sm text-black'>
-                          {t(details_label || label)}
-                        </h1>
-                        <p className='font-bold text-lg'>
-                          {extract_val}
-                        </p>
-                      </div>
-                    </div>
-                  })
-                }
-
-              </div>
-            </div>
-            <div className=' flex items-center space-x-6'>
-              <Action_Button onClick={editHandle} width='w-full' height='h-12' label={t("Procode_k15")} bg_color='bg-[#B6B6B6]' />
-              <Action_Button onClick={deleteHandle} width='w-full' height='h-12' label={t("Procode_k16")} bg_color='bg-[#EF4343]' />
-            </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          </div>}
+          <div className='flex gap-4 pt-8 pb-4'>
+            <Action_Button
+              onClick={editHandle}
+              width='w-full'
+              height='h-12'
+              label={t("Procode_k15")}
+              bg_color='bg-[#B6B6B6]'
+            />
+            <Action_Button
+              onClick={deleteHandle}
+              width='w-full'
+              height='h-12'
+              label={t("Procode_k16")}
+              bg_color='bg-[#EF4343]'
+            />
+          </div>
         </div>
+      )}
+    </div>
+  </SheetContent>
+</Sheet>
+
       </div>
       <Custom_Modal submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
 

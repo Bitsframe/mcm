@@ -13,6 +13,7 @@ import { useLocationClinica } from '@/hooks/useLocationClinica';
 import AppointmentsTable from "@/components/Appointment/Appointment-table";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -185,20 +186,31 @@ const AppointmentDetailsPanel = ({
   findLocations: (id: number) => any;
   updateReflectOnCloseModal: () => void;
 }) => (
-  <div className="w-1/4 bg-gray-200 overflow-scroll px-3 py-3 rounded-lg text-lg">
-    {appointmentDetails ? (
-      <AppointmentDetails
-        onDelete={onDelete}
-        appointment_details={appointmentDetails}
-        find_locations={findLocations}
-        update_reflect_on_close_modal={updateReflectOnCloseModal}
-      />
-    ) : (
-      <div className="flex h-full flex-col justify-center items-center">
-        <h1>Select an appointment to view details</h1>
-      </div>
-    )}
-  </div>
+  <Sheet 
+  open={!!appointmentDetails} 
+  onOpenChange={(open) => {
+    if (!open) {
+      updateReflectOnCloseModal();
+    }
+  }}
+>
+  <SheetContent className="p-0 pt-8"> {/* Top padding for cross icon */}
+    <div className="pt-8 p-4"> {/* Content padding */}
+      {appointmentDetails ? (
+        <AppointmentDetails
+          onDelete={onDelete}
+          appointment_details={appointmentDetails}
+          find_locations={findLocations}
+          update_reflect_on_close_modal={updateReflectOnCloseModal}
+        />
+      ) : (
+        <div className="flex h-full justify-center items-center">
+          <h1 className="text-lg">Select an appointment to view details</h1>
+        </div>
+      )}
+    </div>
+  </SheetContent>
+</Sheet>
 );
 
 export default memo(Appointments);
