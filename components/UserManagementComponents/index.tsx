@@ -224,16 +224,15 @@ const UserManagementComponent = () => {
                                             </button>
 
                                         </div> : <div key={ind}>
-                                            {Array.isArray(content) ? (content.length > 0 ? <h1 >
-                                                Multiple Locations
-                                            </h1> : content.map((elem, index) => <h1 key={index}>
-                                                {elem.title}
-                                            </h1>)) : <h1 key={index}>
-                                                {content}
-
-                                            </h1>
-
-                                            }
+                                            {Array.isArray(content) ? (
+                                                content.length > 1 ? (
+                                                    <h1>Multiple Locations</h1>
+                                                ) : content.length === 1 ? (
+                                                    <h1>{content[0].title}</h1>
+                                                ) : null
+                                            ) : (
+                                                <h1>{content}</h1>
+                                            )}
                                         </div>}
                                     </div>);
 
