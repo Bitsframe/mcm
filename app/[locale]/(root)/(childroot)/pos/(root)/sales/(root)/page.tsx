@@ -170,7 +170,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({ data, controllProdu
 const Orders = () => {
 
 
-    const { categories } = useCategoriesClinica()
+    const { categories } = useCategoriesClinica(true)
     const [selectedPatient, setSelectedPatient] = useState<any>(null)
     const { selectedCategory, products, getCategoriesByLocationId, loadingProducts, selectedProduct, selectProductHandle } = useProductsClinica()
     const [fetchingDataLoading, setfetchingDataLoading] = useState(true)
@@ -247,8 +247,6 @@ const Orders = () => {
             }
         }
     }
-
-    console.log(cartArray, selectedProduct)
 
 
 
@@ -391,7 +389,7 @@ const Orders = () => {
                                 <div className='flex items-end space-x-5'>
                                     <Quantity_Field disabled={!selectedPatient} maxAvailability={selectedProduct ? selectedProduct.quantity_available : 0} quantity={productQty} quantityHandle={quantityHandle} />
 
-                                    {selectedProduct && <div className='space-y-1 text-gray-600'>
+                                    {selectedProduct ? <div className='space-y-1 text-gray-600'>
                                         <div>
                                             <h1 className='text-base '>
                                                 {currencyFormatHandle(selectedProduct?.price || 0)} / unit
@@ -402,7 +400,7 @@ const Orders = () => {
                                                 {selectedProduct.quantity_available - productQty} units are remaining
                                             </h1>
                                         </div>
-                                    </div>}
+                                    </div> : null}
                                 </div>
 
 
