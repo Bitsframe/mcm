@@ -62,7 +62,13 @@ import { t } from "i18next";
 import axios from "axios";
 
 import { toast } from 'sonner'
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger 
+} from '../ui/sheet'
 import PhoneNumberInput from "../PhoneNumberInput";
 interface EditPatientModalProps {
   patientDetails: Patient;
@@ -563,6 +569,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
         <Sheet open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
           <SheetContent className="p-0 overflow-hidden">
+            <SheetHeader className="sr-only">
+              <SheetTitle>{t("Patients_k7")}</SheetTitle>
+            </SheetHeader>
             <div className='flex flex-col'>
               {/* Header with spacing for close button */}
               <div className='pt-12 px-4'> {/* Top padding added for close button space */}

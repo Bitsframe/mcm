@@ -13,7 +13,7 @@ import { useLocationClinica } from '@/hooks/useLocationClinica';
 import AppointmentsTable from "@/components/Appointment/Appointment-table";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -185,32 +185,39 @@ const AppointmentDetailsPanel = ({
   onDelete: (id: number) => void;
   findLocations: (id: number) => any;
   updateReflectOnCloseModal: () => void;
-}) => (
-  <Sheet 
-  open={!!appointmentDetails} 
-  onOpenChange={(open) => {
-    if (!open) {
-      updateReflectOnCloseModal();
-    }
-  }}
->
-  <SheetContent className="p-0 pt-8"> {/* Top padding for cross icon */}
-    <div className="pt-8 p-4"> {/* Content padding */}
-      {appointmentDetails ? (
-        <AppointmentDetails
-          onDelete={onDelete}
-          appointment_details={appointmentDetails}
-          find_locations={findLocations}
-          update_reflect_on_close_modal={updateReflectOnCloseModal}
-        />
-      ) : (
-        <div className="flex h-full justify-center items-center">
-          <h1 className="text-lg">Select an appointment to view details</h1>
+}) => {
+  const {t} = useTranslation(translationConstant.APPOINMENTS);
+  
+  return (
+    <Sheet 
+      open={!!appointmentDetails} 
+      onOpenChange={(open) => {
+        if (!open) {
+          updateReflectOnCloseModal();
+        }
+      }}
+    >
+      <SheetContent className="p-0 pt-8"> {/* Top padding for cross icon */}
+        <SheetTitle className="sr-only">
+          {appointmentDetails ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details` : 'Appointment Details'}
+        </SheetTitle>
+        <div className="pt-8 p-4"> {/* Content padding */}
+          {appointmentDetails ? (
+            <AppointmentDetails
+              onDelete={onDelete}
+              appointment_details={appointmentDetails}
+              find_locations={findLocations}
+              update_reflect_on_close_modal={updateReflectOnCloseModal}
+            />
+          ) : (
+            <div className="flex h-full justify-center items-center">
+              <h1 className="text-lg">Select an appointment to view details</h1>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  </SheetContent>
-</Sheet>
-);
+      </SheetContent>
+    </Sheet>
+  );
+};
 
 export default memo(Appointments);
