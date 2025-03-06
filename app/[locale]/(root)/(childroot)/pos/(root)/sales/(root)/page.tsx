@@ -1,5 +1,5 @@
 'use client'
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import { Quantity_Field } from '@/components/Quantity_Field';
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
@@ -18,6 +18,7 @@ import { PromoCodeDataInterface } from '@/types/typesInterfaces';
 import { formatPhoneNumber } from '@/utils/getCountryName';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { LocationContext } from '@/context';
 
 interface CartItemComponentInterface {
     data: CartArrayInterface,
@@ -59,7 +60,7 @@ const render_details = [
 
 
 
-const Payment_Method_Select = ({handleSelectChange, selectedMethod}:any) => {
+const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
 
     return (
         <div className='w-52'>
@@ -171,6 +172,8 @@ const Orders = () => {
 
 
     const { categories } = useCategoriesClinica(true)
+    const { selectedLocation } = useContext(LocationContext);
+
     const [selectedPatient, setSelectedPatient] = useState<any>(null)
     const { selectedCategory, products, getCategoriesByLocationId, loadingProducts, selectedProduct, selectProductHandle } = useProductsClinica()
     const [fetchingDataLoading, setfetchingDataLoading] = useState(true)
@@ -180,6 +183,7 @@ const Orders = () => {
     const [appliedDiscount, setAppliedDiscount] = useState<number>(0)
     const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(null)
     const [selectedMethod, setSelectedMethod] = useState('Cash');
+    const [lastLocationId, setLastLocationId] = useState(0)
 
 
     const router = useRouter()
@@ -213,6 +217,26 @@ const Orders = () => {
         }, 2000)
 
     }, [router])
+
+    useEffect(() => {
+        if (selectedLocation) {
+            const currentSelectedLocationId = selectedLocation.id
+            if (lastLocationId && currentSelectedLocationId !== lastLocationId) {
+                setCartArray([]);
+                localStorage.removeItem('@pos-patient')
+                setSelectedPatient(null)
+                setLastLocationId(currentSelectedLocationId)
+            }
+        }
+    }, [selectedLocation])
+
+    useEffect(() => {
+        if (selectedLocation) {
+            setLastLocationId(selectedLocation.id)
+        }
+    }, [])
+
+
 
 
 
@@ -291,7 +315,7 @@ const Orders = () => {
                     inventory_id: elem.product_id,
                     quantity_sold: elem.quantity,
                     total_price: elem.price * elem.quantity,
-                    paymentcash: selectedMethod === 'Cash' ?  true : false
+                    paymentcash: selectedMethod === 'Cash' ? true : false
                 }));
 
                 const { data: order_created_data, error: order_created_error }: any = await create_content_service({
@@ -355,7 +379,7 @@ const Orders = () => {
 
 
 
-    const {t} = useTranslation(translationConstant.POSSALES);
+    const { t } = useTranslation(translationConstant.POSSALES);
     return (
         <main className="w-full  h-full font-[500] text-[20px]">
 
@@ -366,7 +390,7 @@ const Orders = () => {
                     <span>
                         <div className='space-y-6 px-3 py-4'>
                             <h1 className='text-xl font-bold'>
-                               {t("POS-Sales_k3")}
+                                {t("POS-Sales_k3")}
                             </h1>
                             {fetchingDataLoading ? <div className='w-full flex flex-col  justify-center h-full space-y-3'>
                                 <CircularProgress size={24} />
@@ -397,7 +421,7 @@ const Orders = () => {
                                 </div>
                                 <div className='w-1/3'>
                                     {loadingProducts ? <div className='text-sm text-gray-400'>
-                                        {selectedCategory ?  "Loading Products..." : "Select Category First.."}
+                                        {selectedCategory ? "Loading Products..." : "Select Category First.."}
                                     </div> : <Searchable_Dropdown disabled={!selectedPatient} initialValue={0} bg_color='#fff' start_empty={true}
                                         // @ts-ignore
                                         options_arr={products.map(({ product_id, product_name }: any) => ({ value: product_id, label: product_name }))}
@@ -427,7 +451,7 @@ const Orders = () => {
 
                                 <div className='flex'>
                                     <button disabled={!productQty} onClick={addToCartHandle} className='bg-[#8CB3F0] text-[#fff] font-bold py-3 px-9 rounded-md hover:opacity-80 active:opacity-50 disabled:opacity-60' type='submit'>
-                                    {t("POS-Sales_k8")}
+                                        {t("POS-Sales_k8")}
                                     </button>
 
 
@@ -447,7 +471,7 @@ const Orders = () => {
                     <div className='px-4 py-4 bg-[#e9e9e980] border-b-[1px] border-b-[#817B7B] flex items-center'>
                         <div className='flex-1'>
                             <h1 className='text-xl '>
-                            {t("POS-Sales_k9")}
+                                {t("POS-Sales_k9")}
                             </h1>
                             <p className='text-sm'>{t("POS-Sales_k10")} # --</p>
                         </div>
@@ -472,8 +496,8 @@ const Orders = () => {
                             <PromoCodeComponent patientId={selectedPatient?.id} applyDiscountHandle={applyDiscountHandle} />
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                {t("POS-Sales_k12")}
-                                </h1> 
+                                    {t("POS-Sales_k12")}
+                                </h1>
                                 <Payment_Method_Select selectedMethod={selectedMethod} handleSelectChange={selectPaymentHandle} />
                             </div>
 
@@ -482,7 +506,7 @@ const Orders = () => {
                             <div className='flex items-center'>
                                 <div className='flex items-center flex-1 space-x-2'>
                                     <h1 className='text-lg'>
-                                    {t("POS-Sales_k13")}
+                                        {t("POS-Sales_k13")}
                                     </h1>
                                     {appliedDiscount ? <span className='text-sm text-red-500'>- {appliedDiscount}% off </span> : null}
                                 </div>
@@ -496,7 +520,7 @@ const Orders = () => {
 
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                {t("POS-Sales_k14")}
+                                    {t("POS-Sales_k14")}
                                 </h1>
                                 <div className='flex items-center space-x-1'>
                                     <p className='text-start'>
