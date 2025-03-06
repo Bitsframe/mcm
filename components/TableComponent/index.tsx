@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { CircularProgress } from "@mui/material";
 import React from "react";
@@ -53,8 +53,10 @@ const TableComponent: React.FC<Props> = ({
   searchInputplaceholder,
   RightSideComponent,
 }) => {
-
-  const {t} = useTranslation([translationConstant.STOCKPANEL, translationConstant.POSHISTORY]);
+  const { t } = useTranslation([
+    translationConstant.STOCKPANEL,
+    translationConstant.POSHISTORY,
+  ]);
 
   return (
     <div
@@ -86,7 +88,12 @@ const TableComponent: React.FC<Props> = ({
                     flex ? flex : "flex-[4]"
                   } ${align || "text-center"}`}
                 >
-                  {t(label)}
+                  {t(label, {
+                    ns: translationConstant.STOCKPANEL,
+                    defaultValue: t(label, {
+                      ns: translationConstant.POSHISTORY,
+                    }),
+                  })}{" "}
                 </TableHead>
               ))}
             </TableRow>
