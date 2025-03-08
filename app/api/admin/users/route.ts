@@ -24,7 +24,7 @@ export const POST = async (req: Request) => {
 
         await supabaseAdmin
             .from('profiles')
-            .insert({ id: userId, role_id: roleId, full_name: fullName });
+            .insert({ id: userId, role_id: roleId, full_name: fullName, email });
 
         const userLocations = locationIds.map((locationId: number) => ({
             profile_id: userId,
@@ -72,6 +72,7 @@ export const GET = async () => {
                 created_at,
                 active,
                 role_id,
+                email,
                 user_locations(location_id, Locations(title))
             `)
             .in('id', userIds); // Filter by the IDs of the users we fetched
