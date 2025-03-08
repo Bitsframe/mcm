@@ -53,39 +53,38 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 ]
             });
 
-            // If data fetch fails or is empty
-            if (!fetched_data || fetched_data.length === 0) {
-                toast.error('No data found for the selected date range');
-                setLoading(false);
-                return;
-            }
-
             // Define table column headers
             const tableColumn = ['Order ID', 'Date', 'Patient Name', 'Total Amount', 'Payment Type'];
-            const tableRows: string[][] = [];
-
+            const tableRows: (string[] | object[])[] = [];
             let totalAmount = 0;
 
-            // Loop through fetched data and prepare rows
-            fetched_data.forEach((item: any) => {
-                const patientName = `${item.orders.pos.firstname} ${item.orders.pos.lastname}`;
-                const rowData = [
-                    item.sales_history_id.toString(),
-                    new Date(item.date_sold).toLocaleString(), // Formatting date
-                    patientName,
-                    `$${item.total_price.toFixed(2)}`, // Formatting total price
-                    item.paymentcash ? 'Cash' : 'Card', // Assuming boolean for payment type
-                ];
-                tableRows.push(rowData);
-                totalAmount += parseFloat(item.total_price);
-            });
+            // Process data if available
+            if (fetched_data && fetched_data.length > 0) {
+                // Process data and calculate total
+                fetched_data.forEach((item: any) => {
+                    const patientName = `${item.orders.pos.firstname} ${item.orders.pos.lastname}`;
+                    const rowData = [
+                        item.sales_history_id.toString(),
+                        new Date(item.date_sold).toLocaleString(),
+                        patientName,
+                        `$${item.total_price.toFixed(2)}`,
+                        item.paymentcash ? 'Cash' : 'Card',
+                    ];
+                    tableRows.push(rowData);
+                    totalAmount += parseFloat(item.total_price);
+                });
+            } else {
+                // Add a "No Records" message row
+                tableRows.push([
+                    { content: 'No records found for the selected date range', colSpan: 5, styles: { halign: 'center', fontStyle: 'italic' } }
+                ]);
+            }
 
-            // Add total amount row
+            // Add total row (will show $0.00 if no records)
             const totalRow = [
                 { content: 'Total', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold' } },
                 { content: `$${totalAmount.toFixed(2)}`, colSpan: 2, styles: { halign: 'left', fontStyle: 'bold' } },
             ];
-            // @ts-ignore
             tableRows.push(totalRow);
 
             // Create PDF document

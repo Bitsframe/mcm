@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Slidercomp } from '@/components/sliderComp';
 
 const fields = [
@@ -527,6 +527,9 @@ const Page = () => {
     <div className="flex flex-col h-full">
       
       <div className='px-4 pt-2 pb-3'>
+            <SheetHeader className="sr-only">
+              <SheetTitle>{t("Procode_k8")}</SheetTitle>
+            </SheetHeader>
         <h1 className='text-xl font-bold'>
           {t("Procode_k8")}
         </h1>
