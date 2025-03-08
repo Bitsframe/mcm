@@ -306,6 +306,27 @@ const Orders = () => {
 
                 if (order_created_data.length) {
                     toast.success(`Order has been placed, order # ${order_id}`);
+                    
+                    // Calculate total and discount amounts for the email
+                    const grandTotal = grandTotalHandle(cartArray, appliedDiscount);
+                    const totalAmount = grandTotal.amount;
+                    const discountAmount = grandTotal.discountAmount;
+                    
+                    // Create an order details object for the email
+                    const orderDetails = {
+                        order_id,
+                        paymentcash: selectedMethod === 'Cash'
+                    };
+                    
+                    // Send order confirmation email
+                    await sendOrderEmail(
+                        orderDetails, 
+                        selectedPatient, 
+                        cartArray, 
+                        totalAmount,
+                        Number(discountAmount),
+                    );
+                    
                     setCartArray([]);
                     localStorage.removeItem('@pos-patient')
                     setSelectedPatient(null)
@@ -522,3 +543,118 @@ const Orders = () => {
 }
 
 export default Orders
+
+// function to send email notification
+const sendOrderEmail = async (orderDetails: any, patientInfo: any, orderItems: any[], totalAmount: string, discountAmount: number = 0) => {
+    console.log('Sending order email with details:', {
+        orderDetails,
+        patientInfo,
+        orderItems,
+        totalAmount,
+        discountAmount
+    });
+    
+    try {
+        const today = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const formattedDate = `${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`;
+
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
+                
+                <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
+                
+                <h3 style="margin-top: 20px;">Invoice Details:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Invoice Number:</strong> I-${orderDetails.order_id}</li>
+                    <li><strong>Invoice Date:</strong> ${formattedDate}</li>
+                    <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? 'Cash' : 'Debit Card'}</li>
+                    <li><strong>Total Amount:</strong> ${totalAmount}</li>
+                </ul>
+                
+                <h3>Billing Information:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Patient Name:</strong> ${patientInfo.firstname} ${patientInfo.lastname}</li>
+                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || 'Pasadena'}</li>
+                </ul>
+                
+                <h3>Invoice Summary:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr style="background-color: #eee;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
+                            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orderItems.map(item => `
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.category_name}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name}</td>
+                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
+                                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(item.price * item.quantity)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    ${discountAmount > 0 ? `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
+                                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(discountAmount)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    ` : `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    `}
+                </table>
+                
+                <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
+                
+                <p>Thank you for your trust in us.</p>
+                
+                <p>Best regards,<br>Clinica San Miguel Team</p>
+            </div>
+        `;
+
+        console.log('Email HTML:', emailHtml);
+
+        const fromEmail = "MyClinicMdProject@gmail.com";
+        
+        const payload = {
+            from: fromEmail,
+            recipients: [patientInfo.email],
+            subject: `Invoice I-${orderDetails.order_id}`,
+            html: emailHtml,
+        };
+
+        const response = await fetch('https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to send order confirmation email');
+        }
+
+        return result;
+    } catch (error: any) {
+        console.error('Error sending order email:', error);
+    }
+};
