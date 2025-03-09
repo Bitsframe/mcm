@@ -45,13 +45,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
               ),
               sales_history (
                 sales_history_id,
+                paymentcash,
                 inventory_id,
                 inventory(product_id, products(product_name, category_id, categories(category_name))),
                 date_sold,
                 quantity_sold,
                 total_price,
-                return_qty,
-                paymentcash
+                return_qty
+                
               )
             `,
                     // @ts-ignore
@@ -113,7 +114,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                 <PatientDetailsRender patientData={dataList?.pos}
 
                     // paymentType={[null, true].includes(dataList[0].paymentcash) ? "Cash" : "Creadit Card"}
-                    paymentType={dataList?.paymentType}
+                    paymentType={dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
 
                 />
 
