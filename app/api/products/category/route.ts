@@ -17,6 +17,7 @@ export const GET = async (request: NextRequest) => {
             .from('inventory')
             .select('*,products(category_id, product_name,archived, categories(category_name, category_id, archived))')
             .eq('location_id', locationId)
+            .neq('quantity', 0)
             .eq('archived', false)
             .not('products', 'is', null)
             .not('products.categories', 'is', null)
