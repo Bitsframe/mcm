@@ -44,7 +44,7 @@ const tableHeader = [
   {
     id: 'payment_type',
     label: 'POS-Historyk8',
-    render_value: () => 'Cash', 
+    render_value: (_val: string, elem: any,) => elem?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit",  
   },
   {
     id: 'last_updated',
@@ -100,7 +100,8 @@ const SalesHistory = () => {
           inventory_id,
           date_sold,
           quantity_sold,
-          total_price
+          total_price,
+          paymentcash
         )`,
         matchCase: {
           key: 'pos.locationid',
