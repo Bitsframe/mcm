@@ -4,14 +4,15 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import moment from 'moment';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -21,12 +22,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
 }
 
+const formattedTime = (time?: string) => {
+  return time ? moment(time, 'HH:mm:ss').format('hh:mm A')
+    : '';
+}
+
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Location {
   id: number;
+  title:string;
   address: string;
-  report_time: string;
+  report_time: string | null;
 }
 
 interface TimeOption {
@@ -34,37 +41,30 @@ interface TimeOption {
   value: string;
 }
 
-// Updated TimeSelector component with shadcn/ui
+// Time Selector Component
 const TimeSelector = forwardRef<
-  HTMLDivElement, 
+  HTMLDivElement,
   { value: string; onChange: (time: string) => void }
 >(({ value, onChange }, ref) => {
-  const timeOptions: TimeOption[] = [];
-  
-  for (let i = 0; i < 24; i++) {
-    const hour = i % 12 || 12;
-    const period = i < 12 ? 'AM' : 'PM';
-    const time = `${hour}:00 ${period}`;
-    const value = `${i.toString().padStart(2, '0')}:00:00`;
-    timeOptions.push({ label: time, value });
-    
-    const halfHourTime = `${hour}:30 ${period}`;
-    const halfHourValue = `${i.toString().padStart(2, '0')}:30:00`;
-    timeOptions.push({ label: halfHourTime, value: halfHourValue });
-  }
+  const timeOptions: TimeOption[] = Array.from({ length: 24 * 2 }, (_, i) => {
+    const hour = Math.floor(i / 2) % 12 || 12;
+    const period = i < 24 ? 'AM' : 'PM';
+    const minute = i % 2 === 0 ? '00' : '30';
+    const formattedTime = `${hour}:${minute} ${period}`;
+    const value = `${String(Math.floor(i / 2)).padStart(2, '0')}:${minute}:00`;
+    return { label: formattedTime, value };
+  });
 
   return (
-    <Select 
-      value={value} 
-      onValueChange={onChange}
-    >
+    <Select value={value || undefined} onValueChange={onChange}>
+      {/* @ts-ignore */}
       <SelectTrigger ref={ref} className="w-full">
         <SelectValue placeholder="Select time" />
       </SelectTrigger>
       <SelectContent>
-        {timeOptions.map(option => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
+        {timeOptions.map(({ label, value }) => (
+          <SelectItem key={value} value={value}>
+            {label}
           </SelectItem>
         ))}
       </SelectContent>
@@ -76,28 +76,24 @@ TimeSelector.displayName = 'TimeSelector';
 
 const SettingsComponent: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>('09:00:00');
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchLocations();
   }, []);
 
   const fetchLocations = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('Locations')
-        .select('*');
-      
+      const { data, error } = await supabase.from('Locations').select('*');
       if (error) throw error;
-      
-      setLocations(data || []);
-      if (data && data.length > 0) {
-        setSelectedLocation(data[0]);
-        setSelectedTime(data[0].report_time);
+
+      if (data?.length) {
+        setLocations(data);
+        selectLocation(data[0]);
       }
     } catch (error: any) {
       console.error('Error fetching locations:', error.message || error);
@@ -106,54 +102,41 @@ const SettingsComponent: React.FC = () => {
     }
   };
 
-  const handleReportTimeUpdate = async () => {
-    if (!selectedLocation) return;
+  const selectLocation = (location: Location) => {
+    setSelectedLocation(location);
 
+    setSelectedTime(location.report_time || '');
+  };
+
+  const handleReportTimeUpdate = async () => {
+    if (!selectedLocation || !selectedTime) return;
+
+    setIsUpdating(true);
     try {
-      setIsUpdating(true);
-      
-      // Debug logging to help identify issues
-      console.log('Updating report time for location:', selectedLocation.id);
-      console.log('New time value:', selectedTime);
-      
-      const { data, error } = await supabase
+      console.log(`Updating report time for location ${selectedLocation.id}: ${selectedTime}`);
+
+      const { error } = await supabase
         .from('Locations')
         .update({ report_time: selectedTime })
         .eq('id', selectedLocation.id);
-      
-      // Detailed error logging
-      if (error) {
-        console.error('Supabase error object:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        console.error('Error details:', error.details);
-        throw error;
-      }
-      
-      console.log('Update successful:', data);
-      
-      // Update local state
-      setLocations(locations.map(location => 
-        location.id === selectedLocation.id 
-          ? { ...location, report_time: selectedTime } 
-          : location
-      ));
-      setSelectedLocation({ ...selectedLocation, report_time: selectedTime });
+
+      if (error) throw error;
+
+      setLocations(prev =>
+        prev.map(loc =>
+          loc.id === selectedLocation.id ? { ...loc, report_time: selectedTime } : loc
+        )
+      );
+      setSelectedLocation(prev => prev ? { ...prev, report_time: selectedTime } : prev);
     } catch (error: any) {
-      // More comprehensive error handling
-      const errorMessage = error.message || 
-                          (error.error?.message) || 
-                          (typeof error === 'object' ? JSON.stringify(error) : 'Unknown error');
-      
-      console.error('Error updating report time:', error);
-      console.error('Error details:', errorMessage);
+      console.error('Error updating report time:', error.message || error);
     } finally {
       setIsUpdating(false);
     }
   };
 
   return (
-    <div className="min-h-full bg-background p-6">
+    <div className="h-[80dvh] bg-background p-6">
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Location Settings</CardTitle>
@@ -171,28 +154,24 @@ const SettingsComponent: React.FC = () => {
                     <CardTitle>Locations</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-1">
-                      {locations.map((location) => (
+                    <div className="space-y-1 overflow-auto h-[55dvh]">
+                      {locations.map(location => (
                         <div
                           key={location.id}
-                          onClick={() => {
-                            setSelectedLocation(location);
-                            setSelectedTime(location.report_time);
-                          }}
-                          className={`p-2 rounded-md cursor-pointer ${
-                            selectedLocation?.id === location.id 
-                              ? 'bg-secondary' 
+                          onClick={() => selectLocation(location)}
+                          className={`p-2 rounded-md cursor-pointer ${selectedLocation?.id === location.id
+                              ? 'bg-secondary'
                               : 'hover:bg-secondary/50'
-                          }`}
+                            }`}
                         >
-                          {location.address}
+                          {location.title}
                         </div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              
+
               <div className="col-span-1 md:col-span-2">
                 {selectedLocation && (
                   <Card>
@@ -206,15 +185,17 @@ const SettingsComponent: React.FC = () => {
                           <p className="text-muted-foreground">{selectedLocation.address}</p>
                         </div>
                         <div>
+                          <div className='flex justify-between items-center'>
                           <h3 className="font-medium text-foreground mb-2">Report Time:</h3>
+                          <div>
+                          <h3 className="font-light text-foreground mb-2">Current Selected Time: <span className='font-medium'>{selectedLocation.report_time ? formattedTime(selectedLocation.report_time!): '-- -- --'}</span> </h3>
+                          </div>
+                          </div>
                           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
-                              <TimeSelector
-                                value={selectedTime}
-                                onChange={setSelectedTime}
-                              />
+                              <TimeSelector key={selectedLocation?.title! || '-'} value={selectedTime} onChange={setSelectedTime} />
                             </div>
-                            <Button 
+                            <Button
                               onClick={handleReportTimeUpdate}
                               disabled={isUpdating}
                               className="w-full sm:w-auto"
