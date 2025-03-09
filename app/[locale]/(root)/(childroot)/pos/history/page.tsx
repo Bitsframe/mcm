@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext, useCallback, useMemo } from 're
 import moment from 'moment';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { currencyFormatHandle } from '@/helper/common_functions';
-import OrderDetailsModal from './OrderDetailsModal';
+import OrderDetailsModal from '../../../../../../components/salesHistory/OrderDetailsModal';
 import TableComponent from '@/components/TableComponent';
 import ExportAsPDF from '@/components/ExportPDF';
 import { LocationContext } from '@/context';
