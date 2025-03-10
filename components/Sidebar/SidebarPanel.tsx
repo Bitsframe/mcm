@@ -65,7 +65,7 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
       className={`text-[#3A3541] hover:bg-[#0F4698] hover:bg-opacity-30 
         ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
     >
-      <h3>{t(route.name)}</h3>
+      <h3>{t(route.label)}</h3>
     </Sidebar.Item>
   </div>
   )
@@ -86,7 +86,7 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
     {isActive && <ActiveIndicator />}
     <Sidebar.Collapse
       icon={() => <RouteIcon icon={route.icon} />}
-      label={t(route.name)}
+      label={t(route.label)}
       className={`text-[#3A3541] hover:bg-[#0F4698] transition-all ease-out delay-75 
         hover:bg-opacity-30 ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
       open={isActive}
@@ -98,7 +98,7 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
           className={`text-[#3A3541] text-left text-sm 
             ${currentPath === item.route ? "text-[#0F4698]" : ""}`}
         >
-          {t(item.name)}
+          {t(item.label)}
         </Sidebar.Item>
       ))}
     </Sidebar.Collapse>

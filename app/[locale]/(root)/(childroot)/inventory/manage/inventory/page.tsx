@@ -16,6 +16,14 @@ import { Price_Input } from '@/components/Price_Input';
 import { LocationContext } from '@/context';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 
 interface DataListInterface {
@@ -420,46 +428,91 @@ const Inventory = () => {
           </div>
 
           <div className='px-3 pt-5'>
-            {/* Table goes here */}
-
-            <div className='pb-3 flex text-base text-[#71717A] items-center flex-1 font-normal border-b-2 border-b-[#E4E4E7]'>
-              {tableHeader.map(({ label, align, can_sort, id }, index) => {
-
-                return <h1 key={index} className={`flex-1 ${align || 'text-start'}  `}>
-                  {t(label)} {can_sort && <button onClick={() => sortHandle(id)} className='active:opacity-50'><PiCaretUpDownBold className={`inline ${sortColumn === id ? 'text-green-600' : 'text-gray-400/50'} hover:text-gray-600 active:text-gray-500 `} /></button>}
-                </h1>
-              })}
+  <Table>
+    <TableHeader className='border-b-2 border-b-[#E4E4E7]'>
+      <TableRow className='flex hover:bg-transparent'>
+        {tableHeader.map(({ label, align, can_sort, id }, index) => (
+          <TableHead 
+            key={index} 
+            className={`
+              flex-1 
+              ${align || 'text-start'}
+              text-base 
+              text-[#71717A] 
+              font-normal 
+              pb-3
+            `}
+          >
+            <div className='flex items-center'>
+              {t(label)}
+              {can_sort && (
+                <button 
+                  onClick={() => sortHandle(id)} 
+                  className='active:opacity-50 ml-1'
+                >
+                  <PiCaretUpDownBold className={`inline ${
+                    sortColumn === id 
+                      ? 'text-green-600' 
+                      : 'text-gray-400/50'
+                  } hover:text-gray-600 active:text-gray-500`} />
+                </button>
+              )}
             </div>
+          </TableHead>
+        ))}
+      </TableRow>
+    </TableHeader>
 
+    <TableBody className=' mb-4 h-[60dvh] overflow-y-auto block'>
+      {loading ? (
+        <TableRow className='flex h-full'>
+          <TableCell colSpan={tableHeader.length} className='h-[60dvh] text-center'>
+            <Spinner size='xl' />
+          </TableCell>
+        </TableRow>
+      ) : dataList.length === 0 ? (
+        <TableRow className='flex h-full'>
+          <TableCell colSpan={tableHeader.length} className='h-[60dvh] text-center'>
+            <h1>No Product is available</h1>
+          </TableCell>
+        </TableRow>
+      ) : (
+        dataList.map((elem: DataListInterface, index) => (
+          <TableRow 
+            key={index}
+            className={`
+              flex 
+              items-center 
+              hover:bg-[#d0d0d0] 
+              border-b-2 
+              border-b-[#E4E4E7]
+              py-5
+            `}
+          >
+            {tableHeader.map((element, ind) => {
+              const { id, Render_Value, align } = element
+              const content = Render_Value 
+                ? <Render_Value 
+                    getDataArchiveType={getDataArchiveType} 
+                    clickHandle={(action: string) => buttonClickActionHandle(action, elem)} 
+                  /> 
+                : elem[id]
 
-            <div className='mt-5 mb-4 space-y-5 h-[60dvh] overflow-y-auto'>
-
-              <>
-                {loading ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-                  <Spinner size='xl' />
-
-
-                </div> : dataList.length === 0 ? <div className="flex h-full flex-1 flex-col justify-center items-center">
-                  <h1>No Product is available</h1> </div> : <div className='space-y-5'>
-
-                  {dataList.map((elem: DataListInterface, index) => {
-                    const even_row = (index + 1) % 2
-                    return <div key={index} className={`hover:bg-[#d0d0d0] flex items-center flex-1 text-base py-5 border-b-2 border-b-[#E4E4E7]`}>
-                      {
-                        tableHeader.map((element, ind) => {
-                          const { id, Render_Value, align } = element
-                          const content = Render_Value ? <Render_Value getDataArchiveType={getDataArchiveType} clickHandle={(action: string) => buttonClickActionHandle(action, elem)} /> : elem[id]
-                          return <h1 key={ind} className={`flex-1 ${align || 'text-start'}  `}>
-                            {id === 'category' ? elem.categories.category_name : content}
-                          </h1>
-                        })
-                      }
-                    </div>
-                  })}
-                </div>}
-              </>
-            </div>
-          </div>
+              return (
+                <TableCell 
+                  key={ind}
+                  className={`flex-1 ${align || 'text-start'} text-base p-0`}
+                >
+                  {id === 'category' ? elem.categories.category_name : content}
+                </TableCell>
+              )
+            })}
+          </TableRow>
+        ))
+      )}
+    </TableBody>
+  </Table>
+</div>
 
 
         </div>

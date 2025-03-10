@@ -19,6 +19,17 @@ import { CiFilter } from 'react-icons/ci';
 import { formatPhoneNumber } from '@/utils/getCountryName';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+
 
 interface PatientDetailsInterface {
   firstname: string;
@@ -438,79 +449,178 @@ const Patients = () => {
 
   const {t} = useTranslation(translationConstant.POSSALES)
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <main className="w-full  font-[500] text-[20px]">
+    <main className="w-full bg-[#EFEFEF]  font-[500] text-[20px]">
+       <Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogTrigger>
+   <Button
+variant="outline"
+ className="text-black m-3"
+             >
+               Add a Patient
+             </Button>
+  </DialogTrigger>
+  
+  <DialogContent className="bg-[#B8C8E1] rounded-md flex flex-col h-[95vh] max-w-2xl">
+    <DialogHeader className="px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B]">
+      <DialogTitle className="text-xl font-normal text-white text-center">
+        {t("POS-Sales_k18")}
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="overflow-auto h-[100%] px-4 py-4">
+      <div className="w-2/3 space-y-4">
+        <Input_Component 
+          value={createActionData.firstname} 
+          onChange={(e: string) => addPatientFieldsChange(e, 'firstname')} 
+          label={t("POS-Sales_k19")} 
+        />
+        <Input_Component 
+          value={createActionData.lastname} 
+          onChange={(e: string) => addPatientFieldsChange(e, 'lastname')} 
+          label={t("POS-Sales_k20")} 
+        />
+          <Select_Dropdown
+          value={createActionData.gender}
+          bg_color='#fff'
+          start_empty={true}
+          options_arr={['Male', 'Female'].map((gender) => ({ 
+            value: gender, 
+            label: gender 
+          }))}
+          required={true}
+          // @ts-ignore
+          on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'gender')}
+          label={t("POS-Sales_k21")}
+        />
+        <Input_Component 
+          value={createActionData.email} 
+          onChange={(e: string) => addPatientFieldsChange(e, 'email')} 
+          label={t("POS-Sales_k22")} 
+        />
+        <PhoneNumberInput 
+          value={createActionData.phone} 
+          onChange={(e: string) => addPatientFieldsChange(e, 'phone')} 
+          label={t("POS-Sales_k23")} 
+          placeholder=''
+          breakpoint={false}
+        />
+           <Select_Dropdown
+          value={createActionData.treatmenttype}
+          bg_color='#fff'
+          start_empty={true}
+          // @ts-ignore
+          options_arr={services?.map((service) => ({ 
+            value: service, 
+            label: service 
+          }))}
+          required={true}
+          // @ts-ignore
+          on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'treatmenttype')}
+          label={t("POS-Sales_k24")}
+        />
+      </div>
+    </div>
+
+    <DialogFooter>
+      <button 
+        onClick={createNewDataHandle} 
+        className='bg-[#11252C] py-3 w-full text-center text-white hover:bg-[#0d1c22] transition-colors'
+      >
+        {t("POS-Sales_k25")}
+      </button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
       <div className='w-full h-[65.5dvh] py-2 px-2 grid grid-cols-3 gap-2'>
-        <div className='bg-[#B8C8E1] h-[100%]  col-span-2 rounded-md py-2   ' >
-          <div className='space-y-6 px-3 pb-4 flex items-center space-x-4'>
+        <div className='bg-[#EFEFEF] w-[1200px] h-[100%]  col-span-2 rounded-md py-2   ' >
+          <div className='space-y-6 px-3 pb-4 flex justify-between items-center space-x-4'>
             <div>
-              <h1 className='text-xl font-bold'>
+              {/* <h1 className='text-xl font-bold'>
               {t("POS-Sales_k15")}
-              </h1>
-              <input onChange={onChangeHandle} type="text" placeholder="" className=' px-1 py-2 w-72 text-sm rounded-md focus:outline-none bg-white' />
+              </h1> */}
+              <input onChange={onChangeHandle} type="text" placeholder={t("POS-Sales_k15")} className=' px-1 py-2 w-72 text-sm rounded-md focus:outline-none bg-white' />
             </div>
-            <div className='space-x-3'>
+            <div className='space-x-3 flex items-center p-0 m-0'>
               {
                 ['POS-Sales_k16', 'POS-Sales_k17'].map((elem: string, index: number) => <Action_Button key={index} onClick={() => setActiveFilterBtn(index)} label={t(elem)} bg_color={index === activeFilterBtn ? 'bg-[#13787E]' : 'bg-gray-500'} />)
               }
             </div>
           </div>
-          <div className='h-[1px] w-full bg-black' />
-          <div className='h-[63dvh] !overflow-auto space-y-4 px-3 py-4'>
-            {dataList.map((elem, ind) => {
-              const { firstname, lastname, created_at, phone, updated_at } = elem
-              return <div key={ind} className='space-y-6 px-3'>
-                <div className='bg-[#D9D9D9] rounded-md px-4 py-3'>
-                  <div>
-                    <p className='text-xl'>
-                      {`${firstname} ${lastname}`}
-                    </p>
-                  </div>
-                  <div className='flex items-start'>
-                    <p className='text-lg flex-1 text-gray-600'>
-                      {formatPhoneNumber(phone)}
-                    </p>
-                    <div className='text-right space-y-2'>
-                      <div className='space-x-3'>
-                        <Action_Button onClick={() => editHandle(elem)} label='Edit' bg_color='bg-[#13787E]' />
-                        {/* <Action_Button onClick={() => deleteHandle(elem)} label='Delete' bg_color='bg-[#FF6363]' /> */}
-                        <Action_Button onClick={() => selectHandle(elem)} label='Select' bg_color='bg-[#00720B]' />
-                      </div>
-                      <p className='text-sm text-gray-600'>{moment.utc(updated_at, 'YYYY-MM-DD h:mm s').local().format('DD/MM/YYYY h:mm A')}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            })}
-          </div>
-        </div>
-        <div className='bg-[#B8C8E1] h-[100%] rounded-md overflow-hidden flex flex-col' >
-          <div className='px-4 py-4 bg-[#11252C80]  border-b-[1px] border-b-[#817B7B] flex items-center'>
-            <h1 className='text-xl font-normal text-white text-center w-full'>
-            {t("POS-Sales_k18")}
-            </h1>
-          </div>
-          <div className='overflow-auto h-[100%] px-4 py-4'>
-            <div className='w-2/3 space-y-4'>
-              <Input_Component value={createActionData.firstname} onChange={(e: string) => addPatientFieldsChange(e, 'firstname')} label= {t("POS-Sales_k19")} />
-              <Input_Component value={createActionData.lastname} onChange={(e: string) => addPatientFieldsChange(e, 'lastname')} label={t("POS-Sales_k20")} />
-              {/* @ts-ignore */}
-              <Select_Dropdown value={createActionData.gender} bg_color='#fff' start_empty={true} options_arr={['Male', 'Female'].map((gender) => ({ value: gender, label: gender }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'gender')} label={t("POS-Sales_k21")} />
-              <Input_Component value={createActionData.email} onChange={(e: string) => addPatientFieldsChange(e, 'email')} label={t("POS-Sales_k22")} />
-              {/* <Input_Component value={createActionData.phone} onChange={(e: string) => addPatientFieldsChange(e, 'phone')} label='Phone Number' /> */}
-              <PhoneNumberInput value={createActionData.phone} onChange={(e: string) => addPatientFieldsChange(e, 'phone')} label={t("POS-Sales_k23")} placeholder={''} breakpoint={false} />
+          {/* <div className='h-[1px] w-full bg-black' /> */}
+          <div className="h-[63dvh] overflow-auto px-3 py-4">
+          <Table>
+  <TableHeader className="bg-[#EFEFEF]">
+    <TableRow className="hover:bg-transparent">
+      <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">Name</TableHead>
+      <TableHead className="w-1/5 px-4 py-2 text-lg font-medium text-gray-500 text-left">Number</TableHead>
+      <TableHead className="w-1/5 px-4 py-2 text-lg font-medium text-gray-500 text-left">Date</TableHead>
+      <TableHead className="w-1/6 px-4 py-2 text-lg font-medium text-gray-500 text-left">Time</TableHead>
+      <TableHead className="w-1/5 px-4 py-2 text-lg font-medium text-gray-500 text-left">Action</TableHead>
+    </TableRow>
+  </TableHeader>
 
-              {/* @ts-ignore */}
-              <Select_Dropdown value={createActionData.treatmenttype} bg_color='#fff' start_empty={true} options_arr={services?.map((service) => ({ value: service, label: service }))} required={true} on_change_handle={(e: string) => addPatientFieldsChange(e.target.value, 'treatmenttype')}
-                label={t("POS-Sales_k24")} />
+  <TableBody>
+    {dataList.map((elem, ind) => {
+      const { firstname, lastname, phone, updated_at } = elem;
+      const formattedDateTime = moment
+        .utc(updated_at, 'YYYY-MM-DD h:mm s')
+        .local()
+        .format('DD/MM/YYYY h:mm A')
+        .split(' ');
+      
+      return (
+        <TableRow 
+          key={ind}
+          className="bg-[#EFEFEF] rounded-md hover:bg-[#cacaca] border-b-0"
+        >
+         
+          <TableCell className="font-medium py-3 text-left">
+            <p className="text-base font-normal text-black">{`${firstname} ${lastname}`}</p>
+          </TableCell>
+
+          <TableCell className="py-3 text-left">
+            <p className="text-base font-normal text-black">
+              {formatPhoneNumber(phone)}
+            </p>
+          </TableCell>
+
+          <TableCell className="py-3 text-left">
+            <p className="text-base font-normal text-black">
+              {formattedDateTime[0]}
+            </p>
+          </TableCell>
+
+          <TableCell className="py-3 text-left">
+            <p className="text-base font-normal text-black">
+              {formattedDateTime.slice(1).join(' ')}
+            </p>
+          </TableCell>
+
+          <TableCell className="py-3 text-left">
+            <div className="flex items-center gap-3 justify-start">
+              <Action_Button 
+                onClick={() => editHandle(elem)} 
+                label='Edit' 
+                bg_color='bg-[#13787E]' 
+              />
+              <Action_Button 
+                onClick={() => selectHandle(elem)} 
+                label='Select' 
+                bg_color='bg-[#00720B]' 
+              />
             </div>
-          </div>
-          <div>
-            <button onClick={createNewDataHandle} className='bg-[#11252C] py-3 w-full text-center text-white'>
-            {t("POS-Sales_k25")}
-            </button>
-          </div>
+          </TableCell>
+        </TableRow>
+      );
+    })}
+  </TableBody>
+</Table>
+</div>
         </div>
+       
       </div>
       <Custom_Modal disabled={!canModalSubmit} submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
         {activeModalMode === 'delete' ? <div>
