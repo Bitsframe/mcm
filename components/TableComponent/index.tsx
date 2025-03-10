@@ -89,11 +89,11 @@ const TableComponent: React.FC<Props> = ({
                   } ${align || "text-center"}`}
                 >
                   {t(label, {
-                    ns: translationConstant.STOCKPANEL,
-                    defaultValue: t(label, {
-                      ns: translationConstant.POSHISTORY,
-                    }),
-                  })}{" "}
+
+    ns: translationConstant.STOCKPANEL,
+    defaultValue: t(label, { ns: translationConstant.POSHISTORY }),
+  })}
+
                 </TableHead>
               ))}
             </TableRow>
