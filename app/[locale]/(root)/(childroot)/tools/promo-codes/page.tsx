@@ -11,7 +11,8 @@ import { toast } from 'react-toastify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Slidercomp } from '@/components/sliderComp';
 
 const fields = [
   {
@@ -526,6 +527,9 @@ const Page = () => {
     <div className="flex flex-col h-full">
       
       <div className='px-4 pt-2 pb-3'>
+            <SheetHeader className="sr-only">
+              <SheetTitle>{t("Procode_k8")}</SheetTitle>
+            </SheetHeader>
         <h1 className='text-xl font-bold'>
           {t("Procode_k8")}
         </h1>
@@ -587,25 +591,61 @@ const Page = () => {
 </Sheet>
 
       </div>
-      <Custom_Modal submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
+      <Custom_Modal
+  submit_button_color={modal_titles[activeModalMode]?.button?.color}
+  loading={modalLoading}
+  buttonLabel={modal_titles[activeModalMode]?.button?.label}
+  is_open={isOpenModal}
+  Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+  close_handle={closeModalHandle}
+  open_handle={openModalHandle}
+  create_new_handle={modalSubmitHandle}
+>
+  {activeModalMode === "delete" ? (
+    <div>
+      <h1>Are you sure you want to delete this Promocode?</h1>
+    </div>
+  ) : (
+    <form className="grid grid-cols-2 gap-4">
+  {fields
+    .filter(({ editable }) => editable)
+    .map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
+      return (
+        <div
+          key={id}
+          className={`col-span-${col_span_01 || col_span_01_modal ? "1" : "2"} flex flex-col gap-1`}
+        >
+          {id === "percentage" ? (
+            <div className="flex flex-col w-full">
+              <label className="text-base font-semibold mb-4">Percentage</label>
+              <Slidercomp
+                className="w-full"
+                value={newDetails ? newDetails[id] : ""}
+                // @ts-ignore
+                onChange={(e: string) => modalInputChangeHandle(e, id)}
+              />
+            </div>
+          ) : (
+            <Input_Component
+              min={min || ""}
+              //@ts-ignore
+              max={max || ""}
+              value={newDetails ? newDetails[id] : ""}
+              type={type}
+              border="border-2 border-gray-300 rounded-md w-full"
+              onChange={(e: string) => modalInputChangeHandle(e, id)}
+              label={t(label)}
+              isDate={type === "date"}
+            />
+          )}
+        </div>
+      );
+    })}
+</form>
 
-        {activeModalMode === 'delete' ? <div>
-          <h1>
-            Are you sure you want to delete this Promocode?
-          </h1>
+  )}
+</Custom_Modal>
 
-
-        </div> : <form className='grid grid-cols-2 gap-4'>
-          {
-            fields.filter(({ editable }) => editable).map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => {
-              return <div key={id} className={col_span_01 || col_span_01_modal ? 'col-span-1' : 'col-span-2'}>
-                {/* @ts-ignore */}
-                <Input_Component min={min || ''} max={max || ''} value={newDetails ? newDetails[id] : ''} type={type} border='border-2 border-gray-300 rounded-md' onChange={(e: string) => modalInputChangeHandle(e, id)} label={label} />
-              </div>
-            })
-          }
-        </form>}
-      </Custom_Modal>
     </main>
   )
 }

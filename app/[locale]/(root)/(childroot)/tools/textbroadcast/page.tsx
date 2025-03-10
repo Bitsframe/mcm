@@ -464,7 +464,7 @@ const TextBroadcast = () => {
           </div>
           <div className="mt-5">
             <div>Write a Text Message</div>
-            <Textarea rows={10} className="w-2/4 mt-3 bg-white" placeholder="Text Message..." />
+            <Textarea  rows={10} className="w-2/4 mt-3 bg-white resize-none h-full" placeholder="Text Message..." />
             <div className="text-gray-500 mt-3 text-lg">This is the text we will use to send text campaign</div>
           </div>
           <div className="flex justify-end w-2/4 mt-4">

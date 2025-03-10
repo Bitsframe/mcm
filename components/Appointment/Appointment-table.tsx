@@ -39,8 +39,8 @@ interface AppointmentsTableProps {
                   { label: t("Appoinments_k26"), sort: 'name' },
                   { label: t("Appoinments_k27"), sort: 'gender' },
                   { label: t("Appoinments_k28"), sort: 'service' },
-                  { label: t("Appoinments_k1"), sort: 'slot' },
-                  { label: t("Appoinments_k2"), sort: 'time'}
+                  { label: t("Appoinments_k2"), sort: 'slot' },
+                  { label: t("Appoinments_k1"), sort: 'time'}
                 ].map(({ label, sort }) => (
                 
                   <TableHead key={sort} className="text-lg">

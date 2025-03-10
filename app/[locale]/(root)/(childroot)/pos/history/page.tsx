@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext, useCallback, useMemo } from 're
 import moment from 'moment';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { currencyFormatHandle } from '@/helper/common_functions';
-import OrderDetailsModal from './OrderDetailsModal';
+import OrderDetailsModal from '../../../../../../components/salesHistory/OrderDetailsModal';
 import TableComponent from '@/components/TableComponent';
 import ExportAsPDF from '@/components/ExportPDF';
 import { LocationContext } from '@/context';
@@ -44,7 +44,7 @@ const tableHeader = [
   {
     id: 'payment_type',
     label: 'POS-Historyk8',
-    render_value: () => 'Cash', 
+    render_value: (_val: string, elem: any,) => elem?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit",  
   },
   {
     id: 'last_updated',
@@ -100,7 +100,8 @@ const SalesHistory = () => {
           inventory_id,
           date_sold,
           quantity_sold,
-          total_price
+          total_price,
+          paymentcash
         )`,
         matchCase: {
           key: 'pos.locationid',
@@ -165,7 +166,7 @@ const SalesHistory = () => {
           dataList={dataList}
           openModal={openModal}
           searchHandle={onChangeHandle}
-          searchInputplaceholder="POS-Historyk3"
+          searchInputplaceholder={t("POS-Historyk3")}
         />
       </div>
 

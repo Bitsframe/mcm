@@ -1,18 +1,15 @@
 'use client'
 
-import { CircularProgress, Typography } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { Switch } from "antd";
-import { useContext, useEffect, useState } from "react";
-import { MdPassword } from "react-icons/md";
+import { useEffect, useState } from "react";
 import { GoPencil } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import AddEditUserModal from "./AddEditUserModal";
-import { LocationContext } from "@/context";
 import axios from "axios";
 import { CreateUserModalDataInterface } from "@/types/typesInterfaces";
-import { error } from "console";
 import { toast } from "react-toastify";
-import { delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
@@ -35,7 +32,7 @@ const tableHeader = [
     // { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
     { id: 'full_name', label: 'UM_k4', align: 'text-start', classNames: 'w-72' },
     { id: 'role', label: 'UM_k5', classNames: 'w-72' },
-    // { id: 'email', label: 'Email' },
+    { id: 'email', label: 'Email' },
     { id: 'locations', label: 'UM_k6', },
     // { id: 'password', label: 'Password' },
     { id: 'actions', label: '', classNames: 'w-28' },
@@ -79,7 +76,7 @@ const UserManagementComponent = () => {
         try {
             const fetchedData = await fetch_content_service({
                 table: 'profiles',
-                selectParam: `, roles(name), user_locations(location_id, Locations(title))`,
+                selectParam: `, roles(name), email, user_locations(location_id, Locations(title))`,
             });
 
 
@@ -88,6 +85,7 @@ const UserManagementComponent = () => {
                 id: user.id,
                 full_name: user.full_name,
                 role_id: user.role_id,
+                email: user.email,
                 role: user.roles.name,
                 created_at: new Date(user.created_at).toLocaleDateString(),
                 active: user.active,
@@ -150,10 +148,10 @@ const UserManagementComponent = () => {
     }
 
     const editUserHandle = (elem: any) => {
-        const { full_name, role_id, id } = elem
+        const { full_name, role_id, id, email } = elem
         const data = {
             id,
-            email: '-----',
+            email,
             roleId: role_id,
             locationIds: elem.locations.map(({ location_id }: any) => location_id),
             fullName: full_name,
@@ -224,16 +222,15 @@ const UserManagementComponent = () => {
                                             </button>
 
                                         </div> : <div key={ind}>
-                                            {Array.isArray(content) ? (content.length > 0 ? <h1 >
-                                                Multiple Locations
-                                            </h1> : content.map((elem, index) => <h1 key={index}>
-                                                {elem.title}
-                                            </h1>)) : <h1 key={index}>
-                                                {content}
-
-                                            </h1>
-
-                                            }
+                                            {Array.isArray(content) ? (
+                                                content.length > 1 ? (
+                                                    <h1>Multiple Locations</h1>
+                                                ) : content.length === 1 ? (
+                                                    <h1>{content[0].title}</h1>
+                                                ) : null
+                                            ) : (
+                                                <h1>{content}</h1>
+                                            )}
                                         </div>}
                                     </div>);
 

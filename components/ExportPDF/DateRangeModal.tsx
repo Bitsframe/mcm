@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from '@mui/material/Modal';
-import { DateRangePicker } from 'react-date-range';
+import { DateRangePicker, Range, RangeKeyDict } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; // main styles for react-date-range
 import 'react-date-range/dist/theme/default.css'; // theme styles for react-date-range
 import moment from 'moment';
@@ -21,6 +21,10 @@ const style = {
     pb: 3,
 };
 
+interface DateRange extends Range {
+    key: string;
+}
+
 interface PropsInterface {
     open: boolean;
     handleOpen: () => void;
@@ -36,26 +40,25 @@ export default function DateRangeModal({
     generatePdfHandle,
     loading
 }: PropsInterface) {
-    const [selectionRange, setSelectionRange] = React.useState({
+    const [selectionRange, setSelectionRange] = React.useState<DateRange>({
         startDate: new Date(),
         endDate: new Date(),
         key: 'selection',
     });
 
-    const handleSelect = (ranges: any) => {
-        console.log('Selected Range:', ranges);
-        const { startDate, endDate } = ranges.selection;
-        setSelectionRange({ startDate, endDate, key: 'selection' });
+    const handleSelect = (ranges: RangeKeyDict) => {
+        setSelectionRange(ranges.selection as DateRange);
     };
 
     const applyHandle = () => {
         const { startDate, endDate } = selectionRange;
+        
+        // Ensure both dates are set to the start of their respective days in UTC
+        const formattedStartDate = moment(startDate).startOf('day').utc().format('YYYY-MM-DD');
+        const formattedEndDate = moment(endDate).endOf('day').utc().format('YYYY-MM-DD');
 
-        // Convert the dates to UTC and then format them
-        const formattedStartDate = moment(startDate).utc().format('YYYY-MM-DD');
-        const formattedEndDate = moment(endDate).utc().format('YYYY-MM-DD');
-
-        generatePdfHandle(formattedStartDate, formattedEndDate)
+        // Generate PDF regardless of data availability
+        generatePdfHandle(formattedStartDate, formattedEndDate);
     };
 
     const {t} = useTranslation(translationConstant.POSHISTORY)
