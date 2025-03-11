@@ -19,8 +19,10 @@ export const POST = async (req: Request) => {
 
         const posRecords = await fetch_content_service({
             table: 'pos',
+            selectParam: ', Locations(title)', 
             matchCase: { key: 'patientid', value: patientId }
           });
+          console.log(posRecords)
       
           const posIds = posRecords.map((pos: any) => pos.id);
       
@@ -28,7 +30,7 @@ export const POST = async (req: Request) => {
           const orders = await fetch_content_service({
             table: 'orders',
             filterOptions: [{ column: 'patient_id', operator: 'in', value: posIds }, 
-                { column: 'order_id', operator: 'neq', value: currentOrderId }
+                // { column: 'order_id', operator: 'neq', value: currentOrderId }
             ]
 
           });
@@ -68,31 +70,59 @@ export const POST = async (req: Request) => {
           });
       
           // Step 7: Structure the final response
-          const salesDetails = salesHistory.map((sale: any) => {
-            const inventoryItem = inventoryData.find((item: any) => item.inventory_id === sale.inventory_id);
-            const product = products.find((p: any) => p.product_id === inventoryItem?.product_id);
-            const category = categories.find((c: any) => c.category_id === product?.category_id);
+          const responseData = posRecords.map((pos: any) => {
+            console.log({pos})
+            const ordersForPos = orders.filter((order: any) => order.patient_id === pos.id);
       
-            return {
-              sales_history_id: sale.sales_history_id,
-              date_sold: sale.date_sold,
-              quantity_sold: sale.quantity_sold,
-              total_price: sale.total_price,
-              paymentcash: sale.paymentcash,
-              return_qty: sale.return_qty,
-              inventory: {
-                inventory_id: sale.inventory_id,
-                product_id: inventoryItem?.product_id,
-                products: product
-                  ? {
-                      product_name: product.product_name,
-                      category_id: product.category_id,
-                      categories: category ? { category_name: category.category_name } : null
-                    }
-                  : null
-              }
-            };
-          })
+            return ordersForPos.map((order: any) => {
+              const sales = salesHistory.filter((sale: any) => sale.order_id === order.order_id);
+              const salesDetails = sales.map((sale: any) => {
+                const inventoryItem = inventoryData.find((item: any) => item.inventory_id === sale.inventory_id);
+                const product = products.find((p: any) => p.product_id === inventoryItem?.product_id);
+                const category = categories.find((c: any) => c.category_id === product?.category_id);
+      
+                return {
+                  sales_history_id: sale.sales_history_id,
+                  date_sold: sale.date_sold,
+                  quantity_sold: sale.quantity_sold,
+                  total_price: sale.total_price,
+                  paymentcash: sale.paymentcash,
+                  return_qty: sale.return_qty,
+                  inventory: {
+                    inventory_id: sale.inventory_id,
+                    product_id: inventoryItem?.product_id,
+                    products: product
+                      ? {
+                          product_name: product.product_name,
+                          category_id: product.category_id,
+                          categories: category ? { category_name: category.category_name } : null
+                        }
+                      : null
+                  }
+                };
+              });
+      
+              return {
+                order_id: order.order_id,
+                patient_id: order.patientid,
+                order_date: order.order_date,
+                promo_code_id: order.promo_code_id,
+                pos: {
+                  id: pos.id,
+                  email: pos.email,
+                  phone: pos.phone,
+                  gender: pos.gender,
+                  lastname: pos.lastname,
+                  firstname: pos.firstname,
+                  patientid: pos.patientid,
+                  locationid: pos.locationid,
+                  treatmenttype: pos.treatmenttype,
+                  Locations: { title: pos.Locations.title }
+                },
+                sales_history: salesDetails
+              };
+            });
+          }).flat();
 
 
 
@@ -102,7 +132,7 @@ export const POST = async (req: Request) => {
         return NextResponse.json(
             {
                 success: true,
-                data: salesDetails,
+                data: responseData,
             },
             { status: 200 }
         );
