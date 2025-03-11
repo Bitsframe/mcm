@@ -150,7 +150,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                             {/* <span>|</span> */}
                             <p className='text-sm '>
                                 Payment Type: <span className='font-bold'>
-                                    {moment(dataList?.order_date).utcOffset(-6).format("DD-MM-YYYY")}
+                                    {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
                                 </span>
                             </p>
                             {/* <span>|</span> */}
