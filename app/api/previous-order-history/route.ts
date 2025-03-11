@@ -88,6 +88,7 @@ export const POST = async (req: Request) => {
             total_price: sale.total_price,
             paymentcash: sale.paymentcash,
             return_qty: sale.return_qty,
+            inventory_id: sale.inventory_id,
             inventory: {
               inventory_id: sale.inventory_id,
               product_id: inventoryItem?.product_id,
