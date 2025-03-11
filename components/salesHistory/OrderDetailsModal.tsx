@@ -100,7 +100,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             }
             else {
 
-                const filteredData = dataList.sales_history.filter((elem: any) => elem?.inventory?.products?.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase()))
+                const filteredData = dataList.sales_history.filter((elem: any) => elem?.inventory?.products?.product_name?.toLocaleLowerCase().includes(val.toLocaleLowerCase()))
                 setSalesHistory([...filteredData])
             }
 
@@ -212,7 +212,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                             {
                                 salesHistory.map((elem: DataListInterface, index: number) => (
 
-                                    <TableRowRender preDefinedReasonList={preDefinedReasonList} hasReturnedHandle={hasReturnedHandle} isAnyReturned={isAnyReturned} key={index} dataList={elem} order_id={order_id} />
+                                    <TableRowRender preDefinedReasonList={preDefinedReasonList} hasReturnedHandle={hasReturnedHandle} isAnyReturned={isAnyReturned || page > 1} key={index} dataList={elem} order_id={order_id} />
                                 ))
                             }
 
