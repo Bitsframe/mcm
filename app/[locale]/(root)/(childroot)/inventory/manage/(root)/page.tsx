@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Button, Spinner } from 'flowbite-react';
 import Image from 'next/image';
 import PlusIcon from "@/assets/images/Logos/plus-icon.png"
@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TabContext } from '@/context';
 interface DataListInterface {
   [key: string]: any; // This allows dynamic property access
 }
@@ -207,6 +208,12 @@ const Categories = () => {
 
   //   set_location_handle(value)
   // }
+
+  const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k11");
+  }, []);
 
 
   const {t} = useTranslation(translationConstant.INVENTORY)

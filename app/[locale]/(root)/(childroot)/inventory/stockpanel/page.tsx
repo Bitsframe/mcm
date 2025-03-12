@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useContext } from 're
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import InventoryCards from './InventoryCards';
 import TableComponent from '@/components/TableComponent';
-import { LocationContext } from '@/context';
+import { LocationContext, TabContext } from '@/context';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 
@@ -139,6 +139,12 @@ const StockPanel = () => {
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
+
+  const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k12"); 
+  }, []);
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">

@@ -2,7 +2,7 @@
 
 import { CircularProgress } from "@mui/material";
 import { Switch } from "antd";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { GoPencil } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import AddEditUserModal from "./AddEditUserModal";
@@ -13,6 +13,7 @@ import { fetch_content_service } from "@/utils/supabase/data_services/data_servi
 import { TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { TabContext } from "@/context";
 
 
 interface DataListInterface {
@@ -160,6 +161,12 @@ const UserManagementComponent = () => {
         setEditData(data)
         handleOpen()
     }
+
+    const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k18");
+  }, []);
 
     const {t} = useTranslation(translationConstant.USERMANAGEMENT)
 

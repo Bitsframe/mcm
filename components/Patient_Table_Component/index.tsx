@@ -1,26 +1,12 @@
-"use client";
-import React, {
-  FC,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback,
-} from "react";
-import { Label, Spinner } from "flowbite-react";
-import moment from "moment";
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
-import { PiCaretUpDownBold } from "react-icons/pi";
-import { formatPhoneNumber } from "@/utils/getCountryName";
-import { LocationContext } from "@/context";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
+'use client'
+import React, { FC, useContext, useEffect, useState, useMemo, useCallback } from 'react'
+import { Label, Spinner } from 'flowbite-react'
+import moment from 'moment'
+import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
+import { PiCaretUpDownBold } from 'react-icons/pi'
+import { formatPhoneNumber } from '@/utils/getCountryName'
+import { LocationContext } from '@/context'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 
 import {
   AlertDialog,
@@ -43,69 +29,58 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "../ui/input";
 
-import { redirect } from "next/navigation";
-import { getServices } from "@/actions/send-email/action";
-import { ScrollArea } from "../ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Button } from "../ui/button";
-import { useTranslation } from "react-i18next";
-import { translationConstant } from "@/utils/translationConstants";
-import { t } from "i18next";
+import { redirect } from 'next/navigation'
+import { getServices } from '@/actions/send-email/action'
+import { ScrollArea } from '../ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
+import { Button } from '../ui/button'
+import { useTranslation } from 'react-i18next'
+import { translationConstant } from '@/utils/translationConstants'
+import { t } from 'i18next'
 
-import axios from "axios";
+import axios from 'axios'
 
 import { toast } from 'sonner'
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger 
-} from '../ui/sheet'
-import PhoneNumberInput from "../PhoneNumberInput";
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
+import { TabContext } from '@/context';
+
 interface EditPatientModalProps {
-  patientDetails: Patient;
-  serviceList: { title: string }[];
-  callAfterUpdate: (data: any) => void;
+  patientDetails: Patient
+  serviceList: { title: string }[]
+  callAfterUpdate: (data: any) => void
 }
 
 interface Patient {
-  id: number;
-  onsite: boolean;
-  firstname: string;
-  locationid: number;
-  lastname: string;
-  phone: string;
-  email: string;
-  treatmenttype: string;
-  gender: string;
-  created_at: string;
-  lastvisit: string;
+  id: number
+  onsite: boolean
+  firstname: string
+  locationid: number
+  lastname: string
+  phone: string
+  email: string
+  treatmenttype: string
+  gender: string
+  created_at: string
+  lastvisit: string
 }
 
 interface Props {
-  renderType: "all" | "onsite" | "offsite";
+  renderType: 'all' | 'onsite' | 'offsite'
 }
 
 const QUERIES = {
   all: null,
-  onsite: { key: "onsite", value: true },
-  offsite: { key: "onsite", value: false },
-} as const;
+  onsite: { key: 'onsite', value: true },
+  offsite: { key: 'onsite', value: false },
+} as const
 
-const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
-  const { selectedLocation } = useContext(LocationContext);
-  const [patients, setPatients] = useState<any[]>([]);
+const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
+  const { selectedLocation } = useContext(LocationContext)
+  const [patients, setPatients] = useState<any[]>([])
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [patientData, setPatientData] = useState({
@@ -117,195 +92,205 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     gender: "",
     onsite: true,
     locationId: 0,
-  });
+  })
 
   const [sortConfig, setSortConfig] = useState({
-    key: "",
-    direction: -1,
-  });
+    key: '',
+    direction: -1
+  })
   const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    const keys: { [key: string]: string } = {
+      all: "Sidebar_k4",
+      onsite: "Sidebar_k5",
+      offsite: "Sidebar_k6"
+    };
+    setActiveTitle(keys[renderType]);
+  }, [renderType]);
+
+  
 
   const fetchServiceList = async () => {
     try {
       const services = await getServices();
       setServiceList(services);
     } catch (error) {
-      console.error("Failed to fetch services:", error);
+      console.error('Failed to fetch services:', error);
     }
   };
 
-  const fetchPatients = useCallback(
-    async (locationId: number) => {
-      setLoading(true);
-      try {
-        const fetchedData = await fetch_content_service({
-          table: "allpatients",
-          language: "",
-          matchCase: [
-            QUERIES[renderType] as any,
-            { key: "locationid", value: locationId },
-          ],
-        });
-        setPatients(fetchedData);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [renderType]
-  );
+  const fetchPatients = useCallback(async (locationId: number) => {
+    setLoading(true)
+    try {
+      const fetchedData = await fetch_content_service({
+        table: 'allpatients',
+        language: '',
+        matchCase: [QUERIES[renderType] as any, { key: 'locationid', value: locationId }]
+      })
+      setPatients(fetchedData)
+    } catch (error) {
+      console.error('Error fetching patients:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [renderType])
 
   useEffect(() => {
     if (selectedLocation?.id) {
       fetchPatients(selectedLocation.id);
       fetchServiceList();
     }
-  }, [selectedLocation?.id, fetchPatients]);
+  }, [selectedLocation?.id, fetchPatients])
+
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  }, []);
+    setSearchTerm(e.target.value)
+  }, [])
 
   const handleSort = useCallback((column: string) => {
-    setSortConfig((prevConfig) => ({
+    setSortConfig(prevConfig => ({
       key: column,
-      direction: prevConfig.key === column ? -prevConfig.direction : -1,
-    }));
-  }, []);
+      direction: prevConfig.key === column ? -prevConfig.direction : -1
+    }))
+  }, [])
 
   const filteredAndSortedPatients = useMemo(() => {
-    let result = [...patients];
+    let result = [...patients]
 
     // Filter
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      result = result.filter((patient) =>
-        `${patient.firstname} ${patient.lastname}`
-          .toLowerCase()
-          .includes(searchLower)
-      );
+      const searchLower = searchTerm.toLowerCase()
+      result = result.filter(patient =>
+        `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower)
+      )
     }
 
     // Sort
     if (sortConfig.key) {
       result.sort((a, b) => {
-        if (sortConfig.key === "name") {
-          const aName = `${a.firstname} ${a.lastname}`;
-          const bName = `${b.firstname} ${b.lastname}`;
-          return sortConfig.direction * aName.localeCompare(bName);
+        if (sortConfig.key === 'name') {
+          const aName = `${a.firstname} ${a.lastname}`
+          const bName = `${b.firstname} ${b.lastname}`
+          return sortConfig.direction * aName.localeCompare(bName)
         }
-        if (sortConfig.key === "id") {
-          return sortConfig.direction * (a.id - b.id);
+        if (sortConfig.key === 'id') {
+          return sortConfig.direction * (a.id - b.id)
         }
-        if (sortConfig.key === "date") {
-          return (
-            sortConfig.direction *
-            (new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime())
-          );
+        if (sortConfig.key === 'date') {
+          return sortConfig.direction * (
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
         }
-        return 0;
-      });
+        return 0
+      })
     }
 
-    return result;
-  }, [patients, searchTerm, sortConfig]);
+    return result
+  }, [patients, searchTerm, sortConfig])
 
   const formatDate = useCallback((date: string) => {
-    return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY");
-  }, []);
+    return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("HANDLE SUBMIT VALUE ->", patientData);
-    console.log("SELECTED LOCATION ->", selectedLocation);
+    console.log("HANDLE SUBMIT VALUE ->", patientData)
+    console.log("SELECTED LOCATION ->", selectedLocation)
     if (!isFormValid) {
       toast.error("Please fill in all required fields.");
-      return;
+      return; 
     }
-
+  
     setIsSubmitting(true);
     try {
-      const response = await axios.post("/api/user", {
-        firstname: patientData.firstname,
-        lastname: patientData.lastname,
-        email: patientData.email,
-        phone: patientData.phone,
-        gender: patientData.gender,
-        treatmenttype: patientData.treatmenttype,
-        locationid: selectedLocation?.id || 17,
-        lastvisit: new Date(),
-        onsite: patientData.onsite,
-      });
-      fetchPatients(selectedLocation.id);
-      setIsModalOpen(false);
+      const response = await axios.post("/api/user",
+        {
+          firstname: patientData.firstname,
+          lastname: patientData.lastname,
+          email: patientData.email,
+          phone: patientData.phone,
+          gender: patientData.gender,
+          treatmenttype: patientData.treatmenttype,
+          locationid: selectedLocation?.id || 17,
+          lastvisit: new Date(),
+          onsite: patientData.onsite,
 
-      if (response) {
+        });
+        fetchPatients(selectedLocation.id)
+        setIsModalOpen(false);
+
+      if(response){
         toast(
           <div className="flex justify-between">
             <p>New patient added successfully.</p>
             <button
-              onClick={() => toast.dismiss()}
+              onClick={() => toast.dismiss()} 
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
             >
               <span className="text-sm">&#x2715;</span>
             </button>
-          </div>
+          </div>,
         );
       }
 
       console.log("Patient added successfully:", response);
-    } catch (error) {
+    }  catch (error) {
       toast.error("Failed to add patient. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
+
 
   const updateOnEdit = (data: any) => {
     setPatients((pre: any) => {
       return pre.map((elem: any) => {
         if (data.id === elem.id) {
-          return { ...data };
-        } else {
-          return elem;
+          return { ...data }
         }
-      });
-    });
-    setSelectedPatient((pre: any) => ({ ...pre, ...data }));
-  };
+        else {
+          return elem
+        }
+      })
+    })
+    setSelectedPatient((pre: any) => ({ ...pre, ...data }))
+  }
+
 
   useEffect(() => {
     fetchServiceList();
-  }, []);
+  }, [])
 
-  const { t } = useTranslation(translationConstant.PATIENTS);
+  const {t} = useTranslation(translationConstant.PATIENTS);
   const isFormValid = useMemo(() => {
-    return (
-      patientData.firstname &&
-      patientData.lastname &&
-      patientData.email &&
-      patientData.phone &&
-      patientData.treatmenttype &&
-      patientData.gender &&
-      patientData.onsite !== undefined
-    );
+    return patientData.firstname &&
+           patientData.lastname &&
+           patientData.email &&
+           patientData.phone &&
+           patientData.treatmenttype &&
+           patientData.gender &&
+           patientData.onsite !== undefined;
   }, [patientData]);
+
+  const [editPatientData, setEditPatientData] = useState<Patient | null>(null);
+
+useEffect(() => {
+  if (selectedPatient) {
+    setEditPatientData(selectedPatient);
+  }
+}, [selectedPatient]);
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">
-      <div className="flex justify-between items-center px-4 py-4 space-x-2">
-        <h1 className="text-xl font-bold">{t("Patients_k1")}</h1>
+      <div className='flex justify-between items-center px-4 py-4 space-x-2'>
+        <h1 className='text-xl font-bold'>{t("Patients_k1")}</h1>
       </div>
       <AlertDialog open={isModalOpen}>
         <AlertDialogTrigger asChild>
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            variant="outline"
-            className="text-black"
-          >
+          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black">
             Add a Patient
           </Button>
         </AlertDialogTrigger>
@@ -314,10 +299,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             <AlertDialogTitle>Add New Patient</AlertDialogTitle>
             <AlertDialogDescription className="flex gap-3 flex-wrap" asChild>
               <div>
-                <p>
-                  Enter the patient's information below. Click save when you're
-                  done.
-                </p>
+                <p>Enter the patient's information below. Click save when you're done.</p>
                 <p className="">
                   Current Location
                   <br />
@@ -336,12 +318,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   id="firstname"
                   className="col-span-3"
                   placeholder="Enter firstname"
-                  onChange={(e) =>
-                    setPatientData({
-                      ...patientData,
-                      firstname: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setPatientData({ ...patientData, firstname: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -352,9 +329,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   id="lastname"
                   className="col-span-3"
                   placeholder="Enter lastname"
-                  onChange={(e) =>
-                    setPatientData({ ...patientData, lastname: e.target.value })
-                  }
+                  onChange={(e) => setPatientData({ ...patientData, lastname: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -366,34 +341,29 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   type="email"
                   className="col-span-3"
                   placeholder="Enter Email"
-                  onChange={(e) =>
-                    setPatientData({ ...patientData, email: e.target.value })
-                  }
+                  onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
                 />
               </div>
-              <div className="flex  items-center gap-4">
-                <Label htmlFor="phone" className="text-center">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
                   Phone
                 </Label>
-                <PhoneNumberInput
-                  value={patientData.phone}
-                  onChange={(e: string) => setPatientData({ ...patientData, phone: e })}
+                <Input
+                  id="phone"
+                  type="tel"
+                  className="col-span-3"
                   placeholder="Enter phone"
-                  breakpoint={false}
-                  className="w-3/4"
+                  onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
                 />
               </div>
-
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="treatmenttype" className="text-right">
                   Treatment Type
                 </Label>
-                <Select
-                  onValueChange={(value) => {
-                    console.log("VALUE ->", value);
-                    setPatientData({ ...patientData, treatmenttype: value });
-                  }}
-                >
+                <Select onValueChange={(value) => {
+                  console.log("VALUE ->", value)
+                  setPatientData({ ...patientData, treatmenttype: value })
+                }}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select treatment type" />
                   </SelectTrigger>
@@ -411,9 +381,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <RadioGroup
                   defaultValue="female"
                   className="col-span-3 flex"
-                  onValueChange={(value) =>
-                    setPatientData({ ...patientData, gender: value })
-                  }
+                  onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="male" id="male" />
@@ -434,9 +402,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <RadioGroup
                   defaultValue="true"
                   className="col-span-3 flex"
-                  onValueChange={(value) =>
-                    setPatientData({ ...patientData, onsite: value === "true" })
-                  }
+                  onValueChange={(value) => setPatientData({ ...patientData, onsite: value === "true" })}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="onsite" />
@@ -451,17 +417,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel asChild>
-                <Button
-                  onClick={() => setIsModalOpen(false)}
-                  variant={"destructive"}
-                  className="text-black"
-                >
+                <Button onClick={()=>setIsModalOpen(false)} variant={"destructive"} className="text-black">
                   Cancel
                 </Button>
               </AlertDialogCancel>
-              <AlertDialogAction type="submit" disabled={isSubmitting}>
-                Save
-              </AlertDialogAction>
+              <AlertDialogAction type="submit" disabled={isSubmitting}>Save</AlertDialogAction>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>
@@ -476,6 +436,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               placeholder={t("Patients_k3")}
               className="w-72 px-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
             />
+             {(
+            <EditPatientModal
+              callAfterUpdate={updateOnEdit}
+              //@ts-ignore
+              patientDetails={editPatientData}
+              serviceList={serviceList}
+            />
+          )}
           </div>
 
           <div className="relative">
@@ -484,39 +452,30 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               <TableHeader>
                 <TableRow className="border-b border-gray-200">
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    {t("Patients_k4")}
+                  {t("Patients_k4")}
                     <button
-                      onClick={() => handleSort("id")}
+                      onClick={() => handleSort('id')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
-                      <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "id" ? "text-green-600" : ""
-                          }`}
-                      />
+                      <PiCaretUpDownBold className={`inline ${sortConfig.key === 'id' ? "text-green-600" : ""}`} />
                     </button>
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    {t("Patients_k5")}
+                  {t("Patients_k5")}
                     <button
-                      onClick={() => handleSort("name")}
+                      onClick={() => handleSort('name')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
-                      <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "name" ? "text-green-600" : ""
-                          }`}
-                      />
+                      <PiCaretUpDownBold className={`inline ${sortConfig.key === 'name' ? "text-green-600" : ""}`} />
                     </button>
                   </TableHead>
                   <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                    {t("Patients_k6")}
+                  {t("Patients_k6")}
                     <button
-                      onClick={() => handleSort("date")}
+                      onClick={() => handleSort('date')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
-                      <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "date" ? "text-green-600" : ""
-                          }`}
-                      />
+                      <PiCaretUpDownBold className={`inline ${sortConfig.key === 'date' ? "text-green-600" : ""}`} />
                     </button>
                   </TableHead>
                 </TableRow>
@@ -568,124 +527,109 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         </div>
 
         <Sheet open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
-          <SheetContent className="p-0 overflow-hidden">
-            <SheetHeader className="sr-only">
-              <SheetTitle>{t("Patients_k7")}</SheetTitle>
-            </SheetHeader>
-            <div className='flex flex-col'>
-              {/* Header with spacing for close button */}
-              <div className='pt-12 px-4'> {/* Top padding added for close button space */}
-                <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
-                  <div className='text-xl font-normal text-[#11252C]'>
-                    {t("Patients_k7")}
-                  </div>
-                  {selectedPatient && (
-                    <EditPatientModal
-                      callAfterUpdate={updateOnEdit}
-                      patientDetails={selectedPatient}
-                      serviceList={serviceList}
-                    />
-                  )}
-                </div>
-              </div>
+  <SheetContent className="p-0 overflow-hidden">
+    <div className='flex flex-col'>
+      {/* Header with spacing for close button */}
+      <div className='pt-12 px-4'> {/* Top padding added for close button space */}
+        <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
+          <div className='text-xl font-normal text-[#11252C]'>
+            {t("Patients_k7")}
+          </div>
+         
+        </div>
+      </div>
 
-              {/* Content Section */}
-              {selectedPatient && (
-                <div className="p-4">
-                  <PatientDetails
-                    patient={selectedPatient}
-                    renderType={renderType}
-                    formatDate={formatDate}
-                    serviceList={serviceList}
-                  />
-                </div>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
+      {/* Content Section */}
+      {selectedPatient && (
+        <div className="p-4">
+          <PatientDetails
+            patient={selectedPatient}
+            renderType={renderType}
+            formatDate={formatDate}
+            serviceList={serviceList}
+          />
+        </div>
+      )}
+    </div>
+  </SheetContent>
+</Sheet>
 
 
       </div>
     </main>
-  );
-};
+  )
+}
 
 const PatientDetails: FC<{
   patient: Patient;
   serviceList: { title: string }[];
-  renderType: Props["renderType"];
+  renderType: Props['renderType'];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate, serviceList }) => {
-  const { t } = useTranslation(translationConstant.PATIENTS);
+}> = ({ patient, renderType, formatDate ,serviceList}) => {
+  
+const {t} = useTranslation(translationConstant.PATIENTS)
+
 
   return (
-    <div className="overflow-auto h-[100%] px-4 py-4">
+    <div className='overflow-auto h-[100%] px-4 py-4'>
+
+
       {/* <EditPatientModal patientDetails={patient} serviceList={serviceList} /> */}
 
-      <div className="flex items-start justify-between font-semibold mb-4">
+      <div className='flex items-start justify-between font-semibold mb-4'>
         <dl>
-          <dd className="font-bold text-2xl">{patient.id}</dd>
-          <dt className="text-lg text-[#707070]">{t("Patients_k4")}</dt>
+          <dd className='font-bold text-2xl'>{patient.id}</dd>
+          <dt className='text-lg text-[#707070]'>{t("Patients_k4")}</dt>
         </dl>
-        {renderType === "all" && (
+        {renderType === 'all' && (
           <div>
-            <p className="px-2 py-[2px] text-[16px] rounded-md bg-text_primary_color text-white">
-              {patient.onsite ? "On-site" : "Off-site"} Patient
+            <p className='px-2 py-[2px] text-[16px] rounded-md bg-text_primary_color text-white'>
+              {patient.onsite ? 'On-site' : 'Off-site'} Patient
             </p>
           </div>
         )}
       </div>
       <dl>
-        <dd className="font-bold text-2xl">
+        <dd className='font-bold text-2xl'>
           {patient.firstname} {patient.lastname}
         </dd>
-        <dt className="text-lg text-[#707070]">{t("Patients_k5")}</dt>
+        <dt className='text-lg text-[#707070]'>{t("Patients_k5")}</dt>
       </dl>
-      <div className="h-[1px] w-full bg-black my-3" />
-      <div className="space-y-7">
+      <div className='h-[1px] w-full bg-black my-3' />
+      <div className='space-y-7'>
         <dl>
-          <dd className="font-semibold text-lg">
-            {formatPhoneNumber(patient.phone)}
-          </dd>
-          <dt className="text-sm text-[#707070]">{t("Patients_k9")}</dt>
+          <dd className='font-semibold text-lg'>{formatPhoneNumber(patient.phone)}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k9")}</dt>
         </dl>
         <dl>
-          <dd className="font-semibold text-lg">{patient.email}</dd>
-          <dt className="text-sm text-[#707070]">{t("Patients_k10")}</dt>
+          <dd className='font-semibold text-lg'>{patient.email}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k10")}</dt>
         </dl>
         <dl>
-          <dd className="font-semibold text-lg">{patient.treatmenttype}</dd>
-          <dt className="text-sm text-[#707070]">{t("Patients_k11")}</dt>
+          <dd className='font-semibold text-lg'>{patient.treatmenttype}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k11")}</dt>
         </dl>
         <dl>
-          <dd className="font-semibold text-lg">{patient.gender}</dd>
-          <dt className="text-sm text-[#707070]">{t("Patients_k12")}</dt>
+          <dd className='font-semibold text-lg'>{patient.gender}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Patients_k12")}</dt>
         </dl>
 
-        <div className="flex items-center flex-1">
-          <dl className="flex-1">
-            <dd className="font-semibold text-lg">
-              {formatDate(patient.created_at)}
-            </dd>
-            <dt className="text-sm text-[#707070]">{t("Patients_k13")}</dt>
+        <div className='flex items-center flex-1'>
+          <dl className='flex-1'>
+            <dd className='font-semibold text-lg'>{formatDate(patient.created_at)}</dd>
+            <dt className='text-sm text-[#707070]'>{t("Patients_k13")}</dt>
           </dl>
-          <dl className="flex-1">
-            <dd className="font-semibold text-lg">
-              {formatDate(patient.lastvisit)}
-            </dd>
-            <dt className="text-sm text-[#707070]">{t("Patients_k14")}</dt>
+          <dl className='flex-1'>
+            <dd className='font-semibold text-lg'>{formatDate(patient.lastvisit)}</dd>
+            <dt className='text-sm text-[#707070]'>{t("Patients_k14")}</dt>
           </dl>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-const EditPatientModal: React.FC<EditPatientModalProps> = ({
-  patientDetails,
-  serviceList,
-  callAfterUpdate,
-}) => {
+const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, serviceList, callAfterUpdate }) => {
   const [patientData, setPatientData] = useState({
     firstname: "",
     lastname: "",
@@ -695,7 +639,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
   });
 
   const [loading, setLoading] = useState(false);
-  const { selectedLocation } = useContext(LocationContext);
+  const { selectedLocation } = useContext(LocationContext)
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -720,30 +664,34 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     setErrorMessage("");
 
     try {
-      const data = await axios.put("/api/user", {
-        id: patientDetails?.id,
-        firstname: patientData?.firstname,
-        lastname: patientData?.lastname,
-        email: patientData?.email,
-        phone: patientData?.phone,
-        treatmenttype: patientData?.treatmenttype,
-      });
+      const data = await axios.put("/api/user",
+        {
+          id: patientDetails?.id,
+          firstname: patientData?.firstname,
+          lastname: patientData?.lastname,
+          email: patientData?.email,
+          phone: patientData?.phone,
+          treatmenttype: patientData?.treatmenttype,
+
+        })
 
       if (data?.data?.success === true) {
-        callAfterUpdate(data?.data?.data?.[0]);
+        callAfterUpdate(data?.data?.data?.[0])
+
       }
 
-      if (data) {
+
+      if(data){
         toast(
           <div className="flex justify-between">
             <p>Patient details updated successfully.</p>
             <button
-              onClick={() => toast.dismiss()}
+              onClick={() => toast.dismiss()} 
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
             >
               <span className="text-sm">&#x2715;</span>
             </button>
-          </div>
+          </div>,
         );
       }
 
@@ -755,25 +703,26 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     }
   };
 
-  const { t } = useTranslation(translationConstant.PATIENTS);
+  const {t} = useTranslation(translationConstant.PATIENTS);
 
   return (
-    <AlertDialog key={"edit-patient-modal"}>
+
+    <AlertDialog key={'edit-patient-modal'} >
       <AlertDialogTrigger asChild>
         {/* <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition duration-200">
           Edit
         </button> */}
         <Button className="bg-[#aec2e4] text-black text-base hover:bg-[#EFEFEF] border-black w-20">
-          {t("Patients_k8")}
+         {t("Patients_k8")}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white">
+      <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
         <AlertDialogHeader>
           <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-            {t("Patients_k15")}
+          {t("Patients_k15")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-gray-600">
-            {t("Patients_k16")}
+          {t("Patients_k16")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -783,9 +732,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("Patients_k17")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k17")}</label>
             <Input
               type="text"
               name="firstname"
@@ -795,9 +742,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("Patients_k18")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k18")}</label>
             <Input
               type="text"
               name="lastname"
@@ -807,9 +752,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("Patients_k19")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k19")}</label>
             <Input
               type="text"
               name="phone"
@@ -819,9 +762,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("Patients_k20")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t("Patients_k20")}</label>
             <Input
               type="email"
               name="email"
@@ -839,6 +780,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               onChange={handleChange}
             />
           </div> */}
+
         </div>
 
         {/* <div>
@@ -858,13 +800,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
         {/* Treatment Type Dropdown */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t("Patients_k11")}
-          </label>
+          <label className="block text-sm font-medium text-gray-700">{t("Patients_k11")}</label>
           <DropdownMenu modal={true}>
-            <DropdownMenuTrigger>
-              {patientData.treatmenttype || "Select Treatment"}
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger>{patientData.treatmenttype || "Select Treatment"}</DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>{t("Patients_k11")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -872,12 +810,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 {serviceList.map((service) => (
                   <DropdownMenuItem
                     key={service.title}
-                    onSelect={() =>
-                      setPatientData((prev) => ({
-                        ...prev,
-                        treatmenttype: service.title,
-                      }))
-                    }
+                    onSelect={() => setPatientData(prev => ({ ...prev, treatmenttype: service.title }))}
                   >
                     {service.title}
                   </DropdownMenuItem>
@@ -886,22 +819,24 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-        <AlertDialogFooter className="mt-4 flex justify-end gap-2">
-          <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
-            {t("Patients_k21")}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleSaveChanges}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
-            disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      
+  
+      <AlertDialogFooter className="mt-4 flex justify-end gap-2">
+        <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
+          {t("Patients_k21")}
+        </AlertDialogCancel>
+        <AlertDialogAction
+          onClick={handleSaveChanges}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save Changes"}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+  
   );
 };
 
-export default PatientTableComponent;
+export default PatientTableComponent

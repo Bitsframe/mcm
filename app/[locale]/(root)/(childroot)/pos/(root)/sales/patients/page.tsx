@@ -194,8 +194,9 @@ const Patients = () => {
   const [canModalSubmit, setCanModalSubmit] = useState(false)
   const [canAddPatient, setCanAddPatient] = useState(false)
   const { selectedLocation, setSelectedLocation } = useContext(LocationContext);
-
   const [activeFilterBtn, setActiveFilterBtn] = useState(0)
+
+  
 
   const category_change_handle = () => {
 
@@ -600,7 +601,7 @@ variant="outline"
           </TableCell>
 
           <TableCell className="py-3 text-left">
-            <div className="flex items-center gap-3 justify-start">
+            <div className="flex items-center gap-3 justify-start pr-20">
               <Action_Button 
                 onClick={() => editHandle(elem)} 
                 label='Edit' 

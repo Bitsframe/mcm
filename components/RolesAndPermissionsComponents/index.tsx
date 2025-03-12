@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PermissionToggle from './PermissionToggle';
 import RoleInput from './RoleInput';
 import { TbPencil } from "react-icons/tb";
@@ -10,6 +10,7 @@ import { CircularProgress } from '@mui/material';
 import { TrashIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { TabContext } from '@/context';
 
 
 const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, editStateId, editHandle, selectRoleHandle, selectedRole }: any) => {
@@ -90,6 +91,12 @@ const RolesAndPermissionsComponent: React.FC = () => {
         // setPermissions((prev) => prev.map((perm) => ({ ...perm, allowed })));
         toggleAllPermissions(allowed)
     };
+
+    const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k17");
+  }, []);
 
     const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
 

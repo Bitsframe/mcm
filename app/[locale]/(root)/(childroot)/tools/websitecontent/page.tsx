@@ -1,7 +1,7 @@
 
 
 "use client"
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import WebsiteContentLayout from './Layout';
 import { Button, Label, Select, Toast } from "flowbite-react";
 import { useSingleRowDataHandle } from '@/hooks/useSingleRowDataHandle'
@@ -10,6 +10,7 @@ import { Form_Component } from '@/components/Form_Component'
 import { home_section_options, langage_list_options } from '@/utils/list_options/dropdown_list_options'
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { TabContext } from '@/context';
 
 
 
@@ -53,6 +54,12 @@ const Home = () => {
     }
 
     const {t} = useTranslation(translationConstant.WEBCONT)
+
+    const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k15");
+  }, []);
 
     return (
         <WebsiteContentLayout>

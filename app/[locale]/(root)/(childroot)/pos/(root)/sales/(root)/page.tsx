@@ -19,6 +19,8 @@ import { formatPhoneNumber } from '@/utils/getCountryName';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 import { LocationContext } from '@/context';
+import { TabContext } from "@/context";
+
 
 interface CartItemComponentInterface {
     data: CartArrayInterface,
@@ -376,6 +378,12 @@ const Orders = () => {
         setSelectedMethod(event.target.value);
 
     }
+
+    const { setActiveTitle } = useContext(TabContext);
+
+    useEffect(() => {
+      setActiveTitle("Sidebar_k19");
+    }, []);
 
 
 

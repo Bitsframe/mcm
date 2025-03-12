@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import Filter from "@/assets/images/icons/Filterwhite.png";
 import Filterblack from "@/assets/images/icons/Filterblack.png";
@@ -37,6 +37,7 @@ import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { Textarea } from "@/components/ui/textarea";
+import { TabContext } from "@/context";
 
 const TextBroadcast = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -160,6 +161,13 @@ const TextBroadcast = () => {
   }, []);
 
   const { t } = useTranslation(translationConstant.EMAILB);
+
+  const { setActiveTitle } = useContext(TabContext); // Context se setActiveTitle nikalo
+
+  // ✅ Page load hone par activeTitle set karo
+  useEffect(() => {
+    setActiveTitle("Sidebar_k23"); // "All Patients" ke liye key
+  }, []);
 
   return (
     <main>
