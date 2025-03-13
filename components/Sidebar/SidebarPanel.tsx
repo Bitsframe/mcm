@@ -165,7 +165,7 @@ export const SidebarPanel = () => {
       style={STYLE}
     >
       <Sidebar.Items className="pl-5 w-[210px] bg-white">
-        <Sidebar.ItemGroup className="flex flex-col gap-5">
+        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px]">
           {filteredRoutes.map((route) => {
             if (!route.children) {
               return (

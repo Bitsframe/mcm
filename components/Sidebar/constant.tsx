@@ -162,13 +162,13 @@ export const routeList: Route[] = [
       {
         id: 'tools-text',
         name: "Text-Broadcast",
-        label: "Text-Broadcast",
+        label: "Sidebar_k23",
         route: ROUTES.TOOLS.TEXT_BROADCAST,
       },
       {
         id: 'settings',
         name: "Settings",
-        label: "Settings",
+        label: "Sidebar_k22",
         route: ROUTES.TOOLS.SETTINGS
       }
     ],

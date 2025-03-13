@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import Filter from "@/assets/images/icons/Filterwhite.png";
 import Filterblack from "@/assets/images/icons/Filterblack.png";
@@ -45,6 +45,7 @@ import { toast } from "react-toastify";
 import moment from 'moment';
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { TabContext } from "@/context";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -81,6 +82,12 @@ const EmailBroadcast: React.FC = () => {
     { label: "Template 9", value: "template9", component: emailtemplate9 },
     { label: "Template 10", value: "template10", component: emailtemplate10 },
   ];
+
+  const { setActiveTitle } = useContext(TabContext); 
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k14");
+  }, []);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>("template1");
 

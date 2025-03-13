@@ -10,6 +10,8 @@ import ExportAsPDF from '@/components/ExportPDF';
 import { LocationContext } from '@/context';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { TabContext } from "@/context";
+
 
 interface DataListInterface {
   [key: string]: any; 
@@ -150,6 +152,12 @@ const SalesHistory = () => {
   }, [allData]);
 
   const {t} = useTranslation(translationConstant.POSHISTORY)
+
+  const { setActiveTitle } = useContext(TabContext); 
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k21");
+  }, []);
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">
