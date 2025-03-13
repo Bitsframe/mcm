@@ -95,7 +95,8 @@ const SalesHistory = () => {
         selectParam: `,pos:pos (
           lastname,
           firstname,
-          locationid
+          locationid,
+          patientid
         ),
         sales_history (
           sales_history_id,

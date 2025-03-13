@@ -20,6 +20,7 @@ export interface PatientDetailsInterface {
     lastname: string;
     gender: string;
     email: string;
+    patientid: number;
     phone: string;
     Locations: {
         title: string
@@ -29,6 +30,7 @@ export interface PatientDetailsInterface {
 export interface PatientDetailsRenderPropsInterface {
     patientData: PatientDetailsInterface;
     paymentType: string;
+    order_id: number;
 }
 
 

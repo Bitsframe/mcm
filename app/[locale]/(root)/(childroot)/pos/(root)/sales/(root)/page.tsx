@@ -661,7 +661,7 @@ const sendOrderEmail = async (orderDetails: any, patientInfo: any, orderItems: a
         console.log('Email HTML:', emailHtml);
 
         // const fromEmail = "MyClinicMdProject@gmail.com";
-        const fromEmail = "onboarding@resend.dev";
+        const fromEmail = "test@alerts.myclinicmd.com";
         
         const payload = {
             from: fromEmail,
