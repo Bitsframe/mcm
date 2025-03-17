@@ -50,7 +50,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           🍂October is the month to fight breast cancer! 💝Protect yourself! At Clínica San Miguel we give you the mammogram order for only ${price}. Don&#39;t wait any longer! It is without appointment.
           </Text>

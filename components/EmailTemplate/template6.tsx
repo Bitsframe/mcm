@@ -49,7 +49,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Transform your body and your life! 💥 Our weight loss plan with Semaglutide is your best ally. Check our packages!
           </Text>

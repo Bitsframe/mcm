@@ -41,11 +41,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
 import moment from 'moment';
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
+import axios from "axios";
+import { toast } from "sonner";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -83,7 +84,7 @@ const EmailBroadcast: React.FC = () => {
     { label: "Template 10", value: "template10", component: emailtemplate10 },
   ];
 
-  const { setActiveTitle } = useContext(TabContext); 
+  const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
     setActiveTitle("Sidebar_k14");
@@ -233,43 +234,30 @@ const EmailBroadcast: React.FC = () => {
         toast.error("All fields are necessary.", { position: "top-center" });
         return;
       }
-
-      // console.log(selectedGender, onsite, location, treatmentType);
-
-      const toastId = toast.loading("Loading...");
-      const res = await fetch("/api/sendEmail", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subject,
-          template: selectedTemplate,
-          buttonLink,
-          buttonText,
-          name,
-          clinicName,
-          reason,
-          startDate: moment(startDate).format('MM/DD/YYYY'),
-          endDate: moment(endDate).format('MM/DD/YYYY'),
-          email: checkedItems,
-          price
-        }),
+      // const toastId = toast.loading("Loading...");
+      const res = await axios.post("/api/sendEmail", {
+        subject,
+        template: selectedTemplate,
+        buttonLink,
+        buttonText,
+        name,
+        clinicName,
+        reason,
+        startDate: moment(startDate).format('MM/DD/YYYY'),
+        endDate: moment(endDate).format('MM/DD/YYYY'),
+        email: checkedItems,
+        price
       });
-      if (res.ok) {
-        toast.update(toastId, {
-          render: "Success! Email sent.",
-          type: "success",
-          isLoading: false,
-          autoClose: 3000, // Dismiss after 3 seconds
-        });
+      console.log(res.data)
+      console.log(res)
+      if ([200, 201].includes(res.status)) {
+        toast.success("Success! Email sent.");
+        setSubject('')
+        setName('')
+        setPrice('')
+        setCheckedItems([])
       } else {
-        toast.update(toastId, {
-          render: "Error",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000, // Dismiss after 3 seconds
-        });
+        toast.error('An error occured!');
         // console.log(res.error);
       }
     } catch (error) {
@@ -277,7 +265,7 @@ const EmailBroadcast: React.FC = () => {
     }
   };
 
-  const {t} = useTranslation(translationConstant.EMAILB)
+  const { t } = useTranslation(translationConstant.EMAILB)
 
   return (
     <main className="w-full  text-[#000000] text-[20px] flex flex-row justify-start  overflow-hidden items-center mt-5  p-4">
