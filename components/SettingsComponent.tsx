@@ -23,7 +23,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const formattedTime = (time?: string) => {
-  return time ? moment(time, 'HH:mm:ss').format('hh:mm A')
+  let selectedTime = time
+  if (selectedTime) {
+    if (selectedTime === '23:59:00') {
+      selectedTime = '00:00:00'
+    }
+  }
+  return selectedTime ? moment(selectedTime, 'HH:mm:ss').format('hh:mm A')
     : '';
 }
 
@@ -31,7 +37,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Location {
   id: number;
-  title:string;
+  title: string;
   address: string;
   report_time: string | null;
 }
@@ -46,13 +52,18 @@ const TimeSelector = forwardRef<
   HTMLDivElement,
   { value: string; onChange: (time: string) => void }
 >(({ value, onChange }, ref) => {
-  const timeOptions: TimeOption[] = Array.from({ length: 24 * 2 }, (_, i) => {
-    const hour = Math.floor(i / 2) % 12 || 12;
-    const period = i < 24 ? 'AM' : 'PM';
-    const minute = i % 2 === 0 ? '00' : '30';
-    const formattedTime = `${hour}:${minute} ${period}`;
-    const value = `${String(Math.floor(i / 2)).padStart(2, '0')}:${minute}:00`;
+  const timeOptions: TimeOption[] = Array.from({ length: 4 }, (_, i) => {
+    const hour24 = 20 + i; // Starts from 20 (8 PM) and goes up to 23 (11 PM)
+    const hour12 = hour24 % 12 || 12;
+    const formattedTime = `${hour12}:00 PM`;
+    const value = `${String(hour24).padStart(2, '0')}:00:00`;
     return { label: formattedTime, value };
+  });
+
+  // Add 12:00 AM with value as 11:59 PM
+  timeOptions.push({
+    label: "12:00 AM",
+    value: "23:59:00", // 11:59 PM
   });
 
   return (
@@ -160,8 +171,8 @@ const SettingsComponent: React.FC = () => {
                           key={location.id}
                           onClick={() => selectLocation(location)}
                           className={`p-2 rounded-md cursor-pointer ${selectedLocation?.id === location.id
-                              ? 'bg-secondary'
-                              : 'hover:bg-secondary/50'
+                            ? 'bg-secondary'
+                            : 'hover:bg-secondary/50'
                             }`}
                         >
                           {location.title}
@@ -186,10 +197,10 @@ const SettingsComponent: React.FC = () => {
                         </div>
                         <div>
                           <div className='flex justify-between items-center'>
-                          <h3 className="font-medium text-foreground mb-2">Report Time:</h3>
-                          <div>
-                          <h3 className="font-light text-foreground mb-2">Current Selected Time: <span className='font-medium'>{selectedLocation.report_time ? formattedTime(selectedLocation.report_time!): '-- -- --'}</span> </h3>
-                          </div>
+                            <h3 className="font-medium text-foreground mb-2">Report Time:</h3>
+                            <div>
+                              <h3 className="font-light text-foreground mb-2">Current Selected Time: <span className='font-medium'>{selectedLocation.report_time ? formattedTime(selectedLocation.report_time!) : '-- -- --'}</span> </h3>
+                            </div>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
