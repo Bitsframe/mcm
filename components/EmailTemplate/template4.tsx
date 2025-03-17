@@ -50,7 +50,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Goodbye to extra pounds!💪 Our weight loss plan with Semaglutide will help you achieve your goals. 10 units for only ${price}.Consult our experts!
           </Text>
