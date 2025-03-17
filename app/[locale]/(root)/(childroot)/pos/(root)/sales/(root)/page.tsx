@@ -19,6 +19,8 @@ import { formatPhoneNumber } from '@/utils/getCountryName';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 import { LocationContext } from '@/context';
+import { TabContext } from "@/context";
+
 
 interface CartItemComponentInterface {
     data: CartArrayInterface,
@@ -377,6 +379,12 @@ const Orders = () => {
 
     }
 
+    const { setActiveTitle } = useContext(TabContext);
+
+    useEffect(() => {
+      setActiveTitle("Sidebar_k19");
+    }, []);
+
 
 
     const { t } = useTranslation(translationConstant.POSSALES);
@@ -653,7 +661,7 @@ const sendOrderEmail = async (orderDetails: any, patientInfo: any, orderItems: a
         console.log('Email HTML:', emailHtml);
 
         // const fromEmail = "MyClinicMdProject@gmail.com";
-        const fromEmail = "onboarding@resend.dev";
+        const fromEmail = "test@alerts.myclinicmd.com";
         
         const payload = {
             from: fromEmail,

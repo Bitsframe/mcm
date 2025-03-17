@@ -14,6 +14,9 @@ import AppointmentsTable from "@/components/Appointment/Appointment-table";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { AppointmentEditModal } from "@/components/Appointment/Appointment_Edit/Appointment_Edit_Modal";
+import { TabContext } from "@/context";
+
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -25,7 +28,13 @@ const Appointments = () => {
   const [appointmentDetails, setAppointmentDetails] = useState<Appointment | null>(null);
   const [sortColumn, setSortColumn] = useState<string>("");
   const [activeTab, setActiveTab] = useState("approval");
+  const [isSheetopen, setisSheetopen] = useState(false)
 
+  const { setActiveTitle } = useContext(TabContext); 
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k7");
+  }, []);
 
   
 
@@ -33,7 +42,8 @@ const Appointments = () => {
 
   const fetchDataHandler = useCallback(async (locationId: number) => {
     setAppointLoading(true);
-    setAppointmentDetails(null);
+    // setAppointmentDetails(null);
+    setisSheetopen(false)
     try {
 
       const [approvedData, unapprovedData] = await Promise.all([
@@ -65,6 +75,7 @@ const Appointments = () => {
 
   const selectForDetailsHandle = useCallback((appoint: Appointment) => {
     setAppointmentDetails(appoint);
+    setisSheetopen(true)
   }, []);
 
   const deleteAppointmentsHandle = useCallback(async (delId: number) => {
@@ -150,11 +161,25 @@ const Appointments = () => {
         </div>
       </div>
       <Tabs  className="w-full" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex justify-center space-x-5">
+        <TabsList className="flex justify-between space-x-5">
+          <div>
           <TabsTrigger value="approval">{t("Appoinments_k24")}</TabsTrigger>
           <TabsTrigger value="request">{t("Appoinments_k25")}</TabsTrigger>
+          </div>
+          <div className="w-24">
+          {appointmentDetails?
+       <AppointmentEditModal
+          defaultDateTime={appointmentDetails?.date_and_time}
+          appointmentDetails={appointmentDetails}
+          locationData={findLocations(appointmentDetails?.location_id)}
+          updateAvailableData={ newAddedRow}
+        />:
+        null 
+       }
+       </div>
         </TabsList>
         <TabsContent value={activeTab} className="flex flex-row h-[68vh] space-x-5">
+       
           <AppointmentsTable
           isUnapproved={activeTab == 'request'}
             appointments={activeTab == 'approval' ? filteredApproved : filteredUnapproved}
@@ -164,6 +189,7 @@ const Appointments = () => {
             sortColumn={sortColumn}
           />
           <AppointmentDetailsPanel
+            isSheetopen = {isSheetopen}
             appointmentDetails={appointmentDetails}
             onDelete={deleteAppointmentsHandle}
             findLocations={findLocations}
@@ -176,21 +202,25 @@ const Appointments = () => {
 };
 
 const AppointmentDetailsPanel = ({
+  isSheetopen,
   appointmentDetails,
   onDelete,
   findLocations,
   updateReflectOnCloseModal
 }: {
+  isSheetopen : boolean
   appointmentDetails: Appointment | null;
   onDelete: (id: number) => void;
   findLocations: (id: number) => any;
   updateReflectOnCloseModal: () => void;
 }) => {
   const {t} = useTranslation(translationConstant.APPOINMENTS);
+
+  
   
   return (
     <Sheet 
-      open={!!appointmentDetails} 
+      open={!!appointmentDetails && isSheetopen } 
       onOpenChange={(open) => {
         if (!open) {
           updateReflectOnCloseModal();

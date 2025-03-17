@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Spinner } from 'flowbite-react';
 import moment from 'moment';
 import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Slidercomp } from '@/components/sliderComp';
+import { TabContext } from '@/context';
 
 const fields = [
   {
@@ -395,6 +396,12 @@ const Page = () => {
     setActiveModalMode('delete')
 
   }
+
+  const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k16");
+  }, []);
 
   const {t} = useTranslation(translationConstant.PROCODE)
   return (

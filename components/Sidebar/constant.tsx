@@ -21,6 +21,7 @@ interface Route {
   icon?: Icon;
   route?: string;
   children?: Route[];
+  label: string;
 }
 
 // Route path constants
@@ -45,120 +46,134 @@ const ROUTES = {
     MANAGE: "/inventory/manage",
   },
   TOOLS: {
-    EMAIL_BROADCAST: "/tools/emailbroadcast",
-    WEBSITE_CONTENT: "/tools/websitecontent",
-    PROMO_CODES: "/tools/promo-codes",
-    ROLES_PERMISSIONS: "/tools/roles-permissions",
-    USER_MANAGEMENT: "/tools/user-management",
-    SETTINGS: "/tools/settings",
+    EMAIL_BROADCAST: '/tools/emailbroadcast',
+    WEBSITE_CONTENT: '/tools/websitecontent',
+    PROMO_CODES: '/tools/promo-codes',
+    ROLES_PERMISSIONS: '/tools/roles-permissions',
+    USER_MANAGEMENT: '/tools/user-management',
+    TEXT_BROADCAST: '/tools/textbroadcast',
+    SETTINGS: '/tools/settings',
   },
 } as const;
 
 export const routeList: Route[] = [
   {
-    id: "home",
-    name: "Sidebar_k1",
+    id: 'home',
+    name: "Home",
+    label: "Sidebar_k1",
     icon: home,
     children: [
-      { id: "home-dashboard", name: "Sidebar_k2", route: ROUTES.HOME },
+      { id: 'home-dashboard', name: "Dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
     ],
   },
   {
-    id: "patients",
-    name: "Sidebar_k3",
+    id: 'patients',
+    name: "Patients",
+    label: "Sidebar_k3",
     icon: patients,
     children: [
-      { id: "patients-all", name: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
-      {
-        id: "patients-onsite",
-        name: "Sidebar_k5",
-        route: ROUTES.PATIENTS.ONSITE,
-      },
-      {
-        id: "patients-offsite",
-        name: "Sidebar_k6",
-        route: ROUTES.PATIENTS.OFFSITE,
-      },
+      { id: 'patients-all', name: "All Patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
+      { id: 'patients-onsite', name: "On-site", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
+      { id: 'patients-offsite', name: "Off-site", label: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
     ],
   },
   {
-    id: "appointments",
-    name: "Sidebar_k7",
+    id: 'appointments',
+    name: "Appointments",
+    label: "Sidebar_k7",
     icon: appointment,
     route: ROUTES.APPOINTMENTS,
   },
   {
-    id: "reputation",
-    name: "Sidebar_k8",
+    id: 'reputation',
+    name: "Reputation",
+    label: "Sidebar_k8",
     icon: reputation,
     children: [
       {
-        id: "reputation-private-feedback",
-        name: "Sidebar_k9",
-        route: ROUTES.REPUTATION.PRIVATE_FEEDBACK,
+        id: 'reputation-private-feedback',
+        name: "Private Feedback",
+        label: "Sidebar_k9",
+        route: ROUTES.REPUTATION.PRIVATE_FEEDBACK
       },
     ],
   },
   {
-    id: "pos",
-    name: "Sidebar_k10",
+    id: 'pos',
+    name: "POS",
+    label: "Sidebar_k10",
     icon: pos,
     children: [
-      { id: "pos-sales", name: "Sidebar_k19", route: ROUTES.POS.SALES },
-      { id: "pos-return", name: "Sidebar_k20", route: ROUTES.POS.RETURN },
-      { id: "pos-history", name: "Sidebar_k21", route: ROUTES.POS.HISTORY },
+      { id: 'pos-sales', name: "Sales", label: "Sidebar_k19", route: ROUTES.POS.SALES },
+      { id: 'pos-return', name: "Return", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
+      { id: 'pos-history', name: "History", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
     ],
   },
   {
-    id: "inventory",
-    name: "Sidebar_k11",
+    id: 'inventory',
+    name: "Inventory",
+    label: "Sidebar_k11",
     icon: inventory,
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
-    id: "inventory-stock",
-    name: "Sidebar_k12",
+    id: 'inventory-stock',
+    name: "Stock Panel",
+    label: "Sidebar_k12",
     icon: inventory,
     route: ROUTES.INVENTORY.STOCK_PANEL,
   },
   {
-    id: "tools",
-    name: "Sidebar_k13",
+    id: 'tools',
+    name: "Tools",
+    label: "Sidebar_k13",
     icon: tools,
     children: [
       {
-        id: "tools-email",
-        name: "Sidebar_k14",
-        route: ROUTES.TOOLS.EMAIL_BROADCAST,
+        id: 'tools-email',
+        name: "Email Broadcast",
+        label: "Sidebar_k14",
+        route: ROUTES.TOOLS.EMAIL_BROADCAST
       },
       {
-        id: "tools-website",
-        name: "Sidebar_k15",
-        route: ROUTES.TOOLS.WEBSITE_CONTENT,
+        id: 'tools-website',
+        name: "Website Content",
+        label: "Sidebar_k15",
+        route: ROUTES.TOOLS.WEBSITE_CONTENT
       },
       {
-        id: "tools-promo",
-        name: "Sidebar_k16",
-        route: ROUTES.TOOLS.PROMO_CODES,
+        id: 'tools-promo',
+        name: "Promo Codes",
+        label: "Sidebar_k16",
+        route: ROUTES.TOOLS.PROMO_CODES
       },
       {
-        id: "tools-roles",
-        name: "Sidebar_k17",
-        route: ROUTES.TOOLS.ROLES_PERMISSIONS,
+        id: 'tools-roles',
+        name: "Roles and Permissions",
+        label: "Sidebar_k17",
+        route: ROUTES.TOOLS.ROLES_PERMISSIONS
       },
       {
-        id: "tools-users",
-        name: "Sidebar_k18",
-        route: ROUTES.TOOLS.USER_MANAGEMENT,
+        id: 'tools-users',
+        name: "User Management",
+        label: "Sidebar_k18",
+        route: ROUTES.TOOLS.USER_MANAGEMENT
       },
       {
-        id: "tools-setting",
-        name: "Sidebar_k22",
-        route: ROUTES.TOOLS.SETTINGS,
+        id: 'tools-text',
+        name: "Text-Broadcast",
+        label: "Sidebar_k23",
+        route: ROUTES.TOOLS.TEXT_BROADCAST,
       },
+      {
+        id: 'settings',
+        name: "Settings",
+        label: "Sidebar_k22",
+        route: ROUTES.TOOLS.SETTINGS
+      }
     ],
-  },
-];
+  }
+]
 
 // Helper type to extract all route paths
 type RoutePaths = typeof ROUTES;

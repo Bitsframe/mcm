@@ -1,5 +1,5 @@
 'use client'
-import React, { FC, useEffect, useState, useMemo, useCallback } from 'react'
+import React, { FC, useEffect, useState, useMemo, useCallback, useContext } from 'react'
 import { Spinner } from 'flowbite-react';
 import moment from 'moment';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
@@ -7,6 +7,8 @@ import { PiCaretUpDownBold } from 'react-icons/pi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { TabContext } from "@/context";
+
 
 interface DataListInterface {
   feedback_id: number;
@@ -35,6 +37,13 @@ const PrivateFeedbackComponent: FC = () => {
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState('');
+
+  const { setActiveTitle } = useContext(TabContext); // Context se setActiveTitle nikalo
+
+  // ✅ Page load hone par activeTitle set karo
+  useEffect(() => {
+    setActiveTitle("Sidebar_k9"); // "All Patients" ke liye key
+  }, []);
 
   const onChangeHandle = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toLowerCase();
