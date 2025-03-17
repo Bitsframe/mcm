@@ -1,5 +1,5 @@
 'use client'
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import { Quantity_Field } from '@/components/Quantity_Field';
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
@@ -18,6 +18,9 @@ import { PromoCodeDataInterface } from '@/types/typesInterfaces';
 import { formatPhoneNumber } from '@/utils/getCountryName';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { LocationContext } from '@/context';
+import { TabContext } from "@/context";
+
 
 interface CartItemComponentInterface {
     data: CartArrayInterface,
@@ -59,7 +62,7 @@ const render_details = [
 
 
 
-const Payment_Method_Select = ({handleSelectChange, selectedMethod}:any) => {
+const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
 
     return (
         <div className='w-52'>
@@ -170,7 +173,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({ data, controllProdu
 const Orders = () => {
 
 
-    const { categories } = useCategoriesClinica()
+    const { categories } = useCategoriesClinica(true)
+    const { selectedLocation } = useContext(LocationContext);
+
     const [selectedPatient, setSelectedPatient] = useState<any>(null)
     const { selectedCategory, products, getCategoriesByLocationId, loadingProducts, selectedProduct, selectProductHandle } = useProductsClinica()
     const [fetchingDataLoading, setfetchingDataLoading] = useState(true)
@@ -180,6 +185,7 @@ const Orders = () => {
     const [appliedDiscount, setAppliedDiscount] = useState<number>(0)
     const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(null)
     const [selectedMethod, setSelectedMethod] = useState('Cash');
+    const [lastLocationId, setLastLocationId] = useState(0)
 
 
     const router = useRouter()
@@ -214,6 +220,26 @@ const Orders = () => {
 
     }, [router])
 
+    useEffect(() => {
+        if (selectedLocation) {
+            const currentSelectedLocationId = selectedLocation.id
+            if (lastLocationId && currentSelectedLocationId !== lastLocationId) {
+                setCartArray([]);
+                localStorage.removeItem('@pos-patient')
+                setSelectedPatient(null)
+                setLastLocationId(currentSelectedLocationId)
+            }
+        }
+    }, [selectedLocation])
+
+    useEffect(() => {
+        if (selectedLocation) {
+            setLastLocationId(selectedLocation.id)
+        }
+    }, [])
+
+
+
 
 
 
@@ -247,8 +273,6 @@ const Orders = () => {
             }
         }
     }
-
-    console.log(cartArray, selectedProduct)
 
 
 
@@ -293,7 +317,7 @@ const Orders = () => {
                     inventory_id: elem.product_id,
                     quantity_sold: elem.quantity,
                     total_price: elem.price * elem.quantity,
-                    paymentcash: selectedMethod === 'Cash' ?  true : false
+                    paymentcash: selectedMethod === 'Cash' ? true : false
                 }));
 
                 const { data: order_created_data, error: order_created_error }: any = await create_content_service({
@@ -306,6 +330,27 @@ const Orders = () => {
 
                 if (order_created_data.length) {
                     toast.success(`Order has been placed, order # ${order_id}`);
+                    
+                    // Calculate total and discount amounts for the email
+                    const grandTotal = grandTotalHandle(cartArray, appliedDiscount);
+                    const totalAmount = grandTotal.amount;
+                    const discountAmount = grandTotal.discountAmount;
+                    
+                    // Create an order details object for the email
+                    const orderDetails = {
+                        order_id,
+                        paymentcash: selectedMethod === 'Cash'
+                    };
+                    
+                    // Send order confirmation email
+                    await sendOrderEmail(
+                        orderDetails, 
+                        selectedPatient, 
+                        cartArray, 
+                        totalAmount,
+                        Number(discountAmount),
+                    );
+                    
                     setCartArray([]);
                     localStorage.removeItem('@pos-patient')
                     setSelectedPatient(null)
@@ -334,9 +379,15 @@ const Orders = () => {
 
     }
 
+    const { setActiveTitle } = useContext(TabContext);
+
+    useEffect(() => {
+      setActiveTitle("Sidebar_k19");
+    }, []);
 
 
-    const {t} = useTranslation(translationConstant.POSSALES);
+
+    const { t } = useTranslation(translationConstant.POSSALES);
     return (
         <main className="w-full  h-full font-[500] text-[20px]">
 
@@ -347,7 +398,7 @@ const Orders = () => {
                     <span>
                         <div className='space-y-6 px-3 py-4'>
                             <h1 className='text-xl font-bold'>
-                               {t("POS-Sales_k3")}
+                                {t("POS-Sales_k3")}
                             </h1>
                             {fetchingDataLoading ? <div className='w-full flex flex-col  justify-center h-full space-y-3'>
                                 <CircularProgress size={24} />
@@ -378,7 +429,7 @@ const Orders = () => {
                                 </div>
                                 <div className='w-1/3'>
                                     {loadingProducts ? <div className='text-sm text-gray-400'>
-                                        {selectedCategory ?  "Loading Products..." : "Select Category First.."}
+                                        {selectedCategory ? "Loading Products..." : "Select Category First.."}
                                     </div> : <Searchable_Dropdown disabled={!selectedPatient} initialValue={0} bg_color='#fff' start_empty={true}
                                         // @ts-ignore
                                         options_arr={products.map(({ product_id, product_name }: any) => ({ value: product_id, label: product_name }))}
@@ -391,7 +442,7 @@ const Orders = () => {
                                 <div className='flex items-end space-x-5'>
                                     <Quantity_Field disabled={!selectedPatient} maxAvailability={selectedProduct ? selectedProduct.quantity_available : 0} quantity={productQty} quantityHandle={quantityHandle} />
 
-                                    {selectedProduct && <div className='space-y-1 text-gray-600'>
+                                    {selectedProduct ? <div className='space-y-1 text-gray-600'>
                                         <div>
                                             <h1 className='text-base '>
                                                 {currencyFormatHandle(selectedProduct?.price || 0)} / unit
@@ -402,13 +453,13 @@ const Orders = () => {
                                                 {selectedProduct.quantity_available - productQty} units are remaining
                                             </h1>
                                         </div>
-                                    </div>}
+                                    </div> : null}
                                 </div>
 
 
                                 <div className='flex'>
                                     <button disabled={!productQty} onClick={addToCartHandle} className='bg-[#8CB3F0] text-[#fff] font-bold py-3 px-9 rounded-md hover:opacity-80 active:opacity-50 disabled:opacity-60' type='submit'>
-                                    {t("POS-Sales_k8")}
+                                        {t("POS-Sales_k8")}
                                     </button>
 
 
@@ -428,7 +479,7 @@ const Orders = () => {
                     <div className='px-4 py-4 bg-[#e9e9e980] border-b-[1px] border-b-[#817B7B] flex items-center'>
                         <div className='flex-1'>
                             <h1 className='text-xl '>
-                            {t("POS-Sales_k9")}
+                                {t("POS-Sales_k9")}
                             </h1>
                             <p className='text-sm'>{t("POS-Sales_k10")} # --</p>
                         </div>
@@ -453,8 +504,8 @@ const Orders = () => {
                             <PromoCodeComponent patientId={selectedPatient?.id} applyDiscountHandle={applyDiscountHandle} />
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                {t("POS-Sales_k12")}
-                                </h1> 
+                                    {t("POS-Sales_k12")}
+                                </h1>
                                 <Payment_Method_Select selectedMethod={selectedMethod} handleSelectChange={selectPaymentHandle} />
                             </div>
 
@@ -463,7 +514,7 @@ const Orders = () => {
                             <div className='flex items-center'>
                                 <div className='flex items-center flex-1 space-x-2'>
                                     <h1 className='text-lg'>
-                                    {t("POS-Sales_k13")}
+                                        {t("POS-Sales_k13")}
                                     </h1>
                                     {appliedDiscount ? <span className='text-sm text-red-500'>- {appliedDiscount}% off </span> : null}
                                 </div>
@@ -477,7 +528,7 @@ const Orders = () => {
 
                             <div className='flex items-center'>
                                 <h1 className='text-lg flex-1'>
-                                {t("POS-Sales_k14")}
+                                    {t("POS-Sales_k14")}
                                 </h1>
                                 <div className='flex items-center space-x-1'>
                                     <p className='text-start'>
@@ -522,3 +573,119 @@ const Orders = () => {
 }
 
 export default Orders
+
+// function to send email notification
+const sendOrderEmail = async (orderDetails: any, patientInfo: any, orderItems: any[], totalAmount: string, discountAmount: number = 0) => {
+    console.log('Sending order email with details:', {
+        orderDetails,
+        patientInfo,
+        orderItems,
+        totalAmount,
+        discountAmount
+    });
+    
+    try {
+        const today = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const formattedDate = `${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`;
+
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
+                
+                <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
+                
+                <h3 style="margin-top: 20px;">Invoice Details:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Invoice Number:</strong> I-${orderDetails.order_id}</li>
+                    <li><strong>Invoice Date:</strong> ${formattedDate}</li>
+                    <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? 'Cash' : 'Debit Card'}</li>
+                    <li><strong>Total Amount:</strong> ${totalAmount}</li>
+                </ul>
+                
+                <h3>Billing Information:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Patient Name:</strong> ${patientInfo.firstname} ${patientInfo.lastname}</li>
+                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || 'Pasadena'}</li>
+                </ul>
+                
+                <h3>Invoice Summary:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr style="background-color: #eee;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
+                            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orderItems.map(item => `
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.category_name}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name}</td>
+                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
+                                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(item.price * item.quantity)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    ${discountAmount > 0 ? `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
+                                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(discountAmount)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    ` : `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    `}
+                </table>
+                
+                <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
+                
+                <p>Thank you for your trust in us.</p>
+                
+                <p>Best regards,<br>Clinica San Miguel Team</p>
+            </div>
+        `;
+
+        console.log('Email HTML:', emailHtml);
+
+        // const fromEmail = "MyClinicMdProject@gmail.com";
+        const fromEmail = "test@alerts.myclinicmd.com";
+        
+        const payload = {
+            from: fromEmail,
+            recipients: [patientInfo.email],
+            subject: `Invoice I-${orderDetails.order_id}`,
+            html: emailHtml,
+        };
+
+        const response = await fetch('https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to send order confirmation email');
+        }
+
+        return result;
+    } catch (error: any) {
+        console.error('Error sending order email:', error);
+    }
+};

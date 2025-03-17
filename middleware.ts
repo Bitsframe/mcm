@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
   const locale = localeMatch ? localeMatch[1] : i18nConfig.defaultLocale || "en";
 
   const isLoginPage = pathname === "/login" || pathname.startsWith(`/${locale}/login`);
+  const isAPIRequest = pathname.startsWith("/api/");
 
   const i18nResponse = await i18nRouter(request, i18nConfig);
   const response = i18nResponse || NextResponse.next();
@@ -21,7 +22,7 @@ export async function middleware(request: NextRequest) {
       data: { session },
       error,
     } = await supabase.auth.getSession();
-    
+
     if (error) {
       console.error("Error fetching session:", error.message);
     }
@@ -30,7 +31,17 @@ export async function middleware(request: NextRequest) {
       if (isLoginPage) {
         return NextResponse.redirect(new URL(`/${locale}`, url));
       }
+      if (isAPIRequest) {
+        return NextResponse.next();
+      }
     } else {
+      if (isAPIRequest) {
+        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
       if (!isLoginPage) {
         return NextResponse.redirect(new URL(`/${locale}/login`, url));
       }
@@ -44,6 +55,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/api/:path*",
     "/login",
     "/en/login",
     "/es/login",

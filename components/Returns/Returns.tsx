@@ -4,7 +4,7 @@ import { Button, Spinner } from 'flowbite-react';
 import { delete_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
 import { PiCaretUpDownBold } from 'react-icons/pi';
 import { toast } from 'react-toastify';
-import { LocationContext } from '@/context';
+import { LocationContext, TabContext } from '@/context';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
@@ -255,6 +255,14 @@ const Returns: FC<Props> = () => {
 
     //     set_location_handle(value)
     // }
+
+     const { setActiveTitle } = useContext(TabContext);
+    
+      
+      useEffect(() => {
+        setActiveTitle("Sidebar_k20");
+      }, []);
+    
 
 
     const {t} = useTranslation(translationConstant.POSRETURN);

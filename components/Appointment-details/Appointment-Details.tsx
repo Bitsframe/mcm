@@ -82,12 +82,7 @@ const AppointmentDetails = memo(({
         >
           {t("Appoinments_k33")}
         </button>
-        <AppointmentEditModal
-          defaultDateTime={appointment_details.date_and_time}
-          appointmentDetails={appointment_details}
-          locationData={find_locations(appointment_details.location_id)}
-          updateAvailableData={ update_reflect_on_close_modal}
-        />
+        
       </div>
     </div>
     )
