@@ -4,4 +4,6 @@ import clinca_logo from "./Logos/clinca_logo.png";
 import Darklogo from "./Logos/Darklogo.png"
 import Lightlogo from "./Logos/Lightlogo.png"
 import Image404 from './404-mcm.png'
-export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404 };
+import Eng from "./Logos/Eng.png"
+import Esp from "./Logos/Esp.png"
+export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp };

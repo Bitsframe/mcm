@@ -3,7 +3,7 @@
 import { CustomFlowbiteTheme, Sidebar } from "flowbite-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useContext, useEffect, useMemo } from "react";
+import { ComponentType, useContext, useEffect, useMemo } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { AuthContext, TabContext } from "@/context";
 import { routeList, Route } from "./constant";
@@ -13,7 +13,7 @@ import { translationConstant } from "@/utils/translationConstants";
 const THEME: CustomFlowbiteTheme["sidebar"] = {
   root: {
     base: "bg-white overflow-y-auto",
-    inner: "bg-white overflow-y-auto flex flex-col justify-between h-full pr-3",
+    inner: "bg-white overflow-y-auto flex flex-col justify-between overflow-x-hidden h-full pr-3",
   },
 };
 
@@ -28,16 +28,9 @@ const ActiveIndicator = () => (
   />
 );
 
-const RouteIcon = ({ icon }: { icon?: Route["icon"] }) => (
+const RouteIcon = ({ icon: Icon }: { icon?: ComponentType<{ className?: string }> }) => (
   <div className="flex items-center">
-    {icon && (
-      <Image
-        src={icon.src}
-        alt="Icon"
-        height={icon.height}
-        width={icon.width}
-      />
-    )}
+    {Icon && <Icon className="w-6 h-6 text-gray-500" />}
   </div>
 );
 
@@ -57,13 +50,13 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
       href={route.route}
       icon={() => <RouteIcon icon={route.icon} />}
       label={
-        <div className="text-[15px] -mr-1">
+        <div className="text-[15px] text-[#79808B] -mr-1">
           <FaChevronRight />
         </div>
       }
       labelColor="transparent"
-      className={`text-[#3A3541] hover:bg-[#0F4698] hover:bg-opacity-30 
-        ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
+      className={`text-[#79808B] hover:text-[#0066ff]
+        ${isActive ? "bg-white text-[#0066ff]" : ""}`}
     >
       <h3>{t(route.label)}</h3>
     </Sidebar.Item>
@@ -87,15 +80,15 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
     <Sidebar.Collapse
       icon={() => <RouteIcon icon={route.icon} />}
       label={t(route.label)}
-      className={`text-[#3A3541] hover:bg-[#0F4698] transition-all ease-out delay-75 
-        hover:bg-opacity-30 ${isActive ? "bg-[#0F4698] bg-opacity-30" : ""}`}
+      className={`text-[#79808B] hover:text-[#0066ff] hover:bg-[#0F4698] transition-all ease-out delay-75 
+        hover:bg-opacity-30 ${isActive ? "bg-[#0066ff]" : ""}`}
       open={isActive}
     >
       {route.children?.map((item) => (
         <Sidebar.Item
           key={item.id}
           href={item.route}
-          className={`text-[#3A3541] text-left text-sm 
+          className={`text-[#79808B] text-left text-sm 
             ${currentPath === item.route ? "text-[#0F4698]" : ""}`}
         >
           {t(item.label)}
@@ -164,8 +157,8 @@ export const SidebarPanel = () => {
       theme={THEME}
       style={STYLE}
     >
-      <Sidebar.Items className="pl-5 w-[210px] bg-white">
-        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px]">
+      <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9]">
+        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9]">
           {filteredRoutes.map((route) => {
             if (!route.children) {
               return (

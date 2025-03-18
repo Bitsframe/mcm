@@ -1,9 +1,14 @@
 'use client'
-import { ReactNode, useContext } from 'react'
+import { ReactNode, useContext, useEffect } from 'react'
 import { CircularProgress } from '@mui/material'
-import { AuthContext } from '@/context'
+import { AuthContext, TabContext } from '@/context'
 import { SidebarSection } from '../Sidebar'
 import { Navbar } from '../Navbar'
+import { useLocale } from "next-intl";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from '@/utils/translationConstants'
+import i18n from "@/i18n";
+
 
 const LAYOUT_CONFIG = {
   sidebarWidth: '233px',
@@ -38,24 +43,41 @@ const FixedSidebar = () => (
   </section>
 )
 
-const MainContent = ({ children }: { children: ReactNode }) => (
+const MainContent = ({ children }: { children: ReactNode }) => {
+    const { activeTitle, parentTitle, setParentTitle } = useContext(TabContext);
+      
+      const locale = useLocale();
+      const { t } = useTranslation(translationConstant.SIDEBAR); // Direct namespace use kiya
+    
+      // ✅ Sync i18n language on locale change
+      useEffect(() => {
+        i18n.changeLanguage(locale);
+      }, [locale]);
+
+      const translatedTitle = t(activeTitle); 
+
+      const formattedTitle = parentTitle ? `${parentTitle}/${translatedTitle}` : translatedTitle;
+
+  return(
   <section
-    className="flex flex-col flex-grow"
+    className="flex flex-col flex-grow bg-[#F1F4F9]"
     style={{ marginLeft: LAYOUT_CONFIG.sidebarWidth }}
   >
     <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
     <section
-      className="flex-grow p-4"
+      className="flex-grow p-4 mt-20 rounded-3xl"
       style={{
         minHeight: '100vh',
         overflowY: 'hidden',
         backgroundColor: LAYOUT_CONFIG.backgroundColor
       }}
     >
+      {t(formattedTitle)}
       {children}
     </section>
   </section>
-)
+  )
+}
 
 const RootLayoutComponent = ({ children }: RootLayoutProps) => {
   const authState = useContext(AuthContext)

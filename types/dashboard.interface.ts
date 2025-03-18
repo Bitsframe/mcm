@@ -9,6 +9,7 @@ interface RenderDataProps {
 }
 
 interface RenderArrInterface {
+  icon: string;
   label: string;
   key: keyof Monitor | string;
   type?: 'text' | 'image';

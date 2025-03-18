@@ -41,8 +41,9 @@ export default function MenuWithAvatar() {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        className="p-0"
       >
-        <div className="flex items-center">
+        <div className="flex items-center bg-white rounded-[100px] w-44 px-3 py-1 border-[1px] border-[#E0E0E0]">
           <Image
             src={Avatar}
             alt="User Avatar"

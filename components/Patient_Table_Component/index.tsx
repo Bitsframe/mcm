@@ -100,7 +100,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
   })
   const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { setActiveTitle } = useContext(TabContext);
+  const { setActiveTitle, setParentTitle } = useContext(TabContext);
 
   useEffect(() => {
     const keys: { [key: string]: string } = {
@@ -109,6 +109,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
       offsite: "Sidebar_k6"
     };
     setActiveTitle(keys[renderType]);
+    setParentTitle("Patients")
   }, [renderType]);
 
   
@@ -288,11 +289,24 @@ useEffect(() => {
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>{t("Patients_k1")}</h1>
       </div>
-      <AlertDialog open={isModalOpen}>
-        <AlertDialogTrigger asChild>
-          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black">
+      
+      <div className="flex items-center justify-between">
+      <input
+              onChange={handleSearch}
+              value={searchTerm}
+              type="text"
+              placeholder={t("Patients_k3")}
+              className="w-72 px-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            />
+          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black bg-[#0066FF]">
             Add a Patient
           </Button>
+
+          </div>
+      <AlertDialog open={isModalOpen}>
+        <AlertDialogTrigger asChild>
+
+          
         </AlertDialogTrigger>
         <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
@@ -429,13 +443,13 @@ useEffect(() => {
       <div className='w-full min-h-[73dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2'>
         <div className="bg-[#EFEFEF] h-full col-span-2 rounded-md py-6 px-6 w-[150%]">
           <div className="flex items-center justify-between mb-4">
-            <input
+            {/* <input
               onChange={handleSearch}
               value={searchTerm}
               type="text"
               placeholder={t("Patients_k3")}
               className="w-72 px-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
-            />
+            /> */}
              {(
             <EditPatientModal
               callAfterUpdate={updateOnEdit}

@@ -5,9 +5,9 @@ import ChangeLocationModal from "./ChangeLocationModal";
 
 export const Clinic = () => {
   return (
-    <article className="w-[233px] bg-white flex justify-center">
+    <article className="w-[233px] flex justify-center">
       {/* <ChangeLocationModal /> */}
-      <div className="w-[185px] h-[55px] rounded-[8px] bg-[#8AA0C2] p-2 flex items-center justify-start gap-3">
+      <div className="w-[185px] h-[55px] rounded-[30px] bg-[#0066FF] p-2 flex items-center justify-start gap-3">
         <Image
           src={clinca_logo}
           alt="logo"

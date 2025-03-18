@@ -8,7 +8,7 @@ import { SidebarPanel } from "./SidebarPanel";
 
 export const SidebarSection = () => {
   return (
-    <div className="w-full h-full flex flex-col gap-5 items-center py-5 bg-white">
+    <div className="w-full h-full flex flex-col gap-5 items-center py-5 pr-5 bg-[#F1F4F9]">
       <div className="flex justify-center w-full">
         <Image
           src={Logo}
@@ -17,7 +17,7 @@ export const SidebarSection = () => {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto text-[#79808B]">
       <SidebarPanel />
       </div>
       <Clinic />

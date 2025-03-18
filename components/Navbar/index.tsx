@@ -2,16 +2,18 @@
 
 import { HiOutlineBell } from "react-icons/hi";
 import { useContext, useEffect } from "react";
-import { TabContext } from "@/context";
+import { AuthContext, TabContext } from "@/context";
 import MenuWithAvatar from "./MenuWithAvatar";
 import LanguageChanger from "../LanguageChanger";
 import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
-import i18n from "@/i18n"; // i18n import kiya
+import i18n from "@/i18n";
 import { translationConstant } from "@/utils/translationConstants";
 
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
+  const { userProfile, userRole } = useContext(AuthContext);
+  
   const locale = useLocale();
   const { t } = useTranslation(translationConstant.SIDEBAR); // Direct namespace use kiya
 
@@ -27,18 +29,19 @@ export const Navbar = ({ width }: { width: string }) => {
 
   return (
     <header
-      className={`h-[70px] px-5 flex justify-between items-center fixed bg-[#B8C8E1]`}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] pt-[6px]`}
       style={{ width: `calc(100% - ${width})` }}
     >
       <div className="text-[#121111] text-[16px] font-[700]">
-        {t(activeTitle)}
+        {/* {t(activeTitle)} */}
+       <div> <span className="text-[#79808B]">Welcome Back,</span>{userProfile?.full_name} </div>
       </div>
-      <div className="flex gap-4 items-center pr-5">
-        <div className="z-50">
+      <div className="flex gap-4 items-center">
+        <div className="z-50 ">
           <LanguageChanger locale={locale} />
         </div>
-        <div className="text-[#000000] text-[16px]">
-          <HiOutlineBell />
+        <div className="text-[#000000] text-[16px] bg-white p-4 rounded-full border-[1px] border-[#E0E0E0]">
+          <HiOutlineBell size={25}/>
         </div>
         <MenuWithAvatar />
       </div>
