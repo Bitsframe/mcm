@@ -122,7 +122,6 @@ const TextBroadcast = () => {
       filteredEmails = filteredEmails?.filter((item) => item.onsite === onsite);
     }
 
-    // Split filtered emails into selected and unselected
     const selectedEmails = filteredEmails.filter((email) =>
       checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
     );
@@ -133,7 +132,6 @@ const TextBroadcast = () => {
         )
     );
 
-    // Combine selected at the top, followed by unselected
     return [...selectedEmails, ...unselectedEmails].filter((email) =>
       email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
@@ -162,11 +160,10 @@ const TextBroadcast = () => {
 
   const { t } = useTranslation(translationConstant.EMAILB);
 
-  const { setActiveTitle } = useContext(TabContext); // Context se setActiveTitle nikalo
+  const { setActiveTitle } = useContext(TabContext);
 
-  // ✅ Page load hone par activeTitle set karo
   useEffect(() => {
-    setActiveTitle("Sidebar_k23"); // "All Patients" ke liye key
+    setActiveTitle("Sidebar_k23");
   }, []);
 
   return (
@@ -256,7 +253,7 @@ const TextBroadcast = () => {
                             }
                           />
 
-                          <h2 className="ml-2">{t("EmailB_k10")}</h2>
+                          <h2 className="ml-2">{t("EmailB_k10")}/Number</h2>
                         </div>
                         <h2>{t("EmailB_k11")}</h2>
                       </div>
@@ -313,7 +310,13 @@ const TextBroadcast = () => {
                                   <Label className="mb-1 text-black font-bold">
                                     {email.firstname}
                                   </Label>
-                                  <Label>{email.email}</Label>
+                                  <div className="flex flex-row gap-2 items-center">
+                                    <Label>{email.email}</Label>
+                                    <span className="text-gray-400">|</span>
+                                    <Label className="text-gray-600">
+                                      {email.phone}
+                                    </Label>
+                                  </div>
                                 </div>
                               </div>
                               <div>
@@ -472,11 +475,17 @@ const TextBroadcast = () => {
           </div>
           <div className="mt-5">
             <div>Write a Text Message</div>
-            <Textarea  rows={10} className="w-2/4 mt-3 bg-white resize-none h-full" placeholder="Text Message..." />
-            <div className="text-gray-500 mt-3 text-lg">This is the text we will use to send text campaign</div>
+            <Textarea
+              rows={10}
+              className="w-2/4 mt-3 bg-white resize-none h-full"
+              placeholder="Text Message..."
+            />
+            <div className="text-gray-500 mt-3 text-lg">
+              This is the text we will use to send text campaign
+            </div>
           </div>
           <div className="flex justify-end w-2/4 mt-4">
-          <Button className="w-48">Run Text Broadcast</Button>
+            <Button className="w-48">Run Text Broadcast</Button>
           </div>
         </div>
       </div>

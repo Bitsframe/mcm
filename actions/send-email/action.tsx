@@ -4,9 +4,9 @@ import { supabase } from "@/services/supabase";
 export async function getUserEmail(): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("allpatients") // Replace 'user' with the actual name of your table
+      .from("allpatients")
       .select(
-        "email,treatmenttype,firstname,gender,onsite,locationid,Locations (title)"
+        "email,treatmenttype,firstname,gender,onsite,phone,locationid,Locations (title)"
       );
 
 
@@ -34,7 +34,7 @@ export async function getServices(): Promise<any> {
 export async function getLocations(): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("Locations") // Replace 'user' with the actual name of your table
+      .from("Locations")
       .select("title");
 
     console.log(data);

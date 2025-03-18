@@ -44,7 +44,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Get energized!⚡ Our 5 Vitamin B12 injections will give you the boost you need. Only ${price}!
           </Text>

@@ -19,7 +19,7 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({ p
             <p>{t("POS-Historyk15")}: <strong>{gender}</strong> </p>
             <p>{t("POS-Historyk16")}: <strong>{phone}</strong></p>
             <p className=''>{t("POS-Historyk17")}: <strong>{email}</strong></p>
-            <p className=''>{t("POS-Historyk18")}: <strong>{paymentType}</strong></p>
+            {/* <p className=''>{t("POS-Historyk18")}: <strong>{paymentType}</strong></p> */}
             <p>{t("POS-Historyk19")}: <strong>{treatmenttype}</strong></p>
             <p>{t("POS-Historyk20")}: <strong>{Locations?.title}</strong></p>
         </div>
