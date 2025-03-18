@@ -49,7 +49,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           If you are in Houston and need the immigration exam🇺🇸Clínica San Miguel offers it to you for only ${price} (vaccines not included). //Call us!
           </Text>

@@ -49,7 +49,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Woman! Take care of your health with our complete package: Pap smear + General Exam for only ${price}. Feel safe!
           </Text>

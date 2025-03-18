@@ -117,7 +117,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                     <CircularProgress />
                 </div> : <div className="bg-white rounded-lg w-3/4 p-6">
                     <div className="flex justify-between items-center border-b pb-3">
-                        <h2 className="text-xl font-bold">{t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}</h2>
+                        <h2 className="text-xl font-bold">{t("POS-Historyk11")} {t("POS-Historyk10")}</h2>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">&times;</button>
                     </div>
 
@@ -216,7 +216,6 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                                 ))
                             }
 
-                            {/* <PatientPreviousRecord patientId={dataList?.pos?.patientid} currentOrderId={order_id} /> */}
                         </div>
                     </div>
                 </div>}

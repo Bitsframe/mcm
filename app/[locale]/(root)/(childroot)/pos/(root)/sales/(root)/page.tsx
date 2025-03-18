@@ -192,14 +192,12 @@ const Orders = () => {
 
     const category_change_handle = (e: any) => {
         const value = e.target.value
-        console.log('--------------->', value)
         getCategoriesByLocationId(value)
         setProductQty(0)
     }
 
     const select_product_change_handle = (e: any) => {
         const value = e.target.value
-        console.log(value)
         selectProductHandle(value)
         setProductQty(0)
     }
@@ -281,7 +279,6 @@ const Orders = () => {
             cartArray.splice(index, 1)
         } else {
             cartArray[index].quantity = qty
-            console.log({ product_id, qty })
         }
         setCartArray([...cartArray])
 
@@ -432,7 +429,7 @@ const Orders = () => {
                                         {selectedCategory ? "Loading Products..." : "Select Category First.."}
                                     </div> : <Searchable_Dropdown disabled={!selectedPatient} initialValue={0} bg_color='#fff' start_empty={true}
                                         // @ts-ignore
-                                        options_arr={products.map(({ product_id, product_name }: any) => ({ value: product_id, label: product_name }))}
+                                        options_arr={products.filter((pro)=>pro.quantity_available > 0).map(({ product_id, product_name }: any) => ({ value: product_id, label: product_name }))}
 
                                         required={true} value={selectedProduct ? selectedProduct.product_id : 0} on_change_handle={select_product_change_handle} label='Select Product' />}
                                 </div>
@@ -458,7 +455,7 @@ const Orders = () => {
 
 
                                 <div className='flex'>
-                                    <button disabled={!productQty} onClick={addToCartHandle} className='bg-[#8CB3F0] text-[#fff] font-bold py-3 px-9 rounded-md hover:opacity-80 active:opacity-50 disabled:opacity-60' type='submit'>
+                                    <button disabled={!productQty || !selectedPatient} onClick={addToCartHandle} className='bg-[#8CB3F0] text-[#fff] font-bold py-3 px-9 rounded-md hover:opacity-80 active:opacity-50 disabled:opacity-60' type='submit'>
                                         {t("POS-Sales_k8")}
                                     </button>
 
@@ -540,7 +537,7 @@ const Orders = () => {
 
 
                             <div className={`flex justify-end `}>
-                                <button onClick={placeOrderHandle} disabled={!cartArray.length} className='bg-[#11252C] w-44 py-1 px-3 text-white rounded-md disabled:opacity-75'>
+                                <button onClick={placeOrderHandle} disabled={!cartArray.length || !selectedPatient} className='bg-[#11252C] w-44 py-1 px-3 text-white rounded-md disabled:opacity-75'>
 
                                     {placeOrderLoading ? <div className='h-12 flex justify-center items-center'>
                                         <CircularProgress size={25} color='secondary' />

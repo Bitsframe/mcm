@@ -49,7 +49,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           ⁠Do you want to feel healthier and more energetic?💪Our plan with Semaglutide is the solution.10 units at an incredible price: ${price}. Don&#39;t miss it!
           </Text>
