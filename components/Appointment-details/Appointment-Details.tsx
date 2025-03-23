@@ -45,7 +45,7 @@ const AppointmentDetails = memo(({
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-end space-x-5 text-black">
         <div className="flex items-center space-x-1 text-base">
-          <GoDotFill />
+          <GoDotFill /> rafay
           <p>{appointment_details.new_patient ? 'New Patient' : '-'}</p>
         </div>
         <div className="flex items-center space-x-1 text-sm">

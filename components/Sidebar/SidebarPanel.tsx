@@ -80,8 +80,8 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
     <Sidebar.Collapse
       icon={() => <RouteIcon icon={route.icon} />}
       label={t(route.label)}
-      className={`text-[#79808B] hover:text-[#0066ff] hover:bg-[#0F4698] transition-all ease-out delay-75 
-        hover:bg-opacity-30 ${isActive ? "bg-[#0066ff]" : ""}`}
+      className={`text-[#79808B] hover:text-[#0066ff] transition-all ease-out delay-75 
+        hover:bg-opacity-30 ${isActive ? "bg-white text-[#0066ff]" : ""}`}
       open={isActive}
     >
       {route.children?.map((item) => (
@@ -99,13 +99,11 @@ const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProp
   )
 };
 
-// Main component
 export const SidebarPanel = () => {
   const pathname = usePathname();
   const { userRole, permissions } = useContext(AuthContext);
   const { setActiveTitle } = useContext(TabContext);
 
-  // Filter routes based on permissions
   const filteredRoutes = useMemo(() => {
     if (userRole === 'super admin') return routeList;
 
@@ -132,7 +130,6 @@ export const SidebarPanel = () => {
     return filterRoutes(routeList);
   }, [userRole, permissions]);
 
-  // Update active tab title
   useEffect(() => {
     const findActiveRoute = (routes: Route[]): Route | undefined => {
       for (const route of routes) {

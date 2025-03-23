@@ -33,6 +33,8 @@ const Career = () => {
 
                     </button> */}
 
+
+{/* @ts-ignore */}
                     <Custom_Modal Title='Create Specials'
 
                     // is_open, close_handle, open_handle, create_new_handle

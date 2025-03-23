@@ -13,7 +13,7 @@ import i18n from "@/i18n";
 const LAYOUT_CONFIG = {
   sidebarWidth: '233px',
   contentPadding: '1rem',
-  backgroundColor: 'rgb(249 250 251)'
+  backgroundColor: 'white'
 } as const
 
 interface RootLayoutProps {
@@ -47,9 +47,8 @@ const MainContent = ({ children }: { children: ReactNode }) => {
     const { activeTitle, parentTitle, setParentTitle } = useContext(TabContext);
       
       const locale = useLocale();
-      const { t } = useTranslation(translationConstant.SIDEBAR); // Direct namespace use kiya
+      const { t } = useTranslation(translationConstant.SIDEBAR);
     
-      // ✅ Sync i18n language on locale change
       useEffect(() => {
         i18n.changeLanguage(locale);
       }, [locale]);
@@ -72,7 +71,7 @@ const MainContent = ({ children }: { children: ReactNode }) => {
         backgroundColor: LAYOUT_CONFIG.backgroundColor
       }}
     >
-      {t(formattedTitle)}
+      {t(formattedTitle)}                                        
       {children}
     </section>
   </section>

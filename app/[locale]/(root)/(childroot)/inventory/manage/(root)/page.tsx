@@ -326,7 +326,7 @@ const Categories = () => {
 
       </div>
 
-
+      {/* @ts-ignore */}
       <Custom_Modal open_handle={() => openModalHandle(modalStateEnum.CREATE)} Title={`${modalState} Category`} loading={modalEventLoading} is_open={openModal} close_handle={closeModalHandle} create_new_handle={createNewHandle} buttonLabel={modalState} Trigger_Button={null}>
         <Input_Component value={modalData['category_name']} onChange={(e: any) => modalInputChangeHandle('category_name', e)} py='py-3' border='border-[1px] border-gray-300 rounded-md' label='Category' />
       </Custom_Modal>

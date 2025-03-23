@@ -133,7 +133,7 @@ const TextBroadcast = () => {
     );
 
     return [...selectedEmails, ...unselectedEmails].filter((email) =>
-      email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
+      email?.phone?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
   };
 
@@ -207,7 +207,7 @@ const TextBroadcast = () => {
                           <h1>{t("EmailB_k8")}</h1>
                           <div className="ml-2 border border-gray-300 rounded-lg">
                             <input
-                              placeholder={t("EmailB_k9")}
+                              placeholder="Search by number"
                               type="text"
                               className="p-2  border border-gray-300 rounded-lg"
                               value={searchQuery}
@@ -310,9 +310,7 @@ const TextBroadcast = () => {
                                   <Label className="mb-1 text-black font-bold">
                                     {email.firstname}
                                   </Label>
-                                  <div className="flex flex-row gap-2 items-center">
-                                    <Label>{email.email}</Label>
-                                    <span className="text-gray-400">|</span>
+                                  <div className="flex flex-row gap-2 mt-1 items-center">
                                     <Label className="text-gray-600">
                                       {email.phone}
                                     </Label>

@@ -605,6 +605,7 @@ const Page = () => {
   is_open={isOpenModal}
   Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
   close_handle={closeModalHandle}
+  // @ts-ignore
   open_handle={openModalHandle}
   create_new_handle={modalSubmitHandle}
 >

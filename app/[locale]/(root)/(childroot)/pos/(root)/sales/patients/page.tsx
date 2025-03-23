@@ -623,6 +623,8 @@ variant="outline"
         </div>
        
       </div>
+
+      {/* @ts-ignore */}
       <Custom_Modal disabled={!canModalSubmit} submit_button_color={modal_titles[activeModalMode]?.button?.color} loading={modalLoading} buttonLabel={modal_titles[activeModalMode]?.button?.label} is_open={isOpenModal} Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel} close_handle={closeModalHandle} open_handle={openModalHandle} create_new_handle={modalSubmitHandle} >
         {activeModalMode === 'delete' ? <div>
           <h1>
