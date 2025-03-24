@@ -10,13 +10,10 @@ const snsClient = new SNSClient({
 });
 
 
-const phoneRegex = /^\+\d{11,15}$/;
-
 export const POST = async (req: Request) => {
   try {
     const { phoneNumbers, message } = await req.json();
 
-    // Validate phoneNumbers is an array and not empty
     if (!Array.isArray(phoneNumbers) || phoneNumbers.length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid phone numbers array." },
@@ -24,30 +21,54 @@ export const POST = async (req: Request) => {
       );
     }
 
-    // Validate each phone number
-    const invalidNumbers = phoneNumbers.filter((num) => !phoneRegex.test(num));
+    // Normalize and Validate Phone Numbers
+    const normalizedNumbers = phoneNumbers.map((num) => {
+      let cleanedNum = num.replace(/\D/g, ""); // Remove all non-numeric characters
+
+      if (cleanedNum.startsWith("92") && cleanedNum.length >= 10 && cleanedNum.length <= 13) {
+        // Pakistani number (ensure it starts with +92)
+        return `+${cleanedNum}`;
+      } else if (cleanedNum.length === 10) {
+        // US number (add +1)
+        return `+1${cleanedNum}`;
+      } else if (cleanedNum.length >= 11 && cleanedNum.length <= 15 && cleanedNum.startsWith("1")) {
+        // US/Canada number with country code
+        return `+${cleanedNum}`;
+      } else if (cleanedNum.length >= 11 && cleanedNum.length <= 15 && cleanedNum.startsWith("92")) {
+        // Pakistani number with country code
+        return `+${cleanedNum}`;
+      }
+
+      return null; // Invalid number
+    });
+
+    const invalidNumbers = normalizedNumbers.filter((num) => !num);
     if (invalidNumbers.length > 0) {
       return NextResponse.json(
-        { success: false, message: `Invalid phone numbers: ${invalidNumbers.join(", ")}` },
+        { success: false, message: "Some phone numbers are invalid." },
         { status: 400 }
       );
     }
 
-    // Send SMS to all valid numbers
-    const sendSmsPromises = phoneNumbers.map((phoneNumber) => {
+    const sendSmsPromises = normalizedNumbers.map((phoneNumber) => {
+      
+    if(phoneNumber){
       const command = new PublishCommand({
         Message: message,
         PhoneNumber: phoneNumber,
       });
 
+
       return snsClient.send(command);
-     
+
+    }
+    
     });
 
     await Promise.all(sendSmsPromises);
 
     return NextResponse.json(
-      { success: true, message: "SMS sent successfully to all numbers!"},
+      { success: true, message: "SMS sent successfully to all numbers!" },
       { status: 200 }
     );
   } catch (error: any) {
@@ -60,4 +81,60 @@ export const POST = async (req: Request) => {
 };
 
 
+// const phoneRegex = /^\+?\d{10,15}$/;
 
+// export const POST = async (req: Request) => {
+//   try {
+//     const { phoneNumbers, message } = await req.json();
+
+//     if (!Array.isArray(phoneNumbers) || phoneNumbers.length === 0) {
+//       return NextResponse.json(
+//         { success: false, message: "Invalid phone numbers array." },
+//         { status: 400 }
+//       );
+//     }
+
+//     // Normalize and Validate Phone Numbers
+//     const normalizedNumbers = phoneNumbers.map((num) => {
+//       let cleanedNum = num.replace(/\D/g, ""); // Remove all non-numeric characters
+
+//       // If number doesn't start with a country code (assume US +1)
+//       if (!/^1?\d{10,15}$/.test(cleanedNum)) {
+//         return null; // Mark as invalid
+//       }
+
+//       // Ensure it starts with +
+//       return cleanedNum.length === 10 ? `+1${cleanedNum}` : `+${cleanedNum}`;
+//     });
+
+//     const invalidNumbers = normalizedNumbers.filter((num) => !num);
+//     if (invalidNumbers.length > 0) {
+//       return NextResponse.json(
+//         { success: false, message: "Some phone numbers are invalid." },
+//         { status: 400 }
+//       );
+//     }
+
+//     const sendSmsPromises = normalizedNumbers.map((phoneNumber) => {
+//       const command = new PublishCommand({
+//         Message: message,
+//         PhoneNumber: phoneNumber,
+//       });
+
+//       return snsClient.send(command);
+//     });
+
+//     await Promise.all(sendSmsPromises);
+
+//     return NextResponse.json(
+//       { success: true, message: "SMS sent successfully to all numbers!" },
+//       { status: 200 }
+//     );
+//   } catch (error: any) {
+//     console.error("Error sending SMS:", error);
+//     return NextResponse.json(
+//       { message: error?.message || "Internal Server Error" },
+//       { status: 500 }
+//     );
+//   }
+// };
