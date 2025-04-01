@@ -10,8 +10,10 @@ interface LayoutProps {
 
 export default async function Layout({
   children,
-  params: { locale },
+  params,
 }: LayoutProps) {
+	const { locale } = await params
+
   const { resources } = await initTranslations(locale, i18nNamespaces);
   return (
     <TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>

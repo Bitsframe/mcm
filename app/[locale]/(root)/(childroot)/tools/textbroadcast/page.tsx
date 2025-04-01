@@ -32,18 +32,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { Textarea } from "@/components/ui/textarea";
 import { TabContext } from "@/context";
+import axios from "axios";
+import { toast } from "sonner";
+
+const formatPhoneNumber = (phone: string): string | null => {
+  const cleaned = phone.replace(/\D/g, "");
+  return cleaned.length === 10 ? `+1${cleaned}` : null;
+};
 
 const TextBroadcast = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
   const [locationList, setLocationList] = useState<any[]>([]);
   const [serviceList, setServiceList] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [getEmailLoading, setGetEmailLoading] = useState<boolean>(true);
   const [isFilterOn, setIsFilterOn] = useState<boolean>(false);
   const [filter, setFilter] = useState<any>(false);
   const [checkedItems, setCheckedItems] = useState<any>([]);
@@ -151,7 +157,7 @@ const TextBroadcast = () => {
       } catch (error) {
         console.error("Failed to fetch email:", error);
       } finally {
-        setLoading(false);
+        setGetEmailLoading(false);
       }
     };
 
@@ -166,6 +172,49 @@ const TextBroadcast = () => {
     setActiveTitle("Sidebar_k23");
   }, []);
 
+
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitHandle = async () => {
+    setError(null);
+    setLoading(true);
+
+    const allNumbers = checkedItems
+      .map((elem:any) => formatPhoneNumber(elem.phone))
+      .filter((num:any) => num !== null);
+
+    if (allNumbers.length === 0) {
+      setError("No valid phone numbers found.");
+      setLoading(false);
+      return;
+    }
+
+    if (!message.trim()) {
+      setError("Message cannot be empty.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/send-sms", {
+        phoneNumbers: allNumbers,
+        message,
+      });
+
+      toast.success("BoardCash messages have been sent! 🎉");
+      setMessage("");
+      setCheckedItems([])
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
   return (
     <main>
       <div className="text-black mt-24 font-bold text-xl">Text Broadcast</div>
@@ -179,12 +228,12 @@ const TextBroadcast = () => {
                 <button className="w-2/4 p-2 my-1 border text-[16px] text-gray-500 text-left border-black rounded">
                   {checkedItems.length > 0
                     ? checkedItems
-                        .slice(0, 2)
-                        .map((email: { email: string }) => email.email)
-                        .join(", ") +
-                      (checkedItems.length > 2
-                        ? ` +${checkedItems.length - 2} more`
-                        : "")
+                      .slice(0, 2)
+                      .map((email: { email: string }) => email.email)
+                      .join(", ") +
+                    (checkedItems.length > 2
+                      ? ` +${checkedItems.length - 2} more`
+                      : "")
                     : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
@@ -278,7 +327,7 @@ const TextBroadcast = () => {
                   <AlertDialogDescription>
                     {!filter && (
                       <>
-                        {loading ? (
+                        {getEmailLoading ? (
                           <div className="space-y-2">
                             {Array.from({ length: 5 }).map((_, index) => (
                               <Skeleton
@@ -325,8 +374,8 @@ const TextBroadcast = () => {
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
-                                    ? "F"
-                                    : "O"}
+                                      ? "F"
+                                      : "O"}
                                 </Label>
                               </div>
                             </div>
@@ -476,17 +525,22 @@ const TextBroadcast = () => {
           <div className="mt-5">
             <div>Write a Text Message</div>
             <Textarea
+            onChange={(e)=>setMessage(e.target.value)}
+            value={message}
               rows={10}
               className="w-2/4 mt-3 bg-white resize-none h-full"
               placeholder="Text Message..."
             />
+            {error && <div className="text-red-500 mt-2">{error}</div>}
             <div className="text-gray-500 mt-3 text-lg">
               This is the text we will use to send text campaign
             </div>
           </div>
           <div className="flex justify-end w-2/4 mt-4">
-            <Button className="w-48">Run Text Broadcast</Button>
-          </div>
+        <Button onClick={submitHandle} className="w-48" disabled={loading}>
+          {loading ? "Sending..." : "Run Text Broadcast"}
+        </Button>
+      </div>
         </div>
       </div>
     </main>
