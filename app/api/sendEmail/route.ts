@@ -11,6 +11,7 @@ import emailtemplate7 from "@/components/EmailTemplate/template7";
 import emailtemplate8 from "@/components/EmailTemplate/template8";
 import emailtemplate9 from "@/components/EmailTemplate/template9";
 import emailtemplate10 from "@/components/EmailTemplate/template10";
+import axios from "axios";
 
 const templates = [
   { label: "Template 1", value: "template1", component: emailtemplate1 },
@@ -25,7 +26,6 @@ const templates = [
   { label: "Template 10", value: "template10", component: emailtemplate10 },
 ];
 
-const nodemailer = require("nodemailer");
 
 export async function POST(req: any) {
   try {
@@ -53,44 +53,68 @@ export async function POST(req: any) {
     }
 
     // Send emails to each address in the list
-    await Promise.all(
-      email.map(async (recipient: any) => {
-        const emailHtml = await render(
-          selectedTemplate.component({
-            reason,
-            clinicName,
-            userFirstname: recipient.firstname,
-            name,
-            buttonText,
-            buttonLink,
-            endDate,
-            startDate,
-            price
-          })
-        );
+    // await Promise.all(
+    //   email.map(async (recipient: any) => {
+    //     const emailHtml = await render(
+    //       selectedTemplate.component({
+    //         reason,
+    //         clinicName,
+    //         userFirstname: recipient.firstname,
+    //         name,
+    //         buttonText,
+    //         buttonLink,
+    //         endDate,
+    //         startDate,
+    //         price
+    //       })
+    //     );
 
-        const transporter = nodemailer.createTransport({
-          host: process.env.EMAIL_HOST,
-          port: process.env.EMAIL_PORT,
-          secure: false,
-          requireTLS: true,
-          auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASS_KEY,
-          },
-        });
+    //     const payload = {
+    //       from: process.env.EMAIL,
+    //       recipients: [recipient.email],
+    //       subject,
+    //       html: emailHtml,
+    //     };
+    //     const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email`;
+    //     await axios.post(endpoint, payload, {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //     });
+    //   })
+    // );
 
-        await transporter.sendMail({
-          from: process.env.EMAIL,
-          to: recipient.email,
-          subject,
-          html: emailHtml,
-        });
+    const emailHtmls = render(
+      selectedTemplate.component({
+        reason,
+        clinicName,
+        name,
+        buttonText,
+        buttonLink,
+        endDate,
+        startDate,
+        price,
       })
-    );
+    )
+
+    // Create a payload that includes all recipients
+    const payload = {
+      from: process.env.SENDER_BROADCAST_EMAIL,
+      recipients: email.map((recipient: any) => recipient.email), // Pass all emails in an array
+      subject,
+      html: emailHtmls, // Array of rendered HTMLs
+    };
+
+    const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email`;
+
+    await axios.post(endpoint, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     return NextResponse.json(
-      { message: "Emails sent successfully" },
+      { message: "Emails sent successfully", ok:true },
       { status: 201 }
     );
   } catch (error) {

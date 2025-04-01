@@ -50,7 +50,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Woman! Your health comes first.🙋‍♀️ Detect breast cancer in time with a mammogram order at Clínica San Miguel. 💝 October special offer: ${price}. Call us!
           </Text>
