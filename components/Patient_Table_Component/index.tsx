@@ -44,6 +44,9 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
 import { TabContext } from '@/context';
+import { Tooltip } from '@mui/material'
+import { LucideNotepadText } from 'lucide-react'
+import { Textarea } from '../ui/textarea'
 
 interface EditPatientModalProps {
   patientDetails: Patient
@@ -63,6 +66,7 @@ interface Patient {
   gender: string
   created_at: string
   lastvisit: string
+  note: string | null
 }
 
 interface Props {
@@ -75,7 +79,7 @@ const QUERIES = {
   offsite: { key: 'onsite', value: false },
 } as const
 
-const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
+const PatientTableComponent: FC<Props> = ({ renderType = 'all' }) => {
   const { selectedLocation } = useContext(LocationContext)
   const [patients, setPatients] = useState<any[]>([])
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -92,6 +96,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
     gender: "",
     onsite: true,
     locationId: 0,
+    note: "",
   })
 
   const [sortConfig, setSortConfig] = useState({
@@ -111,7 +116,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
     setActiveTitle(keys[renderType]);
   }, [renderType]);
 
-  
+
 
   const fetchServiceList = async () => {
     try {
@@ -201,9 +206,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
     console.log("SELECTED LOCATION ->", selectedLocation)
     if (!isFormValid) {
       toast.error("Please fill in all required fields.");
-      return; 
+      return;
     }
-  
+
     setIsSubmitting(true);
     try {
       const response = await axios.post("/api/user",
@@ -217,17 +222,18 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
           locationid: selectedLocation?.id || 17,
           lastvisit: new Date(),
           onsite: patientData.onsite,
+          note: patientData?.note || ""
 
         });
-        fetchPatients(selectedLocation.id)
-        setIsModalOpen(false);
+      fetchPatients(selectedLocation.id)
+      setIsModalOpen(false);
 
-      if(response){
+      if (response) {
         toast(
           <div className="flex justify-between">
             <p>New patient added successfully.</p>
             <button
-              onClick={() => toast.dismiss()} 
+              onClick={() => toast.dismiss()}
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
             >
               <span className="text-sm">&#x2715;</span>
@@ -237,7 +243,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
       }
 
       console.log("Patient added successfully:", response);
-    }  catch (error) {
+    } catch (error) {
       toast.error("Failed to add patient. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -264,24 +270,24 @@ const PatientTableComponent: FC<Props> = ({ renderType = 'all' } ) => {
     fetchServiceList();
   }, [])
 
-  const {t} = useTranslation(translationConstant.PATIENTS);
+  const { t } = useTranslation(translationConstant.PATIENTS);
   const isFormValid = useMemo(() => {
     return patientData.firstname &&
-           patientData.lastname &&
-           patientData.email &&
-           patientData.phone &&
-           patientData.treatmenttype &&
-           patientData.gender &&
-           patientData.onsite !== undefined;
+      patientData.lastname &&
+      patientData.email &&
+      patientData.phone &&
+      patientData.treatmenttype &&
+      patientData.gender &&
+      patientData.onsite !== undefined;
   }, [patientData]);
 
   const [editPatientData, setEditPatientData] = useState<Patient | null>(null);
 
-useEffect(() => {
-  if (selectedPatient) {
-    setEditPatientData(selectedPatient);
-  }
-}, [selectedPatient]);
+  useEffect(() => {
+    if (selectedPatient) {
+      setEditPatientData(selectedPatient);
+    }
+  }, [selectedPatient]);
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">
@@ -290,7 +296,7 @@ useEffect(() => {
       </div>
       <AlertDialog open={isModalOpen}>
         <AlertDialogTrigger asChild>
-          <Button onClick={()=>setIsModalOpen(true)} variant="outline" className="text-black">
+          <Button onClick={() => setIsModalOpen(true)} variant="outline" className="text-black">
             Add a Patient
           </Button>
         </AlertDialogTrigger>
@@ -414,10 +420,21 @@ useEffect(() => {
                   </div>
                 </RadioGroup>
               </div>
+
+
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">{t("Note")}</label>
+                <Textarea
+                  name="note"
+                  value={patientData.note}
+                  onChange={(e) => setPatientData({ ...patientData, note: e.target.value })}
+                />
+              </div>
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel asChild>
-                <Button onClick={()=>setIsModalOpen(false)} variant={"destructive"} className="text-black">
+                <Button onClick={() => setIsModalOpen(false)} variant={"destructive"} className="text-black">
                   Cancel
                 </Button>
               </AlertDialogCancel>
@@ -436,14 +453,14 @@ useEffect(() => {
               placeholder={t("Patients_k3")}
               className="w-72 px-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
             />
-             {(
-            <EditPatientModal
-              callAfterUpdate={updateOnEdit}
-              //@ts-ignore
-              patientDetails={editPatientData}
-              serviceList={serviceList}
-            />
-          )}
+            {(
+              <EditPatientModal
+                callAfterUpdate={updateOnEdit}
+                //@ts-ignore
+                patientDetails={editPatientData}
+                serviceList={serviceList}
+              />
+            )}
           </div>
 
           <div className="relative">
@@ -451,8 +468,8 @@ useEffect(() => {
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-gray-200">
-                  <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                  {t("Patients_k4")}
+                  <TableHead className="w-1/4 px-4 py-2 text-lg font-medium text-gray-500 text-left">
+                    {t("Patients_k4")}
                     <button
                       onClick={() => handleSort('id')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
@@ -460,8 +477,8 @@ useEffect(() => {
                       <PiCaretUpDownBold className={`inline ${sortConfig.key === 'id' ? "text-green-600" : ""}`} />
                     </button>
                   </TableHead>
-                  <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                  {t("Patients_k5")}
+                  <TableHead className="w-1/4 px-4 py-2 text-lg font-medium text-gray-500 text-left">
+                    {t("Patients_k5")}
                     <button
                       onClick={() => handleSort('name')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
@@ -469,14 +486,21 @@ useEffect(() => {
                       <PiCaretUpDownBold className={`inline ${sortConfig.key === 'name' ? "text-green-600" : ""}`} />
                     </button>
                   </TableHead>
-                  <TableHead className="w-1/3 px-4 py-2 text-lg font-medium text-gray-500 text-left">
-                  {t("Patients_k6")}
+                  <TableHead className="w-1/4 px-4 py-2 text-lg font-medium text-gray-500 text-left">
+                    {t("Patients_k6")}
                     <button
                       onClick={() => handleSort('date')}
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                     >
                       <PiCaretUpDownBold className={`inline ${sortConfig.key === 'date' ? "text-green-600" : ""}`} />
                     </button>
+                  </TableHead>
+                  <TableHead className="w-1/4 px-4 py-2 text-lg font-medium text-gray-500 text-left">
+                    {t("Note")}
+                    <span
+                      className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
+                    >
+                    </span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -500,14 +524,23 @@ useEffect(() => {
                         onClick={() => setSelectedPatient(patient)}
                         className="cursor-pointer hover:bg-gray-50 border-b last:border-0 border-gray-200 bg-[#EFEFEF]"
                       >
-                        <TableCell className="w-1/3 px-4 py-2 text-base text-black font-normal">
+                        <TableCell className="w-1/4 px-4 py-2 text-base text-black font-normal">
                           {patient.id}
                         </TableCell>
-                        <TableCell className="w-1/3 px-4 py-2 text-base text-black font-normal">
+                        <TableCell className="w-1/4 px-4 py-2 text-base text-black font-normal">
                           {patient.firstname} {patient.lastname}
                         </TableCell>
-                        <TableCell className="w-1/3 px-4 py-2 text-base text-black font-normal">
+                        <TableCell className="w-1/4 px-4 py-2 text-base text-black font-normal">
                           {formatDate(patient.created_at)}
+                        </TableCell>
+                        <TableCell className="w-1/4 px-4 py-2 text-base text-black font-normal">
+                          {patient?.note ? (
+                            <Tooltip title={patient?.note} placement="bottom" arrow>
+                              <span style={{ cursor: 'pointer', display: 'inline-block' }}>
+                                <LucideNotepadText />
+                              </span>
+                            </Tooltip>
+                          ) : null}
                         </TableCell>
                       </TableRow>
                     ))
@@ -527,32 +560,32 @@ useEffect(() => {
         </div>
 
         <Sheet open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
-  <SheetContent className="p-0 overflow-hidden">
-    <div className='flex flex-col'>
-      {/* Header with spacing for close button */}
-      <div className='pt-12 px-4'> {/* Top padding added for close button space */}
-        <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
-          <div className='text-xl font-normal text-[#11252C]'>
-            {t("Patients_k7")}
-          </div>
-         
-        </div>
-      </div>
+          <SheetContent className="p-0 overflow-hidden">
+            <div className='flex flex-col'>
+              {/* Header with spacing for close button */}
+              <div className='pt-12 px-4'> {/* Top padding added for close button space */}
+                <div className='flex justify-between items-center pb-4 border-b border-[#817B7B]'>
+                  <div className='text-xl font-normal text-[#11252C]'>
+                    {t("Patients_k7")}
+                  </div>
 
-      {/* Content Section */}
-      {selectedPatient && (
-        <div className="p-4">
-          <PatientDetails
-            patient={selectedPatient}
-            renderType={renderType}
-            formatDate={formatDate}
-            serviceList={serviceList}
-          />
-        </div>
-      )}
-    </div>
-  </SheetContent>
-</Sheet>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              {selectedPatient && (
+                <div className="p-4">
+                  <PatientDetails
+                    patient={selectedPatient}
+                    renderType={renderType}
+                    formatDate={formatDate}
+                    serviceList={serviceList}
+                  />
+                </div>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
 
 
       </div>
@@ -565,9 +598,9 @@ const PatientDetails: FC<{
   serviceList: { title: string }[];
   renderType: Props['renderType'];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate ,serviceList}) => {
-  
-const {t} = useTranslation(translationConstant.PATIENTS)
+}> = ({ patient, renderType, formatDate, serviceList }) => {
+
+  const { t } = useTranslation(translationConstant.PATIENTS)
 
 
   return (
@@ -624,6 +657,12 @@ const {t} = useTranslation(translationConstant.PATIENTS)
             <dt className='text-sm text-[#707070]'>{t("Patients_k14")}</dt>
           </dl>
         </div>
+
+
+        <dl>
+          <dd className='font-semibold text-lg'>{patient?.note || '-'}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Note")}</dt>
+        </dl>
       </div>
     </div>
   )
@@ -636,6 +675,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
     phone: "",
     email: "",
     treatmenttype: "",
+    note: ""
   });
 
   const [loading, setLoading] = useState(false);
@@ -650,11 +690,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
         phone: patientDetails.phone || "",
         email: patientDetails.email || "",
         treatmenttype: patientDetails.treatmenttype || "",
+        note: patientDetails.note || "",
       });
     }
   }, [patientDetails]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
   };
@@ -672,6 +713,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
           email: patientData?.email,
           phone: patientData?.phone,
           treatmenttype: patientData?.treatmenttype,
+          note: patientData?.note
 
         })
 
@@ -681,12 +723,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
       }
 
 
-      if(data){
+      if (data) {
         toast(
           <div className="flex justify-between">
             <p>Patient details updated successfully.</p>
             <button
-              onClick={() => toast.dismiss()} 
+              onClick={() => toast.dismiss()}
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
             >
               <span className="text-sm">&#x2715;</span>
@@ -703,7 +745,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
     }
   };
 
-  const {t} = useTranslation(translationConstant.PATIENTS);
+  const { t } = useTranslation(translationConstant.PATIENTS);
 
   return (
 
@@ -713,16 +755,16 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
           Edit
         </button> */}
         <Button className="bg-[#aec2e4] text-black text-base hover:bg-[#EFEFEF] border-black w-20">
-         {t("Patients_k8")}
+          {t("Patients_k8")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="p-6 rounded-lg shadow-lg bg-white" >
         <AlertDialogHeader>
           <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-          {t("Patients_k15")}
+            {t("Patients_k15")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-gray-600">
-          {t("Patients_k16")}
+            {t("Patients_k16")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -819,23 +861,33 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      
-  
-      <AlertDialogFooter className="mt-4 flex justify-end gap-2">
-        <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
-          {t("Patients_k21")}
-        </AlertDialogCancel>
-        <AlertDialogAction
-          onClick={handleSaveChanges}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save Changes"}
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-  
+
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">{t("Note")}</label>
+          <Textarea
+            name="note"
+            value={patientData.note}
+            onChange={handleChange}
+          />
+        </div>
+
+
+        <AlertDialogFooter className="mt-4 flex justify-end gap-2">
+          <AlertDialogCancel className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition">
+            {t("Patients_k21")}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleSaveChanges}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
   );
 };
 
