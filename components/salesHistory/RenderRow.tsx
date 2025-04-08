@@ -24,7 +24,7 @@ export const TableRowRender: FC<TableListRenderInterface> = ({ dataList, order_i
 
 
 
-    return <div className={` flex items-center flex-1 text-base py-5 border-b-2 border-b-[#E4E4E7]`}>
+    return <div className={` flex items-center flex-1 text-base py-2 px-4 border-b-2 border-b-[#E4E4E7]`}>
         {tableHeader.map(({ id, render_value, align, flex }, ind) => {
             const content = render_value ? render_value(dataList[id], dataList) : dataList[id];
             return (

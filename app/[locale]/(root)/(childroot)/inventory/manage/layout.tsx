@@ -10,7 +10,7 @@ const PosLayout: React.FC<PosLayoutProps> = ({
 }) => {
 	return (
 		<div className="" >
-			<div className="space-y-5 mt-20 ">
+			<div className="space-y-5 ">
 				<TopTabs />
 			</div>
 			<main

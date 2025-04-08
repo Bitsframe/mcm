@@ -44,9 +44,9 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({ quantity, quantityH
 
 
     return (
-        <div className={`w-28 ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
+        <div className={`w-full ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
             <Label htmlFor="quantity" value={t("POS-Sales_k7")} className='font-bold' />
-            <div className='bg-white py-1 px-3 rounded-lg flex items-center'>
+            <div className='bg-white p-3 rounded-xl flex items-center w-full'>
                 <p className='flex-1'>{quantity}</p>
                 <div>
                     <button onClick={handlePlusClick} disabled={!canAddMore} className={`block disabled:opacity-60 disabled:cursor-default`}>

@@ -85,7 +85,7 @@ export const Searchable_Dropdown = ({
     return (
         <div className="w-full relative" ref={dropdownRef}>
             {label && <Label htmlFor="searchable-select" value={t(label)} className="font-bold" />}
-            <div onClick={() => {setShowDropdown(true), setSearchTerm('')}} className="w-full p-2 border border-gray-300 rounded" style={{ backgroundColor: bg_color }}>
+            <div onClick={() => {setShowDropdown(true), setSearchTerm('')}} className="w-full p-4 rounded-xl" style={{ backgroundColor: bg_color }}>
                 <p className='text-base'>{options_arr.find((opt) => opt.value === selectedValue)?.label || t(label as any) }</p>
             </div>
             {/* <input
