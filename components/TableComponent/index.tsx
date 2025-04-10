@@ -37,6 +37,7 @@ interface Props {
   searchHandle?: (e: any) => void;
   searchInputplaceholder?: string;
   RightSideComponent?: () => React.ReactNode;
+  pdf?: () => React.ReactNode;
 }
 
 interface DataListInterface {
@@ -53,6 +54,7 @@ const TableComponent: React.FC<Props> = ({
   searchHandle,
   searchInputplaceholder,
   RightSideComponent,
+  pdf
 }) => {
   const { t } = useTranslation([
     translationConstant.STOCKPANEL,
@@ -73,11 +75,12 @@ const TableComponent: React.FC<Props> = ({
         />
       </div>
 
-      <ExportAsPDF />
+      {pdf ? <ExportAsPDF /> : null}
   
-      {RightSideComponent ? (
+      {/* {RightSideComponent ? (
         <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium">Sales History</button>
-      ) : null}
+      ) : null} */}
+      {RightSideComponent ? <RightSideComponent /> : null}
     </div>
   
     <div className="w-full border border-gray-200 rounded-md h-[600px] flex flex-col">

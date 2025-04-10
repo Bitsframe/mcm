@@ -70,24 +70,81 @@ const InventoryCards = ({archived}:{archived:boolean}) => {
     const {t} = useTranslation(translationConstant.STOCKPANEL)
 
     return (
-        <div className='py-3 space-x-20 my-5 flex flex-1 items-center'>
-            <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
-                <h1 className='text-5xl'>{procucts_count}</h1>
-                <h4 className='text-base'>{t("SP_k12")}</h4>
-            </div>
-            <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
-                <h1 className='text-5xl'>{categories_count}</h1>
-                <h4 className='text-base'>{t("SP_k11")}</h4>
-            </div>
-            <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
-                <h1 className='text-5xl'>{usdFormatter.format(stock_value)}</h1>
-                <h4 className='text-base'>{t("SP_k10")}</h4>
-            </div>
-            <div className='px-5 py-3 rounded-lg bg-[#EFEFEF] flex-1'>
-                <h1 className='text-5xl'>20%</h1>
-                <h4 className='text-base'>{t("SP_k9")}</h4>
-            </div>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3 my-5">
+  {/* Products Card */}
+  <div className="p-5 rounded-lg bg-white shadow-sm">
+    <h1 className="text-4xl font-bold">{procucts_count}</h1>
+    <p className="text-gray-500 mb-3">{t("SP_k12")}</p>
+    <div className="mt-2">
+      <svg width="100%" height="60" viewBox="0 0 200 100">
+        <path d="M20,80 A80,80 0 0,1 180,80" fill="none" stroke="#E6EEFF" strokeWidth="20" strokeLinecap="round" />
+        <path d="M20,80 A80,80 0 0,1 120,80" fill="none" stroke="#4285F4" strokeWidth="20" strokeLinecap="round" />
+      </svg>
+    </div>
+  </div>
+
+  {/* Categories Card */}
+  <div className="p-5 rounded-lg bg-white shadow-sm">
+    <h1 className="text-4xl font-bold">{categories_count}</h1>
+    <p className="text-gray-500 mb-3">{t("SP_k11")}</p>
+    <div className="flex items-end h-[60px] mt-2 space-x-2">
+      <div className="w-1/7 bg-[#1a73e8] h-[30%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[80%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[60%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[40%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[50%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[90%] rounded-sm"></div>
+      <div className="w-1/7 bg-[#1a73e8] h-[35%] rounded-sm"></div>
+    </div>
+  </div>
+
+  {/* Stock Value Card */}
+  <div className="p-5 rounded-lg bg-white shadow-sm">
+    <h1 className="text-4xl font-bold">{usdFormatter.format(stock_value)}</h1>
+    <p className="text-gray-500 mb-3">{t("SP_k10")}</p>
+    <div className="mt-2">
+      <svg width="100%" height="60" viewBox="0 0 200 100">
+        <polyline
+          points="0,80 30,70 60,40 90,50 120,30 150,45 180,20 200,40"
+          fill="none"
+          stroke="#4ade80"
+          strokeWidth="2"
+        />
+        <path d="M0,80 30,70 60,40 90,50 120,30 150,45 180,20 200,40 200,100 0,100 Z" fill="rgba(74, 222, 128, 0.1)" />
+      </svg>
+    </div>
+  </div>
+
+  {/* Low Stock Alerts Card */}
+  <div className="p-5 rounded-lg bg-white shadow-sm">
+    <h1 className="text-4xl font-bold">20%</h1>
+    <p className="text-gray-500 mb-3">{t("SP_k9")}</p>
+    <div className="mt-2 flex items-center">
+      <div className="w-2/3 h-6 bg-gray-200 rounded-md">
+        <div className="h-full bg-amber-500 rounded-md" style={{ width: "20%" }}></div>
+      </div>
+      <div className="ml-3">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-amber-500"
+        >
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
     )
 }
 

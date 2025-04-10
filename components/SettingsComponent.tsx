@@ -137,90 +137,124 @@ const SettingsComponent: React.FC = () => {
 
   return (
     <div className="h-[80dvh] bg-background p-6">
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Location Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="col-span-1">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Locations</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-1 overflow-auto h-[55dvh]">
-                      {locations.map(location => (
-                        <div
-                          key={location.id}
-                          onClick={() => selectLocation(location)}
-                          className={`p-2 rounded-md cursor-pointer ${selectedLocation?.id === location.id
-                              ? 'bg-secondary'
-                              : 'hover:bg-secondary/50'
-                            }`}
-                        >
-                          {location.title}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="col-span-1 md:col-span-2">
-                {selectedLocation && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Location Details</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="font-medium text-foreground mb-2">Address:</h3>
-                          <p className="text-muted-foreground">{selectedLocation.address}</p>
-                        </div>
-                        <div>
-                          <div className='flex justify-between items-center'>
-                          <h3 className="font-medium text-foreground mb-2">Report Time:</h3>
-                          <div>
-                          <h3 className="font-light text-foreground mb-2">Current Selected Time: <span className='font-medium'>{selectedLocation.report_time ? formattedTime(selectedLocation.report_time!): '-- -- --'}</span> </h3>
-                          </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                            <div className="flex-1">
-                              <TimeSelector key={selectedLocation?.title! || '-'} value={selectedTime} onChange={setSelectedTime} />
-                            </div>
-                            <Button
-                              onClick={handleReportTimeUpdate}
-                              disabled={isUpdating}
-                              className="w-full sm:w-auto"
-                            >
-                              {isUpdating ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Updating...
-                                </>
-                              ) : (
-                                "Update Time"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+  <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="p-4 border-b">
+      <h1 className="text-lg font-medium">Reporting Time</h1>
     </div>
+    
+    <div className="flex flex-col md:flex-row">
+      {/* Left side - Locations */}
+      <div className="w-[30%] border-r bg-gray-50">
+        <div className="p-4 border-b">
+          <h2 className="text-sm font-medium mb-3">Locations</h2>
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder="Search locations" 
+              className="w-full pl-8 pr-2 py-2 text-sm border rounded-md"
+            />
+            <svg 
+              className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <div className="overflow-auto h-[calc(80dvh-120px)]">
+          {locations.map(location => (
+            <div
+              key={location.id}
+              onClick={() => selectLocation(location)}
+              className={`px-4 py-3 cursor-pointer border-b text-sm ${
+                selectedLocation?.id === location.id
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              {location.title}
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Right side - Location Details */}
+      <div className="flex-1 p-6 w-[70%]">
+        {selectedLocation ? (
+          <>
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-1">Address</h3>
+              <p className="text-sm">{selectedLocation.address}</p>
+            </div>
+            
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-1">Current Selected Time</h3>
+              <p className="text-sm">{selectedLocation.report_time ? formattedTime(selectedLocation.report_time!) : '12:00 AM'}</p>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-1">Report Time</h3>
+              <div className="relative">
+                <TimeSelector 
+                  key={selectedLocation?.title! || '-'} 
+                  value={selectedTime} 
+                  onChange={setSelectedTime}
+                />
+                <svg 
+                  className="absolute right-3 top-3 h-4 w-4 text-gray-400" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={handleReportTimeUpdate}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Time"
+                )}
+              </button>
+              
+              <button
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-center items-center h-full text-gray-500">
+            Select a location to view details
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
   );
 };
 

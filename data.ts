@@ -3,7 +3,7 @@ import {
   LatestEvent,
   RenderArrInterface,
 } from "./types/dashboard.interface";
-import { clinca_logo } from "@/assets/images";
+import { Group47, Group44, Group52 } from "@/assets/images";
 
 
 export const render_arr: RenderArrInterface[] = [
@@ -11,26 +11,26 @@ export const render_arr: RenderArrInterface[] = [
     label: "Dashboard_k1",
     key: "public_badge_url",
     type: "image",
-    icon: clinca_logo.src
+    icon: Group44.src
   },
   {
     label: "Dashboard_k2",
     key: "latest_event",
     render_value: (val: { latest_event: LatestEvent }) =>
       val.latest_event.metrics.duration,
-    icon: "/assets/images/icons/Commercial.png" // ✅ Works
+    icon: Group47.src
 
   },
   {
     label: "Dashboard_k3",
     key: "schedule",
     type: "text",
-    icon: "/assets/Eng.png" // ✅ Works
+    icon: Group52.src
   },
   {
     label: "Dashboard_k5",
     key: "realert_interval",
-    icon: "assets/images/icons/Commercial.png" // ✅ Works
+    icon: Group44.src
   },
 ];
 

@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Archive, ShieldCheck } from 'lucide-react';
 
 
 interface DataListInterface {
@@ -56,7 +57,7 @@ const tableHeader = [
     Render_Value: ({ clickHandle, getDataArchiveType }: { clickHandle: (state: string) => void, getDataArchiveType: boolean }) => {
 
       return <div className='flex items-end justify-end space-x-2'>
-        <Action_Button onClick={() => clickHandle(modalStateEnum.UPDATE)} label='Update' bg_color='bg-[#6596FF]' /> <Action_Button label={getDataArchiveType ? 'Unarchive' : 'Archive'} bg_color={getDataArchiveType ? 'bg-green-400' : 'bg-[#FF6363]'} onClick={() => clickHandle(modalStateEnum.DELETE)} />
+        <Action_Button onClick={() => clickHandle(modalStateEnum.UPDATE)} label='Update' text_color='text-[#0066ff]' bg_color='bg-[#E5F0FF]' border={getDataArchiveType ? 'border-[#CCE0FF]' : 'border-[#CCE0FF]'} /> <Action_Button label={getDataArchiveType ? 'Unarchive' : 'Archive'} text_color={getDataArchiveType ? 'text-[#0EA542]' : 'text-[#F71B1B]'} bg_color={getDataArchiveType ? 'bg-[#E7FDEF]' : 'bg-[#FFE8E5]'} border={getDataArchiveType ? 'border-[#72F39E]' : 'border-[#FFD2CC]'} onClick={() => clickHandle(modalStateEnum.DELETE)} />
       </div>
 
     }
@@ -313,21 +314,31 @@ const Products = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className='text-sm text-gray-500 space-x-4 mr-6 flex items-center justify-end w-full'>
-        <button
-          onClick={handleActiveClick}
-          className={`${!getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
-        >
-          Active
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`${getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
-        >
-          Archived
-        </button>
-
-      </div>
+      <div className="text-sm text-gray-500 flex items-center justify-end w-full mr-6 rounded-md overflow-hidden">
+      <button
+        onClick={handleActiveClick}
+        className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+          !getDataArchiveType
+            ? 'bg-blue-600 text-white'
+            : 'bg-transparent text-gray-500'
+        }`}
+      >
+        <ShieldCheck className="w-4 h-4" />
+        Active
+      </button>
+      <button
+        onClick={handleArchiveClick}
+        className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+          getDataArchiveType
+            ? 'bg-blue-600 text-white'
+            : 'bg-transparent text-gray-500'
+        }`}
+      >
+        <Archive className="w-4 h-4" />
+        Archived
+      </button>
+    </div>
+    
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -341,108 +352,118 @@ const Products = () => {
       <div className='w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2'>
         <div className=' h-[100%]  col-span-2 rounded-md py-2   ' >
 
-          <div className='px-3 py-4 flex justify-between items-center '>
-            <div className='flex items-center gap-x-3'>
+        <div className='px-3 py-4 flex justify-between items-center'>
+  <div className='flex items-center gap-x-3'>
 
-              <input onChange={onChangeHandle} type="text" placeholder={t("Inventory_k20")} className=' px-1 py-3 w-72 text-sm rounded-md focus:outline-none bg-white' />
-              <button onClick={() => openModalHandle(modalStateEnum.CREATE)}>
-                <Image
-                  className="w-9"
-                  src={PlusIcon}
-                  alt="Logo"
-                />
-              </button>
+    <input
+      onChange={onChangeHandle}
+      type="text"
+      placeholder={t("Inventory_k20")}
+      className='px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-white'
+    />
 
+    <button
+      onClick={() => openModalHandle(modalStateEnum.CREATE)}
+      className="flex items-center w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md"
+    >
+      Create Product
+    </button>
 
-            </div>
+  </div>
 
+  {RightSideComponent}
+</div>
 
-
-
-            {RightSideComponent}
-
-
-
-
-
-
-
-
-
-          </div>
 
           <div className='px-3 pt-5'>
-  <Table>
-    <TableHeader className='border-b-2 border-b-[#E4E4E7]'>
-      <TableRow className='flex hover:bg-transparent'>
-        {tableHeader.map(({ label, align, can_sort, id }, index) => (
-          <TableHead 
-            key={index} 
-            className={`flex-1 ${align || 'text-start'} text-base text-[#71717A] font-normal pb-3`}
-          >
-            <div className='flex items-center'>
-              {t(label)}
-              {can_sort && (
-                <button 
-                  onClick={() => sortHandle(id)} 
-                  className='active:opacity-50 ml-1'
-                >
-                  <PiCaretUpDownBold className={`inline ${
-                    sortColumn === id ? 'text-green-600' : 'text-gray-400/50'
-                  } hover:text-gray-600 active:text-gray-500`} />
-                </button>
-              )}
-            </div>
+  <div className="border rounded-md">
+    <Table>
+      <TableHeader className='bg-gray-50 border-b border-b-[#E4E4E7]'>
+        <TableRow className='flex hover:bg-transparent'>
+          <TableHead className="w-12 p-3">
+            <input type="checkbox" className="h-4 w-4" />
           </TableHead>
-        ))}
-      </TableRow>
-    </TableHeader>
-
-    <TableBody className=' mb-4 h-[60dvh] overflow-y-auto block'>
-      {loading ? (
-        <TableRow className='flex h-full'>
-          <TableCell className='h-[60dvh] w-full flex flex-col justify-center items-center'>
-            <Spinner size='xl' />
-          </TableCell>
+          {tableHeader.map(({ label, align, can_sort, id }, index) => (
+            <TableHead 
+              key={index} 
+              className={`flex-1 ${align || 'text-start'} text-base text-[#71717A] font-normal p-3`}
+            >
+              <div className='flex items-center'>
+                {t(label)}
+                {can_sort && (
+                  <button 
+                    onClick={() => sortHandle(id)} 
+                    className='active:opacity-50 ml-1'
+                  >
+                    <span className={`inline ${
+                      sortColumn === id ? 'text-green-600' : 'text-gray-400'
+                    } hover:text-gray-600 active:text-gray-500`}>↕</span>
+                  </button>
+                )}
+              </div>
+            </TableHead>
+          ))}
         </TableRow>
-      ) : dataList.length === 0 ? (
-        <TableRow className='flex h-full'>
-          <TableCell className='h-[60dvh] w-full flex flex-col justify-center items-center'>
-            <h1>No Product is available</h1>
-          </TableCell>
-        </TableRow>
-      ) : (
-        dataList.map((elem: DataListInterface, index) => (
-          <TableRow 
-            key={index}
-            className={`
-              flex items-center hover:bg-[#d0d0d0] border-b-2 border-b-[#E4E4E7]
-              py-4
-            `}
-          >
-            {tableHeader.map((element, ind) => {
-              const { id, Render_Value, align } = element
-              const content = Render_Value 
-                ? <Render_Value 
-                    getDataArchiveType={getDataArchiveType} 
-                    clickHandle={(action: string) => buttonClickActionHandle(action, elem)} 
-                  /> 
-                : elem[id]
+      </TableHeader>
 
-              return (
-                <TableCell 
-                  key={ind}
-                  className={`flex-1 ${align || 'text-start'} text-base p-0`}
-                >
-                  {id === 'category' ? elem?.categories?.category_name : content}
-                </TableCell>
-              )
-            })}
+      <TableBody className='mb-4 h-[60dvh] overflow-y-auto block'>
+        {loading ? (
+          <TableRow className='flex h-full'>
+            <TableCell className='h-[60dvh] w-full flex flex-col justify-center items-center'>
+              <Spinner size='xl' />
+            </TableCell>
           </TableRow>
-        ))
-      )}
-    </TableBody>
-  </Table>
+        ) : dataList.length === 0 ? (
+          <TableRow className='flex h-full'>
+            <TableCell className='h-[60dvh] w-full flex flex-col justify-center items-center'>
+              <h1>No Product is available</h1>
+            </TableCell>
+          </TableRow>
+        ) : (
+          dataList.map((elem: DataListInterface, index) => (
+            <TableRow 
+              key={index}
+              className="flex items-center hover:bg-gray-100 border-b border-b-[#E4E4E7] py-4"
+            >
+              <TableCell className="w-12 p-3">
+                <input type="checkbox" className="h-4 w-4" />
+              </TableCell>
+              {tableHeader.map((element, ind) => {
+                const { id, Render_Value, align } = element
+                const content = Render_Value 
+                  ? <Render_Value 
+                      getDataArchiveType={getDataArchiveType} 
+                      clickHandle={(action: string) => buttonClickActionHandle(action, elem)} 
+                    /> 
+                  : elem[id]
+
+                return (
+                  <TableCell 
+                    key={ind}
+                    className={`flex-1 ${align || 'text-start'} text-base p-3`}
+                  >
+                    {id === 'category' ? elem?.categories?.category_name : content}
+                  </TableCell>
+                )
+              })}
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+    
+    <div className="flex items-center justify-between p-4 border-t">
+      <div className="text-sm text-gray-500">0 of {dataList.length} row(s) selected.</div>
+      <div className="flex gap-2">
+        <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50">
+          Previous
+        </button>
+        <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 

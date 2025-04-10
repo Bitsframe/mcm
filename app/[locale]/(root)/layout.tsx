@@ -22,7 +22,7 @@ export default async function layout({
   const { resources } = await initTranslations(locale, i18nNamespaces);
 
 	return (
-		<div className="bg-gray-50">
+		<div className="bg-white">
 			<ActiveTabProvider>
 				<LocationProvider>
 					<AuthProvider >

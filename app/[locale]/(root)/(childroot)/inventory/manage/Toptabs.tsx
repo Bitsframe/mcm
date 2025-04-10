@@ -29,23 +29,32 @@ const TopTabs = () => {
     const {t} = useTranslation(translationConstant.INVENTORY)
 
     return (
-        <nav className="flex items-center justify-between" >
-            <ul className="flex gap-6 sm:flex-col md:flex-row lg:flex-row" >
-                {PosTopMenu.map((menuItem, index) => (
-                    <li className="text-text_primary_color me-4" key={index}>
-                        <Link
-                            className={`flex gap-2 items-center ${pathname === `/inventory/manage/${menuItem.url}` || (pathname === "/inventory/manage" && menuItem.url === "/") ? 'text-text_primary_color underline underline-offset-8' : 'text-gray-500'}`}
-                            href={`/inventory/manage/${menuItem.url}`}>
-                            <span> {<GoDotFill size={15} />}</span>
-                            <span className="text-lg font-bold" > {t(menuItem.title)}</span>
-                        </Link>
-
-                    </li>
-                ))}
-
-
-            </ul>
-        </nav>
+        <nav className="flex items-center justify-center rounded-lg bg-gray-100 p-1 w-fit">
+        <ul className="flex gap-2">
+          {PosTopMenu.map((menuItem, index) => {
+            const isActive =
+              pathname === `/inventory/manage/${menuItem.url}` ||
+              (pathname === "/inventory/manage" && menuItem.url === "/");
+      
+            return (
+              <li key={index}>
+                <Link
+                  href={`/inventory/manage/${menuItem.url}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all
+                    ${isActive
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-500 hover:text-gray-700"
+                    }`}
+                >
+                  {/* <span className="text-xl">{menuItem.icon}</span> */}
+                  <span className="text-sm font-medium">{t(menuItem.title)}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      
     );
 }
 

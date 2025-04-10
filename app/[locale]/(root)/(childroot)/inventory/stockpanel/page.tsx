@@ -6,6 +6,7 @@ import TableComponent from '@/components/TableComponent';
 import { LocationContext, TabContext } from '@/context';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { Archive, ShieldCheck } from 'lucide-react';
 
 interface DataListInterface {
   [key: string]: any; // This allows dynamic property access
@@ -121,21 +122,31 @@ const StockPanel = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className='text-sm text-gray-500 space-x-4 flex items-center'>
-        <button
-          onClick={handleActiveClick}
-          className={`${!getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
-        >
-          {t("SP_k4")}
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`${getDataArchiveType ? 'bg-primary_color text-white' : 'bg-gray-400 text-white'} px-3 py-2 rounded-md`}
-        >
-          {t("SP_k3")}
-        </button>
+      <div className="text-sm text-gray-500 flex items-center bg-gray-100 rounded-md overflow-hidden">
+  <button
+    onClick={handleActiveClick}
+    className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+      !getDataArchiveType
+        ? 'bg-blue-600 text-white'
+        : 'bg-transparent text-gray-500'
+    }`}
+  >
+    <ShieldCheck className="w-4 h-4" />
+    {t("SP_k4")}
+  </button>
+  <button
+    onClick={handleArchiveClick}
+    className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+      getDataArchiveType
+        ? 'bg-blue-600 text-white'
+        : 'bg-transparent text-gray-500'
+    }`}
+  >
+    <Archive className="w-4 h-4" />
+    {t("SP_k3")}
+  </button>
+</div>
 
-      </div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );

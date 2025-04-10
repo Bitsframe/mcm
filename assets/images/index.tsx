@@ -6,4 +6,7 @@ import Lightlogo from "./Logos/Lightlogo.png"
 import Image404 from './404-mcm.png'
 import Eng from "./Logos/Eng.png"
 import Esp from "./Logos/Esp.png"
-export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp };
+import Group47 from "./Logos/Group47.png"
+import Group52 from "./Logos/Group52.png"
+import Group44 from "./Logos/Group44.png"
+export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp, Group47, Group44, Group52 };

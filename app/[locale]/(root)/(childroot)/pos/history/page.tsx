@@ -163,9 +163,9 @@ const SalesHistory = () => {
     <main className="w-full h-full font-[500] text-[20px]">
       <div className='flex justify-between items-center px-4 py-4 space-x-2'>
         <h1 className='text-xl font-bold'>{t("POS-Historyk1")}</h1>
-        {/* <div className='flex items-center space-x-3'>
+        <div className='flex items-center space-x-3'>
           <ExportAsPDF />
-        </div> */}
+        </div>
       </div>
 
       <div className='w-full min-h-[82dvh] h-[100%] overflow-auto py-2 px-2'>

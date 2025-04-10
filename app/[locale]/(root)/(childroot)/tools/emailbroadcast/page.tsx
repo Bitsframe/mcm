@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import moment from 'moment';
+import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -83,7 +83,7 @@ const EmailBroadcast: React.FC = () => {
     { label: "Template 10", value: "template10", component: emailtemplate10 },
   ];
 
-  const { setActiveTitle } = useContext(TabContext); 
+  const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
     setActiveTitle("Sidebar_k14");
@@ -93,7 +93,7 @@ const EmailBroadcast: React.FC = () => {
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    setIsFilterOn(true)
+    setIsFilterOn(true);
     setSelectedGender((prev) =>
       prev.includes(value)
         ? prev.filter((gender) => gender !== value)
@@ -102,7 +102,7 @@ const EmailBroadcast: React.FC = () => {
   };
 
   const handleVisitChange = (type: boolean) => {
-    setIsFilterOn(true)
+    setIsFilterOn(true);
     setOnsite(type);
   };
   const handleCheckboxChange = (
@@ -110,7 +110,7 @@ const EmailBroadcast: React.FC = () => {
     emailObj: any
   ) => {
     const isChecked = event.target.checked;
-    setIsFilterOn(true)
+    setIsFilterOn(true);
 
     setCheckedItems((prevCheckedItems: any[]) =>
       isChecked
@@ -124,7 +124,7 @@ const EmailBroadcast: React.FC = () => {
     setOnsite(undefined);
     setLocation("");
     setTreatmentType("");
-    setIsFilterOn(false)
+    setIsFilterOn(false);
   };
 
   const handleSelectAndDeselectAll = (isSelected: boolean) => {
@@ -146,7 +146,7 @@ const EmailBroadcast: React.FC = () => {
           userFirstname={"[Patient]"}
           reason={reason || "[Reason]"}
           clinicName={clinicName || "[ClinicName]"}
-          name={name || '[Name]'}
+          name={name || "[Name]"}
           buttonText={buttonText || "[Button Text]"}
           buttonLink={buttonLink || "[buttonLink]"}
           startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
@@ -157,7 +157,6 @@ const EmailBroadcast: React.FC = () => {
     }
     return null;
   };
-
 
   const filterEmails = () => {
     let filteredEmails = emailList;
@@ -189,7 +188,10 @@ const EmailBroadcast: React.FC = () => {
       checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
     );
     const unselectedEmails = filteredEmails.filter(
-      (email) => !checkedItems.some((checkedItem: any) => checkedItem.email === email.email)
+      (email) =>
+        !checkedItems.some(
+          (checkedItem: any) => checkedItem.email === email.email
+        )
     );
 
     // Combine selected at the top, followed by unselected
@@ -225,11 +227,7 @@ const EmailBroadcast: React.FC = () => {
       return;
     }
     try {
-      if (
-        !subject ||
-        !name ||
-        !price
-      ) {
+      if (!subject || !name || !price) {
         toast.error("All fields are necessary.", { position: "top-center" });
         return;
       }
@@ -250,10 +248,10 @@ const EmailBroadcast: React.FC = () => {
           name,
           clinicName,
           reason,
-          startDate: moment(startDate).format('MM/DD/YYYY'),
-          endDate: moment(endDate).format('MM/DD/YYYY'),
+          startDate: moment(startDate).format("MM/DD/YYYY"),
+          endDate: moment(endDate).format("MM/DD/YYYY"),
           email: checkedItems,
-          price
+          price,
         }),
       });
       if (res.ok) {
@@ -277,32 +275,42 @@ const EmailBroadcast: React.FC = () => {
     }
   };
 
-  const {t} = useTranslation(translationConstant.EMAILB)
+  const { t } = useTranslation(translationConstant.EMAILB);
 
   return (
-    <main className="w-full  text-[#000000] text-[20px] flex flex-row justify-start  overflow-hidden items-center mt-5  p-4">
-      <div className=" w-[60%] h-full flex items-start   justify-start flex-col ">
-        <div className="w-full h-full mt-[80px]">
-          <div className="w-full flex flex-col">
+    <main className="w-full flex flex-row justify-between overflow-hidden p-6 gap-8">
+      <div className="w-1/2">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label
+              htmlFor="patients"
+              className="text-sm font-medium flex items-center"
+            >
+              Target Patients <span className="text-red-500 ml-1">*</span>
+            </label>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="w-full p-2 my-1 border text-[16px] text-gray-500 text-left border-gray-300 rounded">
                   {checkedItems.length > 0
                     ? checkedItems
-                      .slice(0, 2)
-                      .map((email: { email: string }) => email.email)
-                      .join(", ") + (checkedItems.length > 2 ? ` +${checkedItems.length - 2} more` : "")
+                        .slice(0, 2)
+                        .map((email: { email: string }) => email.email)
+                        .join(", ") +
+                      (checkedItems.length > 2
+                        ? ` +${checkedItems.length - 2} more`
+                        : "")
                     : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
-
               <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 ">
                 <AlertDialogHeader>
                   {!filter ? (
                     <>
                       <div className="flex items-center cursor-pointer justify-between">
                         <div className="flex items-center">
-                          <AlertDialogTitle>{t("EmailB_k7")}</AlertDialogTitle>
+                          <AlertDialogTitle className="bg-[#F1F4F9]">
+                            {t("EmailB_k7")}
+                          </AlertDialogTitle>
                         </div>
                         <AlertDialogCancel>
                           {" "}
@@ -312,7 +320,7 @@ const EmailBroadcast: React.FC = () => {
                       <div className="flex items-center justify-between ">
                         <div className="flex items-center ">
                           <h1>{t("EmailB_k8")}</h1>
-                          <div className="ml-2 border border-gray-300 rounded-lg" >
+                          <div className="ml-2 border border-gray-300 rounded-lg">
                             <input
                               placeholder={t("EmailB_k9")}
                               type="text"
@@ -348,7 +356,6 @@ const EmailBroadcast: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between  ">
                         <div className="flex items-center ">
-
                           <input
                             type="checkbox"
                             className="border bg-gray-300 rounded p-2 "
@@ -360,7 +367,6 @@ const EmailBroadcast: React.FC = () => {
                               handleSelectAndDeselectAll(e.target.checked)
                             }
                           />
-
                           <h2 className="ml-2">{t("EmailB_k10")}</h2>
                         </div>
                         <h2>{t("EmailB_k11")}</h2>
@@ -427,8 +433,8 @@ const EmailBroadcast: React.FC = () => {
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
-                                      ? "F"
-                                      : "O"}
+                                    ? "F"
+                                    : "O"}
                                 </Label>
                               </div>
                             </div>
@@ -436,7 +442,6 @@ const EmailBroadcast: React.FC = () => {
                         )}
                       </>
                     )}
-
                     {filter && (
                       <div>
                         <br />
@@ -574,65 +579,112 @@ const EmailBroadcast: React.FC = () => {
                 <AlertDialogFooter></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-
-
-            <select
-              className="p-2  rounded my-2 border border-gray-300 text-gray-500 "
-              value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value)}
-            >
-              {templates.map((template) => (
-                <option key={template.value} value={template.value}>
-                  {template.label}
-                </option>
-              ))}
-            </select>
-
-
-
-            <div className="border-gray-300 mb-2 border w-full rounded">
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder={t("EmailB_k3")}
-                className="w-full p-2  rounded"
-              />
-            </div>
-
-            <div className="border-gray-300 mb-2 border w-full rounded">
-              <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder={t("EmailB_k4")}
-                className="w-full p-2  rounded"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="border-gray-300 mb-2 border w-full rounded">
-              <input
-                type="text"
-                id="price"
-                name="price"
-                placeholder={t("EmailB_k5")}
-                className="w-full p-2  rounded"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
-
-
           </div>
-          <br />
-          <Button onClick={sendEmail}>{t("EmailB_k6")}</Button>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="template"
+              className="text-sm font-medium flex items-center"
+            >
+              Email Template <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="template"
+                className="w-full p-3 bg-gray-50 text-sm text-gray-700 rounded-md border border-gray-200 appearance-none"
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+              >
+                {templates.map((template) => (
+                  <option key={template.value} value={template.value}>
+                    {template.label}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M4 6L8 10L12 6"
+                    stroke="#6B7280"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="subject"
+              className="text-sm font-medium flex items-center"
+            >
+              Subject <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Subject"
+              className="w-full p-3 bg-gray-50 text-sm rounded-md border border-gray-200"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Name"
+              className="w-full p-3 bg-gray-50 text-sm rounded-md border border-gray-200"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="price" className="text-sm font-medium">
+              Price
+            </label>
+            <input
+              type="text"
+              id="price"
+              name="price"
+              placeholder="Price"
+              className="w-full p-3 bg-gray-50 text-sm rounded-md border border-gray-200"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <button
+              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              onClick={sendEmail}
+            >
+              Run Email Broadcast
+            </button>
+          </div>
         </div>
       </div>
-      <div className="w-[40%]  flex items-center justify-center   p-5">
-        <RenderTemplate />
+
+      <div className="w-1/2 p-5">
+        <h2 className="text-sm font-medium mb-4">Preview</h2>
+        <div className="border border-gray-200 rounded-md p-6 bg-white">
+          <RenderTemplate />
+        </div>
       </div>
     </main>
   );

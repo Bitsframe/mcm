@@ -15,7 +15,7 @@ const PosLayout: React.FC<PosLayoutProps> = ({
 			</div>
 			<main
 				style={{ zIndex: 9999999}}
-				className="min-h-[calc(83dvh)] mt-5 w-full h-[100%] bg-[#f6f6f6]  font-[500] text-[20px] space-y-5 p-2 rounded-md"
+				className="min-h-[calc(83dvh)] mt-5 w-full h-[100%] bg-white  font-[500] text-[20px] space-y-5 p-2 rounded-md"
 			>
 				<main className="">{children}</main>
 			</main>
