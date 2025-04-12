@@ -79,96 +79,88 @@ export default function AddEditUserModal({
 
     return (
         <div>
-            <Modal
-                open={open}
-                onClose={closeModalHandle}
-                aria-labelledby="add-edit-user-modal-title"
-                aria-describedby="add-edit-user-modal-description"
-            >
-                <div className="w-full h-full flex justify-center items-center">
-                    <div className="bg-white rounded-md px-3 py-3 min-w-[650px]">
-                        <h2 id="add-edit-user-modal-title" className="mb-4 font-bold">
-                            {editData ?  t("UM_k15") : t("UM_k2")}
-                        </h2>
-
-                        <div className="flex flex-col w-full space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div >
-                                    <Input_Component
-                                        value={formData.fullName}
-                                        placeholder={t("UM_k7")}
-                                        border="border-[1px] border-gray-300 rounded-md"
-                                        onChange={(value) => handleInputChange('fullName', value)}
-                                    />
-                                </div>
-
-                                <div >
-                                    <Select_Dropdown
-                                        hideLabel={true}
-                                        label={t("UM_k8")}
-                                        start_empty={true}
-                                        bg_color="#fff"
-                                        value={formData.roleId}
-                                        options_arr={roles.map((role) => ({ value: role.id, label: role.name }))}
-                                        on_change_handle={(e) => handleInputChange('roleId', Number(e.target.value))}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="col-span-full">
-                                    <Input_Component
-                                        value={formData.email}
-                                        disabled={editData ? true : false}
-                                        placeholder={t("UM_k9")}
-                                        type='email'
-                                        border="border-[1px] border-gray-300 rounded-md"
-                                        onChange={(value) => handleInputChange('email', value)}
-                                    />
-                                </div>
-                                <div className="col-span-full">
-                                    <Input_Component
-                                        value={formData.password}
-                                        passwordEye
-                                        disabled={editData ? true : false}
-                                        placeholder={t("UM_k10")}
-                                        type='password'
-                                        border="border-[1px] border-gray-300 rounded-md"
-                                        onChange={(value) => handleInputChange('password', value)}
-                                    />
-                                </div>
-
-                                <div className="col-span-full">
-                                    <LocationModal
-                                        selectionLocationIds={formData.locationIds}
-                                        onChange={(value: number[]) => handleInputChange('locationIds', value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-x-3 w-full">
-                                <button
-                                    onClick={handleClose}
-                                    className="bg-[#F5F7F9] text-[#44444F] hover:bg-gray-200 px-4 py-2 rounded-md"
-                                >
-                                    {t("UM_k12")}
-                                </button>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    className="bg-black border-2 border-black text-white px-4 py-2 rounded-md disabled:bg-gray-400 disabled:border-gray-400 col-span-3 w-full"
-                                >
-                                    {editData ? <span>
-                                        {loading ? 'Updating...' : t("UM_k13")}
-                                    </span> :
-                                        <span>
-                                            {loading ? 'Adding...' : t("UM_k14")}
-                                        </span>}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
+  <Modal
+    open={open}
+    onClose={closeModalHandle}
+    aria-labelledby="add-edit-user-modal-title"
+    aria-describedby="add-edit-user-modal-description"
+  >
+    <div className="w-full h-full flex justify-center items-center bg-black bg-opacity-30">
+      <div className="bg-white rounded-2xl px-6 py-6 w-full max-w-[500px] shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+          <h2 id="add-edit-user-modal-title" className="text-lg font-semibold text-gray-900">
+            {editData ? t("UM_k15") : t("UM_k2")}
+          </h2>
+          <button onClick={closeModalHandle} className="text-gray-400 hover:text-gray-600 text-xl font-bold">
+            &times;
+          </button>
         </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input_Component
+              value={formData.fullName}
+              placeholder={t("UM_k7")}
+              border="border border-gray-200 rounded-lg"
+              onChange={(value) => handleInputChange("fullName", value)}
+            />
+
+            <Select_Dropdown
+              hideLabel
+              label={t("UM_k8")}
+              start_empty
+              bg_color="#f1f4f9"
+              value={formData.roleId}
+              options_arr={roles.map((role) => ({ value: role.id, label: role.name }))}
+              on_change_handle={(e) => handleInputChange("roleId", Number(e.target.value))}
+              required
+            />
+          </div>
+
+          <Input_Component
+            value={formData.email}
+            disabled={!!editData}
+            placeholder={t("UM_k9")}
+            type="email"
+            border="border border-gray-200 rounded-lg"
+            onChange={(value) => handleInputChange("email", value)}
+          />
+
+          <Input_Component
+            value={formData.password}
+            passwordEye
+            disabled={!!editData}
+            placeholder={t("UM_k10")}
+            type="password"
+            border="border border-gray-200 rounded-lg"
+            onChange={(value) => handleInputChange("password", value)}
+          />
+
+          <LocationModal
+            selectionLocationIds={formData.locationIds}
+            onChange={(value: number[]) => handleInputChange("locationIds", value)}
+          />
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={handleClose}
+              className="px-5 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+            >
+              {t("UM_k12")}
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-5 py-2 rounded-md bg-[#0066ff] text-white hover:opacity-90 disabled:bg-gray-400"
+            >
+              {editData ? (loading ? "Updating..." : t("UM_k13")) : loading ? "Adding..." : t("UM_k14")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Modal>
+</div>
+
     );
 }

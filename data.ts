@@ -3,7 +3,8 @@ import {
   LatestEvent,
   RenderArrInterface,
 } from "./types/dashboard.interface";
-import { Group47, Group44, Group52 } from "@/assets/images";
+import { Group47, Group44, Group52, Globe, Group53, Ellipse, blueshade } from "@/assets/images";
+import { AlertOctagon } from "lucide-react";
 
 
 export const render_arr: RenderArrInterface[] = [
@@ -11,26 +12,30 @@ export const render_arr: RenderArrInterface[] = [
     label: "Dashboard_k1",
     key: "public_badge_url",
     type: "image",
-    icon: Group44.src
+    icon: Group44.src,
+    bgImage: Globe.src
   },
   {
     label: "Dashboard_k2",
     key: "latest_event",
     render_value: (val: { latest_event: LatestEvent }) =>
       val.latest_event.metrics.duration,
-    icon: Group47.src
+    icon: Group47.src,
+    bgImage: blueshade.src,
 
   },
   {
     label: "Dashboard_k3",
     key: "schedule",
     type: "text",
-    icon: Group52.src
+    icon: Group52.src,
+    bgImage: Ellipse.src,
   },
   {
     label: "Dashboard_k5",
     key: "realert_interval",
-    icon: Group44.src
+    icon: Group52.src,
+    bgImage: Group53.src,
   },
 ];
 

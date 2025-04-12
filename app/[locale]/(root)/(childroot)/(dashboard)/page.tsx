@@ -12,44 +12,50 @@ import {
 import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
 import { translationConstant } from "@/utils/translationConstants";
+import { GitPullRequestArrow, RefreshCcw, Network, Layers, Timer, Server, PanelsTopLeft, ShieldCheck, CalendarCheck2, CalendarX2, Globe, Building } from "lucide-react";
 
 // @ts-ignore
 const InfoCard = memo(
-  ({ label, value, type = "text", icon }: { 
-    label: string; 
-    value: any; 
-    type?: "text" | "image"; 
-    icon?: string; 
+  ({
+    label,
+    value,
+    type = "text",
+    icon,
+    customBgClass = "bg-white",
+    bgImage,
+  }: {
+    label: string;
+    value: any;
+    type?: "text" | "image";
+    icon?: string;
+    customBgClass?: string;
+    bgImage?: string;
   }) => {
     const { t } = useTranslation();
+
     return (
-      <div className="w-full h-full bg-white rounded-[20px] p-4 flex flex-col">
+      <div
+        className={`w-full h-full ${customBgClass} rounded-[20px] p-4 flex flex-col bg-no-repeat bg-cover bg-center`}
+        style={bgImage ? { backgroundImage: `url(${bgImage})` } : {}}
+      >
         {/* Top Section - Icon + Label */}
         <div className="mb-2">
           {icon && (
-            <div className="flex justify-start mb-2"> {/* Left-align icon */}
-              <img 
-                src={icon} 
-                alt="icon" 
-                className="w-8 h-8 object-contain" 
-              />
+            <div className="flex justify-start mb-2">
+              <img src={icon} alt="icon" className="w-8 h-8 object-contain" />
             </div>
           )}
-          <h1 className="text-lg font-bold text-left">{t(label)}</h1> {/* Label left */}
+          <h1 className="text-lg font-bold text-left">{t(label)}</h1>
         </div>
 
         {/* Bottom Section - Value/Image */}
         <div className="mt-auto">
           {type === "image" ? (
-            <div className="flex justify-start"> {/* Image ko left-align */}
-              <img 
-                src={value} 
-                alt={label} 
-                className="w-28 h-4" 
-              />
+            <div className="flex justify-start">
+              <img src={value} alt={label} className="w-28 h-4" />
             </div>
           ) : (
-            <div className="text-left"> {/* Text left */}
+            <div className="text-left">
               <p className="break-words">{value}</p>
             </div>
           )}
@@ -59,16 +65,29 @@ const InfoCard = memo(
   }
 );
 
+
 InfoCard.displayName = "InfoCard";
 
 const DataField = memo(
-  ({ label, value }: { label: string; value: React.ReactNode }) => (
-    <dl className="bg-white h-[77px] p-2 rounded-[10px] flex flex-col justify-end">
-  <dt className="font-bold text-sm md:text-base">{label}</dt>
-  <dd className="break-words">{value}</dd>
-</dl>
+  ({
+    label,
+    value,
+    icon,
+  }: {
+    label: React.ReactNode;
+    value: React.ReactNode;
+    icon?: React.ReactNode;
+  }) => (
+    <dl className="bg-white h-[77px] p-2 rounded-[10px] flex items-start gap-3">
+      {icon && <div className="p-1 rounded-lg text-[#0066ff] bg-[#f1f4f9]">{icon}</div>}
+      <div className="flex flex-col justify-end">
+        <dt className="font-bold text-sm md:text-base">{label}</dt>
+        <dd className="break-words text-sm">{value}</dd>
+      </div>
+    </dl>
   )
 );
+
 
 DataField.displayName = "DataField";
 
@@ -94,14 +113,16 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
       <h1 className="mb-3 text-xl md:text-2xl">{t("SSL Certificate")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DataField label={t("Issued to")} value={ssl.issued_to} />
-        <DataField label={t("Issued By")} value={ssl.issued_by} />
+        <DataField icon={<PanelsTopLeft size={18} />}  label={t("Issued to")} value={ssl.issued_to} />
+        <DataField icon={<ShieldCheck size={18} />} label={t("Issued By")} value={ssl.issued_by} />
 
         <DataField
+        icon={<CalendarCheck2 size={18} />}
           label={t("Issued at")}
           value={issuedAt.format("DD/MM/YYYY, h:mm A")}
         />
         <DataField
+        icon={<CalendarX2 size={18} />}
           label={t("Expires at")}
           value={expiresAt.format("DD/MM/YYYY, h:mm A")}
         />
@@ -136,18 +157,20 @@ const DNSSection = memo(({ dns }: { dns: DNS }) => {
       {/* 2x2 Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Pehli Row - 2 Columns */}
-        <DataField label={t("Dashboard_k19")} value={dns.name} />
+        <DataField icon={<Globe size={18} />} label={t("Dashboard_k19")} value={dns.name} />
         <DataField
+        icon={<CalendarX2 size={18} />}
           label={t("Dashboard_k8")}
           value={moment(dns.expires_at).format("DD/MM/YYYY, h:mm A")}
         />
 
         {/* Doosri Row - 2 Columns */}
-        <DataField label={t("Dashboard_k9")} value={dns.registrar} />
+        <DataField icon={<Building size={18} />}  label={t("Dashboard_k9")} value={dns.registrar} />
         <DataField
+        icon={<Server size={18} />}
           label={t("Dashboard_k10")}
           value={
-            <div className="space-y-2">
+            <div className="">
               {dns.name_servers.map((name, ind) => (
                 <p key={ind}>{name}</p>
               ))}
@@ -189,24 +212,30 @@ const MonitorDetails = memo(
         <div className="space-y-6">
           {/* 1. Request URL (Full Width) */}
           <DataField
-            label={t("Dashboard_k12")}
-            value={
-              <div className="flex items-center">
-                <span className="rounded-md bg-slate-700 px-3 py-1 text-white text-xs">
+          icon={<GitPullRequestArrow size={18} />}
+             label={
+              <div className="flex items-center gap-2">
+                <span>{t("Dashboard_k12")}</span>
+                <span className="rounded-md bg-[#0066ff] px-3 py-1 text-white text-xs">
                   {t("Dashboard_k4")}
                 </span>
-                <span className="ml-2 break-words">{request.url}</span>
+              </div>
+            }
+            value={
+              <div className="flex items-center">
+                <span className="break-words">{request.url}</span>
               </div>
             }
           />
 
           {/* 2. Interval + Protocol + Headers (3 Columns) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <DataField label={t("Dashboard_k13")} value={schedule} />{" "}
+            <DataField icon={<RefreshCcw size={18} />} label={t("Dashboard_k13")} value={schedule} />{" "}
             {/* Interval */}
-            <DataField label={t("Dashboard_k14")} value={platform} />{" "}
+            <DataField icon={<Network size={18} />} label={t("Dashboard_k14")} value={platform} />{" "}
             {/* Protocol */}
             <DataField
+            icon={<Layers size={18} />}
               label={t("Dashboard_k16")}
               value={Object.keys(request.headers).length || "none"}
             />
@@ -215,17 +244,23 @@ const MonitorDetails = memo(
           {/* 3. Timeout + Locations (2 Columns) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DataField
+            icon={<Timer size={18} />}
               label={t("Dashboard_k15")}
               value={`${request.timeout_seconds} seconds`}
             />
             <DataField
-              label={t("Dashboard_k17")}
+              label={
+                <div className="flex items-center gap-2">
+                <div className="p-1 rounded-lg text-[#0066ff] bg-[#f1f4f9]"><Server size={18} /></div>
+                <span>{t("Dashboard_k17")}</span>
+              </div>
+              }
               value={
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 mt-1">
                   {request.regions?.map((region, index) => (
                     <span
                       key={index}
-                      className="rounded-md bg-slate-700 px-[6px] py-1 text-white text-[10px]"
+                      className="rounded-md bg-[#0066ff] px-[6px] py-1 text-white text-[10px]"
                     >
                       {region} {/* Locations */}
                     </span>
@@ -254,26 +289,26 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
 
   return (
     <div className="text-slate-700 p-4">
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="col-span-1 md:col-span-3 p-4 rounded-lg bg-[#F1F4F9]">
             <h2 className="mb-3 text-xl md:text-2xl">Quick Stats</h2>
 
             <div className="grid grid-cols-2 gap-4">
-              {render_arr.map(
-                ({ icon, label, key, type, render_value }, ind) => (
-                  <InfoCard
-                    icon={icon}
-                    key={ind}
-                    label={label}
-                    value={
-                      render_value ? render_value(data) : (data as any)[key]
-                    }
-                    type={type}
-                  />
-                )
-              )}
-            </div>
+  {render_arr.map(({ icon, label, key, type, render_value, bgImage }, ind) => (
+    <InfoCard
+      key={ind}
+      icon={icon}
+      label={label}
+      value={render_value ? render_value(data) : (data as any)[key]}
+      type={type}
+      customBgClass={ind === 0 ? "bg-[#0066ff]" : "bg-white"}
+      bgImage={bgImage}
+    />
+  ))}
+</div>
+
+
           </div>
 
           {/* Right Side - MonitorDetails (2/6 width) */}

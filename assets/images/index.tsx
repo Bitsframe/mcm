@@ -9,4 +9,8 @@ import Esp from "./Logos/Esp.png"
 import Group47 from "./Logos/Group47.png"
 import Group52 from "./Logos/Group52.png"
 import Group44 from "./Logos/Group44.png"
-export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp, Group47, Group44, Group52 };
+import Globe from "./Logos/Globe.png"
+import Group53 from "./Logos/Group53.png"
+import blueshade from "./Logos/blueshade.png"
+import Ellipse from "./Logos/Ellipse.png"
+export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp, Group47, Group44, Group52, Globe, Group53, blueshade, Ellipse };

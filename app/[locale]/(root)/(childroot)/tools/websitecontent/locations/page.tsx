@@ -86,8 +86,8 @@ const Locations = () => {
         <WebsiteContentLayout>
             <div className='mb-5 px-3' >
 
-                <div className='flex items-end  justify-between p-0 my-5'>
-                    <div className='w-1/2' >
+                <div className='flex w-full'>
+                    <div className='w-full' >
                         <Select_Dropdown
                             value={selected_list_id} label={t('WebCont_k5')} start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
                             on_change_handle={change_selected_list_id}
@@ -119,7 +119,7 @@ const Locations = () => {
                 </div>
 
                 <div className="border-t my-3 border-black"></div>
-                <div className='px-3'>
+                <div className=''>
                     {data && <Form_Component className="grid grid-cols-2 gap-5 my-5" reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={inputLabelandValue.map(({ key }) => key)} on_change_handle={on_change_handle} />}
 
                 </div>

@@ -31,6 +31,7 @@ interface AppointmentsTableProps {
   sortColumn: string
   isUnapproved?: boolean
   onEdit?:any
+  onDelete?: (id: string) => void;
 }
 
 const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
@@ -40,7 +41,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   sortHandle,
   sortColumn,
   isUnapproved,
-  onEdit
+  onEdit,
+  onDelete
 }) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
@@ -91,11 +93,15 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               isSelected={false}
               onSelect={onSelect}
               isUnapproved={isUnapproved}
+              onDelete={onDelete}
+              onEdit={onEdit}
             />
           ))}
         </TableBody>
       </Table>
+
     </div>
+   
   )}
 </div>
   )
@@ -107,11 +113,15 @@ const MemoizedTableRow = memo(
     isSelected,
     onSelect,
     isUnapproved,
+    onDelete,
+    onEdit
   }: {
     appointment: Appointment
     isSelected: boolean
     isUnapproved?: boolean
     onSelect: (appointment: Appointment) => void
+    onDelete?: (id: string) => void;
+    onEdit?: (appointment: Appointment) => void
   }) => {
     const handleApprove = (event: React.MouseEvent) => {
       event.stopPropagation()
@@ -159,12 +169,24 @@ const MemoizedTableRow = memo(
             <button className="text-gray-500 hover:text-gray-700">
               <Eye color="black" className="h-4 w-4" />
             </button>
-            <button className="text-gray-500 hover:text-blue-600">
-              <SquarePen color="#0066ff" className="h-4 w-4" />
-            </button>
-            <button className="text-gray-500 hover:text-red-600">
-              <Trash2 color="red" className="h-4 w-4" />
-            </button>
+            <button 
+  className="text-gray-500 hover:text-blue-600"
+  onClick={(e) => {
+    e.stopPropagation() // Prevent row selection
+    onEdit?.(appointment) // Trigger edit
+  }}
+>
+  <SquarePen color="#0066ff" className="h-4 w-4" />
+</button>
+            <button 
+        className="text-gray-500 hover:text-red-600"
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent row selection
+          onDelete?.(appointment.id); // Trigger onDelete
+        }}
+      >
+        <Trash2 color="red" className="h-4 w-4" />
+      </button>
           </div>
         </TableCell>
       </TableRow>

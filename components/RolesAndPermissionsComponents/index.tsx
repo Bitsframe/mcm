@@ -2,7 +2,6 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import PermissionToggle from './PermissionToggle';
-import RoleInput from './RoleInput';
 import { TbPencil } from "react-icons/tb";
 import { Switch } from 'antd';
 import { useRolesAndPermissions } from '@/hooks/useRolesAndPermissions';
@@ -11,7 +10,16 @@ import { TrashIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 import { TabContext } from '@/context';
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, editStateId, editHandle, selectRoleHandle, selectedRole }: any) => {
     const [editValue, setEditValue] = useState(data.name);
@@ -86,62 +94,93 @@ const SingleRoleHandle = ({ data, index, updateRoleHandle, deleteRoleHandle, edi
 const RolesAndPermissionsComponent: React.FC = () => {
     const { roles, loadingDataState, activeForAddNewRoleInput, newAddLoading, handleAddRole, toggleActivateAddNewRoleHandle, deleteRoleHandle, updateRoleHandle, setEditStateIndexActivate, editStateId, selectRoleHandle, selectedRole, permissions, handlePermissionToggle, toggleAllPermissions } = useRolesAndPermissions()
    
+    const [newRoleName, setNewRoleName] = useState("");
+    const [newRolePermissions, setNewRolePermissions] = useState<Record<string, boolean>>({});
 
     const handleAllowAll = (allowed: boolean) => {
-        // setPermissions((prev) => prev.map((perm) => ({ ...perm, allowed })));
         toggleAllPermissions(allowed)
     };
 
     const { setActiveTitle } = useContext(TabContext);
 
-  useEffect(() => {
-    setActiveTitle("Sidebar_k17");
-  }, []);
+    useEffect(() => {
+        setActiveTitle("Sidebar_k17");
+    }, []);
+
+    // Initialize permissions for new role
+    useEffect(() => {
+        if (permissions.length > 0) {
+            const initialPermissions: Record<string, boolean> = {};
+            permissions.forEach((perm: any) => {
+                initialPermissions[perm.name] = false;
+            });
+            setNewRolePermissions(initialPermissions);
+        }
+    }, [permissions]);
+
+    const handlePermissionChange = (permissionName: string, allowed: boolean) => {
+        setNewRolePermissions(prev => ({
+            ...prev,
+            [permissionName]: allowed
+        }));
+    };
+
+    const handleCreateRole = () => {
+        if (newRoleName.trim() !== "") {
+            handleAddRole({
+                name: newRoleName,
+                permissions: newRolePermissions
+            });
+            setNewRoleName("");
+            toggleActivateAddNewRoleHandle(false);
+        }
+    };
 
     const {t} = useTranslation(translationConstant.ROLESANDPERMISSIONS)
 
     return (
-        <div className="p-6 bg-white rounded shadow-lg w-full mx-auto max-h-[87dvh] ">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="p-6 w-full mx-auto max-h-[87dvh]">
+            <div className="w-full gap-4">
                 {/* User Roles Section */}
-                <div className="w-full h-full flex  flex-col flex-1">
+                <div className="w-full h-full flex flex-col flex-1">
                     <div className='flex items-center justify-between px-2 mb-3'>
                         <div>
-                            <h2 className="text-lg font-bold ">{t("RP_k1")}</h2>
+                            <h2 className="text-lg font-bold">{t("RP_k1")}</h2>
                         </div>
-
                         <div>
-                            <button onClick={() => toggleActivateAddNewRoleHandle(true)} className='bg-black text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90'>
-                               {t("RP_k6")}
+                            <button className='bg-[#0066ff] text-white rounded-lg px-4 py-2' onClick={() => toggleActivateAddNewRoleHandle(true)}>
+                                {t("RP_k6")}
                             </button>
                         </div>
                     </div>
                     <div className="space-y-3 overflow-auto max-h-[70dvh] px-2 flex-1">
                         {loadingDataState ? <div className='flex justify-center py-4'><CircularProgress /></div> : roles.map((elem, index) => (
-                            <SingleRoleHandle selectedRole={selectedRole} selectRoleHandle={selectRoleHandle} editHandle={setEditStateIndexActivate} editStateId={editStateId} updateRoleHandle={updateRoleHandle} deleteRoleHandle={deleteRoleHandle} key={elem.id} data={elem} index={index} />
+                            <SingleRoleHandle 
+                                selectedRole={selectedRole} 
+                                selectRoleHandle={selectRoleHandle} 
+                                editHandle={setEditStateIndexActivate} 
+                                editStateId={editStateId} 
+                                updateRoleHandle={updateRoleHandle} 
+                                deleteRoleHandle={deleteRoleHandle} 
+                                key={elem.id} 
+                                data={elem} 
+                                index={index} 
+                            />
                         ))}
-                    </div>
-
-                    <div className='px-2'>
-                        {activeForAddNewRoleInput ? <RoleInput key={activeForAddNewRoleInput ? 1 : 0}
-                            loading={newAddLoading}
-                            cancelHandle={() => toggleActivateAddNewRoleHandle(false)}
-                            onSave={handleAddRole}
-                        /> : null}
                     </div>
                 </div>
 
                 {/* Permissions Section */}
-                <div className="w-full ">
+                <div className="w-full">
                     <div className="flex items-center justify-between mb-4 px-2">
-                        <h2 className="text-lg font-bold">{t("RP_k2")}</h2>
                         {selectedRole ? <label className="flex items-center gap-2">
                             <span>{t("RP_k1")}</span>
-                            <Switch className='disabled:opacity-65' disabled={selectedRole?.id === 1}  onChange={(e) => handleAllowAll(e)} 
-                            
-                            checked={permissions?.every((perm:any) => perm.allowed) || selectedRole?.id === 1} 
-                                />
-
+                            <Switch 
+                                className='disabled:opacity-65' 
+                                disabled={selectedRole?.id === 1}  
+                                onChange={(e) => handleAllowAll(e)} 
+                                checked={permissions?.every((perm:any) => perm.allowed) || selectedRole?.id === 1} 
+                            />
                         </label> : null}
                     </div>
                     {selectedRole ? <div className="space-y-3 border-2 border-gray-100 rounded-md px-2 py-2">
@@ -157,6 +196,63 @@ const RolesAndPermissionsComponent: React.FC = () => {
                     </div> : null}
                 </div>
             </div>
+
+            {/* Add New Role Sheet */}
+            <Sheet open={activeForAddNewRoleInput} onOpenChange={toggleActivateAddNewRoleHandle}>
+                <SheetContent className="w-full sm:max-w-md">
+                    <SheetHeader>
+                        <SheetTitle>{t("RP_k6")}</SheetTitle>
+                    </SheetHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="role-title">{t("RP_k7")}</Label>
+                            <Input 
+                                id="role-title" 
+                                value={newRoleName} 
+                                onChange={(e) => setNewRoleName(e.target.value)} 
+                                placeholder={t("RP_k7")}
+                            />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                            <Label>{t("RP_k2")}</Label>
+                            <div className="space-y-3 border rounded-md p-4">
+                                {permissions.map((perm: any) => (
+                                    <div key={perm.name} className="flex items-center justify-between">
+                                        <Label htmlFor={`perm-${perm.name}`}>{perm.name}</Label>
+                                        <Switch
+                                            id={`perm-${perm.name}`}
+                                            checked={newRolePermissions[perm.name] || false}
+                                            //@ts-ignore
+                                            onCheckedChange={(checked) => handlePermissionChange(perm.name, checked)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <SheetFooter>
+                        <div className="flex gap-2">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => toggleActivateAddNewRoleHandle(false)}
+                            >
+                                {t("RP_k4")}
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                onClick={handleCreateRole}
+                                disabled={newAddLoading || !newRoleName.trim()}
+                            >
+                                {newAddLoading ? <CircularProgress size={20} /> : t("RP_k8")}
+                            </Button>
+                        </div>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
         </div>
     );
 };

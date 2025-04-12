@@ -20,21 +20,24 @@ const TopTabs = () => {
 
 
     return (
-        <nav className="flex items-center justify-between" >
-            <ul className="flex gap-6 sm:flex-col md:flex-row lg:flex-row" >
-                {PosTopMenu.map((menuItem, index) => (
-                    <li className="text-text_primary_color me-4" key={index}>
-                        <Link
-                            className={`flex gap-2 items-center ${pathname === `/pos/sales/${menuItem.url}` || (pathname === "/pos/sales" && menuItem.url === "/") ? 'text-text_primary_color underline underline-offset-8' : 'text-gray-500'}`}
-                            href={`/pos/sales/${menuItem.url}`}>
-                            <span> {<GoDotFill size={15} />}</span>
-                            <span className="text-lg font-bold" > {menuItem.title}</span>
-                        </Link>
-
-                    </li>
-                ))}
-            </ul>
-        </nav>
+        <nav className="mt-5">
+    <div className="max-w-7xl mx-auto">
+        <ul className="flex gap-1 w-fit p-1 rounded-lg  bg-[#f1f4f9]">
+            {PosTopMenu.map((menuItem, index) => (
+                <li key={index}>
+                    <Link
+                        href={`/pos/sales/${menuItem.url}`}
+                        className={`inline-flex items-center px-2 py-1 text-sm rounded-lg font-medium ${pathname === `/pos/sales/${menuItem.url}` || (pathname === "/pos/sales" && menuItem.url === "/") 
+                            ? 'bg-[#0066ff] text-gray-900' 
+                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                    >
+                        {menuItem.title}
+                    </Link>
+                </li>
+            ))}
+        </ul>
+    </div>
+</nav>
     );
 }
 

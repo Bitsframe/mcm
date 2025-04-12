@@ -90,7 +90,7 @@ const Testimonials = () => {
         <WebsiteContentLayout>
             <div className='mb-5 px-3' >
                 <div className='flex items-end'>
-                    <div className='grid grid-cols-5 lg:flex-row lg:gap-24 '>
+                    <div className='flex gap-5 w-full '>
 
                         <Select_Dropdown
                             value={selected_location} label={t('WebCont_k5')} start_empty={true} options_arr={locations.map(({ id, title }: { id: string, title: string }) => ({ value: id, label: title }))}
@@ -132,7 +132,7 @@ const Testimonials = () => {
 
 
 
-                <div className='px-3 w-1/2 space-y-5'>
+                <div className='w-full space-y-5'>
                     {data && <Form_Component reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={['rating', 'name', 'review']} on_change_handle={on_change_handle} />}
 
                 </div>

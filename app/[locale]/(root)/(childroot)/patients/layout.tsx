@@ -7,7 +7,7 @@ const layout: React.FC<LayoutProps> = ({
     children,
 }) => {
     return (
-        <div className='mt-16' >{children}</div>
+        <div className="" >{children}</div>
     )
 }
 

@@ -295,7 +295,12 @@ const Appointments = () => {
           onEdit={handleEditAppointment}
           sortHandle={sortHandle}
           sortColumn={sortColumn}
+          //@ts-ignore
+          onDelete={deleteAppointmentsHandle}
         />
+        <div className="mt-5">
+        {approvedAppointments.length} of row(s) selected
+        </div>
       </div>
 
       <AppointmentDetailsPanel
@@ -333,13 +338,13 @@ const AppointmentDetailsPanel = ({
         }
       }}
     >
-      <SheetContent className="p-0 pt-8">
+      <SheetContent className="p-0 ">
         <SheetTitle className="sr-only">
           {appointmentDetails
             ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`
             : "Appointment Details"}
         </SheetTitle>
-        <div className="pt-8 p-4">
+        <div className=" p-4">
           {appointmentDetails ? (
             <AppointmentDetails
               onDelete={onDelete}

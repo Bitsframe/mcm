@@ -525,7 +525,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <AlertDialogCancel asChild>
                   <Button
                     variant="outline"
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                    className="border-gray-200 text-gray-700 "
                   >
                     Cancel
                   </Button>
@@ -691,6 +691,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </TableBody>
             </Table>
           </div>
+        </div>
+        <div className="text-sm text-gray-500 mt-5">
+          {selectedPatients.length} of {patients.length} row(s) selected.
         </div>
       </div>
 

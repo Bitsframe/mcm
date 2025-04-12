@@ -37,9 +37,9 @@ export const Custom_Modal: FC<PropsInterface> = ({
                 </div>
             </Modal.Body>
             <Modal.Footer className="flex justify-end">
-                <Button className="bg-[#F1F4F9] text-black hover:bg-none" onClick={close_handle}>
+                <button className="bg-[#F1F4F9] text-black px-4 py-[10px] rounded-lg" onClick={close_handle}>
                     Cancel
-                </Button>
+                </button>
                 <Button 
                     color={submit_button_color} 
                     className="capitalize" 
