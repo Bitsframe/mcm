@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
 import { CustomFlowbiteTheme, Sidebar } from "flowbite-react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ComponentType, useContext, useEffect, useMemo } from "react";
 import { FaChevronRight } from "react-icons/fa";
@@ -13,7 +12,8 @@ import { translationConstant } from "@/utils/translationConstants";
 const THEME: CustomFlowbiteTheme["sidebar"] = {
   root: {
     base: "bg-white overflow-y-auto",
-    inner: "bg-white overflow-y-auto flex flex-col justify-between overflow-x-hidden h-full pr-3",
+    inner:
+      "bg-white overflow-y-auto flex flex-col justify-between overflow-x-hidden h-full pr-3",
   },
 };
 
@@ -28,7 +28,11 @@ const ActiveIndicator = () => (
   />
 );
 
-const RouteIcon = ({ icon: Icon }: { icon?: ComponentType<{ className?: string }> }) => (
+const RouteIcon = ({
+  icon: Icon,
+}: {
+  icon?: ComponentType<{ className?: string }>;
+}) => (
   <div className="flex items-center">
     {Icon && <Icon className="w-6 h-6 text-gray-500" />}
   </div>
@@ -40,28 +44,26 @@ interface SingleRouteProps {
 }
 
 const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
+  const { t } = useTranslation(translationConstant.SIDEBAR);
 
-  const {t} = useTranslation(translationConstant.SIDEBAR);
-
-  return(
-  <div className="relative w-full">
-    {isActive && <ActiveIndicator />}
-    <Sidebar.Item
-      href={route.route}
-      icon={() => <RouteIcon icon={route.icon} />}
-      label={
-        <div className="text-[15px] text-[#79808B] -mr-1">
-          <FaChevronRight />
+  return (
+    <div className="relative w-full">
+      {isActive && <ActiveIndicator />}
+      <Sidebar.Item
+        href={route.route}
+        icon={() => <RouteIcon icon={route.icon} />}
+        label={<FaChevronRight className="text-[15px] text-[#79808B] -mr-1" />}
+        labelColor="transparent"
+        className={`hover:text-[#0066ff] ${
+          isActive ? "bg-white text-[#0066ff]" : "text-[#79808B]"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <h3>{t(route.label)}</h3>
         </div>
-      }
-      labelColor="transparent"
-      className={`text-[#79808B] hover:text-[#0066ff]
-        ${isActive ? "bg-white text-[#0066ff]" : ""}`}
-    >
-      <h3>{t(route.label)}</h3>
-    </Sidebar.Item>
-  </div>
-  )
+      </Sidebar.Item>
+    </div>
+  );
 };
 
 interface CollapsibleRouteProps {
@@ -70,33 +72,58 @@ interface CollapsibleRouteProps {
   currentPath: string;
 }
 
-const CollapsibleRoute = ({ route, isActive, currentPath }: CollapsibleRouteProps) => {
-  
-  const {t} = useTranslation(translationConstant.SIDEBAR);
+const CollapsibleRoute = ({
+  route,
+  isActive,
+  currentPath,
+}: CollapsibleRouteProps) => {
+  const { t } = useTranslation(translationConstant.SIDEBAR);
 
-  return(
-  <div className="relative w-full">
-    {isActive && <ActiveIndicator />}
-    <Sidebar.Collapse
-      icon={() => <RouteIcon icon={route.icon} />}
-      label={t(route.label)}
-      className={`text-[#79808B] hover:text-[#0066ff] transition-all ease-out delay-75 
-        hover:bg-opacity-30 ${isActive ? "bg-white text-[#0066ff]" : ""}`}
-      open={isActive}
-    >
-      {route.children?.map((item) => (
-        <Sidebar.Item
-          key={item.id}
-          href={item.route}
-          className={`text-[#79808B] text-left text-sm 
-            ${currentPath === item.route ? "text-[#0F4698]" : ""}`}
-        >
-          {t(item.label)}
-        </Sidebar.Item>
-      ))}
-    </Sidebar.Collapse>
-  </div>
-  )
+  return (
+    <div className="relative w-full">
+      {isActive && <ActiveIndicator />}
+      <Sidebar.Collapse
+        icon={() => <RouteIcon icon={route.icon} />}
+        label={t(route.label)}
+        className={`text-[#79808B] hover:text-[#0066ff] transition-all ease-out delay-75 
+          hover:bg-opacity-30 ${isActive ? "bg-white text-[#0066ff]" : ""}`}
+        open={isActive}
+      >
+        {route.children?.map((item) => {
+          const isCurrent = currentPath === item.route;
+
+          return (
+            <Sidebar.Item
+              key={item.id}
+              href={item.route}
+              className={`text-left text-sm hover:text-[#0066ff] ${
+                isCurrent ? "text-[#0066ff]" : "text-[#79808B]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="relative w-4 h-4">
+                  {/* Outer circle */}
+                  <span
+                    className={`absolute inset-0 rounded-full transition-colors ${
+                      isCurrent ? "bg-[#B3D4FF]" : "bg-[#D1D5DB]"
+                    }`}
+                  />
+                  {/* Inner circle (centered) */}
+                  <span
+                    className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
+                      isCurrent ? "bg-[#0066ff]" : "bg-[#79808B]"
+                    }`}
+                  />
+                </span>
+
+                {t(item.label)}
+              </div>
+            </Sidebar.Item>
+          );
+        })}
+      </Sidebar.Collapse>
+    </div>
+  );
 };
 
 export const SidebarPanel = () => {
@@ -105,7 +132,7 @@ export const SidebarPanel = () => {
   const { setActiveTitle } = useContext(TabContext);
 
   const filteredRoutes = useMemo(() => {
-    if (userRole === 'super admin') return routeList;
+    if (userRole === "super admin") return routeList;
 
     const filterRoutes = (routes: Route[]): Route[] => {
       return routes
@@ -115,7 +142,7 @@ export const SidebarPanel = () => {
           );
 
           if (isParentAllowed) return route;
-          
+
           if (route.children) {
             const filteredChildren = filterRoutes(route.children);
             if (filteredChildren.length > 0) {
@@ -135,7 +162,9 @@ export const SidebarPanel = () => {
       for (const route of routes) {
         if (route.route === pathname) return route;
         if (route.children) {
-          const childRoute = route.children.find(child => child.route === pathname);
+          const childRoute = route.children.find(
+            (child) => child.route === pathname
+          );
           if (childRoute) return childRoute;
         }
       }
@@ -168,7 +197,7 @@ export const SidebarPanel = () => {
             }
 
             const isRouteActive = route.children.some(
-              item => pathname === item.route
+              (item) => pathname === item.route
             );
 
             return (

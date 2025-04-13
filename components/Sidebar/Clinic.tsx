@@ -1,6 +1,7 @@
 import { clinca_logo } from "@/assets/images";
 import Image from "next/image";
 import ChangeLocationModal from "./ChangeLocationModal";
+import { ChevronUp } from "lucide-react";
 // import ChangeLocationModal from "./ChangeLocationModal";
 
 export const Clinic = () => {
@@ -17,7 +18,8 @@ export const Clinic = () => {
           {/* <h3 className="text-[#FFFFFF] text-[12px]">Clinca San Miguel</h3> */}
           <ChangeLocationModal />
         </div>
-      </div>
+        <ChevronUp size={20} color="white" strokeWidth={3} />
+        </div>
     </article>
   );
 };

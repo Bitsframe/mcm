@@ -160,15 +160,18 @@ const SalesHistory = () => {
   }, []);
 
   return (
-    <main className="w-full h-full font-[500] text-[20px]">
-      <div className='flex justify-between items-center px-4 py-4 space-x-2'>
-        <h1 className='text-xl font-bold'>{t("POS-Historyk1")}</h1>
+    <main className="w-full h-full font-[500]">
+      <div className='flex justify-between items-center px-4 pt-4 space-x-2'>
+      <div>
+          <h1 className="text-2xl font-bold">History</h1>
+          <h1 className="mt-1 mb-2 text-gray-500">POS / History</h1>
+        </div>
         <div className='flex items-center space-x-3'>
           <ExportAsPDF />
         </div>
       </div>
 
-      <div className='w-full min-h-[82dvh] h-[100%] overflow-auto py-2 px-2'>
+      <div className='w-full min-h-[82dvh] h-[100%] overflow-auto px-4'>
         <TableComponent
           tableHeader={tableHeader}
           loading={loading}

@@ -13,7 +13,7 @@ import { translationConstant } from "@/utils/translationConstants";
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
   const { userProfile, userRole } = useContext(AuthContext);
-  
+
   const locale = useLocale();
   const { t } = useTranslation(translationConstant.SIDEBAR); // Direct namespace use kiya
 
@@ -29,19 +29,23 @@ export const Navbar = ({ width }: { width: string }) => {
 
   return (
     <header
-      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] pt-[6px]`}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] pt-[6px] z-50`}
       style={{ width: `calc(100% - ${width})` }}
     >
       <div className="text-[#121111] text-[16px] font-[700]">
         {/* {t(activeTitle)} */}
-       <div> <span className="text-[#79808B]">Welcome Back,</span>{userProfile?.full_name} </div>
+        <div>
+          {" "}
+          <span className="text-[#79808B]">Welcome Back,</span>
+          {userProfile?.full_name}{" "}
+        </div>
       </div>
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center pr-2">
         <div className="z-50 ">
           <LanguageChanger locale={locale} />
         </div>
         <div className="text-[#000000] text-[16px] bg-white p-4 rounded-full border-[1px] border-[#E0E0E0]">
-          <HiOutlineBell size={25}/>
+          <HiOutlineBell size={25} />
         </div>
         <MenuWithAvatar />
       </div>

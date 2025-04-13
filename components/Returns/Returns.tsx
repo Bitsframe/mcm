@@ -270,9 +270,12 @@ const Returns: FC<Props> = () => {
 
   const { t } = useTranslation(translationConstant.POSRETURN);
   return (
-    <main className="w-full  h-full font-[500] text-[20px]">
+    <main className="w-full  h-full font-[500]">
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
-        <h1 className="text-xl font-bold">{t("POS-Returnk1")}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Returns</h1>
+          <h1 className="mt-1 mb-2 text-gray-500">POS / Returns</h1>
+        </div>
 
         {/* <div >
                     <Select onChange={select_location_handle} defaultValue={selected_location} style={{ backgroundColor: '#D9D9D9' }} id="locations" required>
@@ -282,7 +285,7 @@ const Returns: FC<Props> = () => {
                 </div> */}
       </div>
 
-      <div className="w-full min-h-[80.5dvh] h-[100%] py-2 px-2 grid grid-cols-3 gap-2">
+      <div className="w-full min-h-[80.5dvh] h-[100%] py-1 px-4 grid grid-cols-3 gap-2">
         <div className="bg-[#F1F4F9] h-[100%] col-span-2 rounded-md">
           <div className="px-4 py-4">
             <input
@@ -294,203 +297,214 @@ const Returns: FC<Props> = () => {
           </div>
 
           <div className="px-4 pb-4">
-  <div className="bg-white rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
-    <div className="flex-1 overflow-auto">
-      <Table>
-        <TableHeader className="sticky top-0 bg-white z-10">
-          <TableRow className="font-medium border-b">
-            <TableHead className="p-4 w-10">
-              <input type="checkbox" className="rounded" />
-            </TableHead>
-            <TableHead className="text-left text-gray-600">
-              {t("POS-Returnk3")}
-              <button
-                onClick={() => sortHandle("return_id")}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === "return_id"
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-            <TableHead className="text-left text-gray-600">
-              {t("POS-Returnk4")}
-              <button
-                onClick={() => sortHandle("order_id")}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === "order_id"
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-            <TableHead className="text-left text-gray-600">
-              {t("POS-Returnk5")}
-              <button
-                onClick={() => sortHandle("quantity")}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === "order_id"
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-            <TableHead className="text-left text-gray-600">
-              {t("POS-Returnk6")}
-              <button
-                onClick={() => sortHandle("date")}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === "date"
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-            <TableHead className="text-left text-gray-600">
-              {t("POS-Returnk7")}
-              <button
-                onClick={() => sortHandle("category")}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === "category"
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+            <div className="bg-white rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+              <div className="flex-1 overflow-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-white z-10">
+                    <TableRow className="font-medium border-b">
+                      <TableHead className="p-4 w-10">
+                        <input type="checkbox" className="rounded" />
+                      </TableHead>
+                      <TableHead className="text-left text-gray-600">
+                        {t("POS-Returnk3")}
+                        <button
+                          onClick={() => sortHandle("return_id")}
+                          className="active:opacity-50 ml-1"
+                        >
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === "return_id"
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-left text-gray-600">
+                        {t("POS-Returnk4")}
+                        <button
+                          onClick={() => sortHandle("order_id")}
+                          className="active:opacity-50 ml-1"
+                        >
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === "order_id"
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-left text-gray-600">
+                        {t("POS-Returnk5")}
+                        <button
+                          onClick={() => sortHandle("quantity")}
+                          className="active:opacity-50 ml-1"
+                        >
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === "order_id"
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-left text-gray-600">
+                        {t("POS-Returnk6")}
+                        <button
+                          onClick={() => sortHandle("date")}
+                          className="active:opacity-50 ml-1"
+                        >
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === "date"
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-left text-gray-600">
+                        {t("POS-Returnk7")}
+                        <button
+                          onClick={() => sortHandle("category")}
+                          className="active:opacity-50 ml-1"
+                        >
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === "category"
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-        <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={6}>
-                <div className="flex h-full flex-1 flex-col justify-center items-center">
-                  <Spinner size="xl" />
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : dataList.length > 0 ? (
-            dataList.map((elem) => {
-              const {
-                return_id,
-                quantity,
-                sales_history: { order_id },
-                inventory: {
-                  products: {
-                    product_name,
-                    categories: { category_name },
-                  },
-                },
-              } = elem;
-              return (
-                <TableRow
-                  key={return_id}
-                  onClick={() => detailsViewHandle(elem)}
-                  className="cursor-pointer border-b hover:bg-gray-50"
-                >
-                  <TableCell className="p-4">
-                    <input
-                      type="checkbox"
-                      className="rounded"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </TableCell>
-                  <TableCell className="p-4">{return_id}</TableCell>
-                  <TableCell className="p-4">{order_id}</TableCell>
-                  <TableCell className="p-4">{quantity}</TableCell>
-                  <TableCell className="p-4">{product_name}</TableCell>
-                  <TableCell className="p-4">{category_name}</TableCell>
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6}>
-                <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center">
-                  <h1>{t("POS-Returnk8")}</h1>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <div className="flex h-full flex-1 flex-col justify-center items-center">
+                            <Spinner size="xl" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : dataList.length > 0 ? (
+                      dataList.map((elem) => {
+                        const {
+                          return_id,
+                          quantity,
+                          sales_history: { order_id },
+                          inventory: {
+                            products: {
+                              product_name,
+                              categories: { category_name },
+                            },
+                          },
+                        } = elem;
+                        return (
+                          <TableRow
+                            key={return_id}
+                            onClick={() => detailsViewHandle(elem)}
+                            className="cursor-pointer border-b hover:bg-gray-50"
+                          >
+                            <TableCell className="p-4">
+                              <input
+                                type="checkbox"
+                                className="rounded"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </TableCell>
+                            <TableCell className="p-4">{return_id}</TableCell>
+                            <TableCell className="p-4">{order_id}</TableCell>
+                            <TableCell className="p-4">{quantity}</TableCell>
+                            <TableCell className="p-4">
+                              {product_name}
+                            </TableCell>
+                            <TableCell className="p-4">
+                              {category_name}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center">
+                            <h1>{t("POS-Returnk8")}</h1>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-    <div className="p-4 flex justify-between items-center border-t">
-      <div className="text-sm text-gray-600">
-        0 of {dataList.length} row(s) selected.
-      </div>
-      <div className="flex gap-2">
-        <button className="px-4 py-2 border rounded-md text-base bg-white hover:bg-gray-50">
-          Previous
-        </button>
-        <button className="px-4 py-2 border rounded-md bg-white text-base hover:bg-gray-50">
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+              <div className="p-4 flex justify-between items-center border-t">
+                <div className="text-sm text-gray-600">
+                  0 of {dataList.length} row(s) selected.
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-4 py-2 border rounded-md text-base bg-white hover:bg-gray-50">
+                    Previous
+                  </button>
+                  <button className="px-4 py-2 border rounded-md bg-white text-base hover:bg-gray-50">
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-[#F1F4F9] h-full rounded-lg overflow-hidden flex flex-col">
-  <div className="px-6 py-5 border-b border-gray-100">
-    <h1 className="text-xl font-semibold text-gray-800">{t("POS-Returnk9")}</h1>
-  </div>
+          <div className="px-6 py-5 border-b border-gray-100">
+            <h1 className="text-xl font-semibold text-gray-800">
+              {t("POS-Returnk9")}
+            </h1>
+          </div>
 
-  {dataDetails && (
-    <div className="p-3 overflow-auto">
-      <div className="grid grid-cols-2  gap-3">
-        {detailsArray(dataDetails).map((detail, index) => (
-          <dl
-            className={`${detail.col_span_02 ? "col-span-2" : ""} bg-white rounded-lg p-4`}
-            key={index}
-          >
-            <dt className="text-sm text-gray-500 mb-1">{detail.label} </dt>
-            <dd className="text-base font-medium text-gray-900">{detail.value}</dd>
-          </dl>
-        ))}
-      </div>
+          {dataDetails && (
+            <div className="p-3 overflow-auto">
+              <div className="grid grid-cols-2  gap-3">
+                {detailsArray(dataDetails).map((detail, index) => (
+                  <dl
+                    className={`${
+                      detail.col_span_02 ? "col-span-2" : ""
+                    } bg-white rounded-lg p-4`}
+                    key={index}
+                  >
+                    <dt className="text-sm text-gray-500 mb-1">
+                      {detail.label}{" "}
+                    </dt>
+                    <dd className="text-base font-medium text-gray-900">
+                      {detail.value}
+                    </dd>
+                  </dl>
+                ))}
+              </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        <button
-          onClick={mergeHandle}
-          className="w-full px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Merge
-        </button>
-        <button
-          onClick={discardHandle}
-          disabled={deleteLoading}
-          className="w-full px-4 py-3 text-gray-700 bg-white rounded-lg hover:bg-gray-200 transition-colors"
-        >
-          Discard
-        </button>
-      </div>
-    </div>
-  )}
-</div>
-
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <button
+                  onClick={mergeHandle}
+                  className="w-full px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Merge
+                </button>
+                <button
+                  onClick={discardHandle}
+                  disabled={deleteLoading}
+                  className="w-full px-4 py-3 text-gray-700 bg-white rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

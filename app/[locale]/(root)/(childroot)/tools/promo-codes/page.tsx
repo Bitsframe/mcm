@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { Slidercomp } from "@/components/sliderComp";
 import { TabContext } from "@/context";
-import { EyeIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { Eye, EyeIcon, PencilIcon, TrashIcon } from "lucide-react";
 
 const fields = [
   {
@@ -292,19 +292,28 @@ const Page = () => {
 
   const deleteDataHandle = async () => {
     setModalLoading(true);
-    const selectedId = detailsView?.id;
+
+    // Get ID from EITHER newDetails (icon click) OR detailsView (sheet button)
+    const selectedId = newDetails?.id || detailsView?.id;
+
     const { data: res_data, error } = await delete_content_service({
       table: "promotype",
       id: selectedId!,
     });
+
     if (!error) {
-      setDataList((elem) => elem.filter((data: any) => data.id !== selectedId));
-      setAllData((elem) => elem.filter((data: any) => data.id !== selectedId));
-      setDetailsView(null);
-      toast.success("Deleled successfully");
+      // Update both data lists
+      setDataList((list) => list.filter((data) => data.id !== selectedId));
+      setAllData((list) => list.filter((data) => data.id !== selectedId));
+
+      // Reset states if deleted item was being viewed
+      if (detailsView?.id === selectedId) {
+        setDetailsView(null); // Close sheet if open
+      }
+
+      toast.success("Deleted successfully");
       closeModalHandle();
-    } else if (error) {
-      console.log(error.message);
+    } else {
       toast.error(error.message);
     }
 
@@ -376,14 +385,18 @@ const Page = () => {
     setActiveModalMode("create");
   };
   const editHandle = () => {
-    openModalHandle();
-    setNewDetails(detailsView);
-    setActiveModalMode("edit");
+    if (detailsView) {
+      setNewDetails(detailsView);
+      setActiveModalMode("edit");
+      openModalHandle();
+    }
   };
 
   const deleteHandle = () => {
-    openModalHandle();
-    setActiveModalMode("delete");
+    if (detailsView) {
+      setActiveModalMode("delete");
+      openModalHandle();
+    }
   };
 
   const { setActiveTitle } = useContext(TabContext);
@@ -406,20 +419,20 @@ const Page = () => {
           <div className="space-y-6 px-3 pb-4 flex justify-between mt-3">
             <div className="flex justify-between items-center w-full">
               <div>
-              <input
-                onChange={onChangeHandle}
-                type="text"
-                placeholder={t("Procode_k3")}
-                className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white"
-              />
+                <input
+                  onChange={onChangeHandle}
+                  type="text"
+                  placeholder={t("Procode_k3")}
+                  className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white"
+                />
               </div>
               <div>
-              <button
-                onClick={addNewHandle}
-                className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90"
-              >
-                {t("Procode_k2")}
-              </button>
+                <button
+                  onClick={addNewHandle}
+                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90"
+                >
+                  {t("Procode_k2")}
+                </button>
               </div>
             </div>
 
@@ -428,139 +441,157 @@ const Page = () => {
             </div> */}
           </div>
 
-          <div className="pt-5">
-  <Table className="border-collapse border border-gray-200 w-full">
-    <TableHeader>
-      <TableRow>
-        <TableHead className="text-left px-4 py-2 border-b border-gray-300">
-          <input type="checkbox" />
-        </TableHead>
-        {fields
-          .filter(({ table_column }) => table_column)
-          .map(({ id, label, align, type }, ind) => (
-            <TableHead
-              key={ind}
-              className={`${
-                align || "text-left"
-              } text-[#71717A] font-medium text-lg px-4 py-2 border-b border-gray-300`}
-            >
-              {t(label)}
-              <button
-                onClick={() => sortHandle(id, type)}
-                className="active:opacity-50 ml-1"
-              >
-                <PiCaretUpDownBold
-                  className={`inline ${
-                    sortColumn === id
-                      ? "text-green-600"
-                      : "text-gray-400/50"
-                  } hover:text-gray-600 active:text-gray-500`}
-                />
-              </button>
-            </TableHead>
-          ))}
-        <TableHead className="text-left text-[#71717A] font-medium text-lg px-4 py-2 border-b border-gray-300">
-          Actions
-        </TableHead>
-      </TableRow>
-    </TableHeader>
-
-    <TableBody>
-      {loading ? (
-        <TableRow>
-          <TableCell colSpan={fields.filter(f => f.table_column).length + 2}>
-            <div className="flex h-full flex-1 flex-col justify-center items-center">
-              <Spinner size="xl" />
-            </div>
-          </TableCell>
-        </TableRow>
-      ) : dataList.length > 0 ? (
-        dataList.map((elem) => {
-          const { id, status } = elem;
-          return (
-            <TableRow
-              key={id}
-              className="hover:bg-gray-50 cursor-pointer border-b border-gray-300"
-              onClick={() => detailsViewHandle(elem)}
-            >
-              <TableCell className="text-left px-4 py-2">
-                <input type="checkbox" />
-              </TableCell>
-
-              {fields
-                .filter(({ table_column }) => table_column)
-                .map(({ id: fieldKey, align, render_value }: any) => {
-                  const extract_val = render_value
-                    ? render_value(elem[fieldKey])
-                    : elem[fieldKey];
-
-                  return (
-                    <TableCell
-                      key={fieldKey}
-                      className={`${
-                        align || "text-left"
-                      } font-normal text-base px-5 py-2`}
-                    >
-                      {fieldKey === "status" ? (
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            extract_val === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-orange-100 text-orange-700"
-                          }`}
+          <div className="">
+            <Table className="border-collapse border border-gray-200 w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-left px-4 py-2 border-b border-gray-300">
+                    <input type="checkbox" />
+                  </TableHead>
+                  {fields
+                    .filter(({ table_column }) => table_column)
+                    .map(({ id, label, align, type }, ind) => (
+                      <TableHead
+                        key={ind}
+                        className={`${
+                          align || "text-left"
+                        } text-[#71717A] font-medium text-lg px-4 py-2 border-b text-left border-gray-300`}
+                      >
+                        {t(label)}
+                        <button
+                          onClick={() => sortHandle(id, type)}
+                          className="active:opacity-50 ml-1"
                         >
-                          {extract_val}
-                        </span>
-                      ) : (
-                        extract_val
-                      )}
+                          <PiCaretUpDownBold
+                            className={`inline ${
+                              sortColumn === id
+                                ? "text-green-600"
+                                : "text-gray-400/50"
+                            } hover:text-gray-600 active:text-gray-500`}
+                          />
+                        </button>
+                      </TableHead>
+                    ))}
+                  <TableHead className="text-left text-[#71717A] font-medium text-lg px-4 py-2 border-b border-gray-300">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={fields.filter((f) => f.table_column).length + 2}
+                    >
+                      <div className="flex h-full flex-1 flex-col justify-center items-center">
+                        <Spinner size="xl" />
+                      </div>
                     </TableCell>
-                  );
-                })}
+                  </TableRow>
+                ) : dataList.length > 0 ? (
+                  dataList.map((elem) => {
+                    const { id, status } = elem;
+                    return (
+                      <TableRow
+                        key={id}
+                        className="hover:bg-gray-50 cursor-pointer border-b border-gray-300"
+                        onClick={() => detailsViewHandle(elem)}
+                      >
+                        <TableCell className="text-left px-4 py-2">
+                          <input type="checkbox" />
+                        </TableCell>
 
-              <TableCell className="text-left px-4 py-2 space-x-2">
-                <button title="View" onClick={(e) => { e.stopPropagation(); }}>
-                  <EyeIcon className="text-gray-500 hover:text-black w-4 h-4" />
+                        {fields
+                          .filter(({ table_column }) => table_column)
+                          .map(({ id: fieldKey, align, render_value }: any) => {
+                            const extract_val = render_value
+                              ? render_value(elem[fieldKey])
+                              : elem[fieldKey];
+
+                            return (
+                              <TableCell
+                                key={fieldKey}
+                                className={`${
+                                  align || "text-left"
+                                } font-normal text-left text-base px-5 py-2`}
+                              >
+                                {fieldKey === "status" ? (
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      extract_val === "Active"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-orange-100 text-orange-700"
+                                    }`}
+                                  >
+                                    {extract_val}
+                                  </span>
+                                ) : (
+                                  extract_val
+                                )}
+                              </TableCell>
+                            );
+                          })}
+
+                        <TableCell className="text-left px-4 py-2 space-x-2">
+                          <EyeIcon
+                            className="text-gray-500 hover:text-black w-4 h-4 inline cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              detailsViewHandle(elem);
+                            }}
+                          />
+                          <PencilIcon
+                            className="text-blue-500 hover:text-blue-700 w-4 h-4 inline cursor-pointer ml-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNewDetails(elem);
+                              setActiveModalMode("edit");
+                              setIsOpenModal(true);
+                            }}
+                          />
+                          <TrashIcon
+                            className="text-red-500 hover:text-red-700 w-4 h-4 inline cursor-pointer ml-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNewDetails(elem);
+                              setActiveModalMode("delete");
+                              setIsOpenModal(true);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={fields.filter((f) => f.table_column).length + 2}
+                    >
+                      <div className="flex h-full flex-1 flex-col justify-center items-center">
+                        <h1>No Data found!</h1>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between mt-4 px-2">
+              <p className="text-sm text-muted-foreground">
+                0 of {dataList.length} row(s) selected.
+              </p>
+              <div className="flex space-x-2">
+                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
+                  Previous
                 </button>
-                <button title="Edit" onClick={(e) => { e.stopPropagation(); }}>
-                  <PencilIcon className="text-blue-500 hover:text-blue-700 w-4 h-4" />
+                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
+                  Next
                 </button>
-                <button title="Delete" onClick={(e) => { e.stopPropagation(); }}>
-                  <TrashIcon className="text-red-500 hover:text-red-700 w-4 h-4" />
-                </button>
-              </TableCell>
-            </TableRow>
-          );
-        })
-      ) : (
-        <TableRow>
-          <TableCell colSpan={fields.filter(f => f.table_column).length + 2}>
-            <div className="flex h-full flex-1 flex-col justify-center items-center">
-              <h1>No Data found!</h1>
+              </div>
             </div>
-          </TableCell>
-        </TableRow>
-      )}
-    </TableBody>
-  </Table>
-
-  {/* Footer */}
-  <div className="flex items-center justify-between mt-4 px-2">
-    <p className="text-sm text-muted-foreground">
-      0 of {dataList.length} row(s) selected.
-    </p>
-    <div className="flex space-x-2">
-      <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
-        Previous
-      </button>
-      <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
-        Next
-      </button>
-    </div>
-  </div>
-</div>
-
-
+          </div>
         </div>
 
         <Sheet
@@ -616,6 +647,7 @@ const Page = () => {
                       height="h-12"
                       label={t("Procode_k15")}
                       bg_color="bg-[#0066ff]"
+                      border="#0066ff"
                     />
                     <Action_Button
                       onClick={deleteHandle}
@@ -623,6 +655,7 @@ const Page = () => {
                       height="h-12"
                       label={t("Procode_k16")}
                       bg_color="bg-[#FFD2CC]"
+                      border="#FFD2CC"
                     />
                   </div>
                 </div>

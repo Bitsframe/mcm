@@ -187,9 +187,9 @@ const Appointments = () => {
 
   return (
     <main className="w-full h-full text-gray-600 font-medium space-y-5">
-      <h1 className="text-2xl font-bold text-black mb-6">Appointments</h1>
+      <h1 className="text-2xl font-bold text-black px-4 pt-4">Appointments</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
         <Card className="bg-gray-50">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-blue-50 p-3 rounded-lg">

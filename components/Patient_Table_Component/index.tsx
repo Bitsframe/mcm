@@ -315,9 +315,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   };
 
   return (
-    <main className="w-full h-full bg-white rounded-lg shadow-sm">
-      <div className="flex justify-between items-center px-6 py-5">
-        <h1 className="text-2xl font-bold text-gray-800">{t("Patients_k1")}</h1>
+    <main className="w-full">
+      <div className="px-6 pt-5">
+        <h1 className="text-2xl font-bold">
+          {renderType === "all"
+            ? t("Patients_k1")
+            : renderType === "onsite"
+            ? "Onsite Patients"
+            : "Offsite Patients"}
+        </h1>
+        <h1 className="mt-1 text-gray-500">
+          {renderType === "all"
+            ? "Patients  /  All"
+            : renderType === "onsite"
+            ? "Patients  /  Onsite"
+            : "Patients  /  Offsite"}
+        </h1>
       </div>
 
       <div className="flex items-center justify-between px-6 py-4">
@@ -545,7 +558,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="w-full px-6 pb-6">
+      <div className="w-full px-6">
         <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
@@ -701,7 +714,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         open={!!selectedPatient}
         onOpenChange={(open) => !open && setSelectedPatient(null)}
       >
-        <SheetContent className="sm:max-w-md">
+        <SheetContent>
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10">
               {/* <h3 className="text-xl font-semibold text-gray-900">{t("Patients_k7")}</h3>

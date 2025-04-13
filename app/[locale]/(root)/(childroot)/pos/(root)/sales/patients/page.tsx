@@ -452,7 +452,7 @@ const Patients = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="w-full bg-white font-normal text-base p-6">
+    <main className="w-full bg-white font-normal text-base p-3">
       {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger>
       <Button variant="outline" className="text-black mb-6 bg-white border-gray-300 hover:bg-gray-100">

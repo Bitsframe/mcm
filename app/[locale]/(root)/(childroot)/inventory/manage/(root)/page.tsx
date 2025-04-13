@@ -258,8 +258,9 @@ const Categories = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
     <main className="w-full h-full font-medium text-base">
-      <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
+      <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
+          <h1 className="text-lg font-semibold px-3 mb-3">Categories</h1>
           <div className="px-3 flex justify-between w-full">
             <div className="space-y-1">
               <div className="flex items-center w-full justify-between gap-x-3">

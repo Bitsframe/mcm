@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 
 interface DataListInterface {
   id: number;
@@ -51,11 +52,18 @@ const UserManagementComponent = () => {
   const [tableLoading, setTableLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
     setEditData(null);
+  };
+
+  const viewUserHandle = (user: any) => {
+    setSelectedUser(user);
+    setSheetOpen(true);
   };
 
   const onChangeHandle = (e: any) => {
@@ -264,7 +272,10 @@ const UserManagementComponent = () => {
                             ) : id === "actions" ? (
                               <div className="flex items-center space-x-4 justify-end">
                                 {/* View Button */}
-                                <button className="text-gray-500 hover:text-gray-700">
+                                <button
+                                  className="text-gray-500 hover:text-gray-700"
+                                  onClick={() => viewUserHandle(elem)}
+                                >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="20"
@@ -372,6 +383,43 @@ const UserManagementComponent = () => {
         submitHandle={editData ? editHandle : addNewHandle}
         loading={loading}
       />
+
+<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+  <SheetContent className="w-full max-w-md">
+    <SheetHeader>
+      <SheetTitle className="text-xl font-semibold">User Details</SheetTitle>
+    </SheetHeader>
+    {selectedUser && (
+      <div className="grid gap-5 py-6">
+        <div className="space-y-0.5">
+          <div className="text-sm text-muted-foreground">Name</div>
+          <div className="font-medium text-base">{selectedUser.full_name}</div>
+        </div>
+        <div className="space-y-0.5">
+          <div className="text-sm text-muted-foreground">Role</div>
+          <div className="font-medium text-base">{selectedUser.role}</div>
+        </div>
+        <div className="space-y-0.5">
+          <div className="text-sm text-muted-foreground">Email</div>
+          <div className="font-medium text-base">{selectedUser.email}</div>
+        </div>
+        <div className="space-y-0.5">
+          <div className="text-sm text-muted-foreground">Locations</div>
+          <div className="font-medium text-base space-y-1">
+            {selectedUser.locations.length > 0 ? (
+              selectedUser.locations.map((loc: any, idx: number) => (
+                <div key={idx}>{loc.title}</div>
+              ))
+            ) : (
+              <span>No locations assigned</span>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </SheetContent>
+</Sheet>
+
     </div>
   );
 };

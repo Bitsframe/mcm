@@ -351,7 +351,7 @@ const Products = () => {
 
       <div className='w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2'>
         <div className=' h-[100%]  col-span-2 rounded-md py-2   ' >
-
+Products
         <div className='px-3 py-4 flex justify-between items-center'>
   <div className='flex items-center gap-x-3'>
 
@@ -375,7 +375,7 @@ const Products = () => {
 </div>
 
 
-          <div className='px-3 pt-5'>
+          <div className=' pt-5'>
   <div className="border rounded-md">
     <Table>
       <TableHeader className='bg-gray-50 border-b border-b-[#E4E4E7]'>

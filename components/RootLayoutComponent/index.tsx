@@ -66,12 +66,11 @@ const MainContent = ({ children }: { children: ReactNode }) => {
     <section
       className="flex-grow p-4 mt-20 rounded-3xl"
       style={{
-        minHeight: '100vh',
+        minHeight: '110vh',
         overflowY: 'hidden',
         backgroundColor: LAYOUT_CONFIG.backgroundColor
       }}
-    >
-      {t(formattedTitle)}                                        
+    >                                      
       {children}
     </section>
   </section>

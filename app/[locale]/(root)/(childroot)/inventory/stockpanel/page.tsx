@@ -159,6 +159,7 @@ const StockPanel = () => {
 
   return (
     <main className="w-full h-full font-[500] text-[20px]">
+      <h1 className="text-2xl font-bold p-3">Appointments</h1>
       <div className='w-full min-h-[81dvh] h-[100%] overflow-auto py-2 px-2'>
         <InventoryCards archived={getDataArchiveType} />
         <TableComponent
