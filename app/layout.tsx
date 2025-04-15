@@ -17,11 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-
-        <ThemeProviderWrapper>{children}
-        <Toaster position="top-right" />
+        <ThemeProviderWrapper>
+          {children}
+          <Toaster position="top-right" />
         </ThemeProviderWrapper>
       </body>
     </html>
