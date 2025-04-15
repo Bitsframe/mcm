@@ -1,28 +1,34 @@
-"use client"
+"use client";
 
-import { useContext, useEffect, useState, useCallback, memo } from "react"
+import { useContext, useEffect, useState, useCallback, memo } from "react";
 import {
   delete_appointment_service,
   fetchApprovedAppointmentsByLocation,
   fetchUnapprovedAppointmentsByLocation,
-} from "@/utils/supabase/data_services/data_services"
-import { toast } from "react-toastify"
-import moment from "moment"
-import { DatePicker } from "antd"
-import { Add_Appointment_Modal } from "@/components/Appointment/Add_Appointment_Modal"
-import { LocationContext } from "@/context"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import AppointmentDetails from "@/components/Appointment-details/Appointment-Details"
-import { useLocationClinica } from "@/hooks/useLocationClinica"
-import AppointmentsTable from "@/components/Appointment/Appointment-table"
-import { useTranslation } from "react-i18next"
-import { translationConstant } from "@/utils/translationConstants"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { AppointmentEditModal } from "@/components/Appointment/Appointment_Edit/Appointment_Edit_Modal"
-import { TabContext } from "@/context"
-import { Calendar, CheckCircle, Clock, CirclePlus, UserPlus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+} from "@/utils/supabase/data_services/data_services";
+import { toast } from "react-toastify";
+import moment from "moment";
+import { DatePicker } from "antd";
+import { Add_Appointment_Modal } from "@/components/Appointment/Add_Appointment_Modal";
+import { LocationContext } from "@/context";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppointmentDetails from "@/components/Appointment-details/Appointment-Details";
+import { useLocationClinica } from "@/hooks/useLocationClinica";
+import AppointmentsTable from "@/components/Appointment/Appointment-table";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { AppointmentEditModal } from "@/components/Appointment/Appointment_Edit/Appointment_Edit_Modal";
+import { TabContext } from "@/context";
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  CirclePlus,
+  UserPlus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Appointment {
   id: number;
@@ -43,147 +49,164 @@ interface Appointment {
 }
 
 const Appointments = () => {
-  const { locations } = useLocationClinica()
-  const [approvedAppointments, setApprovedAppointments] = useState<Appointment[]>([])
-  const [unapprovedAppointments, setUnapprovedAppointments] = useState<Appointment[]>([])
-  const [filteredApproved, setFilteredApproved] = useState<Appointment[]>([])
-  const [filteredUnapproved, setFilteredUnapproved] = useState<Appointment[]>([])
-  const [appointLoading, setAppointLoading] = useState(true)
-  const [appointmentDetails, setAppointmentDetails] = useState<Appointment | null>(null)
-  const [sortColumn, setSortColumn] = useState<string>("")
-  const [activeTab, setActiveTab] = useState("approved")
-  const [isSheetopen, setisSheetopen] = useState(false)
-  const [editAppointment, setEditAppointment] = useState<Appointment | null>(null)
+  const { locations } = useLocationClinica();
+  const [approvedAppointments, setApprovedAppointments] = useState<
+    Appointment[]
+  >([]);
+  const [unapprovedAppointments, setUnapprovedAppointments] = useState<
+    Appointment[]
+  >([]);
+  const [filteredApproved, setFilteredApproved] = useState<Appointment[]>([]);
+  const [filteredUnapproved, setFilteredUnapproved] = useState<Appointment[]>(
+    []
+  );
+  const [appointLoading, setAppointLoading] = useState(true);
+  const [appointmentDetails, setAppointmentDetails] =
+    useState<Appointment | null>(null);
+  const [sortColumn, setSortColumn] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("approved");
+  const [isSheetopen, setisSheetopen] = useState(false);
+  const [editAppointment, setEditAppointment] = useState<Appointment | null>(
+    null
+  );
+  const [selectedAppointments, setSelectedAppointments] = useState<number[]>(
+    []
+  );
 
-  const { setActiveTitle } = useContext(TabContext)
+  const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
-    setActiveTitle("Sidebar_k7")
-  }, [])
+    setActiveTitle("Sidebar_k7");
+  }, []);
 
-  const { selectedLocation } = useContext(LocationContext)
+  const { selectedLocation } = useContext(LocationContext);
 
   const fetchDataHandler = useCallback(async (locationId: number) => {
-    setAppointLoading(true)
-    setisSheetopen(false)
+    setAppointLoading(true);
+    setisSheetopen(false);
     try {
       const [approvedData, unapprovedData] = await Promise.all([
         fetchApprovedAppointmentsByLocation(locationId),
         fetchUnapprovedAppointmentsByLocation(locationId),
-      ])
+      ]);
 
-      setApprovedAppointments(approvedData as any)
-      setFilteredApproved(approvedData as any)
-      setUnapprovedAppointments(unapprovedData as any)
-      setFilteredUnapproved(unapprovedData as any)
+      setApprovedAppointments(approvedData as any);
+      setFilteredApproved(approvedData as any);
+      setUnapprovedAppointments(unapprovedData as any);
+      setFilteredUnapproved(unapprovedData as any);
     } catch (error) {
-      toast.error("Failed to fetch appointments.")
+      toast.error("Failed to fetch appointments.");
     } finally {
-      setAppointLoading(false)
+      setAppointLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (selectedLocation) {
-      fetchDataHandler(Number(selectedLocation.id))
+      fetchDataHandler(Number(selectedLocation.id));
     }
-  }, [selectedLocation, fetchDataHandler])
+  }, [selectedLocation, fetchDataHandler]);
 
   const findLocations = useCallback(
     (locationId: number) => {
-      return locations.find((location: any) => location.id === locationId)
+      return locations.find((location: any) => location.id === locationId);
     },
-    [locations],
-  )
+    [locations]
+  );
 
   const selectForDetailsHandle = useCallback((appoint: Appointment) => {
-    setAppointmentDetails(appoint)
-    setisSheetopen(true)
-  }, [])
+    setAppointmentDetails(appoint);
+    setisSheetopen(true);
+  }, []);
 
   const handleEditAppointment = useCallback((appointment: Appointment) => {
-    setEditAppointment(appointment)
-    setisSheetopen(false)
-  }, [])
+    setEditAppointment(appointment);
+    setisSheetopen(false);
+  }, []);
 
   const deleteAppointmentsHandle = useCallback(async (delId: number) => {
-    const { error } = await delete_appointment_service(Number(delId))
+    const { error } = await delete_appointment_service(Number(delId));
     if (!error) {
-      const updateState = (prev: Appointment[]) => prev.filter((appoint) => appoint.id !== delId)
-      setApprovedAppointments(updateState)
-      setFilteredApproved(updateState)
-      setUnapprovedAppointments(updateState)
-      setFilteredUnapproved(updateState)
+      const updateState = (prev: Appointment[]) =>
+        prev.filter((appoint) => appoint.id !== delId);
+      setApprovedAppointments(updateState);
+      setFilteredApproved(updateState);
+      setUnapprovedAppointments(updateState);
+      setFilteredUnapproved(updateState);
 
-      toast.success("Deleted successfully")
-      setAppointmentDetails(null)
+      toast.success("Deleted successfully");
+      setAppointmentDetails(null);
     } else {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }, [])
+  }, []);
 
   const filterHandle = useCallback(
     (e: moment.Moment | null) => {
       if (e) {
-        const dateToMoment = moment(e.toString()).format("YYYY-MM-DD")
+        const dateToMoment = moment(e.toString()).format("YYYY-MM-DD");
         const filterByDate = (appointments: Appointment[]) => {
           return appointments.filter((appoint) => {
             if (appoint.date_and_time) {
-              const cleanedStr = appoint.date_and_time.replace(/^\d+\|/, "")
-              const dateStr = cleanedStr.split(" - ")[0]
-              const formattedDate = moment(dateStr, "DD-MM-YYYY").format("YYYY-MM-DD")
-              return formattedDate === dateToMoment
+              const cleanedStr = appoint.date_and_time.replace(/^\d+\|/, "");
+              const dateStr = cleanedStr.split(" - ")[0];
+              const formattedDate = moment(dateStr, "DD-MM-YYYY").format(
+                "YYYY-MM-DD"
+              );
+              return formattedDate === dateToMoment;
             }
-            return false
-          })
-        }
+            return false;
+          });
+        };
 
-        setFilteredApproved(filterByDate(approvedAppointments))
-        setFilteredUnapproved(filterByDate(unapprovedAppointments))
+        setFilteredApproved(filterByDate(approvedAppointments));
+        setFilteredUnapproved(filterByDate(unapprovedAppointments));
       } else {
-        setFilteredApproved(approvedAppointments)
-        setFilteredUnapproved(unapprovedAppointments)
+        setFilteredApproved(approvedAppointments);
+        setFilteredUnapproved(unapprovedAppointments);
       }
-      setAppointmentDetails(null)
+      setAppointmentDetails(null);
     },
-    [approvedAppointments, unapprovedAppointments],
-  )
+    [approvedAppointments, unapprovedAppointments]
+  );
 
   const sortHandle = useCallback(
     (column: string) => {
-      setSortColumn(column)
+      setSortColumn(column);
       const sortAppointments = (appointments: Appointment[]) => {
         return [...appointments].sort((a, b) => {
           switch (column) {
             case "name":
-              return `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
+              return `${a.first_name} ${a.last_name}`.localeCompare(
+                `${b.first_name} ${b.last_name}`
+              );
             case "gender":
-              return a.sex.localeCompare(b.sex)
+              return a.sex.localeCompare(b.sex);
             case "service":
-              return a.service.localeCompare(b.service)
+              return a.service.localeCompare(b.service);
             case "slot":
-              return a.date_and_time.localeCompare(b.date_and_time)
+              return a.date_and_time.localeCompare(b.date_and_time);
             case "time":
-              return a.date_and_time.localeCompare(b.date_and_time)
+              return a.date_and_time.localeCompare(b.date_and_time);
             default:
-              return 0
+              return 0;
           }
-        })
-      }
+        });
+      };
 
-      setFilteredApproved(sortAppointments(filteredApproved))
-      setFilteredUnapproved(sortAppointments(filteredUnapproved))
+      setFilteredApproved(sortAppointments(filteredApproved));
+      setFilteredUnapproved(sortAppointments(filteredUnapproved));
     },
-    [filteredApproved, filteredUnapproved],
-  )
+    [filteredApproved, filteredUnapproved]
+  );
 
   const newAddedRow = useCallback(() => {
     if (selectedLocation) {
-      fetchDataHandler(Number(selectedLocation.id))
+      fetchDataHandler(Number(selectedLocation.id));
     }
-  }, [selectedLocation, fetchDataHandler])
+  }, [selectedLocation, fetchDataHandler]);
 
-  const { t } = useTranslation(translationConstant.APPOINMENTS)
+  const { t } = useTranslation(translationConstant.APPOINMENTS);
 
   return (
     <main className="w-full h-full text-gray-600 font-medium space-y-5">
@@ -197,7 +220,9 @@ const Appointments = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Appointments</p>
-              <h2 className="text-2xl font-bold">{approvedAppointments.length + unapprovedAppointments.length}</h2>
+              <h2 className="text-2xl font-bold">
+                {approvedAppointments.length + unapprovedAppointments.length}
+              </h2>
             </div>
           </CardContent>
         </Card>
@@ -209,7 +234,9 @@ const Appointments = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Approved Appointments</p>
-              <h2 className="text-2xl font-bold">{approvedAppointments.length}</h2>
+              <h2 className="text-2xl font-bold">
+                {approvedAppointments.length}
+              </h2>
             </div>
           </CardContent>
         </Card>
@@ -221,7 +248,9 @@ const Appointments = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Pending Appointments</p>
-              <h2 className="text-2xl font-bold">{unapprovedAppointments.length}</h2>
+              <h2 className="text-2xl font-bold">
+                {unapprovedAppointments.length}
+              </h2>
             </div>
           </CardContent>
         </Card>
@@ -233,7 +262,9 @@ const Appointments = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">New Appointments</p>
-              <h2 className="text-2xl font-bold">{unapprovedAppointments.length}</h2>
+              <h2 className="text-2xl font-bold">
+                {unapprovedAppointments.length}
+              </h2>
             </div>
           </CardContent>
         </Card>
@@ -241,7 +272,11 @@ const Appointments = () => {
 
       <div className="bg-white rounded-lg p-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <Tabs className="w-full" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            className="w-full"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="bg-gray-100 p-1 rounded-lg">
               <TabsTrigger
                 value="approved"
@@ -289,7 +324,9 @@ const Appointments = () => {
 
         <AppointmentsTable
           isUnapproved={activeTab === "request"}
-          appointments={activeTab === "approved" ? filteredApproved : filteredUnapproved}
+          appointments={
+            activeTab === "approved" ? filteredApproved : filteredUnapproved
+          }
           appointLoading={appointLoading}
           onSelect={selectForDetailsHandle}
           onEdit={handleEditAppointment}
@@ -297,9 +334,23 @@ const Appointments = () => {
           sortColumn={sortColumn}
           //@ts-ignore
           onDelete={deleteAppointmentsHandle}
+          //@ts-ignore
+          selectedAppointments={selectedAppointments}
+          //@ts-ignore
+          setSelectedAppointments={setSelectedAppointments}
         />
         <div className="mt-5">
-        {approvedAppointments.length} of row(s) selected
+          {selectedAppointments.length > 0
+            ? `${selectedAppointments.length} of ${
+                activeTab === "approved"
+                  ? approvedAppointments.length
+                  : unapprovedAppointments.length
+              } row(s) selected`
+            : `${
+                activeTab === "approved"
+                  ? approvedAppointments.length
+                  : unapprovedAppointments.length
+              } row(s) in total`}
         </div>
       </div>
 
@@ -311,8 +362,8 @@ const Appointments = () => {
         updateReflectOnCloseModal={newAddedRow}
       />
     </main>
-  )
-}
+  );
+};
 
 const AppointmentDetailsPanel = ({
   isSheetopen,
@@ -321,20 +372,20 @@ const AppointmentDetailsPanel = ({
   findLocations,
   updateReflectOnCloseModal,
 }: {
-  isSheetopen: boolean
-  appointmentDetails: Appointment | null
-  onDelete: (id: number) => void
-  findLocations: (id: number) => any
-  updateReflectOnCloseModal: () => void
+  isSheetopen: boolean;
+  appointmentDetails: Appointment | null;
+  onDelete: (id: number) => void;
+  findLocations: (id: number) => any;
+  updateReflectOnCloseModal: () => void;
 }) => {
-  const { t } = useTranslation(translationConstant.APPOINMENTS)
+  const { t } = useTranslation(translationConstant.APPOINMENTS);
 
   return (
     <Sheet
       open={!!appointmentDetails && isSheetopen}
       onOpenChange={(open) => {
         if (!open) {
-          updateReflectOnCloseModal()
+          updateReflectOnCloseModal();
         }
       }}
     >
@@ -360,7 +411,7 @@ const AppointmentDetailsPanel = ({
         </div>
       </SheetContent>
     </Sheet>
-  )
-}
+  );
+};
 
-export default memo(Appointments)
+export default memo(Appointments);

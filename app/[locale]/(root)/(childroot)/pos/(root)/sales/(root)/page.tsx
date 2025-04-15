@@ -398,7 +398,7 @@ const Orders = () => {
   return (
     <main className="w-full h-full font-[500] text-[20px]">
       <div className="w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F9] h-[75dvh] overflow-auto col-span-2 rounded-md py-6 px-6">
+        <div className="bg-[#F1F4F9] h-[75dvh] overflow-auto col-span-2 rounded-md">
           <span>
             <div className="space-y-6">
               {fetchingDataLoading ? (

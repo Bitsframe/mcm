@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Spinner } from "flowbite-react"
 import { memo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -30,8 +29,10 @@ interface AppointmentsTableProps {
   sortHandle: (column: string) => void
   sortColumn: string
   isUnapproved?: boolean
-  onEdit?:any
+  onEdit?: any
   onDelete?: (id: string) => void;
+  selectedAppointments: string[];
+  setSelectedAppointments: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
@@ -42,159 +43,201 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   sortColumn,
   isUnapproved,
   onEdit,
-  onDelete
+  onDelete,
+  selectedAppointments,
+  setSelectedAppointments
 }) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
+  const handleSelect = (id: string, isSelected: boolean) => {
+    setSelectedAppointments(prev => 
+      isSelected 
+        ? [...prev, id] 
+        : prev.filter(appId => appId !== id)
+    );
+  };
+
+  const handleSelectAll = (isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedAppointments(appointments.map((app: Appointment) => app.id));
+    } else {
+      setSelectedAppointments([]);
+    }
+  };
+
+  const allSelected = selectedAppointments.length === appointments.length && appointments.length > 0;
+  const someSelected = selectedAppointments.length > 0 && !allSelected;
+
   return (
     <div className="w-full bg-white rounded-lg shadow overflow-hidden">
-  {appointLoading ? (
-    <div className="flex h-40 flex-col justify-center items-center">
-      <Spinner size="xl" />
+      {appointLoading ? (
+        <div className="flex h-40 flex-col justify-center items-center">
+          <Spinner size="xl" />
+        </div>
+      ) : appointments.length === 0 ? (
+        <div className="flex h-40 flex-col justify-center items-center">
+          <h1 className="text-gray-500 font-medium">No Appointments Available</h1>
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      //@ts-ignore
+                      indeterminate={someSelected}
+                    />
+                  </TableHead>
+                  {[ 
+                    { label: t("Appoinments_k26"), sort: "name" },
+                    { label: t("Appoinments_k27"), sort: "gender" },
+                    { label: t("Appoinments_k28"), sort: "service" },
+                    { label: t("Appoinments_k2"), sort: "slot" },
+                    { label: t("Appoinments_k1"), sort: "time" },
+                  ].map(({ label, sort }) => (
+                    <TableHead key={sort} className="font-medium">
+                      {label}
+                      <button
+                        onClick={() => sortHandle(sort)}
+                        className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
+                      >
+                        <PiCaretUpDownBold className={`inline ${sortColumn === sort ? "text-green-600" : ""}`} />
+                      </button>
+                    </TableHead>
+                  ))}
+                  <TableHead className="font-medium">Status</TableHead>
+                  <TableHead className="font-medium text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {appointments.map((appointment: Appointment) => (
+                  <MemoizedTableRow
+                    key={appointment.id}
+                    appointment={appointment}
+                    isSelected={selectedAppointments.includes(appointment.id)}
+                    onSelect={onSelect}
+                    onCheckboxChange={(checked) => handleSelect(appointment.id, checked)}
+                    isUnapproved={isUnapproved}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="px-4 py-2 text-sm text-gray-500">
+            {selectedAppointments.length > 0 
+              ? `${selectedAppointments.length} of ${appointments.length} row(s) selected`
+              : `0 of ${appointments.length} row(s) in total`}
+          </div>
+        </>
+      )}
     </div>
-  ) : appointments.length === 0 ? (
-    <div className="flex h-40 flex-col justify-center items-center">
-      <h1 className="text-gray-500 font-medium">No Appointments Available</h1>
-    </div>
-  ) : (
-    <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-      <Table>
-        <TableHeader className="bg-gray-50">
-          <TableRow>
-            <TableHead className="w-12">
-              <Checkbox />
-            </TableHead>
-            {[ 
-              { label: t("Appoinments_k26"), sort: "name" },
-              { label: t("Appoinments_k27"), sort: "gender" },
-              { label: t("Appoinments_k28"), sort: "service" },
-              { label: t("Appoinments_k2"), sort: "slot" },
-              { label: t("Appoinments_k1"), sort: "time" },
-            ].map(({ label, sort }) => (
-              <TableHead key={sort} className="font-medium">
-                {label}
-                <button
-                  onClick={() => sortHandle(sort)}
-                  className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
-                >
-                  <PiCaretUpDownBold className={`inline ${sortColumn === sort ? "text-green-600" : ""}`} />
-                </button>
-              </TableHead>
-            ))}
-            <TableHead className="font-medium">Status</TableHead>
-            <TableHead className="font-medium text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {appointments.map((appointment: Appointment) => (
-            <MemoizedTableRow
-              key={appointment.id}
-              appointment={appointment}
-              isSelected={false}
-              onSelect={onSelect}
-              isUnapproved={isUnapproved}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
-        </TableBody>
-      </Table>
-
-    </div>
-   
-  )}
-</div>
   )
 }
 
-const MemoizedTableRow = memo(
-  ({
-    appointment,
-    isSelected,
-    onSelect,
-    isUnapproved,
-    onDelete,
-    onEdit
-  }: {
-    appointment: Appointment
-    isSelected: boolean
-    isUnapproved?: boolean
-    onSelect: (appointment: Appointment) => void
-    onDelete?: (id: string) => void;
-    onEdit?: (appointment: Appointment) => void
-  }) => {
-    const handleApprove = (event: React.MouseEvent) => {
-      event.stopPropagation()
-      console.log("Approve button clicked")
-      // @ts-ignore
-      ApproveAppointment(appointment.id)
-      toast.success(
-        <div className="flex justify-between">
-          <p>Appointment has been approved successfully.</p>
-          <button onClick={() => toast.dismiss()} className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100">
-            <span className="text-sm">&#x2715;</span>
-          </button>
-        </div>,
-      )
-    }
+interface MemoizedTableRowProps {
+  appointment: Appointment;
+  isSelected: boolean;
+  onSelect: (appointment: Appointment) => void;
+  onCheckboxChange: (checked: boolean) => void;
+  isUnapproved?: boolean;
+  onDelete?: (id: string) => void;
+  onEdit?: (appointment: Appointment) => void;
+}
 
-    const date = renderFormattedDate(appointment.date_and_time?.split("|")[1]?.split(" - ")[0])
-    const time = appointment.date_and_time?.split(" - ")?.[1]
-
-    return (
-      <TableRow onClick={() => onSelect(appointment)} className={`hover:bg-gray-50 ${isSelected ? "bg-gray-100" : ""}`}>
-        <TableCell className="w-12">
-          <Checkbox />
-        </TableCell>
-        <TableCell className="font-medium">
-          {appointment.first_name} {appointment.last_name}
-        </TableCell>
-        <TableCell className="p-4">{appointment.sex}</TableCell>
-        <TableCell>{appointment.service}</TableCell>
-        <TableCell>{date}</TableCell>
-        <TableCell>{time}</TableCell>
-        <TableCell>
-          {isUnapproved ? (
-            <button className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs" onClick={handleApprove}>
-              Approve
-            </button>
-          ) : (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              Approved ✓
-            </span>
-          )}
-        </TableCell>
-        <TableCell className="text-right">
-          <div className="flex justify-end space-x-2">
-            <button className="text-gray-500 hover:text-gray-700">
-              <Eye color="black" className="h-4 w-4" />
-            </button>
-            <button 
-  className="text-gray-500 hover:text-blue-600"
-  onClick={(e) => {
-    e.stopPropagation() // Prevent row selection
-    onEdit?.(appointment) // Trigger edit
-  }}
->
-  <SquarePen color="#0066ff" className="h-4 w-4" />
-</button>
-            <button 
-        className="text-gray-500 hover:text-red-600"
-        onClick={(e) => {
-          e.stopPropagation(); // Prevent row selection
-          onDelete?.(appointment.id); // Trigger onDelete
-        }}
-      >
-        <Trash2 color="red" className="h-4 w-4" />
-      </button>
-          </div>
-        </TableCell>
-      </TableRow>
+const MemoizedTableRow = memo(({
+  appointment,
+  isSelected,
+  onSelect,
+  onCheckboxChange,
+  isUnapproved,
+  onDelete,
+  onEdit
+}: MemoizedTableRowProps) => {
+  const handleApprove = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    console.log("Approve button clicked")
+    // @ts-ignore
+    ApproveAppointment(appointment.id)
+    toast.success(
+      <div className="flex justify-between">
+        <p>Appointment has been approved successfully.</p>
+        <button onClick={() => toast.dismiss()} className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100">
+          <span className="text-sm">&#x2715;</span>
+        </button>
+      </div>,
     )
-  },
-)
+  }
+
+  const date = renderFormattedDate(appointment.date_and_time?.split("|")[1]?.split(" - ")[0])
+  const time = appointment.date_and_time?.split(" - ")?.[1]
+
+  return (
+    <TableRow 
+      onClick={() => onSelect(appointment)} 
+      className={`hover:bg-gray-50 ${isSelected ? "bg-gray-100" : ""}`}
+    >
+      <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
+        <Checkbox 
+          checked={isSelected}
+          onCheckedChange={onCheckboxChange}
+        />
+      </TableCell>
+      <TableCell className="font-medium">
+        {appointment.first_name} {appointment.last_name}
+      </TableCell>
+      <TableCell className="p-4">{appointment.sex}</TableCell>
+      <TableCell>{appointment.service}</TableCell>
+      <TableCell>{date}</TableCell>
+      <TableCell>{time}</TableCell>
+      <TableCell>
+        {isUnapproved ? (
+          <button 
+            className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs" 
+            onClick={handleApprove}
+          >
+            Approve
+          </button>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Approved ✓
+          </span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end space-x-2">
+          <button className="text-gray-500 hover:text-gray-700">
+            <Eye color="black" className="h-4 w-4" />
+          </button>
+          <button 
+            className="text-gray-500 hover:text-blue-600"
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit?.(appointment)
+            }}
+          >
+            <SquarePen color="#0066ff" className="h-4 w-4" />
+          </button>
+          <button 
+            className="text-gray-500 hover:text-red-600"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete?.(appointment.id)
+            }}
+          >
+            <Trash2 color="red" className="h-4 w-4" />
+          </button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+})
 
 MemoizedTableRow.displayName = "MemoizedTableRow"
 
 export default AppointmentsTable
-

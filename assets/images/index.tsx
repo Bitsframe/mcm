@@ -13,4 +13,7 @@ import Globe from "./Logos/Globe.png"
 import Group53 from "./Logos/Group53.png"
 import blueshade from "./Logos/blueshade.png"
 import Ellipse from "./Logos/Ellipse.png"
-export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp, Group47, Group44, Group52, Globe, Group53, blueshade, Ellipse };
+import Vector from "./Logos/Vector.png"
+import Group193 from "./Logos/Group193.png"
+import Group198 from "./Logos/Group198.png"
+export { Logo, Avatar, clinca_logo, Darklogo, Lightlogo, Image404, Eng, Esp, Group47, Group44, Group52, Globe, Group53, blueshade, Ellipse, Vector, Group193, Group198 };

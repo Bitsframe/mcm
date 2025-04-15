@@ -108,6 +108,18 @@ const Returns: FC<Props> = () => {
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState("");
 
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+  const handleCheckboxChange = (return_id: number, isChecked: boolean) => {
+    if (isChecked) {
+      // Agar checkbox tick hua toh us row ka ID add karo
+      setSelectedRows([...selectedRows, return_id]);
+    } else {
+      // Agar untick hua toh ID hata do
+      setSelectedRows(selectedRows.filter((id) => id !== return_id));
+    }
+  };
+
   const onChangeHandle = (e: any) => {
     const val = e.target.value;
     if (val === "") {
@@ -414,8 +426,15 @@ const Returns: FC<Props> = () => {
                             <TableCell className="p-4">
                               <input
                                 type="checkbox"
-                                className="rounded"
-                                onClick={(e) => e.stopPropagation()}
+                                className="rounded border-2 border-black"
+                                checked={selectedRows.includes(return_id)} // Show if checked or not
+                                onChange={(e) => {
+                                  e.stopPropagation(); // TableRow ke click se bachao
+                                  handleCheckboxChange(
+                                    return_id,
+                                    e.target.checked
+                                  ); // Function call
+                                }}
                               />
                             </TableCell>
                             <TableCell className="p-4">{return_id}</TableCell>
@@ -445,7 +464,7 @@ const Returns: FC<Props> = () => {
 
               <div className="p-4 flex justify-between items-center border-t">
                 <div className="text-sm text-gray-600">
-                  0 of {dataList.length} row(s) selected.
+                  {selectedRows.length} of {dataList.length} row(s) selected.{" "}
                 </div>
                 <div className="flex gap-2">
                   <button className="px-4 py-2 border rounded-md text-base bg-white hover:bg-gray-50">

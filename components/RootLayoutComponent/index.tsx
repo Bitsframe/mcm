@@ -59,7 +59,7 @@ const MainContent = ({ children }: { children: ReactNode }) => {
 
   return(
   <section
-    className="flex flex-col flex-grow bg-[#F1F4F9]"
+    className="flex flex-col flex-grow bg-[#F1F4F9] h-[60rem]"
     style={{ marginLeft: LAYOUT_CONFIG.sidebarWidth }}
   >
     <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
@@ -89,7 +89,7 @@ const RootLayoutComponent = ({ children }: RootLayoutProps) => {
   }
 
   return (
-    <div className="relative flex h-screen">
+    <div className="relative flex ">
       <FixedSidebar />
       <MainContent>{children}</MainContent>
     </div>

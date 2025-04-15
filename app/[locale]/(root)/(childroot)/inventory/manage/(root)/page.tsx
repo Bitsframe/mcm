@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TabContext } from "@/context";
+import { Archive, ShieldCheck } from "lucide-react";
 interface DataListInterface {
   [key: string]: any; // This allows dynamic property access
 }
@@ -187,28 +188,30 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 bg-[#F1F4F9] p-1 space-x-4 mr-6 flex items-center justify-end w-full">
-        <button
-          onClick={handleActiveClick}
-          className={`${
-            !getDataArchiveType
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600"
-          } px-4 py-2 rounded-lg flex items-center space-x-1`}
-        >
-          <span>Active</span>
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`${
-            getDataArchiveType
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600"
-          } px-4 py-2 rounded-lg flex items-center space-x-1`}
-        >
-          <span>Archived</span>
-        </button>
-      </div>
+      <div className="text-sm text-gray-500 bg-[#F1F4F9] p-1 space-x-1 flex items-center justify-end w-full rounded-lg">
+  <button
+    onClick={handleActiveClick}
+    className={`${
+      !getDataArchiveType
+        ? "bg-blue-600 text-white"
+        : "bg-white text-gray-600"
+    } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
+  >
+    <ShieldCheck size={16} />
+    <span>Active</span>
+  </button>
+  <button
+    onClick={handleArchiveClick}
+    className={`${
+      getDataArchiveType
+        ? "bg-blue-600 text-white"
+        : "bg-white text-gray-600"
+    } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
+  >
+    <Archive size={16} />
+    <span>Archived</span>
+  </button>
+</div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -263,35 +266,37 @@ const Categories = () => {
           <h1 className="text-lg font-semibold px-3 mb-3">Categories</h1>
           <div className="px-3 flex justify-between w-full">
             <div className="space-y-1">
-              <div className="flex items-center w-full justify-between gap-x-3">
-                <div className="relative w-72">
-                  <input
-                    onChange={onChangeHandle}
-                    type="text"
-                    placeholder={t("Inventory_k4")}
-                    className="block px-3 py-2 w-72 text-sm rounded-md focus:outline-none bg-white border border-gray-200"
-                  />
-                </div>
-                <button
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                  onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Create Category
-                </button>
-              </div>
+            <div className="flex items-center w-full justify-between gap-x-3">
+  <div className="relative w-72">
+    <input
+      onChange={onChangeHandle}
+      type="text"
+      placeholder={t("Inventory_k4")}
+      className="block px-3 py-2 w-72 text-sm rounded-md focus:outline-none bg-white border-2 border-gray-500 focus:border-blue-500"
+    />
+  </div>
+  <button
+    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+    onClick={() => openModalHandle(modalStateEnum.CREATE)}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 12h8" />
+      <path d="M12 8v8" />
+    </svg>
+    Create Category
+  </button>
+</div>
             </div>
 
             <div className="flex gap-2">{RightSideComponent}</div>

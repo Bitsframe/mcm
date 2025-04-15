@@ -452,7 +452,7 @@ const Patients = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="w-full bg-white font-normal text-base p-3">
+    <main className="w-full bg-white font-normal text-base p-2">
       {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger>
       <Button variant="outline" className="text-black mb-6 bg-white border-gray-300 hover:bg-gray-100">
@@ -666,6 +666,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
+                  bg_color="bg-white"
                 />
               </div>
 
@@ -676,6 +677,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
+                  bg_color="bg-white"
                 />
               </div>
 
@@ -703,6 +705,7 @@ const Patients = () => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
+                  bg_color="bg-white"
                 />
               </div>
 
