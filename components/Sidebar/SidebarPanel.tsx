@@ -30,11 +30,19 @@ const ActiveIndicator = () => (
 
 const RouteIcon = ({
   icon: Icon,
+  isActive = false,
 }: {
   icon?: ComponentType<{ className?: string }>;
+  isActive?: boolean;
 }) => (
   <div className="flex items-center">
-    {Icon && <Icon className="w-6 h-6 text-gray-500 dark:text-gray-400" />}
+    {Icon && (
+      <Icon
+        className={`w-6 h-6 ${
+          isActive ? "text-[#0066ff]" : "text-gray-500 dark:text-gray-400"
+        }`}
+      />
+    )}
   </div>
 );
 
@@ -52,7 +60,9 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
       <Sidebar.Item
         href={route.route}
         icon={() => <RouteIcon icon={route.icon} />}
-        label={<FaChevronRight className="text-[15px] text-[#79808B] dark:text-gray-400 -mr-1" />}
+        label={
+          <FaChevronRight className="text-[15px] text-[#79808B] dark:text-gray-400 -mr-1" />
+        }
         labelColor="transparent"
         className={`hover:text-[#0066ff] ${
           isActive
@@ -85,7 +95,7 @@ const CollapsibleRoute = ({
     <div className="relative w-full">
       {isActive && <ActiveIndicator />}
       <Sidebar.Collapse
-        icon={() => <RouteIcon icon={route.icon} />}
+        icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
         label={t(route.label)}
         className={`text-[#79808B] dark:text-gray-400 hover:text-[#0066ff] transition-all ease-out delay-75  ${
           isActive ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]" : ""
@@ -107,13 +117,9 @@ const CollapsibleRoute = ({
             >
               <div className="flex items-center gap-2">
                 <span className="relative w-4 h-4">
-                  <span
-                    className={`absolute inset-0 rounded-full transition-colors ${
-                      isCurrent
-                        ? "bg-[#B3D4FF]"
-                        : "bg-[#D1D5DB] dark:bg-[#2c2f36]"
-                    }`}
-                  />
+                  {isCurrent && (
+                    <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
+                  )}
                   <span
                     className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
                       isCurrent

@@ -81,7 +81,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
         <>
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <Table>
-              <TableHeader className="bg-gray-50 dark:bg-gray-800">
+              <TableHeader className="bg-gray-50 dark:bg-[#0E1725]">
                 <TableRow className="dark:border-gray-700">
                   <TableHead className="w-12 dark:border-gray-700">
                     <Checkbox

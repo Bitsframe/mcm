@@ -22,7 +22,7 @@ const TopTabs = () => {
   return (
     <nav className="mt-5">
       <div className="max-w-7xl mx-auto">
-        <ul className="flex gap-1 w-fit p-1 rounded-lg bg-gray-700">
+        <ul className="flex gap-1 w-fit p-1 rounded-lg dark:bg-[#080E16]">
           {PosTopMenu.map((menuItem, index) => {
             const isActive =
               pathname === `/pos/sales/${menuItem.url}` ||

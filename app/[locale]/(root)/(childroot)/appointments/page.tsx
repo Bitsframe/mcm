@@ -215,8 +215,8 @@ const Appointments = () => {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
-        <Card className="bg-gray-50 dark:bg-gray-800">
-          <CardContent className="p-4 flex items-center gap-4">
+        <Card className="bg-gray-50 dark:bg-[#080E16]">
+          <CardContent className="p-4 flex items-center gap-4 ">
             <div className="bg-blue-50 p-3 rounded-lg dark:bg-gray-700">
               <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
             </div>
@@ -229,7 +229,7 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-gray-800">
+        <Card className="bg-gray-50 dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-green-50 p-3 rounded-lg dark:bg-gray-700">
               <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
@@ -243,7 +243,7 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-gray-800">
+        <Card className="bg-gray-50 dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-yellow-50 p-3 rounded-lg dark:bg-gray-700">
               <Clock className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
@@ -257,7 +257,7 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-gray-800">
+        <Card className="bg-gray-50 dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-purple-50 p-3 rounded-lg dark:bg-gray-700">
               <UserPlus className="h-6 w-6 text-purple-500 dark:text-purple-400" />
@@ -273,13 +273,13 @@ const Appointments = () => {
       </div>
 
       <div className="bg-white rounded-lg p-4 dark:bg-[#0E1725]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 ">
           <Tabs
             className="w-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-gray-700">
+            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16]">
               <TabsTrigger
                 value="approved"
                 className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2 dark:data-[state=active]:bg-blue-600"
@@ -341,7 +341,7 @@ const Appointments = () => {
           //@ts-ignore
           setSelectedAppointments={setSelectedAppointments}
         />
-        <div className="mt-5 text-gray-600 dark:text-gray-400">
+        {/* <div className="mt-5 text-gray-600 dark:text-gray-400">
           {selectedAppointments.length > 0
             ? `${selectedAppointments.length} of ${
                 activeTab === "approved"
@@ -353,7 +353,7 @@ const Appointments = () => {
                   ? approvedAppointments.length
                   : unapprovedAppointments.length
               } row(s) in total`}
-        </div>
+        </div> */}
       </div>
 
       <AppointmentDetailsPanel

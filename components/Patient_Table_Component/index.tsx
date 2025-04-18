@@ -562,11 +562,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="w-full px-6">
-        <div className="bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-gray-900 dark:border-gray-800">
+      <div className="w-full px-6 dark:bg-[#0E1725]">
+        <div className="bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-gray-800">
+              <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
                 <TableHead className="w-[50px] py-3 dark:border-gray-800">
                   <Checkbox
                     checked={
