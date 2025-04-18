@@ -61,7 +61,7 @@ const TopTabs = () => {
               ${
                 isActive
                   ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
               }`}
               >
                 {/* <span>

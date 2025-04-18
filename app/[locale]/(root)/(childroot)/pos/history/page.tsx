@@ -52,7 +52,7 @@ const tableHeader = [
     id: 'last_updated',
     label: 'POS-Historyk9',
     render_value: (_val: string, elem: any, openModal: Function) => (
-      <button onClick={() => openModal(elem)} className='bg-[#CCE0FF] text-base text-[#0066FF] border-2 border-[#0066FF] px-2 py-1 rounded-md'>
+      <button onClick={() => openModal(elem)} className='bg-blue-900 text-base text-blue-300 border-2 border-blue-600 px-2 py-1 rounded-md hover:bg-blue-800'>
         Details
       </button>
     ),
@@ -160,11 +160,11 @@ const SalesHistory = () => {
   }, []);
 
   return (
-    <main className="w-full h-full font-[500]">
+    <main className="w-full h-full font-[500] bg-gray-900 text-gray-200">
       <div className='flex justify-between items-center px-4 pt-4 space-x-2'>
-      <div>
-          <h1 className="text-2xl font-bold">History</h1>
-          <h1 className="mt-1 mb-2 text-gray-500">POS / History</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-200">History</h1>
+          <h1 className="mt-1 mb-2 text-gray-400">POS / History</h1>
         </div>
         <div className='flex items-center space-x-3'>
           <ExportAsPDF />

@@ -23,7 +23,7 @@ import { translationConstant } from "@/utils/translationConstants";
 interface DataListInterface {
   return_id: number;
   inventory_id: number;
-  return_date: string; // ISO Date string format
+  return_date: string;
   quantity: number;
   reason: string;
   sales_id: number;
@@ -97,25 +97,18 @@ interface Props {}
 const Returns: FC<Props> = () => {
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
-  const [dataDetails, setDataDetails] = useState<DataListInterface | null>(
-    null
-  );
+  const [dataDetails, setDataDetails] = useState<DataListInterface | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
   const { selectedLocation } = useContext(LocationContext);
-
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState("");
-
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   const handleCheckboxChange = (return_id: number, isChecked: boolean) => {
     if (isChecked) {
-      // Agar checkbox tick hua toh us row ka ID add karo
       setSelectedRows([...selectedRows, return_id]);
     } else {
-      // Agar untick hua toh ID hata do
       setSelectedRows(selectedRows.filter((id) => id !== return_id));
     }
   };
@@ -139,7 +132,6 @@ const Returns: FC<Props> = () => {
 
   const fetch_handle = async (location_id: any) => {
     setLoading(true);
-    // @ts-ignore
     const fetched_data: any = await fetch_content_service({
       table: "returns",
       selectParam: `,sales_history(order_id, orders(patient_id,  pos(firstname,lastname,phone,email,locationid ))),inventory(price, products(product_name, categories(category_name)))`,
@@ -153,7 +145,6 @@ const Returns: FC<Props> = () => {
         { operator: "not", column: "sales_history", value: null },
       ],
     });
-    // const filteredData = fetched_data.filter((elem: any) => elem.saleshistory.orders.pos !== null)
     setDataList(fetched_data);
     setAllData(fetched_data);
     setLoading(false);
@@ -174,7 +165,6 @@ const Returns: FC<Props> = () => {
       sortedList = dataList.sort((a, b) => {
         const aConcatName = `${a.sales_history.orders.pos.firstname} ${a.sales_history.orders.pos.lastname}`;
         const bConcatName = `${b.sales_history.orders.pos.firstname} ${b.sales_history.orders.pos.lastname}`;
-
         return sortOrder === 1
           ? aConcatName.localeCompare(bConcatName)
           : bConcatName.localeCompare(aConcatName);
@@ -188,16 +178,13 @@ const Returns: FC<Props> = () => {
     } else if (column === "date") {
       sortedList = dataList.sort((a, b) =>
         sortOrder === 1
-          ? new Date(a.return_date).getTime() -
-            new Date(b.return_date).getTime()
-          : new Date(b.return_date).getTime() -
-            new Date(a.return_date).getTime()
+          ? new Date(a.return_date).getTime() - new Date(b.return_date).getTime()
+          : new Date(b.return_date).getTime() - new Date(a.return_date).getTime()
       );
     } else if (column === "category") {
       sortedList = dataList.sort((a, b) => {
         const aCategory = a.inventory.products.categories.category_name;
         const bCategory = b.inventory.products.categories.category_name;
-
         return sortOrder === 1
           ? aCategory.localeCompare(bCategory)
           : bCategory.localeCompare(aCategory);
@@ -261,18 +248,11 @@ const Returns: FC<Props> = () => {
     } catch (error: any) {
       if (error && error?.message) {
         toast.error(error?.message);
-        // throw new Error(error.message);
       } else {
         toast.error("Something went wrong!");
       }
     }
   };
-
-  // const select_location_handle = (val: React.ChangeEvent<HTMLSelectElement>) => {
-  //     const value = val.target.value
-
-  //     set_location_handle(value)
-  // }
 
   const { setActiveTitle } = useContext(TabContext);
 
@@ -282,42 +262,35 @@ const Returns: FC<Props> = () => {
 
   const { t } = useTranslation(translationConstant.POSRETURN);
   return (
-    <main className="w-full  h-full font-[500]">
+    <main className="w-full h-full font-[500] bg-gray-900 text-gray-200">
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
         <div>
-          <h1 className="text-2xl font-bold">Returns</h1>
-          <h1 className="mt-1 mb-2 text-gray-500">POS / Returns</h1>
+          <h1 className="text-2xl font-bold text-gray-200">Returns</h1>
+          <h1 className="mt-1 mb-2 text-gray-400">POS / Returns</h1>
         </div>
-
-        {/* <div >
-                    <Select onChange={select_location_handle} defaultValue={selected_location} style={{ backgroundColor: '#D9D9D9' }} id="locations" required>
-                        {locations.map((location: any, index: any) => <option key={index} value={location.id}>{location.title}</option>)}
-                    </Select>
-
-                </div> */}
       </div>
 
       <div className="w-full min-h-[80.5dvh] h-[100%] py-1 px-4 grid grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F9] h-[100%] col-span-2 rounded-md">
+        <div className="bg-gray-800 h-[100%] col-span-2 rounded-md">
           <div className="px-4 py-4">
             <input
               onChange={onChangeHandle}
               type="text"
               placeholder={t("POS-Returnk2")}
-              className="px-4 py-3 w-full text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-300"
+              className="px-4 py-3 w-full text-sm rounded-md border border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-gray-700 text-white"
             />
           </div>
 
           <div className="px-4 pb-4">
-            <div className="bg-white rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+            <div className="bg-gray-700 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
               <div className="flex-1 overflow-auto">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-white z-10">
-                    <TableRow className="font-medium border-b">
+                  <TableHeader className="sticky top-0 bg-gray-700 z-10">
+                    <TableRow className="font-medium border-b border-gray-600">
                       <TableHead className="p-4 w-10">
-                        <input type="checkbox" className="rounded" />
+                        <input type="checkbox" className="rounded bg-gray-600" />
                       </TableHead>
-                      <TableHead className="text-left text-gray-600">
+                      <TableHead className="text-left text-gray-300">
                         {t("POS-Returnk3")}
                         <button
                           onClick={() => sortHandle("return_id")}
@@ -326,13 +299,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "return_id"
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-blue-400"
+                                : "text-gray-500"
+                            } hover:text-gray-300 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600">
+                      <TableHead className="text-left text-gray-300">
                         {t("POS-Returnk4")}
                         <button
                           onClick={() => sortHandle("order_id")}
@@ -341,13 +314,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "order_id"
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-blue-400"
+                                : "text-gray-500"
+                            } hover:text-gray-300 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600">
+                      <TableHead className="text-left text-gray-300">
                         {t("POS-Returnk5")}
                         <button
                           onClick={() => sortHandle("quantity")}
@@ -356,13 +329,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "order_id"
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-blue-400"
+                                : "text-gray-500"
+                            } hover:text-gray-300 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600">
+                      <TableHead className="text-left text-gray-300">
                         {t("POS-Returnk6")}
                         <button
                           onClick={() => sortHandle("date")}
@@ -371,13 +344,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "date"
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-blue-400"
+                                : "text-gray-500"
+                            } hover:text-gray-300 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600">
+                      <TableHead className="text-left text-gray-300">
                         {t("POS-Returnk7")}
                         <button
                           onClick={() => sortHandle("category")}
@@ -386,9 +359,9 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "category"
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-blue-400"
+                                : "text-gray-500"
+                            } hover:text-gray-300 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
@@ -398,9 +371,9 @@ const Returns: FC<Props> = () => {
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={6} className="bg-gray-800">
                           <div className="flex h-full flex-1 flex-col justify-center items-center">
-                            <Spinner size="xl" />
+                            <Spinner size="xl" color="gray" />
                           </div>
                         </TableCell>
                       </TableRow>
@@ -421,29 +394,26 @@ const Returns: FC<Props> = () => {
                           <TableRow
                             key={return_id}
                             onClick={() => detailsViewHandle(elem)}
-                            className="cursor-pointer border-b hover:bg-gray-50"
+                            className="cursor-pointer border-b border-gray-600 hover:bg-gray-600 bg-gray-700"
                           >
                             <TableCell className="p-4">
                               <input
                                 type="checkbox"
-                                className="rounded border-2 border-black"
-                                checked={selectedRows.includes(return_id)} // Show if checked or not
+                                className="rounded border-2 border-gray-500 bg-gray-600"
+                                checked={selectedRows.includes(return_id)}
                                 onChange={(e) => {
-                                  e.stopPropagation(); // TableRow ke click se bachao
-                                  handleCheckboxChange(
-                                    return_id,
-                                    e.target.checked
-                                  ); // Function call
+                                  e.stopPropagation();
+                                  handleCheckboxChange(return_id, e.target.checked);
                                 }}
                               />
                             </TableCell>
-                            <TableCell className="p-4">{return_id}</TableCell>
-                            <TableCell className="p-4">{order_id}</TableCell>
-                            <TableCell className="p-4">{quantity}</TableCell>
-                            <TableCell className="p-4">
+                            <TableCell className="p-4 text-gray-200">{return_id}</TableCell>
+                            <TableCell className="p-4 text-gray-200">{order_id}</TableCell>
+                            <TableCell className="p-4 text-gray-200">{quantity}</TableCell>
+                            <TableCell className="p-4 text-gray-200">
                               {product_name}
                             </TableCell>
-                            <TableCell className="p-4">
+                            <TableCell className="p-4 text-gray-200">
                               {category_name}
                             </TableCell>
                           </TableRow>
@@ -451,8 +421,8 @@ const Returns: FC<Props> = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6}>
-                          <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center">
+                        <TableCell colSpan={6} className="bg-gray-800">
+                          <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center text-gray-400">
                             <h1>{t("POS-Returnk8")}</h1>
                           </div>
                         </TableCell>
@@ -462,15 +432,15 @@ const Returns: FC<Props> = () => {
                 </Table>
               </div>
 
-              <div className="p-4 flex justify-between items-center border-t">
-                <div className="text-sm text-gray-600">
+              <div className="p-4 flex justify-between items-center border-t border-gray-600 bg-gray-700">
+                <div className="text-sm text-gray-400">
                   {selectedRows.length} of {dataList.length} row(s) selected.{" "}
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 border rounded-md text-base bg-white hover:bg-gray-50">
+                  <button className="px-4 py-2 border border-gray-600 rounded-md text-base bg-gray-700 text-gray-200 hover:bg-gray-600">
                     Previous
                   </button>
-                  <button className="px-4 py-2 border rounded-md bg-white text-base hover:bg-gray-50">
+                  <button className="px-4 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600">
                     Next
                   </button>
                 </div>
@@ -479,27 +449,27 @@ const Returns: FC<Props> = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] h-full rounded-lg overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-100">
-            <h1 className="text-xl font-semibold text-gray-800">
+        <div className="bg-gray-800 h-full rounded-lg overflow-hidden flex flex-col">
+          <div className="px-6 py-5 border-b border-gray-600">
+            <h1 className="text-xl font-semibold text-gray-200">
               {t("POS-Returnk9")}
             </h1>
           </div>
 
           {dataDetails && (
             <div className="p-3 overflow-auto">
-              <div className="grid grid-cols-2  gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {detailsArray(dataDetails).map((detail, index) => (
                   <dl
                     className={`${
                       detail.col_span_02 ? "col-span-2" : ""
-                    } bg-white rounded-lg p-4`}
+                    } bg-gray-700 rounded-lg p-4`}
                     key={index}
                   >
-                    <dt className="text-sm text-gray-500 mb-1">
+                    <dt className="text-sm text-gray-400 mb-1">
                       {detail.label}{" "}
                     </dt>
-                    <dd className="text-base font-medium text-gray-900">
+                    <dd className="text-base font-medium text-gray-200">
                       {detail.value}
                     </dd>
                   </dl>
@@ -516,9 +486,9 @@ const Returns: FC<Props> = () => {
                 <button
                   onClick={discardHandle}
                   disabled={deleteLoading}
-                  className="w-full px-4 py-3 text-gray-700 bg-white rounded-lg hover:bg-gray-200 transition-colors"
+                  className="w-full px-4 py-3 text-gray-200 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
                 >
-                  Discard
+                  {deleteLoading ? "Processing..." : "Discard"}
                 </button>
               </div>
             </div>

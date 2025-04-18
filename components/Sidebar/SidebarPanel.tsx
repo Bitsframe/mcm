@@ -11,9 +11,9 @@ import { translationConstant } from "@/utils/translationConstants";
 
 const THEME: CustomFlowbiteTheme["sidebar"] = {
   root: {
-    base: "bg-white overflow-y-auto",
+    base: "bg-white dark:bg-[#080E16] overflow-y-auto",
     inner:
-      "bg-white overflow-y-auto flex flex-col justify-between overflow-x-hidden h-full pr-3",
+      "bg-white dark:bg-[#080E16] overflow-y-auto flex flex-col justify-between overflow-x-hidden h-full pr-3",
   },
 };
 
@@ -24,7 +24,7 @@ const STYLE = {
 const ActiveIndicator = () => (
   <div
     style={{ zIndex: 30 }}
-    className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
+    className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 dark:bg-[#B3D4FF] dark:bg-opacity-20 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
   />
 );
 
@@ -34,7 +34,7 @@ const RouteIcon = ({
   icon?: ComponentType<{ className?: string }>;
 }) => (
   <div className="flex items-center">
-    {Icon && <Icon className="w-6 h-6 text-gray-500" />}
+    {Icon && <Icon className="w-6 h-6 text-gray-500 dark:text-gray-400" />}
   </div>
 );
 
@@ -52,10 +52,12 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
       <Sidebar.Item
         href={route.route}
         icon={() => <RouteIcon icon={route.icon} />}
-        label={<FaChevronRight className="text-[15px] text-[#79808B] -mr-1" />}
+        label={<FaChevronRight className="text-[15px] text-[#79808B] dark:text-gray-400 -mr-1" />}
         labelColor="transparent"
         className={`hover:text-[#0066ff] ${
-          isActive ? "bg-white text-[#0066ff]" : "text-[#79808B]"
+          isActive
+            ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]"
+            : "text-[#79808B] dark:text-gray-400"
         }`}
       >
         <div className="flex items-center gap-2">
@@ -85,8 +87,9 @@ const CollapsibleRoute = ({
       <Sidebar.Collapse
         icon={() => <RouteIcon icon={route.icon} />}
         label={t(route.label)}
-        className={`text-[#79808B] hover:text-[#0066ff] transition-all ease-out delay-75 
-          hover:bg-opacity-30 ${isActive ? "bg-white text-[#0066ff]" : ""}`}
+        className={`text-[#79808B] dark:text-gray-400 hover:text-[#0066ff] transition-all ease-out delay-75  ${
+          isActive ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]" : ""
+        }`}
         open={isActive}
       >
         {route.children?.map((item) => {
@@ -97,25 +100,28 @@ const CollapsibleRoute = ({
               key={item.id}
               href={item.route}
               className={`text-left text-sm hover:text-[#0066ff] ${
-                isCurrent ? "text-[#0066ff]" : "text-[#79808B]"
+                isCurrent
+                  ? "text-[#0066ff]"
+                  : "text-[#79808B] dark:text-gray-400"
               }`}
             >
               <div className="flex items-center gap-2">
                 <span className="relative w-4 h-4">
-                  {/* Outer circle */}
                   <span
                     className={`absolute inset-0 rounded-full transition-colors ${
-                      isCurrent ? "bg-[#B3D4FF]" : "bg-[#D1D5DB]"
+                      isCurrent
+                        ? "bg-[#B3D4FF]"
+                        : "bg-[#D1D5DB] dark:bg-[#2c2f36]"
                     }`}
                   />
-                  {/* Inner circle (centered) */}
                   <span
                     className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
-                      isCurrent ? "bg-[#0066ff]" : "bg-[#79808B]"
+                      isCurrent
+                        ? "bg-[#0066ff]"
+                        : "bg-[#79808B] dark:bg-gray-400"
                     }`}
                   />
                 </span>
-
                 {t(item.label)}
               </div>
             </Sidebar.Item>
@@ -183,8 +189,8 @@ export const SidebarPanel = () => {
       theme={THEME}
       style={STYLE}
     >
-      <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9]">
-        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9]">
+      <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
+        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
           {filteredRoutes.map((route) => {
             if (!route.children) {
               return (

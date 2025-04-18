@@ -209,60 +209,62 @@ const Appointments = () => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
   return (
-    <main className="w-full h-full text-gray-600 font-medium space-y-5">
-      <h1 className="text-2xl font-bold text-black px-4 pt-4">Appointments</h1>
+    <main className="w-full h-full text-gray-600 font-medium space-y-5 dark:bg-gray-900 dark:text-gray-300">
+      <h1 className="text-2xl font-bold text-black px-4 pt-4 dark:text-white">
+        Appointments
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
-        <Card className="bg-gray-50">
+        <Card className="bg-gray-50 dark:bg-gray-800">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <Calendar className="h-6 w-6 text-blue-500" />
+            <div className="bg-blue-50 p-3 rounded-lg dark:bg-gray-700">
+              <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Appointments</p>
-              <h2 className="text-2xl font-bold">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Appointments</p>
+              <h2 className="text-2xl font-bold dark:text-white">
                 {approvedAppointments.length + unapprovedAppointments.length}
               </h2>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50">
+        <Card className="bg-gray-50 dark:bg-gray-800">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-green-50 p-3 rounded-lg">
-              <CheckCircle className="h-6 w-6 text-green-500" />
+            <div className="bg-green-50 p-3 rounded-lg dark:bg-gray-700">
+              <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Approved Appointments</p>
-              <h2 className="text-2xl font-bold">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Approved Appointments</p>
+              <h2 className="text-2xl font-bold dark:text-white">
                 {approvedAppointments.length}
               </h2>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50">
+        <Card className="bg-gray-50 dark:bg-gray-800">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <Clock className="h-6 w-6 text-yellow-500" />
+            <div className="bg-yellow-50 p-3 rounded-lg dark:bg-gray-700">
+              <Clock className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pending Appointments</p>
-              <h2 className="text-2xl font-bold">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Pending Appointments</p>
+              <h2 className="text-2xl font-bold dark:text-white">
                 {unapprovedAppointments.length}
               </h2>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50">
+        <Card className="bg-gray-50 dark:bg-gray-800">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <UserPlus className="h-6 w-6 text-purple-500" />
+            <div className="bg-purple-50 p-3 rounded-lg dark:bg-gray-700">
+              <UserPlus className="h-6 w-6 text-purple-500 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">New Appointments</p>
-              <h2 className="text-2xl font-bold">
+              <p className="text-sm text-gray-500 dark:text-gray-400">New Appointments</p>
+              <h2 className="text-2xl font-bold dark:text-white">
                 {unapprovedAppointments.length}
               </h2>
             </div>
@@ -270,24 +272,24 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg p-4">
+      <div className="bg-white rounded-lg p-4 dark:bg-[#0E1725]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <Tabs
             className="w-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="bg-gray-100 p-1 rounded-lg">
+            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-gray-700">
               <TabsTrigger
                 value="approved"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2"
+                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2 dark:data-[state=active]:bg-blue-600"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approved Appointments
               </TabsTrigger>
               <TabsTrigger
                 value="request"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2"
+                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2 dark:data-[state=active]:bg-blue-600"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
                 New Appointments
@@ -311,9 +313,9 @@ const Appointments = () => {
           <div className="w-full md:w-64">
             <DatePicker
               onChange={filterHandle}
-              className="w-full border border-gray-300 rounded-lg p-2"
+              className="w-full border border-gray-300 rounded-lg p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="Filter by date"
-              suffixIcon={<Calendar className="h-4 w-4 text-gray-500" />}
+              suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
             />
           </div>
 
@@ -339,7 +341,7 @@ const Appointments = () => {
           //@ts-ignore
           setSelectedAppointments={setSelectedAppointments}
         />
-        <div className="mt-5">
+        <div className="mt-5 text-gray-600 dark:text-gray-400">
           {selectedAppointments.length > 0
             ? `${selectedAppointments.length} of ${
                 activeTab === "approved"
@@ -389,13 +391,13 @@ const AppointmentDetailsPanel = ({
         }
       }}
     >
-      <SheetContent className="p-0 ">
+      <SheetContent className="p-0 dark:bg-gray-900">
         <SheetTitle className="sr-only">
           {appointmentDetails
             ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`
             : "Appointment Details"}
         </SheetTitle>
-        <div className=" p-4">
+        <div className="p-4">
           {appointmentDetails ? (
             <AppointmentDetails
               onDelete={onDelete}
@@ -404,7 +406,7 @@ const AppointmentDetailsPanel = ({
               update_reflect_on_close_modal={updateReflectOnCloseModal}
             />
           ) : (
-            <div className="flex h-full justify-center items-center">
+            <div className="flex h-full justify-center items-center dark:text-gray-300">
               <h1 className="text-lg">Select an appointment to view details</h1>
             </div>
           )}

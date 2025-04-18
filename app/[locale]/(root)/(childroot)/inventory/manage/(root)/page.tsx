@@ -19,7 +19,6 @@ import { toast } from "react-toastify";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input_Component } from "@/components/Input_Component";
 import { useTranslation } from "react-i18next";
-import { translationConstant } from "@/utils/translationConstants";
 import {
   Table,
   TableBody,
@@ -30,8 +29,10 @@ import {
 } from "@/components/ui/table";
 import { TabContext } from "@/context";
 import { Archive, ShieldCheck } from "lucide-react";
+import { translationConstant } from "@/utils/translationConstants";
+
 interface DataListInterface {
-  [key: string]: any; // This allows dynamic property access
+  [key: string]: any;
 }
 
 const tableHeader = [
@@ -75,7 +76,6 @@ const tableHeader = [
               getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
             }
           />
-          {/* <Action_Button  isLoading={isLoading} onClick={onClickHandle} label={'Delete'} bg_color={'bg-red-700'} /> */}
         </div>
       );
     },
@@ -93,18 +93,44 @@ const Categories = () => {
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
   const [modalEventLoading, setModalEventLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [modalData, setModalData] = useState<DataListInterface>({});
   const [modalState, setModalState] = useState("");
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Check for saved dark mode preference or system preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode !== null) {
+      setDarkMode(savedMode === 'true');
+    } else {
+      setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+  }, []);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const openModalHandle = (state: string) => {
     setOpenModal(true);
     setModalState(state);
   };
+  
   const closeModalHandle = () => {
     setOpenModal(false);
     setModalState(modalStateEnum.EMPTY);
@@ -188,30 +214,30 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 bg-[#F1F4F9] p-1 space-x-1 flex items-center justify-end w-full rounded-lg">
-  <button
-    onClick={handleActiveClick}
-    className={`${
-      !getDataArchiveType
-        ? "bg-blue-600 text-white"
-        : "bg-white text-gray-600"
-    } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
-  >
-    <ShieldCheck size={16} />
-    <span>Active</span>
-  </button>
-  <button
-    onClick={handleArchiveClick}
-    className={`${
-      getDataArchiveType
-        ? "bg-blue-600 text-white"
-        : "bg-white text-gray-600"
-    } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
-  >
-    <Archive size={16} />
-    <span>Archived</span>
-  </button>
-</div>
+      <div className="text-sm text-gray-500 dark:text-gray-300 bg-[#F1F4F9] dark:bg-gray-800 p-1 space-x-1 flex items-center justify-end w-full rounded-lg">
+        <button
+          onClick={handleActiveClick}
+          className={`${
+            !getDataArchiveType
+              ? "bg-blue-600 dark:bg-blue-700 text-white"
+              : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+          } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
+        >
+          <ShieldCheck size={16} />
+          <span>Active</span>
+        </button>
+        <button
+          onClick={handleArchiveClick}
+          className={`${
+            getDataArchiveType
+              ? "bg-blue-600 dark:bg-blue-700 text-white"
+              : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+          } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
+        >
+          <Archive size={16} />
+          <span>Archived</span>
+        </button>
+      </div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -226,7 +252,6 @@ const Categories = () => {
     if (error) {
       console.log(error.message);
       toast.error(error.message);
-      // throw new Error(error.message);
     }
 
     if (res_data?.length) {
@@ -240,17 +265,12 @@ const Categories = () => {
 
     setModalEventLoading(false);
   };
+
   const modalInputChangeHandle = (key: string, value: string) => {
     setModalData((pre) => {
       return { ...pre, [key]: value };
     });
   };
-
-  // const select_location_handle = (val: React.ChangeEvent<HTMLSelectElement>) => {
-  //   const value = val.target.value
-
-  //   set_location_handle(value)
-  // }
 
   const { setActiveTitle } = useContext(TabContext);
 
@@ -259,91 +279,92 @@ const Categories = () => {
   }, []);
 
   const { t } = useTranslation(translationConstant.INVENTORY);
+
   return (
-    <main className="w-full h-full font-medium text-base">
+    <main className="w-full h-full font-medium text-base dark:bg-gray-900 dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
-          <h1 className="text-lg font-semibold px-3 mb-3">Categories</h1>
+          <h1 className="text-lg font-semibold px-3 mb-3 dark:text-white">Categories</h1>
           <div className="px-3 flex justify-between w-full">
             <div className="space-y-1">
-            <div className="flex items-center w-full justify-between gap-x-3">
-  <div className="relative w-72">
-    <input
-      onChange={onChangeHandle}
-      type="text"
-      placeholder={t("Inventory_k4")}
-      className="block px-3 py-2 w-72 text-sm rounded-md focus:outline-none bg-white border-2 border-gray-500 focus:border-blue-500"
-    />
-  </div>
-  <button
-    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-    onClick={() => openModalHandle(modalStateEnum.CREATE)}
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M8 12h8" />
-      <path d="M12 8v8" />
-    </svg>
-    Create Category
-  </button>
-</div>
+              <div className="flex items-center w-full justify-between gap-x-3">
+                <div className="relative w-72">
+                  <input
+                    onChange={onChangeHandle}
+                    type="text"
+                    placeholder={t("Inventory_k4")}
+                    className="block px-3 py-2 w-72 text-sm rounded-md focus:outline-none bg-white dark:bg-gray-800 border-2 border-gray-500 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-600 dark:text-white"
+                  />
+                </div>
+                <button
+                  className="flex items-center gap-2 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition"
+                  onClick={() => openModalHandle(modalStateEnum.CREATE)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 12h8" />
+                    <path d="M12 8v8" />
+                  </svg>
+                  Create Category
+                </button>
+              </div>
             </div>
 
             <div className="flex gap-2">{RightSideComponent}</div>
           </div>
 
           <div className="px-3 pt-5">
-            <div className="border rounded-md">
+            <div className="border rounded-md dark:border-gray-700">
               <Table>
-                <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7]">
+                <TableHeader className="bg-gray-50 dark:bg-gray-800 border-b border-b-[#E4E4E7] dark:border-b-gray-700">
                   <TableRow className="flex hover:bg-transparent">
                     <TableHead className="w-12 p-3">
-                      <Checkbox />
+                      <Checkbox className="dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600" />
                     </TableHead>
                     {tableHeader.map(({ label, align }, index) => (
                       <TableHead
                         key={index}
                         className={`flex-1 ${
                           align || "text-start"
-                        } text-base text-[#71717A] font-normal p-3`}
+                        } text-base text-[#71717A] dark:text-gray-300 font-normal p-3`}
                       >
-                        {t(label)}{" "}
+                        {t(label)}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
 
-                <TableBody className="mb-4 h-[60dvh] overflow-y-auto block">
+                <TableBody className="mb-4 h-[60dvh] overflow-y-auto block dark:bg-gray-900">
                   {loading ? (
                     <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex items-center justify-center">
+                      <TableCell className="h-[60dvh] w-full flex items-center justify-center dark:bg-gray-900">
                         <Spinner size="xl" />
                       </TableCell>
                     </TableRow>
                   ) : dataList.length === 0 ? (
                     <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
-                        <h1>No Category is available</h1>
+                      <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center dark:bg-gray-900">
+                        <h1 className="dark:text-white">No Category is available</h1>
                       </TableCell>
                     </TableRow>
                   ) : (
                     dataList.map((elem, index) => (
                       <TableRow
                         key={index}
-                        className="flex items-center hover:bg-gray-100 border-b border-b-[#E4E4E7] px-3 py-4"
+                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-[#E4E4E7] dark:border-b-gray-700 px-3 py-4"
                       >
                         <TableCell className="w-12 p-0">
-                          <Checkbox />
+                          <Checkbox className="dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600" />
                         </TableCell>
                         {tableHeader.map(({ id, Render_Value, align }, ind) => {
                           const content = Render_Value ? (
@@ -355,7 +376,7 @@ const Categories = () => {
                               }
                             />
                           ) : (
-                            elem[id]
+                            <span className="dark:text-white">{elem[id]}</span>
                           );
 
                           return (
@@ -363,7 +384,7 @@ const Categories = () => {
                               key={ind}
                               className={`flex-1 ${
                                 align || "text-start"
-                              } text-base p-0`}
+                              } text-base p-0 dark:text-white`}
                             >
                               {content}
                             </TableCell>
@@ -375,15 +396,15 @@ const Categories = () => {
                 </TableBody>
               </Table>
 
-              <div className="flex items-center justify-between p-4 border-t">
-                <div className="text-sm text-gray-500">
+              <div className="flex items-center justify-between p-4 border-t dark:border-t-gray-700">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   0 of {dataList.length} row(s) selected.
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50">
+                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 dark:text-white disabled:opacity-50">
                     Previous
                   </button>
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50">
+                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 dark:text-white">
                     Next
                   </button>
                 </div>
@@ -393,7 +414,6 @@ const Categories = () => {
         </div>
       </div>
 
-      {/* @ts-ignore */}
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
         Title={`${modalState} Category`}
@@ -402,30 +422,30 @@ const Categories = () => {
         close_handle={closeModalHandle}
         create_new_handle={createNewHandle}
         buttonLabel={modalState}
-        //@ts-ignore
         Trigger_Button={null}
       >
         <Input_Component
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          border="border-[1px] border-gray-300 rounded-md"
+          border="border-[1px] border-gray-300 dark:border-gray-600 rounded-md"
           label="Category"
+          darkMode={darkMode}
         />
       </Custom_Modal>
 
       {activeDeleteId ? (
-        <div className="fixed bg-black/75 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
+        <div className="fixed bg-black/75 dark:bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
           <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-white w-full max-w-xl px-4 py-3 rounded-lg">
-              <h1 className="font-bold text-xl text-black mb-5">
+            <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
+              <h1 className="font-bold text-xl text-black dark:text-white mb-5">
                 Confirmation
               </h1>
-              <p className="text-lg">
+              <p className="text-lg dark:text-gray-300">
                 Do you really want to{" "}
                 {getDataArchiveType ? "Unarchive" : "Archive"} this category
               </p>
-              <p className="text-sm">
+              <p className="text-sm dark:text-gray-400">
                 Remember All of the associated products will also be{" "}
                 {getDataArchiveType ? "Unarchive" : "Archive"} with the category
               </p>
@@ -435,6 +455,7 @@ const Categories = () => {
                   disabled={deleteLoading}
                   onClick={() => setActiveDeleteId(0)}
                   color="gray"
+                  className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                 >
                   Cancel
                 </Button>
@@ -442,6 +463,7 @@ const Categories = () => {
                   isProcessing={deleteLoading}
                   color={"failure"}
                   onClick={deleteHandle}
+                  className="dark:bg-red-700 dark:hover:bg-red-800"
                 >
                   {getDataArchiveType ? "Unarchive" : "Archive"}
                 </Button>

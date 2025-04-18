@@ -14,6 +14,8 @@ interface PropsInterface {
     create_new_handle?: () => void;
     buttonLabel?: string;
     disabled?: boolean;
+    Trigger_Button?: any;
+    darkMode?: any;
 }
 
 export const Custom_Modal: FC<PropsInterface> = ({ 
@@ -26,7 +28,9 @@ export const Custom_Modal: FC<PropsInterface> = ({
     close_handle, 
     create_new_handle, 
     buttonLabel = 'Create', 
-    disabled = false 
+    disabled = false,
+    Trigger_Button,
+    darkMode,
 }) => {
     return (
         <Modal show={is_open} onClose={close_handle}>

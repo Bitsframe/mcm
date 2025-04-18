@@ -129,8 +129,6 @@ const fields = [
     type: "number",
     editable: true,
     table_column: false,
-    // details_section: true,
-    // render_value: (val: string) => moment(val, 'YYYY-MM-DD h:mm:s').utc().format('MM/DD/YYYY'),
     details_order: 7,
     col_span_01: false,
   },
@@ -162,13 +160,13 @@ const modal_titles: any = {
 
 const Promo_Input = () => {
   return (
-    <div className="w-52 flex rounded-md  items-center bg-white p-2 px-2">
+    <div className="w-52 flex rounded-md items-center bg-gray-700 p-2 px-2">
       <input
         type="text"
         placeholder="Enter Promo Code"
-        className="w-full px-1 py-1 text-sm border-2 focus:outline-none focus:border-blue-500"
+        className="w-full px-1 py-1 text-sm border-2 border-gray-600 focus:outline-none focus:border-blue-500 bg-gray-700 text-white"
       />
-      <IoCloseOutline />
+      <IoCloseOutline className="text-gray-400" />
     </div>
   );
 };
@@ -178,12 +176,12 @@ const Payment_Method_Select = () => {
     <div className="w-52">
       <Select
         className="w-full h-auto"
-        style={{ backgroundColor: "white" }}
+        style={{ backgroundColor: "#2d3748", color: "white" }}
         id="section"
         required={true}
       >
-        <option>Cash</option>
-        <option>Debit Card</option>
+        <option className="bg-gray-700">Cash</option>
+        <option className="bg-gray-700">Debit Card</option>
       </Select>
     </div>
   );
@@ -220,16 +218,13 @@ const Patients = () => {
   const fetch_handle = async (locationId: number) => {
     setLoading(true);
 
-    // Get today's date at midnight using Moment.js
     const todayStart = moment().startOf("day").toISOString();
 
-    // Define filter options based on the selected button (0: Today, 1: Past records)
     const filterOptions =
       activeFilterBtn === 0
-        ? [{ column: "updated_at", operator: "gte", value: todayStart }] // Records from today
-        : [{ column: "updated_at", operator: "lt", value: todayStart }]; // Records before today
+        ? [{ column: "updated_at", operator: "gte", value: todayStart }]
+        : [{ column: "updated_at", operator: "lt", value: todayStart }];
 
-    // Fetch data with match cases and filter options
     const fetched_data: any = await fetch_content_service({
       table: "pos",
       matchCase: [{ key: "locationid", value: locationId || 17 }],
@@ -269,11 +264,6 @@ const Patients = () => {
     setCanModalSubmit(false);
   };
 
-  // const addNewHandle = () => {
-  //   openModalHandle()
-  //   setActiveModalMode('create')
-
-  // }
   const editHandle = (data: any) => {
     openModalHandle();
     setActionData(data);
@@ -298,8 +288,6 @@ const Patients = () => {
   };
   const addPatientFieldsChange = (e: any, id: string) => {
     setCreateActionData((pre: any) => ({ ...pre, [id]: e }));
-
-    // setCanAddPatient(true)
   };
 
   const onChangeHandle = (e: any) => {
@@ -360,15 +348,12 @@ const Patients = () => {
         );
 
         setAllData([...newDataSetAllData]);
-
         setDataList([...newDataSetDataList]);
-
         setDetailsView(newData);
       }
     } catch (error: any) {
       if (error && error?.message) {
         toast.error(error?.message);
-        // throw new Error(error.message);
       } else {
         toast.error("Something went wrong!");
       }
@@ -379,7 +364,6 @@ const Patients = () => {
   const modalSubmitHandle = async () => {
     switch (activeModalMode) {
       case "create":
-        // createNewDataHandle()
         break;
       case "edit":
         editDataHandle();
@@ -388,12 +372,6 @@ const Patients = () => {
         deleteDataHandle();
         break;
     }
-    // if(activeModalMode === ){
-    // }
-    // else if(activeModalMode === 'edit'){
-
-    // }
-    // else if()
   };
 
   const createNewDataHandle = async () => {
@@ -452,102 +430,19 @@ const Patients = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="w-full bg-white font-normal text-base p-2">
-      {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
-    <DialogTrigger>
-      <Button variant="outline" className="text-black mb-6 bg-white border-gray-300 hover:bg-gray-100">
-        Add a Patient
-      </Button>
-    </DialogTrigger>
-
-    <DialogContent className="bg-[#B8C8E1] rounded-md flex flex-col h-[95vh] max-w-2xl">
-      <DialogHeader className="px-4 py-4 bg-[#11252C80] border-b-[1px] border-b-[#817B7B]">
-        <DialogTitle className="text-xl font-normal text-white text-center">
-          {t("POS-Sales_k18")}
-        </DialogTitle>
-      </DialogHeader>
-
-      <div className="overflow-auto h-[100%] px-4 py-4">
-        <div className="w-2/3 space-y-4">
-          <Input_Component
-            value={createActionData.firstname}
-            onChange={(e: string) => addPatientFieldsChange(e, "firstname")}
-            label={t("POS-Sales_k19")}
-          />
-          <Input_Component
-            value={createActionData.lastname}
-            onChange={(e: string) => addPatientFieldsChange(e, "lastname")}
-            label={t("POS-Sales_k20")}
-          />
-          <Select_Dropdown
-            value={createActionData.gender}
-            bg_color="#fff"
-            start_empty={true}
-            options_arr={["Male", "Female"].map((gender) => ({
-              value: gender,
-              label: gender,
-            }))}
-            required={true}
-            // @ts-ignore
-            on_change_handle={(e: string) =>
-              addPatientFieldsChange(e.target.value, "gender")
-            }
-            label={t("POS-Sales_k21")}
-          />
-          <Input_Component
-            value={createActionData.email}
-            onChange={(e: string) => addPatientFieldsChange(e, "email")}
-            label={t("POS-Sales_k22")}
-          />
-          <PhoneNumberInput
-            value={createActionData.phone}
-            onChange={(e: string) => addPatientFieldsChange(e, "phone")}
-            label={t("POS-Sales_k23")}
-            placeholder=""
-            breakpoint={false}
-          />
-          <Select_Dropdown
-            value={createActionData.treatmenttype}
-            bg_color="#fff"
-            start_empty={true}
-            // @ts-ignore
-            options_arr={services?.map((service) => ({
-              value: service,
-              label: service,
-            }))}
-            required={true}
-            // @ts-ignore
-            on_change_handle={(e: string) =>
-              addPatientFieldsChange(e.target.value, "treatmenttype")
-            }
-            label={t("POS-Sales_k24")}
-          />
-        </div>
-      </div>
-
-      <DialogFooter>
-        <button
-          onClick={createNewDataHandle}
-          className="bg-[#11252C] py-3 w-full text-center text-white hover:bg-[#0d1c22] transition-colors"
-        >
-          {t("POS-Sales_k25")}
-        </button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog> */}
-
+    <main className="w-full bg-gray-900 font-normal text-base p-2">
       <div className="w-full flex justify-center gap-4">
-        <div className="bg-[#F1F4F9] rounded-lg shadow-sm w-[65%]">
+        <div className="bg-gray-800 rounded-lg shadow-sm w-[65%]">
           <div className="p-4 flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-medium text-gray-800 mb-4">
+              <h1 className="text-xl font-medium text-gray-200 mb-4">
                 All Patients
               </h1>
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder="Search by patient name"
-                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300"
+                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-600 bg-gray-700 text-white"
               />
             </div>
             <div className="space-x-3 flex items-center">
@@ -556,7 +451,7 @@ const Patients = () => {
                 className={`px-4 py-2 rounded-md text-sm ${
                   activeFilterBtn === 0
                     ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-800 border border-gray-300"
+                    : "bg-gray-700 text-gray-200 border border-gray-600"
                 }`}
               >
                 Today
@@ -566,7 +461,7 @@ const Patients = () => {
                 className={`px-4 py-2 rounded-md text-sm ${
                   activeFilterBtn === 1
                     ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-800 border border-gray-300"
+                    : "bg-gray-700 text-gray-200 border border-gray-600"
                 }`}
               >
                 Past Records
@@ -586,21 +481,25 @@ const Patients = () => {
                 return (
                   <div
                     key={ind}
-                    className="border-b border-gray-100 py-4 flex items-center justify-between"
+                    className="border-b border-gray-700 py-4 flex items-center justify-between"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Name</p>
-                      <p className="text-sm font-medium">{`${firstname} ${lastname}`}</p>
+                      <p className="text-xs text-gray-400">Name</p>
+                      <p className="text-sm font-medium text-gray-200">{`${firstname} ${lastname}`}</p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Phone</p>
-                      <p className="text-sm">{formatPhoneNumber(phone)}</p>
+                      <p className="text-xs text-gray-400">Phone</p>
+                      <p className="text-sm text-gray-300">
+                        {formatPhoneNumber(phone)}
+                      </p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Created at</p>
-                      <p className="text-sm">{formattedDateTime}</p>
+                      <p className="text-xs text-gray-400">Created at</p>
+                      <p className="text-sm text-gray-300">
+                        {formattedDateTime}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -625,7 +524,7 @@ const Patients = () => {
                       </button>
                       <button
                         onClick={() => selectHandle(elem)}
-                        className="border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm flex items-center gap-1"
+                        className="border border-gray-600 text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-700 hover:bg-gray-600"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -650,9 +549,9 @@ const Patients = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] rounded-md flex flex-col w-[35%] p-4">
+        <div className="bg-gray-800 rounded-md flex flex-col w-[35%] p-4">
           <div className="mb-4">
-            <h2 className="text-xl font-medium text-[#1A2B3C] text-left">
+            <h2 className="text-xl font-medium text-gray-200 text-left">
               Add New Patient
             </h2>
           </div>
@@ -666,7 +565,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
-                  bg_color="bg-white"
+                  bg_color="bg-gray-700"
                 />
               </div>
 
@@ -677,21 +576,20 @@ const Patients = () => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
-                  bg_color="bg-white"
+                  bg_color="bg-gray-700"
                 />
               </div>
 
               <div>
                 <Select_Dropdown
                   value={createActionData.gender}
-                  bg_color="#fff"
+                  bg_color="bg-gray-700"
                   start_empty={true}
                   options_arr={["Male", "Female"].map((gender) => ({
                     value: gender,
                     label: gender,
                   }))}
                   required={true}
-                  // @ts-ignore
                   on_change_handle={(e: string) =>
                     // @ts-ignore
                     addPatientFieldsChange(e.target.value, "gender")
@@ -705,7 +603,7 @@ const Patients = () => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
-                  bg_color="bg-white"
+                  bg_color="bg-gray-700"
                 />
               </div>
 
@@ -722,7 +620,7 @@ const Patients = () => {
               <div>
                 <Select_Dropdown
                   value={createActionData.treatmenttype}
-                  bg_color="#fff"
+                  bg_color="bg-gray-700"
                   start_empty={true}
                   // @ts-ignore
                   options_arr={services?.map((service) => ({
@@ -730,10 +628,8 @@ const Patients = () => {
                     label: service,
                   }))}
                   required={true}
-                  // @ts-ignore
                   on_change_handle={(e: string) =>
                     // @ts-ignore
-
                     addPatientFieldsChange(e.target.value, "treatmenttype")
                   }
                   label={t("POS-Sales_k24")}
@@ -745,7 +641,7 @@ const Patients = () => {
           <div className="mt-6">
             <button
               onClick={createNewDataHandle}
-              className="bg-[#0066FF] py-3 w-full text-center text-white hover:bg-[#0052CC] transition-colors rounded-md font-medium"
+              className="bg-blue-600 py-3 w-full text-center text-white hover:bg-blue-700 transition-colors rounded-md font-medium"
             >
               Add Patient
             </button>
@@ -766,7 +662,7 @@ const Patients = () => {
         create_new_handle={modalSubmitHandle}
       >
         {activeModalMode === "delete" ? (
-          <div>
+          <div className="text-gray-200">
             <h1>Are you sure you want to delete this POS?</h1>
           </div>
         ) : (
@@ -775,7 +671,8 @@ const Patients = () => {
               <Input_Component
                 value={actionData ? actionData["firstname"] : ""}
                 type="text"
-                border="border-2 border-gray-300 rounded-md"
+                border="border-2 border-gray-600 rounded-md"
+                bg_color="bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
                 label={"First Name"}
               />
@@ -784,7 +681,8 @@ const Patients = () => {
               <Input_Component
                 value={actionData ? actionData["lastname"] : ""}
                 type="text"
-                border="border-2 border-gray-300 rounded-md"
+                border="border-2 border-gray-600 rounded-md"
+                bg_color="bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
                 label={"Last Name"}
               />
@@ -793,7 +691,8 @@ const Patients = () => {
               <Input_Component
                 value={actionData ? actionData["email"] : ""}
                 type="text"
-                border="border-2 border-gray-300 rounded-md"
+                border="border-2 border-gray-600 rounded-md"
+                bg_color="bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "email")}
                 label={"Email"}
               />
@@ -810,7 +709,7 @@ const Patients = () => {
             {/* @ts-ignore */}
             <Select_Dropdown
               value={actionData ? actionData["treatmenttype"] : ""}
-              bg_color="#fff"
+              bg_color="bg-gray-700"
               start_empty={true}
               //@ts-ignore
               options_arr={services?.map((service) => ({
@@ -820,7 +719,6 @@ const Patients = () => {
               required={true}
               on_change_handle={(e: string) =>
                 // @ts-ignore
-
                 modalInputChangeHandle(e.target.value, "treatmenttype")
               }
               label="Treatment Type"
@@ -828,7 +726,7 @@ const Patients = () => {
             {/* @ts-ignore */}
             <Select_Dropdown
               value={actionData ? actionData["gender"] : ""}
-              bg_color="#fff"
+              bg_color="bg-gray-700"
               start_empty={true}
               options_arr={["Male", "Female"].map((gender) => ({
                 value: gender,
@@ -837,7 +735,6 @@ const Patients = () => {
               required={true}
               on_change_handle={(e: string) =>
                 // @ts-ignore
-
                 modalInputChangeHandle(e.target.value, "gender")
               }
               label="Gender"

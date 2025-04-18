@@ -9,7 +9,7 @@ const WebsiteContentLayout: React.FC<WebsiteContentLayoutProps> = ({
 	children,
 }) => {
 	return (
-		<div className="flex justify-center gap-5 mt-8 " >
+		<div className="flex justify-center gap-5 mt-8 dark:bg-[#0E1725] " >
 			<div className="space-y-5 ">
 				<TopTabs />
 			</div>

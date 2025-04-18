@@ -37,7 +37,7 @@ import {
 import { Archive, ShieldCheck } from "lucide-react";
 
 interface DataListInterface {
-  [key: string]: any; // This allows dynamic property access
+  [key: string]: any;
 }
 
 const modalStateEnum = {
@@ -88,20 +88,30 @@ const tableHeader = [
           <Action_Button
             onClick={() => clickHandle(modalStateEnum.UPDATE)}
             label="Update"
-            text_color="text-[#0066ff]"
-            bg_color="bg-[#E5F0FF]"
+            text_color="text-[#0066ff] dark:text-blue-400"
+            bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
             border={
-              getDataArchiveType ? "border-[#CCE0FF]" : "border-[#CCE0FF]"
+              getDataArchiveType
+                ? "border-[#CCE0FF] dark:border-blue-800"
+                : "border-[#CCE0FF] dark:border-blue-800"
             }
-          />{" "}
+          />
           <Action_Button
             label={getDataArchiveType ? "Unarchive" : "Archive"}
             text_color={
-              getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
+              getDataArchiveType
+                ? "text-[#0EA542] dark:text-green-400"
+                : "text-[#F71B1B] dark:text-red-400"
             }
-            bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
+            bg_color={
+              getDataArchiveType
+                ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                : "bg-[#FFE8E5] dark:bg-red-900/30"
+            }
             border={
-              getDataArchiveType ? "border-[#72F39E]" : "border-[#FFD2CC]"
+              getDataArchiveType
+                ? "border-[#72F39E] dark:border-green-800"
+                : "border-[#FFD2CC] dark:border-red-800"
             }
             onClick={() => clickHandle(modalStateEnum.DELETE)}
           />
@@ -239,9 +249,7 @@ const Inventory = () => {
   };
 
   const modalSubmitHandle = async () => {
-    console.log({ modalData });
     setModalEventLoading(true);
-    console.log(modalData);
     if (modalState === modalStateEnum.CREATE) {
       const invenPostData = {
         price: modalData.price,
@@ -257,9 +265,7 @@ const Inventory = () => {
       });
 
       if (error) {
-        console.log(error.message);
         toast.error(error.message);
-        // throw new Error(error.message);
       }
       if (res_data?.length) {
         toast.success("Created successfully");
@@ -290,7 +296,6 @@ const Inventory = () => {
       } catch (error: any) {
         if (error && error?.message) {
           toast.error(error?.message);
-          // throw new Error(error.message);
         } else {
           toast.error("Something went wrong!");
         }
@@ -313,16 +318,11 @@ const Inventory = () => {
           : "Archived successfully"
       );
     } else if (error) {
-      console.log(error.message);
       toast.error(error.message);
     }
   };
 
   const buttonClickActionHandle = (action: string, elem: any) => {
-    console.log({
-      action,
-      elem,
-    });
     if (action === modalStateEnum.DELETE) {
       onClickHandle(elem.product_id);
     } else if (action === modalStateEnum.UPDATE) {
@@ -333,7 +333,6 @@ const Inventory = () => {
   };
 
   const sortHandle = (column: string) => {
-    console.log(column);
     let sortedList: any = [];
     if (column === "category") {
       if (sortOrder === 1) {
@@ -365,7 +364,6 @@ const Inventory = () => {
 
     setSortOrder((order) => (order === -1 ? 1 : -1));
     setDataList([...sortedList]);
-
     setSortColumn(column);
   };
 
@@ -385,13 +383,13 @@ const Inventory = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 flex items-center justify-end space-x-0 bg-gray-100 rounded-md overflow-hidden">
+      <div className="text-sm text-gray-500 flex items-center justify-end space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
         <button
           onClick={handleActiveClick}
           className={`flex items-center gap-x-1 px-4 py-2 ${
             !getDataArchiveType
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500"
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-500 dark:text-gray-300"
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -401,8 +399,8 @@ const Inventory = () => {
           onClick={handleArchiveClick}
           className={`flex items-center gap-x-1 px-4 py-2 ${
             getDataArchiveType
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500"
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-500 dark:text-gray-300"
           }`}
         >
           <Archive className="w-4 h-4" />
@@ -415,21 +413,21 @@ const Inventory = () => {
 
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
-    <main className="w-full  h-full font-[500] text-[20px]">
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
-        <div className=" h-[100%]  col-span-2 rounded-md py-2   ">
-          Inventory
+        <div className="h-[100%] col-span-2 rounded-md py-2">
+          <h1 className="text-xl font-bold dark:text-white">Inventory</h1>
           <div className="px-3 py-4 flex justify-between items-center">
             <div className="flex items-center gap-x-2">
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-white"
+                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md"
+                className="flex items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
               >
                 Create Product
               </button>
@@ -438,27 +436,28 @@ const Inventory = () => {
             {RightSideComponent}
           </div>
 
-          <div className="px-3 pt-5 border rounded-md">
+          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-gray-800">
             <Table>
-              <TableHeader className="border-b border-gray-200">
-                <TableRow className="flex hover:bg-transparent">
+              <TableHeader className="border-b border-gray-200 dark:border-gray-700">
+                <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                   <TableHead className="w-10 p-4">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                     />
                   </TableHead>
                   {tableHeader.map(({ label, align, can_sort, id }, index) => (
                     <TableHead
                       key={index}
                       className={`
-              flex-1 
-              ${align || "text-start"}
-              text-sm 
-              text-gray-500
-              font-medium
-              py-3
-            `}
+                        flex-1 
+                        ${align || "text-start"}
+                        text-sm 
+                        text-gray-500
+                        font-medium
+                        py-3
+                        dark:text-gray-400
+                      `}
                     >
                       <div className="flex items-center">
                         {t(label)}
@@ -470,9 +469,9 @@ const Inventory = () => {
                             <PiCaretUpDownBold
                               className={`inline ${
                                 sortColumn === id
-                                  ? "text-blue-600"
-                                  : "text-gray-400"
-                              } hover:text-gray-600 active:text-gray-500`}
+                                  ? "text-blue-600 dark:text-blue-400"
+                                  : "text-gray-400 dark:text-gray-500"
+                              } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
                             />
                           </button>
                         )}
@@ -482,21 +481,21 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="divide-y divide-gray-200 mb-4 h-[60dvh] overflow-y-auto block">
+              <TableBody className="divide-y divide-gray-200 mb-4 h-[60dvh] overflow-y-auto block dark:divide-gray-700">
                 {loading ? (
                   <TableRow className="flex h-full">
                     <TableCell
                       colSpan={tableHeader.length}
                       className="h-[60dvh] text-center"
                     >
-                      <Spinner size="xl" />
+                      <Spinner size="xl" className="dark:text-white" />
                     </TableCell>
                   </TableRow>
                 ) : dataList.length === 0 ? (
                   <TableRow className="flex h-full">
                     <TableCell
                       colSpan={tableHeader.length}
-                      className="h-[60dvh] text-center"
+                      className="h-[60dvh] text-center dark:text-gray-300"
                     >
                       <h1>No Product is available</h1>
                     </TableCell>
@@ -506,18 +505,24 @@ const Inventory = () => {
                     <TableRow
                       key={index}
                       className={`
-              flex 
-              items-center 
-              hover:bg-gray-100 
-              border-b
-              border-gray-200
-              ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-            `}
+                        flex 
+                        items-center 
+                        hover:bg-gray-100 
+                        border-b
+                        border-gray-200
+                        ${
+                          index % 2 === 0
+                            ? "bg-white dark:bg-gray-800"
+                            : "bg-gray-50 dark:bg-gray-700"
+                        }
+                        dark:hover:bg-gray-700
+                        dark:border-gray-700
+                      `}
                     >
                       <TableCell className="w-10 p-4">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300"
+                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                         />
                       </TableCell>
                       {tableHeader.map((element, ind) => {
@@ -538,7 +543,7 @@ const Inventory = () => {
                             key={ind}
                             className={`flex-1 ${
                               align || "text-start"
-                            } text-sm py-4`}
+                            } text-sm py-4 dark:text-gray-300`}
                           >
                             {id === "category"
                               ? elem.categories.category_name
@@ -553,15 +558,15 @@ const Inventory = () => {
             </Table>
 
             {!loading && dataList.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-                <div className="text-sm text-gray-500">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   0 of {dataList.length} row(s) selected.
                 </div>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
+                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
                     Previous
                   </button>
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
+                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
                     Next
                   </button>
                 </div>
@@ -583,7 +588,7 @@ const Inventory = () => {
         //@ts-ignore
         Trigger_Button={null}
       >
-        <div className="w-full grid grid-cols-2 gap-4">
+        <div className="w-full grid grid-cols-2 gap-4 dark:bg-gray-800">
           {requiredInputFields.map((elem) => {
             const { id, label, colSpan, type } = elem;
             return id === "category_id" ? (
@@ -591,7 +596,7 @@ const Inventory = () => {
                 <Searchable_Dropdown
                   initialValue={0}
                   value={modalData[id]}
-                  bg_color="#fff"
+                  bg_color="#fff dark:bg-gray-700"
                   start_empty={true}
                   options_arr={categories.map(
                     ({ category_id, category_name }: any) => ({
@@ -611,7 +616,7 @@ const Inventory = () => {
                 <Searchable_Dropdown
                   initialValue={0}
                   value={modalData[id]}
-                  bg_color="#fff"
+                  bg_color="#fff dark:bg-gray-700"
                   start_empty={true}
                   options_arr={products.map(
                     ({ product_id, product_name }: any) => ({
@@ -634,7 +639,7 @@ const Inventory = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     py="py-3"
-                    border="border-[1px] border-gray-300 rounded-md"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-gray-600"
                     label={label}
                   />
                 ) : (
@@ -643,7 +648,7 @@ const Inventory = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     py="py-3"
-                    border="border-[1px] border-gray-300 rounded-md"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-gray-600"
                     label={label}
                   />
                 )}

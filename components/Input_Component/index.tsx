@@ -18,6 +18,7 @@ interface InputComponentProps {
   max?: string;
   passwordEye?: boolean;
   isDate?: boolean; 
+  darkMode?: boolean;
 }
 
 export const Input_Component: React.FC<InputComponentProps> = ({
@@ -34,6 +35,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
   passwordEye = false,
   disabled = false,
   isDate = false,
+  darkMode,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

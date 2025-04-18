@@ -14,7 +14,7 @@ const Settings = () => {
 
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full dark:bg-[#0E1725]">
       <div className=" px-12">
         <SettingsComponent />
       </div>

@@ -36,12 +36,10 @@ interface DataListInterface {
 }
 
 const tableHeader = [
-  // { id: 'toggle', label: '', align: 'text-start', classNames: 'w-24' },
   { id: "full_name", label: "UM_k4", align: "text-start", classNames: "w-72" },
   { id: "role", label: "UM_k5", classNames: "w-72" },
   { id: "email", label: "Email" },
   { id: "locations", label: "UM_k6" },
-  // { id: 'password', label: 'Password' },
   { id: "actions", label: "", classNames: "w-28" },
 ];
 
@@ -54,6 +52,32 @@ const UserManagementComponent = () => {
   const [editData, setEditData] = useState<any>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Check for saved dark mode preference or system preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    if (savedMode !== null) {
+      setDarkMode(savedMode === "true");
+    } else {
+      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, []);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -187,27 +211,27 @@ const UserManagementComponent = () => {
   const { t } = useTranslation(translationConstant.USERMANAGEMENT);
 
   return (
-    <div className="flex justify-center px-4 py-3">
-      <div className="w-full bg-white">
+    <div className="flex justify-center px-4 py-3 dark:bg-gray-900">
+      <div className="w-full bg-white dark:bg-gray-800">
         {/* Header with search and add button */}
         <div className="p-6 flex justify-between items-center">
           <div className="relative w-60">
             <input
               onChange={onChangeHandle}
-              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               type="text"
               placeholder={t("Search users by name")}
             />
             <IoSearchOutline
-              className="absolute left-2 top-2.5"
+              className="absolute left-2 top-2.5 dark:text-gray-300"
               size={18}
-              color="#71717A"
+              color={darkMode ? "#9CA3AF" : "#71717A"}
             />
           </div>
 
           <button
             onClick={handleOpen}
-            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 flex items-center gap-2"
+            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:hover:bg-blue-700 dark:active:bg-blue-900 flex items-center gap-2"
           >
             <span className="text-lg">+</span> {t("Add New User")}
           </button>
@@ -216,21 +240,24 @@ const UserManagementComponent = () => {
         {/* Table */}
         <div className="px-6">
           <div
-            className="border rounded-md overflow-auto"
+            className="border rounded-md overflow-auto dark:border-gray-700"
             style={{ maxHeight: "400px" }}
           >
             <Table>
               <TableHeader>
-                <TableRow className="border-b text-sm text-[#71717A]">
+                <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-gray-700">
                   <TableHead className="w-10">
-                    <input type="checkbox" className="rounded" />
+                    <input
+                      type="checkbox"
+                      className="rounded dark:bg-gray-700 dark:border-gray-600"
+                    />
                   </TableHead>
                   {tableHeader.map(({ label, align, classNames }, index) => (
                     <TableHead
                       key={index}
                       className={`font-medium ${align || "text-left"} ${
                         classNames || ""
-                      }`}
+                      } dark:text-white`}
                     >
                       {t(label)}
                       {index < tableHeader.length - 1 && (
@@ -240,12 +267,12 @@ const UserManagementComponent = () => {
                   ))}
                 </TableRow>
               </TableHeader>
-              <TableBody className="divide-y">
+              <TableBody className="divide-y dark:divide-gray-700">
                 {tableLoading ? (
                   <TableRow>
                     <TableCell
                       colSpan={tableHeader.length + 1}
-                      className="py-20"
+                      className="py-20 dark:bg-gray-800"
                     >
                       <div className="flex justify-center">
                         <CircularProgress />
@@ -254,9 +281,15 @@ const UserManagementComponent = () => {
                   </TableRow>
                 ) : (
                   dataList.map((elem, index) => (
-                    <TableRow key={index} className="hover:bg-gray-50">
-                      <TableCell className="py-4 pr-3">
-                        <input type="checkbox" className="rounded" />
+                    <TableRow
+                      key={index}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
+                    >
+                      <TableCell className="py-4 pr-3 dark:bg-gray-800">
+                        <input
+                          type="checkbox"
+                          className="rounded dark:bg-gray-700 dark:border-gray-600"
+                        />
                       </TableCell>
                       {tableHeader.map(({ id, classNames, align }, ind) => {
                         const content = elem[id];
@@ -265,7 +298,7 @@ const UserManagementComponent = () => {
                             key={ind}
                             className={`py-4 ${align || "text-left"} ${
                               classNames || ""
-                            }`}
+                            } dark:text-white dark:bg-gray-800`}
                           >
                             {id === "toggle" ? (
                               <Switch />
@@ -273,7 +306,7 @@ const UserManagementComponent = () => {
                               <div className="flex items-center space-x-4 justify-end">
                                 {/* View Button */}
                                 <button
-                                  className="text-gray-500 hover:text-gray-700"
+                                  className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                                   onClick={() => viewUserHandle(elem)}
                                 >
                                   <svg
@@ -294,7 +327,7 @@ const UserManagementComponent = () => {
 
                                 {/* Edit Button */}
                                 <button
-                                  className="text-blue-500 hover:text-blue-700"
+                                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                   onClick={() => editUserHandle(elem)}
                                 >
                                   <svg
@@ -314,7 +347,7 @@ const UserManagementComponent = () => {
 
                                 {/* Delete Button */}
                                 <button
-                                  className="text-red-500 hover:text-red-700"
+                                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                   disabled={elem.role === "super admin"}
                                   onClick={() => deleteUserHandle(elem.id)}
                                 >
@@ -339,12 +372,18 @@ const UserManagementComponent = () => {
                               <div>
                                 {Array.isArray(content) ? (
                                   content.length > 1 ? (
-                                    <span>Multiple Locations</span>
+                                    <span className="dark:text-white">
+                                      Multiple Locations
+                                    </span>
                                   ) : content.length === 1 ? (
-                                    <span>{content[0].title}</span>
+                                    <span className="dark:text-white">
+                                      {content[0].title}
+                                    </span>
                                   ) : null
                                 ) : (
-                                  <span>{content}</span>
+                                  <span className="dark:text-white">
+                                    {content}
+                                  </span>
                                 )}
                               </div>
                             )}
@@ -359,15 +398,15 @@ const UserManagementComponent = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center py-4 text-sm">
-            <div className="text-gray-500">
+          <div className="flex justify-between items-center py-4 text-sm dark:text-white">
+            <div className="text-gray-500 dark:text-gray-300">
               0 of {dataList.length} row(s) selected
             </div>
             <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50">
+              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
                 Previous
               </button>
-              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50">
+              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
                 Next
               </button>
             </div>
@@ -384,42 +423,57 @@ const UserManagementComponent = () => {
         loading={loading}
       />
 
-<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-  <SheetContent className="w-full max-w-md">
-    <SheetHeader>
-      <SheetTitle className="text-xl font-semibold">User Details</SheetTitle>
-    </SheetHeader>
-    {selectedUser && (
-      <div className="grid gap-5 py-6">
-        <div className="space-y-0.5">
-          <div className="text-sm text-muted-foreground">Name</div>
-          <div className="font-medium text-base">{selectedUser.full_name}</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-sm text-muted-foreground">Role</div>
-          <div className="font-medium text-base">{selectedUser.role}</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-sm text-muted-foreground">Email</div>
-          <div className="font-medium text-base">{selectedUser.email}</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-sm text-muted-foreground">Locations</div>
-          <div className="font-medium text-base space-y-1">
-            {selectedUser.locations.length > 0 ? (
-              selectedUser.locations.map((loc: any, idx: number) => (
-                <div key={idx}>{loc.title}</div>
-              ))
-            ) : (
-              <span>No locations assigned</span>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-  </SheetContent>
-</Sheet>
-
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="w-full max-w-md dark:bg-gray-800 dark:border-gray-700">
+          <SheetHeader>
+            <SheetTitle className="text-xl font-semibold dark:text-white">
+              User Details
+            </SheetTitle>
+          </SheetHeader>
+          {selectedUser && (
+            <div className="grid gap-5 py-6">
+              <div className="space-y-0.5">
+                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                  Name
+                </div>
+                <div className="font-medium text-base dark:text-white">
+                  {selectedUser.full_name}
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                  Role
+                </div>
+                <div className="font-medium text-base dark:text-white">
+                  {selectedUser.role}
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                  Email
+                </div>
+                <div className="font-medium text-base dark:text-white">
+                  {selectedUser.email}
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                  Locations
+                </div>
+                <div className="font-medium text-base space-y-1 dark:text-white">
+                  {selectedUser.locations.length > 0 ? (
+                    selectedUser.locations.map((loc: any, idx: number) => (
+                      <div key={idx}>{loc.title}</div>
+                    ))
+                  ) : (
+                    <span>No locations assigned</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

@@ -54,8 +54,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       isSelected 
         ? [...prev, id] 
         : prev.filter(appId => appId !== id)
-    );
-  };
+  )};
 
   const handleSelectAll = (isSelected: boolean) => {
     if (isSelected) {
@@ -69,27 +68,28 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   const someSelected = selectedAppointments.length > 0 && !allSelected;
 
   return (
-    <div className="w-full bg-white rounded-lg shadow overflow-hidden">
+    <div className="w-full bg-white rounded-lg shadow overflow-hidden dark:bg-gray-900">
       {appointLoading ? (
         <div className="flex h-40 flex-col justify-center items-center">
-          <Spinner size="xl" />
+          <Spinner size="xl" className="dark:text-white" />
         </div>
       ) : appointments.length === 0 ? (
         <div className="flex h-40 flex-col justify-center items-center">
-          <h1 className="text-gray-500 font-medium">No Appointments Available</h1>
+          <h1 className="text-gray-500 font-medium dark:text-gray-300">No Appointments Available</h1>
         </div>
       ) : (
         <>
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <Table>
-              <TableHeader className="bg-gray-50">
-                <TableRow>
-                  <TableHead className="w-12">
+              <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="w-12 dark:border-gray-700">
                     <Checkbox
                       checked={allSelected}
                       onCheckedChange={handleSelectAll}
                       //@ts-ignore
                       indeterminate={someSelected}
+                      className="dark:border-gray-600"
                     />
                   </TableHead>
                   {[ 
@@ -99,18 +99,18 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     { label: t("Appoinments_k2"), sort: "slot" },
                     { label: t("Appoinments_k1"), sort: "time" },
                   ].map(({ label, sort }) => (
-                    <TableHead key={sort} className="font-medium">
+                    <TableHead key={sort} className="font-medium dark:border-gray-700">
                       {label}
                       <button
                         onClick={() => sortHandle(sort)}
-                        className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
+                        className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-400 dark:hover:text-gray-200"
                       >
-                        <PiCaretUpDownBold className={`inline ${sortColumn === sort ? "text-green-600" : ""}`} />
+                        <PiCaretUpDownBold className={`inline ${sortColumn === sort ? "text-green-600 dark:text-green-400" : ""}`} />
                       </button>
                     </TableHead>
                   ))}
-                  <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="font-medium text-right">Actions</TableHead>
+                  <TableHead className="font-medium dark:border-gray-700">Status</TableHead>
+                  <TableHead className="font-medium text-right dark:border-gray-700">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,7 +129,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               </TableBody>
             </Table>
           </div>
-          <div className="px-4 py-2 text-sm text-gray-500">
+          <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
             {selectedAppointments.length > 0 
               ? `${selectedAppointments.length} of ${appointments.length} row(s) selected`
               : `0 of ${appointments.length} row(s) in total`}
@@ -161,13 +161,12 @@ const MemoizedTableRow = memo(({
 }: MemoizedTableRowProps) => {
   const handleApprove = (event: React.MouseEvent) => {
     event.stopPropagation()
-    console.log("Approve button clicked")
     // @ts-ignore
     ApproveAppointment(appointment.id)
     toast.success(
-      <div className="flex justify-between">
+      <div className="flex justify-between dark:text-white">
         <p>Appointment has been approved successfully.</p>
-        <button onClick={() => toast.dismiss()} className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100">
+        <button onClick={() => toast.dismiss()} className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
           <span className="text-sm">&#x2715;</span>
         </button>
       </div>,
@@ -180,57 +179,58 @@ const MemoizedTableRow = memo(({
   return (
     <TableRow 
       onClick={() => onSelect(appointment)} 
-      className={`hover:bg-gray-50 ${isSelected ? "bg-gray-100" : ""}`}
+      className={`hover:bg-gray-50 ${isSelected ? "bg-gray-100" : ""} dark:hover:bg-gray-800 dark:border-gray-700 ${isSelected ? "dark:bg-gray-700" : ""}`}
     >
-      <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
+      <TableCell className="w-12 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
         <Checkbox 
           checked={isSelected}
           onCheckedChange={onCheckboxChange}
+          className="dark:border-gray-600"
         />
       </TableCell>
-      <TableCell className="font-medium">
+      <TableCell className="font-medium dark:text-white">
         {appointment.first_name} {appointment.last_name}
       </TableCell>
-      <TableCell className="p-4">{appointment.sex}</TableCell>
-      <TableCell>{appointment.service}</TableCell>
-      <TableCell>{date}</TableCell>
-      <TableCell>{time}</TableCell>
-      <TableCell>
+      <TableCell className="p-4 dark:text-gray-300">{appointment.sex}</TableCell>
+      <TableCell className="dark:text-gray-300">{appointment.service}</TableCell>
+      <TableCell className="dark:text-gray-300">{date}</TableCell>
+      <TableCell className="dark:text-gray-300">{time}</TableCell>
+      <TableCell className="dark:border-gray-700">
         {isUnapproved ? (
           <button 
-            className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs" 
+            className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
             onClick={handleApprove}
           >
             Approve
           </button>
         ) : (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
             Approved ✓
           </span>
         )}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right dark:border-gray-700">
         <div className="flex justify-end space-x-2">
-          <button className="text-gray-500 hover:text-gray-700">
-            <Eye color="black" className="h-4 w-4" />
+          <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <Eye className="h-4 w-4" />
           </button>
           <button 
-            className="text-gray-500 hover:text-blue-600"
+            className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
             onClick={(e) => {
               e.stopPropagation()
               onEdit?.(appointment)
             }}
           >
-            <SquarePen color="#0066ff" className="h-4 w-4" />
+            <SquarePen className="h-4 w-4" />
           </button>
           <button 
-            className="text-gray-500 hover:text-red-600"
+            className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
             onClick={(e) => {
               e.stopPropagation()
               onDelete?.(appointment.id)
             }}
           >
-            <Trash2 color="red" className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </TableCell>

@@ -61,10 +61,7 @@ const TableComponent: React.FC<Props> = ({
     translationConstant.POSHISTORY,
   ]);
 
-  // ✅ Step 1: State to track selected rows
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
-
-  // ✅ Step 2: Select all and individual checkbox handlers
   const isAllSelected = dataList.length > 0 && selectedRows.length === dataList.length;
 
   const handleSelectAll = () => {
@@ -85,16 +82,16 @@ const TableComponent: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-white w-full overflow-hidden">
-      <div className=" py-3 flex justify-between items-center border-b">
-        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200">
+    <div className="bg-white dark:bg-[#1E293B] w-full overflow-hidden text-black dark:text-white">
+      <div className="py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155]">
           <CiSearch size={18} color="gray" />
           <input
             onChange={searchHandle}
             type="text"
             //@ts-ignore
             placeholder={t(searchInputplaceholder)}
-            className="w-full px-1 focus:outline-none placeholder-gray-400 text-sm"
+            className="w-full px-1 focus:outline-none placeholder-gray-400 dark:placeholder-gray-400 bg-transparent text-sm text-black dark:text-white"
           />
         </div>
 
@@ -102,13 +99,12 @@ const TableComponent: React.FC<Props> = ({
         {RightSideComponent ? <RightSideComponent /> : null}
       </div>
 
-      <div className="w-full border border-gray-200 rounded-md h-[600px] flex flex-col">
+      <div className="w-full border border-gray-200 dark:border-gray-700 rounded-md h-[600px] flex flex-col">
         <div className="flex-1 overflow-auto">
           <Table className="w-full rounded-lg">
-            <TableHeader className="sticky top-0 bg-white z-10">
-              <TableRow className="border-b border-gray-200 rounded-lg bg-white">
-                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500">
-                  {/* ✅ Select All Checkbox */}
+            <TableHeader className="sticky top-0 z-10 bg-white dark:bg-[#1E293B]">
+              <TableRow className="border-b border-gray-200 dark:border-gray-700 rounded-lg">
+                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300">
                   <input
                     type="checkbox"
                     className="rounded"
@@ -119,7 +115,7 @@ const TableComponent: React.FC<Props> = ({
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
                     key={index}
-                    className={`py-3 text-sm text-gray-500 font-medium ${flex ? flex : "flex-1"} ${align || "text-left"}`}
+                    className={`py-3 text-sm text-gray-500 dark:text-gray-300 font-medium ${flex || "flex-1"} ${align || "text-left"}`}
                   >
                     {t(label, {
                       ns: translationConstant.STOCKPANEL,
@@ -141,9 +137,11 @@ const TableComponent: React.FC<Props> = ({
                 </TableRow>
               ) : (
                 dataList.map((elem, index) => (
-                  <TableRow key={index} className="hover:bg-gray-50 border-b border-gray-200">
+                  <TableRow
+                    key={index}
+                    className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700"
+                  >
                     <TableCell className="w-12 py-3">
-                      {/* ✅ Individual Row Checkbox */}
                       <input
                         type="checkbox"
                         className="rounded"
@@ -158,7 +156,7 @@ const TableComponent: React.FC<Props> = ({
                       return (
                         <TableCell
                           key={ind}
-                          className={`py-3 text-sm ${flex ? flex : "flex-1"} ${align || "text-left"}`}
+                          className={`py-3 text-sm ${flex || "flex-1"} ${align || "text-left"}`}
                         >
                           {content}
                         </TableCell>
@@ -172,14 +170,17 @@ const TableComponent: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* ✅ Bottom bar with selected count */}
-      <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 text-sm">
-        <div className="text-gray-500">
+      <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300">
+        <div>
           {selectedRows.length} of {dataList.length} row(s) selected.
         </div>
         <div className="flex space-x-2">
-          <button className="px-3 py-1 text-gray-500 hover:bg-gray-100 rounded">Previous</button>
-          <button className="px-3 py-1 text-gray-500 hover:bg-gray-100 rounded">Next</button>
+          <button className="px-3 py-1 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#334155] rounded">
+            Previous
+          </button>
+          <button className="px-3 py-1 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#334155] rounded">
+            Next
+          </button>
         </div>
       </div>
     </div>

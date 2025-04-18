@@ -67,13 +67,13 @@ const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
     <div className="w-52">
       <Select
         onChange={handleSelectChange}
-        className="w-full h-auto"
+        className="w-full h-auto dark:bg-gray-800 dark:border-gray-700 dark:text-white"
         style={{ backgroundColor: "white" }}
         id="section"
         required={true}
       >
-        <option value="Cash">Cash</option>
-        <option value="Debit Card">Debit Card</option>
+        <option value="Cash" className="dark:bg-gray-800 dark:text-white">Cash</option>
+        <option value="Debit Card" className="dark:bg-gray-800 dark:text-white">Debit Card</option>
       </Select>
     </div>
   );
@@ -83,26 +83,19 @@ const grandTotalHandle = (
   ProductArray: CartArrayInterface[],
   discount?: number
 ) => {
-  // Calculate total quantity of products
   const totalQty = ProductArray.reduce((a, b) => a + b.quantity, 0);
-
-  // Calculate total amount before discount
   let totalAmount = ProductArray.reduce((a, b) => a + b.quantity * b.price, 0);
-
-  // Initialize discount amount
   let discountAmount = 0;
 
-  // Apply discount if it's valid and greater than zero
   if (discount && discount > 0) {
-    discountAmount = (totalAmount * discount) / 100; // Calculate the discount amount
-    totalAmount -= discountAmount; // Subtract the discount from the total amount
+    discountAmount = (totalAmount * discount) / 100;
+    totalAmount -= discountAmount;
   }
 
-  // Return the total quantity, final amount after discount, and the discount amount
   return {
     qty: totalQty,
-    amount: currencyFormatHandle(totalAmount), // Format the total amount
-    discountAmount: discountAmount ? currencyFormatHandle(discountAmount) : 0, // Format the discounted amount
+    amount: currencyFormatHandle(totalAmount),
+    discountAmount: discountAmount ? currencyFormatHandle(discountAmount) : 0,
   };
 };
 
@@ -139,18 +132,18 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   };
 
   return (
-    <div className="bg-[#F1F4F9] py-2 px-3 rounded-lg">
-      <div className="flex items-center ">
+    <div className="bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-lg">
+      <div className="flex items-center">
         <div className="flex-1 flex items-center space-x-4">
-          <div className="flex flex-col items-center text-[#121111] ">
+          <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
             <button
               onClick={() => qtyHandle("inc")}
               className="disabled:opacity-60"
               disabled={quantity_available === quantity}
             >
-              <IoIosArrowUp size={20} className=" text-primary_color" />
+              <IoIosArrowUp size={20} className="text-primary_color dark:text-blue-400" />
             </button>
-            <span className="block text-lg font-bold text-[#121111]">
+            <span className="block text-lg font-bold text-[#121111] dark:text-white">
               {quantity}
             </span>
             <button
@@ -158,24 +151,21 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               className="disabled:opacity-60"
               onClick={() => qtyHandle("dec")}
             >
-              {" "}
-              <IoIosArrowDown size={20} className=" text-primary_color" />
+              <IoIosArrowDown size={20} className="text-primary_color dark:text-blue-400" />
             </button>
           </div>
           <dl>
-            <dt className="text-lg ">{product_name}</dt>
-
-            <dd className="text-[15px] text-gray-700">{category_name}</dd>
+            <dt className="text-lg dark:text-white">{product_name}</dt>
+            <dd className="text-[15px] text-gray-700 dark:text-gray-400">{category_name}</dd>
           </dl>
         </div>
         <div className="flex items-center space-x-4">
-          <p className="font-bold text-[#121111] ">
+          <p className="font-bold text-[#121111] dark:text-white">
             {calcTotalAmount(price, quantity)}
           </p>
-
           <div>
             <button onClick={removeItemHandle}>
-              <IoCloseOutline size={20} className=" text-primary_color" />
+              <IoCloseOutline size={20} className="text-primary_color dark:text-blue-400" />
             </button>
           </div>
         </div>
@@ -212,14 +202,12 @@ const Orders = () => {
 
   const category_change_handle = (e: any) => {
     const value = e.target.value;
-    console.log("--------------->", value);
     getCategoriesByLocationId(value);
     setProductQty(0);
   };
 
   const select_product_change_handle = (e: any) => {
     const value = e.target.value;
-    console.log(value);
     selectProductHandle(value);
     setProductQty(0);
   };
@@ -296,7 +284,6 @@ const Orders = () => {
       cartArray.splice(index, 1);
     } else {
       cartArray[index].quantity = qty;
-      console.log({ product_id, qty });
     }
     setCartArray([...cartArray]);
   };
@@ -341,20 +328,23 @@ const Orders = () => {
         if (order_created_error) throw new Error(order_created_error.message);
 
         if (order_created_data.length) {
-          toast.success(`Order has been placed, order # ${order_id}`);
+          toast.success(`Order has been placed, order # ${order_id}`, {
+            style: {
+              background: 'var(--background)',
+              color: 'var(--foreground)',
+              border: '1px solid var(--border)',
+            }
+          });
 
-          // Calculate total and discount amounts for the email
           const grandTotal = grandTotalHandle(cartArray, appliedDiscount);
           const totalAmount = grandTotal.amount;
           const discountAmount = grandTotal.discountAmount;
 
-          // Create an order details object for the email
           const orderDetails = {
             order_id,
             paymentcash: selectedMethod === "Cash",
           };
 
-          // Send order confirmation email
           await sendOrderEmail(
             orderDetails,
             selectedPatient,
@@ -366,11 +356,16 @@ const Orders = () => {
           setCartArray([]);
           localStorage.removeItem("@pos-patient");
           setSelectedPatient(null);
-          // router.push('/after-place-order')
         }
       }
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message, {
+        style: {
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        }
+      });
     } finally {
       setPlaceOrderLoading(false);
     }
@@ -396,171 +391,171 @@ const Orders = () => {
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
-    <main className="w-full h-full font-[500] text-[20px]">
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
       <div className="w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F9] h-[75dvh] overflow-auto col-span-2 rounded-md">
-          <span>
-            <div className="space-y-6">
-              {fetchingDataLoading ? (
-                <div className="w-full flex flex-col justify-center h-full space-y-3">
-                  <CircularProgress size={24} />
-                  <h1 className="text-sm text-gray-400">
-                    Fetching patient details
-                  </h1>
-                </div>
-              ) : (
-                <div className="bg-[#F1F4F9] p-6 rounded-lg shadow-sm">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Patient Details
-                  </h2>
-                  {selectedPatient ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      {render_details.map(
-                        ({ label, key, render_value }, ind) => {
-                          const extracted_val = render_value
-                            ? render_value(selectedPatient)
-                            : selectedPatient[key];
-                          return (
-                            <div
-                              key={ind}
-                              className="space-y-1 bg-white p-3 rounded-xl"
-                            >
-                              <p className="text-sm text-gray-500">{label}</p>
-                              <p className="text-base font-medium">
-                                {extracted_val}
-                              </p>
-                            </div>
-                          );
-                        }
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto col-span-2 rounded-md">
+          <div className="space-y-6 dark:bg-[#080E16]">
+            {fetchingDataLoading ? (
+              <div className="w-full flex flex-col justify-center h-full space-y-3">
+                <CircularProgress size={24} className="dark:text-white" />
+                <h1 className="text-sm text-gray-400 dark:text-gray-300">
+                  Fetching patient details
+                </h1>
+              </div>
+            ) : (
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-lg shadow-sm">
+                <h2 className="text-lg font-semibold mb-4 dark:text-white">
+                  Patient Details
+                </h2>
+                {selectedPatient ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {render_details.map(
+                      ({ label, key, render_value }, ind) => {
+                        const extracted_val = render_value
+                          ? render_value(selectedPatient)
+                          : selectedPatient[key];
+                        return (
+                          <div
+                            key={ind}
+                            className="space-y-1 bg-white dark:bg-[#0E1725] p-3 rounded-xl"
+                          >
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+                            <p className="text-base font-medium dark:text-white">
+                              {extracted_val}
+                            </p>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <h1 className="text-red-600 dark:text-red-400">{t("POS-Sales_k4")}</h1>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-xl shadow-sm mt-6">
+              <h2 className="text-lg font-semibold mb-4 dark:text-white">Product Details</h2>
+
+              <div className="space-y-6">
+                <div>
+                  <div className="w-full">
+                    <Searchable_Dropdown
+                      disabled={!selectedPatient}
+                      initialValue={0}
+                      value={selectedCategory}
+                      bg_color="#fff"
+                      //@ts-ignore 
+                      dark_bg_color="gray.700"
+                      start_empty={true}
+                      options_arr={categories.map(
+                        ({ category_id, category_name }: any) => ({
+                          value: category_id,
+                          label: category_name,
+                        })
                       )}
+                      required={true}
+                      on_change_handle={category_change_handle}
+                      label="POS-Sales_k6"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  {loadingProducts ? (
+                    <div className="text-sm text-black dark:text-white">
+                      {selectedCategory
+                        ? "Loading Products..."
+                        : "Select Category First.."}
                     </div>
                   ) : (
-                    <div>
-                      <h1 className="text-red-600">{t("POS-Sales_k4")}</h1>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="bg-[#F1F4F9] p-6 rounded-xl shadow-sm mt-6">
-                <h2 className="text-lg font-semibold mb-4">Product Details</h2>
-
-                <div className="space-y-6">
-                  <div>
                     <div className="w-full">
                       <Searchable_Dropdown
                         disabled={!selectedPatient}
                         initialValue={0}
-                        value={selectedCategory}
                         bg_color="#fff"
+                        //@ts-ignore
+                        dark_bg_color="gray.700"
                         start_empty={true}
-                        options_arr={categories.map(
-                          ({ category_id, category_name }: any) => ({
-                            value: category_id,
-                            label: category_name,
+                        options_arr={products.map(
+                          ({ product_id, product_name }: any) => ({
+                            value: product_id,
+                            label: product_name,
                           })
                         )}
                         required={true}
-                        on_change_handle={category_change_handle}
-                        label="POS-Sales_k6"
+                        value={
+                          selectedProduct ? selectedProduct.product_id : 0
+                        }
+                        on_change_handle={select_product_change_handle}
+                        label="Select Product"
                       />
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  <div>
-                    {loadingProducts ? (
-                      <div className="text-sm text-black">
-                        {selectedCategory
-                          ? "Loading Products..."
-                          : "Select Category First.."}
-                      </div>
-                    ) : (
-                      <div className="w-full">
-                        <Searchable_Dropdown
-                          disabled={!selectedPatient}
-                          initialValue={0}
-                          bg_color="#fff"
-                          start_empty={true}
-                          options_arr={products.map(
-                            ({ product_id, product_name }: any) => ({
-                              value: product_id,
-                              label: product_name,
-                            })
-                          )}
-                          required={true}
-                          value={
-                            selectedProduct ? selectedProduct.product_id : 0
-                          }
-                          on_change_handle={select_product_change_handle}
-                          label="Select Product"
-                        />
+                <div>
+                  <div className="flex items-center space-x-5">
+                    <Quantity_Field
+                      disabled={!selectedPatient}
+                      maxAvailability={
+                        selectedProduct
+                          ? selectedProduct.quantity_available
+                          : 0
+                      }
+                      quantity={productQty}
+                      quantityHandle={quantityHandle}
+                    />
+
+                    {selectedProduct && (
+                      <div className="space-y-1 text-gray-600 dark:text-gray-300">
+                        <div>
+                          <h1 className="text-base">
+                            {currencyFormatHandle(
+                              selectedProduct?.price || 0
+                            )}{" "}
+                            per unit
+                          </h1>
+                        </div>
+                        <div>
+                          <h1 className="text-base text-amber-600 dark:text-amber-400">
+                            {selectedProduct.quantity_available - productQty}{" "}
+                            units are remaining
+                          </h1>
+                        </div>
                       </div>
                     )}
                   </div>
+                </div>
 
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <Quantity_Field
-                        disabled={!selectedPatient}
-                        maxAvailability={
-                          selectedProduct
-                            ? selectedProduct.quantity_available
-                            : 0
-                        }
-                        quantity={productQty}
-                        quantityHandle={quantityHandle}
-                      />
-
-                      {selectedProduct && (
-                        <div className="space-y-1 text-gray-600">
-                          <div>
-                            <h1 className="text-base">
-                              {currencyFormatHandle(
-                                selectedProduct?.price || 0
-                              )}{" "}
-                              per unit
-                            </h1>
-                          </div>
-                          <div>
-                            <h1 className="text-base text-amber-600">
-                              {selectedProduct.quantity_available - productQty}{" "}
-                              units are remaining
-                            </h1>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex">
-                    <button
-                      disabled={!productQty}
-                      onClick={addToCartHandle}
-                      className="bg-[#0066FF] text-white font-medium py-3 px-9 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50"
-                      type="submit"
-                    >
-                      {t("POS-Sales_k8")}
-                    </button>
-                  </div>
+                <div className="flex">
+                  <button
+                    disabled={!productQty}
+                    onClick={addToCartHandle}
+                    className="bg-[#0066FF] text-white font-medium py-3 px-9 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50"
+                    type="submit"
+                  >
+                    {t("POS-Sales_k8")}
+                  </button>
                 </div>
               </div>
             </div>
-          </span>
+          </div>
         </div>
 
-        <div className="bg-[#F1F4F9] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-3">
-          <div className="px-6 py-5 bg-white rounded-lg border-b border-gray-100">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-3">
+          <div className="px-6 py-5 bg-white dark:bg-[#0E1725] rounded-lg border-b border-gray-100">
             <div className="flex-1">
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
               </h1>
-              <p className="text-sm text-gray-500">{t("POS-Sales_k10")} # --</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Sales_k10")} # --</p>
             </div>
           </div>
 
-
-          
-          <div className="overflow-auto flex-1 px-4 py-2 my-2 bg-white rounded-lg">
+          <div className="overflow-auto flex-1 px-4 py-2 my-2 bg-white dark:bg-[#0e1725] rounded-lg">
             <div className="space-y-2">
               {cartArray.map((data: CartArrayInterface, ind) => {
                 return (
@@ -575,15 +570,15 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="bg-white mt-auto rounded-b-lg">
-            <div className="py-4 px-6 space-y-4 rounded-lg">
+          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b-lg">
+            <div className="py-4 px-6 space-y-4 rounded-lg dark:bg-[#0E1725]">
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
               />
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700">
+                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k12")}
                 </h1>
                 <Payment_Method_Select
@@ -593,13 +588,13 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700">
+                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k13")}
                 </h1>
                 <div className="flex items-center">
                   <p
                     className={`${
-                      appliedDiscount ? "text-red-500" : "text-gray-700"
+                      appliedDiscount ? "text-red-500 dark:text-red-400" : "text-gray-700 dark:text-gray-300"
                     } text-sm font-medium`}
                   >
                     {appliedDiscount
@@ -613,11 +608,11 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700">
+                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k14")}
                 </h1>
                 <div className="flex items-center">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     ${grandTotalHandle(cartArray).amount}
                   </p>
                 </div>
@@ -639,7 +634,7 @@ const Orders = () => {
                         <span className="font-medium">
                           {grandTotalHandle(cartArray, appliedDiscount).amount}
                         </span>
-                        <span className="text-xs block text-blue-100">
+                        <span className="text-xs block text-blue-100 dark:text-blue-200">
                           {grandTotalHandle(cartArray).qty} items
                         </span>
                       </div>
@@ -791,7 +786,6 @@ const sendOrderEmail = async (
 
     console.log("Email HTML:", emailHtml);
 
-    // const fromEmail = "MyClinicMdProject@gmail.com";
     const fromEmail = "test@alerts.myclinicmd.com";
 
     const payload = {

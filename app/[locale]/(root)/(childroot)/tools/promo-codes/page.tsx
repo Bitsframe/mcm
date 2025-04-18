@@ -176,6 +176,32 @@ const Page = () => {
   >("");
   const [newDetails, setNewDetails] = useState<any>({});
   const [modalLoading, setModalLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Check for saved dark mode preference or system preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    if (savedMode !== null) {
+      setDarkMode(savedMode === "true");
+    } else {
+      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, []);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const openModalHandle = () => {
     setIsOpenModal(true);
@@ -372,12 +398,6 @@ const Page = () => {
         deleteDataHandle();
         break;
     }
-    // if(activeModalMode === ){
-    // }
-    // else if(activeModalMode === 'edit'){
-
-    // }
-    // else if()
   };
 
   const addNewHandle = () => {
@@ -407,15 +427,17 @@ const Page = () => {
 
   const { t } = useTranslation(translationConstant.PROCODE);
   return (
-    <main className="w-full  h-full font-[500] text-[20px] overflow-x-hidden">
+    <main className="w-full h-full font-[500] text-[20px] overflow-x-hidden dark:bg-gray-900 dark:text-white">
       <div className="grid grid-cols-3 w-[150%]">
-        <div className="flex justify-between items-center  px-4 py-2 space-x-2 col-span-2">
-          <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
+        <div className="flex justify-between items-center px-4 py-2 space-x-2 col-span-2">
+          <h1 className="text-xl font-bold dark:text-white">
+            {t("Procode_k1")}
+          </h1>
         </div>
       </div>
 
       <div className="w-full min-h-[84dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className=" h-[100%]  col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%] ">
+        <div className="h-[100%] col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%]">
           <div className="space-y-6 px-3 pb-4 flex justify-between mt-3">
             <div className="flex justify-between items-center w-full">
               <div>
@@ -423,30 +445,29 @@ const Page = () => {
                   onChange={onChangeHandle}
                   type="text"
                   placeholder={t("Procode_k3")}
-                  className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white"
+                  className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
               <div>
                 <button
                   onClick={addNewHandle}
-                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90"
+                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800"
                 >
                   {t("Procode_k2")}
                 </button>
               </div>
             </div>
-
-            {/* <div>
-              <CiFilter size={30} />
-            </div> */}
           </div>
 
           <div className="">
-            <Table className="border-collapse border border-gray-200 w-full">
+            <Table className="border-collapse border border-gray-200 dark:border-gray-700 w-full">
               <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left px-4 py-2 border-b border-gray-300">
-                    <input type="checkbox" />
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
+                    <input
+                      type="checkbox"
+                      className="dark:bg-gray-700 dark:border-gray-600"
+                    />
                   </TableHead>
                   {fields
                     .filter(({ table_column }) => table_column)
@@ -455,7 +476,7 @@ const Page = () => {
                         key={ind}
                         className={`${
                           align || "text-left"
-                        } text-[#71717A] font-medium text-lg px-4 py-2 border-b text-left border-gray-300`}
+                        } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b text-left border-gray-300 dark:border-gray-700`}
                       >
                         {t(label)}
                         <button
@@ -465,14 +486,14 @@ const Page = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === id
-                                ? "text-green-600"
-                                : "text-gray-400/50"
-                            } hover:text-gray-600 active:text-gray-500`}
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-gray-400/50 dark:text-gray-500"
+                            } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
                           />
                         </button>
                       </TableHead>
                     ))}
-                  <TableHead className="text-left text-[#71717A] font-medium text-lg px-4 py-2 border-b border-gray-300">
+                  <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -483,6 +504,7 @@ const Page = () => {
                   <TableRow>
                     <TableCell
                       colSpan={fields.filter((f) => f.table_column).length + 2}
+                      className="dark:bg-gray-800"
                     >
                       <div className="flex h-full flex-1 flex-col justify-center items-center">
                         <Spinner size="xl" />
@@ -495,11 +517,14 @@ const Page = () => {
                     return (
                       <TableRow
                         key={id}
-                        className="hover:bg-gray-50 cursor-pointer border-b border-gray-300"
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-300 dark:border-gray-700"
                         onClick={() => detailsViewHandle(elem)}
                       >
-                        <TableCell className="text-left px-4 py-2">
-                          <input type="checkbox" />
+                        <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
+                          <input
+                            type="checkbox"
+                            className="dark:bg-gray-700 dark:border-gray-600"
+                          />
                         </TableCell>
 
                         {fields
@@ -514,14 +539,14 @@ const Page = () => {
                                 key={fieldKey}
                                 className={`${
                                   align || "text-left"
-                                } font-normal text-left text-base px-5 py-2`}
+                                } font-normal text-left text-base px-5 py-2 dark:text-white dark:bg-gray-800`}
                               >
                                 {fieldKey === "status" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-orange-100 text-orange-700"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
+                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
                                     }`}
                                   >
                                     {extract_val}
@@ -533,16 +558,16 @@ const Page = () => {
                             );
                           })}
 
-                        <TableCell className="text-left px-4 py-2 space-x-2">
+                        <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-gray-800">
                           <EyeIcon
-                            className="text-gray-500 hover:text-black w-4 h-4 inline cursor-pointer"
+                            className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 inline cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               detailsViewHandle(elem);
                             }}
                           />
                           <PencilIcon
-                            className="text-blue-500 hover:text-blue-700 w-4 h-4 inline cursor-pointer ml-2"
+                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 inline cursor-pointer ml-2"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
@@ -551,7 +576,7 @@ const Page = () => {
                             }}
                           />
                           <TrashIcon
-                            className="text-red-500 hover:text-red-700 w-4 h-4 inline cursor-pointer ml-2"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 inline cursor-pointer ml-2"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
@@ -567,9 +592,10 @@ const Page = () => {
                   <TableRow>
                     <TableCell
                       colSpan={fields.filter((f) => f.table_column).length + 2}
+                      className="dark:bg-gray-800"
                     >
                       <div className="flex h-full flex-1 flex-col justify-center items-center">
-                        <h1>No Data found!</h1>
+                        <h1 className="dark:text-white">No Data found!</h1>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -579,14 +605,14 @@ const Page = () => {
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-4 px-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground dark:text-gray-300">
                 0 of {dataList.length} row(s) selected.
               </p>
               <div className="flex space-x-2">
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
+                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
                   Previous
                 </button>
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100">
+                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
                   Next
                 </button>
               </div>
@@ -598,13 +624,17 @@ const Page = () => {
           open={!!detailsView}
           onOpenChange={(open) => !open && setDetailsView(null)}
         >
-          <SheetContent className="p-0 pt-10">
+          <SheetContent className="p-0 pt-10 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex flex-col h-full">
               <div className="px-4 pt-2 pb-3">
                 <SheetHeader className="sr-only">
-                  <SheetTitle>{t("Procode_k8")}</SheetTitle>
+                  <SheetTitle className="dark:text-white">
+                    {t("Procode_k8")}
+                  </SheetTitle>
                 </SheetHeader>
-                <h1 className="text-xl font-bold">{t("Procode_k8")}</h1>
+                <h1 className="text-xl font-bold dark:text-white">
+                  {t("Procode_k8")}
+                </h1>
               </div>
 
               {detailsView && (
@@ -628,10 +658,10 @@ const Page = () => {
                             }
                           >
                             <div>
-                              <h1 className="text-sm text-gray-600">
+                              <h1 className="text-sm text-gray-600 dark:text-gray-300">
                                 {t(field.details_label || field.label)}
                               </h1>
-                              <p className="font-medium text-base">
+                              <p className="font-medium text-base dark:text-white">
                                 {extract_val || "N/A"}
                               </p>
                             </div>
@@ -646,16 +676,16 @@ const Page = () => {
                       width="w-full"
                       height="h-12"
                       label={t("Procode_k15")}
-                      bg_color="bg-[#0066ff]"
-                      border="#0066ff"
+                      bg_color="bg-[#0066ff] dark:bg-blue-700"
+                      border="#0066ff dark:border-blue-700"
                     />
                     <Action_Button
                       onClick={deleteHandle}
                       width="w-full"
                       height="h-12"
                       label={t("Procode_k16")}
-                      bg_color="bg-[#FFD2CC]"
-                      border="#FFD2CC"
+                      bg_color="bg-[#FFD2CC] dark:bg-red-900"
+                      border="#FFD2CC dark:border-red-900"
                     />
                   </div>
                 </div>
@@ -674,9 +704,10 @@ const Page = () => {
         // @ts-ignore
         open_handle={openModalHandle}
         create_new_handle={modalSubmitHandle}
+        darkMode={darkMode}
       >
         {activeModalMode === "delete" ? (
-          <div>
+          <div className="dark:text-white">
             <h1>Are you sure you want to delete this Promocode?</h1>
           </div>
         ) : (
@@ -702,7 +733,7 @@ const Page = () => {
                     >
                       {id === "percentage" ? (
                         <div className="flex flex-col w-full">
-                          <label className="text-base font-semibold mb-4">
+                          <label className="text-base font-semibold mb-4 dark:text-white">
                             Percentage
                           </label>
                           <Slidercomp
@@ -712,6 +743,7 @@ const Page = () => {
                             onChange={(e: string) =>
                               modalInputChangeHandle(e, id)
                             }
+                            darkMode={darkMode}
                           />
                         </div>
                       ) : (
@@ -721,12 +753,13 @@ const Page = () => {
                           max={max || ""}
                           value={newDetails ? newDetails[id] : ""}
                           type={type}
-                          border="border-2 border-gray-300 rounded-md w-full"
+                          border="border-2 border-gray-300 dark:border-gray-600 rounded-md w-full"
                           onChange={(e: string) =>
                             modalInputChangeHandle(e, id)
                           }
                           label={t(label)}
                           isDate={type === "date"}
+                          darkMode={darkMode}
                         />
                       )}
                     </div>

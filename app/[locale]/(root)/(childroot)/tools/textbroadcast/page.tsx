@@ -52,6 +52,32 @@ const TextBroadcast = () => {
   const [location, setLocation] = useState<any>(null);
   const [treatmentType, setTreatmentType] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Check for saved dark mode preference or system preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    if (savedMode !== null) {
+      setDarkMode(savedMode === "true");
+    } else {
+      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, []);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -67,6 +93,7 @@ const TextBroadcast = () => {
     setIsFilterOn(true);
     setOnsite(type);
   };
+
   const handleCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     emailObj: any
@@ -167,14 +194,16 @@ const TextBroadcast = () => {
   }, []);
 
   return (
-    <main>
-      <div className="text-black mt-5 font-bold text-xl">Text Broadcast</div>
+    <main className="dark:bg-gray-900 dark:text-white">
+      <div className="text-black dark:text-white mt-5 font-bold text-xl">
+        Text Broadcast
+      </div>
 
-      <div className="w-full text-black font-[500] text-[20px] mt-3 h-[33rem] p-5 bg-white rounded-xl">
+      <div className="w-full text-black dark:text-white font-[500] text-[20px] mt-3 h-[33rem] p-5 bg-white dark:bg-gray-800 rounded-xl">
         <div className="flex w-full gap-5">
           <div className="w-[50%]">
             <>
-              <div className="p-4 bg-gray-50 rounded-lg mb-4 flex flex-wrap items-center gap-2">
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4 flex flex-wrap items-center gap-2">
                 {checkedItems.length > 0 ? (
                   <>
                     {checkedItems
@@ -182,11 +211,13 @@ const TextBroadcast = () => {
                       .map((item: any, index: number) => (
                         <div
                           key={index}
-                          className="flex items-center bg-white px-2 py-1 rounded-md"
+                          className="flex items-center bg-white dark:bg-gray-600 px-2 py-1 rounded-md"
                         >
-                          <span className="text-sm">{item.email}</span>
+                          <span className="text-sm dark:text-white">
+                            {item.email}
+                          </span>
                           <button
-                            className="ml-1"
+                            className="ml-1 text-gray-500 dark:text-gray-300"
                             onClick={() => {
                               /* Handle remove */
                             }}
@@ -210,26 +241,28 @@ const TextBroadcast = () => {
                         </div>
                       ))}
                     {checkedItems.length > 2 && (
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-300">
                         + {checkedItems.length - 2} more
                       </span>
                     )}
                   </>
                 ) : (
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-gray-500 dark:text-gray-300 text-sm">
                     Selected Patients will be shown here
                   </p>
                 )}
               </div>
 
-              <h2 className="font-medium text-base mb-4">Select Patients</h2>
+              <h2 className="font-medium text-base mb-4 dark:text-white">
+                Select Patients
+              </h2>
 
               <div className="flex justify-between items-center mb-4">
                 <div className="relative flex-1 mr-4">
                   <input
                     placeholder="Search by number"
                     type="text"
-                    className="w-full p-2 pl-8 border border-gray-200 rounded-lg text-sm"
+                    className="w-full p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-white"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -254,38 +287,46 @@ const TextBroadcast = () => {
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200 transition">
+                    <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                       <Image
-                        src={isFilterOn ? Filterblack : Filter}
+                        src={
+                          isFilterOn
+                            ? Filterblack
+                            : darkMode
+                            ? Filter
+                            : Filterblack
+                        }
                         alt="Filter icon"
                         height={20}
                         width={20}
                         className="cursor-pointer"
                       />
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Filter
                       </span>
                     </div>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <AlertDialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <ChevronLeft
                           onClick={() => setFilter(false)}
-                          className="cursor-pointer"
+                          className="cursor-pointer text-gray-500 dark:text-gray-300"
                         />
-                        <AlertDialogTitle className="ml-2">
+                        <AlertDialogTitle className="ml-2 dark:text-white">
                           Filter Patients
                         </AlertDialogTitle>
                       </div>
-                      <AlertDialogCancel>
-                        <X />
+                      <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600">
+                        <X className="dark:text-white" />
                       </AlertDialogCancel>
                     </div>
-                    <hr className="my-2" />
+                    <hr className="my-2 dark:border-gray-700" />
                     <RadioGroup defaultValue="comfortable">
                       <div className="flex mb-4 flex-wrap gap-4">
-                        <h1 className="font-bold text-black w-full">Gender</h1>
+                        <h1 className="font-bold text-black dark:text-white w-full">
+                          Gender
+                        </h1>
                         {["Male", "Female", "other"].map((gender) => (
                           <div
                             className="flex items-center space-x-2"
@@ -295,30 +336,36 @@ const TextBroadcast = () => {
                               type="checkbox"
                               value={gender}
                               onChange={handleGenderChange}
-                              className="border bg-gray-300 rounded p-2"
+                              className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
                               checked={selectedGender.includes(gender)}
                             />
-                            <Label>{gender}</Label>
+                            <Label className="dark:text-gray-300">
+                              {gender}
+                            </Label>
                           </div>
                         ))}
                       </div>
                     </RadioGroup>
                     <div className="mb-4">
-                      <h1 className="mr-2 font-bold text-black">
+                      <h1 className="mr-2 font-bold text-black dark:text-white">
                         Treatment Type
                       </h1>
                       <Select
                         onValueChange={(value) => setTreatmentType(value)}
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue>
+                        <SelectTrigger className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500">
+                          <SelectValue className="dark:text-white">
                             {treatmentType ? treatmentType : "All Treatments"}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
                           <SelectGroup>
                             {serviceList.map((patient: any, index) => (
-                              <SelectItem value={patient.title} key={index}>
+                              <SelectItem
+                                value={patient.title}
+                                key={index}
+                                className="dark:hover:bg-gray-700 dark:text-white"
+                              >
                                 {patient.title}
                               </SelectItem>
                             ))}
@@ -328,38 +375,40 @@ const TextBroadcast = () => {
                     </div>
                     <RadioGroup defaultValue="comfortable">
                       <div className="flex mb-4 flex-wrap gap-4">
-                        <h1 className="font-bold text-black w-full">
+                        <h1 className="font-bold text-black dark:text-white w-full">
                           Visit Type
                         </h1>
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            className="border bg-gray-300 rounded p-2"
+                            className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
                             checked={onsite === true}
                             onChange={() => handleVisitChange(true)}
                           />
-                          <Label>On-site</Label>
+                          <Label className="dark:text-gray-300">On-site</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            className="border bg-gray-300 rounded p-2"
+                            className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
                             checked={onsite === false}
                             onChange={() => handleVisitChange(false)}
                           />
-                          <Label>Off-site</Label>
+                          <Label className="dark:text-gray-300">Off-site</Label>
                         </div>
                       </div>
                     </RadioGroup>
                     <div className="mb-4">
-                      <h1 className="mr-2 font-bold text-black">Location</h1>
+                      <h1 className="mr-2 font-bold text-black dark:text-white">
+                        Location
+                      </h1>
                       <Select onValueChange={(value) => setLocation(value)}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue>
+                        <SelectTrigger className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500">
+                          <SelectValue className="dark:text-white">
                             {location ? location : "Select Location"}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
                           <SelectGroup>
                             {locationList
                               ?.filter(
@@ -368,7 +417,11 @@ const TextBroadcast = () => {
                                   self.findIndex((l) => l.title === loc.title)
                               )
                               .map((location, index) => (
-                                <SelectItem key={index} value={location.title}>
+                                <SelectItem
+                                  key={index}
+                                  value={location.title}
+                                  className="dark:hover:bg-gray-700 dark:text-white"
+                                >
                                   {location.title}
                                 </SelectItem>
                               ))}
@@ -376,7 +429,12 @@ const TextBroadcast = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button onClick={() => handleReset()}>Reset</Button>
+                    <Button
+                      onClick={() => handleReset()}
+                      className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                    >
+                      Reset
+                    </Button>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
@@ -385,7 +443,7 @@ const TextBroadcast = () => {
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-blue-500"
+                    className="rounded border-gray-300 text-blue-500 dark:bg-gray-700 dark:border-gray-600"
                     checked={
                       checkedItems.length === emailList.length &&
                       emailList.length > 0
@@ -394,30 +452,35 @@ const TextBroadcast = () => {
                       handleSelectAndDeselectAll(e.target.checked)
                     }
                   />
-                  <label className="ml-2 text-sm">Select all</label>
+                  <label className="ml-2 text-sm dark:text-gray-300">
+                    Select all
+                  </label>
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-300">
                   {checkedItems.length} of {emailList.length} row(s) selected.
                 </span>
               </div>
 
-              <div className="border border-gray-100 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+              <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
                 {loading ? (
                   <div className="space-y-2 p-4">
                     {Array.from({ length: 5 }).map((_, index) => (
-                      <Skeleton key={index} className="h-10 w-full rounded" />
+                      <Skeleton
+                        key={index}
+                        className="h-10 w-full rounded dark:bg-gray-700"
+                      />
                     ))}
                   </div>
                 ) : (
                   filteredEmails.map((email: any, index: any) => (
                     <div
                       key={index}
-                      className="flex justify-between items-center p-4 border-b last:border-b-0 hover:bg-gray-50"
+                      className="flex justify-between items-center p-4 border-b dark:border-b-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <div className="flex items-center gap-4">
                         <input
                           type="checkbox"
-                          className="rounded border-gray-300 text-blue-500"
+                          className="rounded border-gray-300 text-blue-500 dark:bg-gray-700 dark:border-gray-600"
                           id={`checkbox-${index}`}
                           value={email.email}
                           checked={checkedItems.some(
@@ -426,18 +489,18 @@ const TextBroadcast = () => {
                           onChange={(e) => handleCheckboxChange(e, email)}
                         />
                         <div>
-                          <p className="font-medium text-sm">
+                          <p className="font-medium text-sm dark:text-white">
                             {email.firstname}
                           </p>
-                          <div className="text-gray-500 text-sm">
+                          <div className="text-gray-500 dark:text-gray-300 text-sm">
                             <span>{email.email}</span>
-                            <span className="ml-2 text-gray-400">
+                            <span className="ml-2 text-gray-400 dark:text-gray-400">
                               {email.phone}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <span className="text-gray-500 text-sm">
+                      <span className="text-gray-500 dark:text-gray-300 text-sm">
                         {email.gender === "Male"
                           ? "Male"
                           : email.gender === "Female"
@@ -452,17 +515,19 @@ const TextBroadcast = () => {
           </div>
 
           <div className="w-[50%]">
-            <div>Write a Text Message</div>
+            <div className="dark:text-white">Write a Text Message</div>
             <Textarea
               rows={10}
-              className="w-full mt-3 bg-white resize-none"
+              className="w-full mt-3 bg-white dark:bg-gray-700 resize-none dark:text-white dark:border-gray-600"
               placeholder="Text Message..."
             />
-            <div className="text-gray-500 mt-3 text-lg">
+            <div className="text-gray-500 dark:text-gray-300 mt-3 text-lg">
               This is the text we will use to send text campaign
             </div>
             <div className="flex w-2/4 mt-4">
-              <button className="w-fit text-lg bg-[#0066ff] py-2 px-6 rounded-lg text-white">Run Text Broadcast</button>
+              <button className="w-fit text-lg bg-[#0066ff] hover:bg-blue-700 py-2 px-6 rounded-lg text-white dark:bg-blue-700 dark:hover:bg-blue-800">
+                Run Text Broadcast
+              </button>
             </div>
           </div>
         </div>

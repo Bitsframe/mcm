@@ -24,7 +24,7 @@ export const Navbar = ({ width }: { width: string }) => {
 
   return (
     <header
-      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#1E1E1E] text-black dark:text-white pt-[6px] z-50`}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px] z-50`}
       style={{ width: `calc(100% - ${width})` }}
     >
       <div className="text-[16px] font-[700]">
@@ -36,7 +36,7 @@ export const Navbar = ({ width }: { width: string }) => {
       <div className="flex gap-4 items-center pr-4">
         <LanguageChanger locale={locale} />
         <ThemeToggleButton />
-        <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#2a2a2a] p-4 rounded-full border border-[#E0E0E0] dark:border-gray-600">
+        <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#1A1F27] p-4 rounded-full border border-[#E0E0E0] dark:border-[#2F3640]">
           <HiOutlineBell size={25} />
         </div>
         <MenuWithAvatar />
