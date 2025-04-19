@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Archive, ShieldCheck } from 'lucide-react';
+import { Archive, RefreshCcw, ShieldCheck } from 'lucide-react';
 
 interface DataListInterface {
   [key: string]: any;
@@ -57,6 +57,7 @@ const tableHeader = [
       return (
         <div className='flex items-end justify-end space-x-2'>
           <Action_Button 
+            icon = {<RefreshCcw size={18}/>}
             onClick={() => clickHandle(modalStateEnum.UPDATE)} 
             label='Update' 
             text_color='text-[#0066ff] dark:text-blue-400' 
@@ -64,6 +65,7 @@ const tableHeader = [
             border={getDataArchiveType ? 'border-[#CCE0FF] dark:border-blue-800' : 'border-[#CCE0FF] dark:border-blue-800'} 
           /> 
           <Action_Button 
+            icon = {<Archive size={18}/>}
             label={getDataArchiveType ? 'Unarchive' : 'Archive'} 
             text_color={getDataArchiveType ? 'text-[#0EA542] dark:text-green-400' : 'text-[#F71B1B] dark:text-red-400'} 
             bg_color={getDataArchiveType ? 'bg-[#E7FDEF] dark:bg-green-900/30' : 'bg-[#FFE8E5] dark:bg-red-900/30'} 
@@ -269,13 +271,14 @@ const Products = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 flex items-center justify-end w-full mr-6 rounded-md overflow-hidden dark:bg-gray-800">
+      <div className="text-sm text-gray-500 flex items-center justify-end w-full mr-6">
+      <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
         <button
           onClick={handleActiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+          className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
             !getDataArchiveType
               ? 'bg-blue-600 text-white dark:bg-blue-700'
-              : 'bg-transparent text-gray-500 dark:text-gray-300'
+              : 'bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -283,16 +286,17 @@ const Products = () => {
         </button>
         <button
           onClick={handleArchiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+          className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
             getDataArchiveType
               ? 'bg-blue-600 text-white dark:bg-blue-700'
-              : 'bg-transparent text-gray-500 dark:text-gray-300'
+              : 'bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
         >
           <Archive className="w-4 h-4" />
           Archived
         </button>
       </div>
+    </div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -324,9 +328,9 @@ const Products = () => {
           </div>
 
           <div className='pt-5'>
-            <div className="border rounded-md dark:border-gray-700 dark:bg-gray-800">
+            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
               <Table>
-                <TableHeader className='bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-gray-800 dark:border-gray-700'>
+                <TableHeader className='bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700'>
                   <TableRow className='flex hover:bg-transparent dark:hover:bg-gray-800'>
                     <TableHead className="w-12 p-3">
                       <input 
@@ -440,7 +444,6 @@ const Products = () => {
                 <Searchable_Dropdown 
                   initialValue={0} 
                   value={modalData[id]} 
-                  bg_color='#fff dark:bg-gray-700' 
                   start_empty={true} 
                   options_arr={categories.map(({ category_id, category_name }: any) => ({ 
                     value: category_id, 

@@ -215,13 +215,15 @@ const Appointments = () => {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
-        <Card className="bg-gray-50 dark:bg-[#080E16]">
+        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4 ">
             <div className="bg-blue-50 p-3 rounded-lg dark:bg-gray-700">
               <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Appointments</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Total Appointments
+              </p>
               <h2 className="text-2xl font-bold dark:text-white">
                 {approvedAppointments.length + unapprovedAppointments.length}
               </h2>
@@ -229,13 +231,15 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-[#080E16]">
+        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-green-50 p-3 rounded-lg dark:bg-gray-700">
               <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Approved Appointments</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Approved Appointments
+              </p>
               <h2 className="text-2xl font-bold dark:text-white">
                 {approvedAppointments.length}
               </h2>
@@ -243,13 +247,15 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-[#080E16]">
+        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-yellow-50 p-3 rounded-lg dark:bg-gray-700">
               <Clock className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Pending Appointments</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Pending Appointments
+              </p>
               <h2 className="text-2xl font-bold dark:text-white">
                 {unapprovedAppointments.length}
               </h2>
@@ -257,13 +263,15 @@ const Appointments = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 dark:bg-[#080E16]">
+        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-purple-50 p-3 rounded-lg dark:bg-gray-700">
               <UserPlus className="h-6 w-6 text-purple-500 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">New Appointments</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                New Appointments
+              </p>
               <h2 className="text-2xl font-bold dark:text-white">
                 {unapprovedAppointments.length}
               </h2>
@@ -313,9 +321,14 @@ const Appointments = () => {
           <div className="w-full md:w-64">
             <DatePicker
               onChange={filterHandle}
-              className="w-full border border-gray-300 rounded-lg p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              className="w-full border border-gray-300 rounded-lg p-2 
+             text-black placeholder-gray-400
+             dark:border-gray-600 dark:bg-gray-700 
+             dark:text-white dark:placeholder-white"
               placeholder="Filter by date"
-              suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+              suffixIcon={
+                <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              }
             />
           </div>
 

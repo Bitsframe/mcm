@@ -63,7 +63,7 @@ const tableHeader = [
       getDataArchiveType: boolean;
     }) => {
       return (
-        <div className="space-x-4">
+        <div className="space-x-4 flex justify-end">
           <Action_Button
             isLoading={isLoading}
             onClick={onClickHandle}
@@ -75,6 +75,7 @@ const tableHeader = [
             border={
               getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
             }
+            icon = {<Archive size={18}/>}
           />
         </div>
       );

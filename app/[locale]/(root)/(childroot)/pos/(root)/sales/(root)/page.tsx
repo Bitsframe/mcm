@@ -72,8 +72,12 @@ const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
         id="section"
         required={true}
       >
-        <option value="Cash" className="dark:bg-gray-800 dark:text-white">Cash</option>
-        <option value="Debit Card" className="dark:bg-gray-800 dark:text-white">Debit Card</option>
+        <option value="Cash" className="dark:bg-gray-800 dark:text-white">
+          Cash
+        </option>
+        <option value="Debit Card" className="dark:bg-gray-800 dark:text-white">
+          Debit Card
+        </option>
       </Select>
     </div>
   );
@@ -141,7 +145,10 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               className="disabled:opacity-60"
               disabled={quantity_available === quantity}
             >
-              <IoIosArrowUp size={20} className="text-primary_color dark:text-blue-400" />
+              <IoIosArrowUp
+                size={20}
+                className="text-primary_color dark:text-blue-400"
+              />
             </button>
             <span className="block text-lg font-bold text-[#121111] dark:text-white">
               {quantity}
@@ -151,12 +158,17 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               className="disabled:opacity-60"
               onClick={() => qtyHandle("dec")}
             >
-              <IoIosArrowDown size={20} className="text-primary_color dark:text-blue-400" />
+              <IoIosArrowDown
+                size={20}
+                className="text-primary_color dark:text-blue-400"
+              />
             </button>
           </div>
           <dl>
             <dt className="text-lg dark:text-white">{product_name}</dt>
-            <dd className="text-[15px] text-gray-700 dark:text-gray-400">{category_name}</dd>
+            <dd className="text-[15px] text-gray-700 dark:text-gray-400">
+              {category_name}
+            </dd>
           </dl>
         </div>
         <div className="flex items-center space-x-4">
@@ -165,7 +177,10 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
           </p>
           <div>
             <button onClick={removeItemHandle}>
-              <IoCloseOutline size={20} className="text-primary_color dark:text-blue-400" />
+              <IoCloseOutline
+                size={20}
+                className="text-primary_color dark:text-blue-400"
+              />
             </button>
           </div>
         </div>
@@ -330,10 +345,10 @@ const Orders = () => {
         if (order_created_data.length) {
           toast.success(`Order has been placed, order # ${order_id}`, {
             style: {
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-              border: '1px solid var(--border)',
-            }
+              background: "var(--background)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+            },
           });
 
           const grandTotal = grandTotalHandle(cartArray, appliedDiscount);
@@ -361,10 +376,10 @@ const Orders = () => {
     } catch (err: any) {
       toast.error(err.message, {
         style: {
-          background: 'var(--background)',
-          color: 'var(--foreground)',
-          border: '1px solid var(--border)',
-        }
+          background: "var(--background)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+        },
       });
     } finally {
       setPlaceOrderLoading(false);
@@ -409,35 +424,39 @@ const Orders = () => {
                 </h2>
                 {selectedPatient ? (
                   <div className="grid grid-cols-2 gap-4">
-                    {render_details.map(
-                      ({ label, key, render_value }, ind) => {
-                        const extracted_val = render_value
-                          ? render_value(selectedPatient)
-                          : selectedPatient[key];
-                        return (
-                          <div
-                            key={ind}
-                            className="space-y-1 bg-white dark:bg-[#0E1725] p-3 rounded-xl"
-                          >
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-                            <p className="text-base font-medium dark:text-white">
-                              {extracted_val}
-                            </p>
-                          </div>
-                        );
-                      }
-                    )}
+                    {render_details.map(({ label, key, render_value }, ind) => {
+                      const extracted_val = render_value
+                        ? render_value(selectedPatient)
+                        : selectedPatient[key];
+                      return (
+                        <div
+                          key={ind}
+                          className="space-y-1 bg-white dark:bg-[#0E1725] p-3 rounded-xl"
+                        >
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {label}
+                          </p>
+                          <p className="text-base font-medium dark:text-white">
+                            {extracted_val}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-red-600 dark:text-red-400">{t("POS-Sales_k4")}</h1>
+                    <h1 className="text-red-600 dark:text-red-400">
+                      {t("POS-Sales_k4")}
+                    </h1>
                   </div>
                 )}
               </div>
             )}
 
             <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-xl shadow-sm mt-6">
-              <h2 className="text-lg font-semibold mb-4 dark:text-white">Product Details</h2>
+              <h2 className="text-lg font-semibold mb-4 dark:text-white">
+                Product Details
+              </h2>
 
               <div className="space-y-6">
                 <div>
@@ -446,8 +465,8 @@ const Orders = () => {
                       disabled={!selectedPatient}
                       initialValue={0}
                       value={selectedCategory}
-                      bg_color="#fff"
-                      //@ts-ignore 
+                      
+                      //@ts-ignore
                       dark_bg_color="gray.700"
                       start_empty={true}
                       options_arr={categories.map(
@@ -475,7 +494,7 @@ const Orders = () => {
                       <Searchable_Dropdown
                         disabled={!selectedPatient}
                         initialValue={0}
-                        bg_color="#fff"
+                        
                         //@ts-ignore
                         dark_bg_color="gray.700"
                         start_empty={true}
@@ -486,9 +505,7 @@ const Orders = () => {
                           })
                         )}
                         required={true}
-                        value={
-                          selectedProduct ? selectedProduct.product_id : 0
-                        }
+                        value={selectedProduct ? selectedProduct.product_id : 0}
                         on_change_handle={select_product_change_handle}
                         label="Select Product"
                       />
@@ -497,33 +514,25 @@ const Orders = () => {
                 </div>
 
                 <div>
-                  <div className="flex items-center space-x-5">
+                  <div className="space-y-2">
                     <Quantity_Field
                       disabled={!selectedPatient}
                       maxAvailability={
-                        selectedProduct
-                          ? selectedProduct.quantity_available
-                          : 0
+                        selectedProduct ? selectedProduct.quantity_available : 0
                       }
                       quantity={productQty}
                       quantityHandle={quantityHandle}
                     />
 
                     {selectedProduct && (
-                      <div className="space-y-1 text-gray-600 dark:text-gray-300">
-                        <div>
-                          <h1 className="text-base">
-                            {currencyFormatHandle(
-                              selectedProduct?.price || 0
-                            )}{" "}
-                            per unit
-                          </h1>
+                      <div className="space-y-0.5 flex justify-between items-center text-gray-600 dark:text-gray-300 pl-1">
+                        <div className="text-sm">
+                          {currencyFormatHandle(selectedProduct?.price || 0)}{" "}
+                          per unit
                         </div>
-                        <div>
-                          <h1 className="text-base text-amber-600 dark:text-amber-400">
-                            {selectedProduct.quantity_available - productQty}{" "}
-                            units are remaining
-                          </h1>
+                        <div className="text-sm text-amber-600 dark:text-amber-400">
+                          {selectedProduct.quantity_available - productQty}{" "}
+                          units are remaining
                         </div>
                       </div>
                     )}
@@ -551,7 +560,9 @@ const Orders = () => {
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Sales_k10")} # --</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("POS-Sales_k10")} # --
+              </p>
             </div>
           </div>
 
@@ -594,7 +605,9 @@ const Orders = () => {
                 <div className="flex items-center">
                   <p
                     className={`${
-                      appliedDiscount ? "text-red-500 dark:text-red-400" : "text-gray-700 dark:text-gray-300"
+                      appliedDiscount
+                        ? "text-red-500 dark:text-red-400"
+                        : "text-gray-700 dark:text-gray-300"
                     } text-sm font-medium`}
                   >
                     {appliedDiscount

@@ -32,7 +32,7 @@ export default function LanguageChanger({ locale }) {
       {/* Selected Language */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between bg-white dark:bg-gray-700 dark:text-white p-4 border border-gray-300 dark:border-gray-600 rounded-full w-full cursor-pointer"
+        className="flex items-center justify-between  bg-white dark:bg-[#0e1725] dark:text-white p-4 border border-gray-300 dark:border-blue-950 rounded-full w-full cursor-pointer"
       >
         <div className="flex items-center gap-2">
           <Image src={selectedLang.flag} alt={selectedLang.label} width={20} height={15} />
@@ -43,7 +43,7 @@ export default function LanguageChanger({ locale }) {
 
       {/* Dropdown List */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md z-10">
+        <div className="absolute left-0 top-full mt-2 w-full bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-blue-950 rounded-lg shadow-md z-10">
           {languages.map((lang) => (
             <div
               key={lang.code}

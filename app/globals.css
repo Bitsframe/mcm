@@ -8,6 +8,8 @@ body {
 
 /* Custom Scroll Bar */
 /* width */
+/* Custom Scroll Bar */
+/* width */
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -28,6 +30,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #f1f4f9;
 }
+
+/* Dark Mode - Custom Scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #080e18;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #080e18;
+}
+
 
 
 input:focus-visible{

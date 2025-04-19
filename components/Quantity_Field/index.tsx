@@ -45,19 +45,33 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({ quantity, quantityH
 
     return (
         <div className={`w-full ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            <Label htmlFor="quantity" value={t("POS-Sales_k7")} className='font-bold' />
-            <div className='bg-white p-3 rounded-xl flex items-center w-full'>
-                <p className='flex-1'>{quantity}</p>
-                <div>
-                    <button onClick={handlePlusClick} disabled={!canAddMore} className={`block disabled:opacity-60 disabled:cursor-default`}>
-                        <AiFillPlusCircle className={`text-gray-600 `} />
-                    </button>
-
-                    <button onClick={handleMinusClick} disabled={quantity === 0} className={`block disabled:opacity-60 disabled:cursor-default`}>
-                        <AiFillMinusCircle className={`text-gray-600`} />
-                    </button>
-                </div>
+        <Label
+            htmlFor="quantity"
+            value={t("POS-Sales_k7")}
+            className="font-bold text-gray-900 dark:text-gray-200 mb-1 block"
+        />
+    
+        <div className="bg-white dark:bg-[#0e1725] p-3 rounded-xl flex items-center w-full border dark:border-gray-700">
+            <p className="flex-1 text-gray-900 dark:text-gray-100">{quantity}</p>
+            <div className="flex gap-2 items-center">
+                <button
+                    onClick={handlePlusClick}
+                    disabled={!canAddMore}
+                    className="block disabled:opacity-60 disabled:cursor-default"
+                >
+                    <AiFillPlusCircle className="text-gray-600 dark:text-gray-300 text-xl" />
+                </button>
+    
+                <button
+                    onClick={handleMinusClick}
+                    disabled={quantity === 0}
+                    className="block disabled:opacity-60 disabled:cursor-default"
+                >
+                    <AiFillMinusCircle className="text-gray-600 dark:text-gray-300 text-xl" />
+                </button>
             </div>
         </div>
+    </div>
+    
     )
 }

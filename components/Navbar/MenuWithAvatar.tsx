@@ -44,7 +44,7 @@ export default function MenuWithAvatar() {
         onClick={handleClick}
         className="p-0"
       >
-        <div className="flex items-center bg-white rounded-[100px] w-48 px-3 py-1 border-[1px] border-[#E0E0E0]">
+        <div className="flex items-center  dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] w-48 px-3 py-1 border-[1px] border-[#E0E0E0] ">
           <Image
             src={Avatar}
             alt="User Avatar"
@@ -53,10 +53,10 @@ export default function MenuWithAvatar() {
             className="rounded-full object-contain"
           />
           <div className="ml-2 flex flex-col items-start">
-            <span className="text-[#121111] text-[16px] font-semibold">
+            <span className="text-[#121111] dark:text-white text-[16px] font-semibold">
               {userProfile?.full_name}
             </span>
-            <span className="text-[#121111] text-xs">{userRole}</span>
+            <span className="text-[#121111] text-xs dark:text-white">{userRole}</span>
           </div>
           <ChevronDown size={20} color="black" strokeWidth={3} />
         </div>

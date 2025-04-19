@@ -73,7 +73,7 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
       {/* Products Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">{procucts_count}</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k12")}</p>
         <div className="mt-2">
@@ -97,7 +97,7 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
       </div>
 
       {/* Categories Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">{categories_count}</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k11")}</p>
         <div className="flex items-end h-[60px] mt-2 space-x-2">
@@ -120,7 +120,7 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
       </div>
 
       {/* Stock Value Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">{usdFormatter.format(stock_value)}</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k10")}</p>
         <div className="mt-2">
@@ -140,7 +140,7 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
       </div>
 
       {/* Low Stock Alerts Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">20%</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k9")}</p>
         <div className="mt-2 flex items-center">

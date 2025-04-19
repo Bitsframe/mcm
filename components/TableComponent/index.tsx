@@ -82,7 +82,7 @@ const TableComponent: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1E293B] w-full overflow-hidden text-black dark:text-white">
+    <div className="bg-white dark:bg-[#0e1725] w-full overflow-hidden text-black dark:text-white">
       <div className="py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155]">
           <CiSearch size={18} color="gray" />

@@ -59,9 +59,13 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
       {isActive && <ActiveIndicator />}
       <Sidebar.Item
         href={route.route}
-        icon={() => <RouteIcon icon={route.icon} />}
+        icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
         label={
-          <FaChevronRight className="text-[15px] text-[#79808B] dark:text-gray-400 -mr-1" />
+          <FaChevronRight
+            className={`text-[15px] ${
+              isActive ? "text-[#0066ff]" : "text-[#79808B] dark:text-gray-400"
+            } -mr-1`}
+          />
         }
         labelColor="transparent"
         className={`hover:text-[#0066ff] ${
@@ -71,7 +75,9 @@ const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
         }`}
       >
         <div className="flex items-center gap-2">
-          <h3>{t(route.label)}</h3>
+          <h3 className={`${isActive ? "text-[#0066ff]" : ""}`}>
+            {t(route.label)}
+          </h3>
         </div>
       </Sidebar.Item>
     </div>
@@ -97,8 +103,10 @@ const CollapsibleRoute = ({
       <Sidebar.Collapse
         icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
         label={t(route.label)}
-        className={`text-[#79808B] dark:text-gray-400 hover:text-[#0066ff] transition-all ease-out delay-75  ${
-          isActive ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]" : ""
+        className={`hover:text-[#0066ff] transition-all ease-out delay-75 ${
+          isActive
+            ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]"
+            : "text-[#79808B] dark:text-gray-400"
         }`}
         open={isActive}
       >
@@ -128,7 +136,9 @@ const CollapsibleRoute = ({
                     }`}
                   />
                 </span>
-                {t(item.label)}
+                <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
+                  {t(item.label)}
+                </span>
               </div>
             </Sidebar.Item>
           );

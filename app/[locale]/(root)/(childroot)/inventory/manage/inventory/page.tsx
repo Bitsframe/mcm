@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Archive, ShieldCheck } from "lucide-react";
+import { Archive, RefreshCcw, ShieldCheck } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
@@ -95,6 +95,7 @@ const tableHeader = [
                 ? "border-[#CCE0FF] dark:border-blue-800"
                 : "border-[#CCE0FF] dark:border-blue-800"
             }
+            icon = {<RefreshCcw size={18}/>}
           />
           <Action_Button
             label={getDataArchiveType ? "Unarchive" : "Archive"}
@@ -103,6 +104,7 @@ const tableHeader = [
                 ? "text-[#0EA542] dark:text-green-400"
                 : "text-[#F71B1B] dark:text-red-400"
             }
+            icon = {<Archive size={18}/>}
             bg_color={
               getDataArchiveType
                 ? "bg-[#E7FDEF] dark:bg-green-900/30"
@@ -436,14 +438,14 @@ const Inventory = () => {
             {RightSideComponent}
           </div>
 
-          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-gray-800">
+          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
             <Table>
-              <TableHeader className="border-b border-gray-200 dark:border-gray-700">
+              <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
                 <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                   <TableHead className="w-10 p-4">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#0e1725]"
                     />
                   </TableHead>
                   {tableHeader.map(({ label, align, can_sort, id }, index) => (
@@ -481,7 +483,7 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="divide-y divide-gray-200 mb-4 h-[60dvh] overflow-y-auto block dark:divide-gray-700">
+              <TableBody className="divide-y divide-gray-200 mb-4 h-[60dvh] overflow-y-auto block dark:bg-[#0e1725]">
                 {loading ? (
                   <TableRow className="flex h-full">
                     <TableCell
@@ -512,8 +514,8 @@ const Inventory = () => {
                         border-gray-200
                         ${
                           index % 2 === 0
-                            ? "bg-white dark:bg-gray-800"
-                            : "bg-gray-50 dark:bg-gray-700"
+                            ? "bg-white dark:bg-[#0e1725]"
+                            : "bg-gray-50 dark:bg-[#0e1725]"
                         }
                         dark:hover:bg-gray-700
                         dark:border-gray-700
@@ -596,7 +598,6 @@ const Inventory = () => {
                 <Searchable_Dropdown
                   initialValue={0}
                   value={modalData[id]}
-                  bg_color="#fff dark:bg-gray-700"
                   start_empty={true}
                   options_arr={categories.map(
                     ({ category_id, category_name }: any) => ({
@@ -616,7 +617,6 @@ const Inventory = () => {
                 <Searchable_Dropdown
                   initialValue={0}
                   value={modalData[id]}
-                  bg_color="#fff dark:bg-gray-700"
                   start_empty={true}
                   options_arr={products.map(
                     ({ product_id, product_name }: any) => ({

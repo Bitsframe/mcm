@@ -430,7 +430,7 @@ const Patients = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="w-full bg-gray-900 font-normal text-base p-2">
+    <main className="w-full dark:bg-gray-900 font-normal text-base p-2">
       <div className="w-full flex justify-center gap-4">
         <div className="bg-gray-800 rounded-lg shadow-sm w-[65%]">
           <div className="p-4 flex justify-between items-center">
@@ -549,7 +549,7 @@ const Patients = () => {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-md flex flex-col w-[35%] p-4">
+        <div className="dark:bg-gray-800 rounded-md flex flex-col w-[35%] p-4">
           <div className="mb-4">
             <h2 className="text-xl font-medium text-gray-200 text-left">
               Add New Patient

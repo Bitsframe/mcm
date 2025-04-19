@@ -322,7 +322,7 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
           <div className="col-span-1 md:col-span-3">
             <h2 className="text-xl md:text-2xl">Quick Stats</h2>
-            <div className="pt-4 rounded-lg dark:bg-[#080E16]">
+            <div className="pt-4 rounded-lg mt-3">
               <div className="grid grid-cols-2 gap-4">
                 {render_arr.map(
                   ({ icon, label, key, type, render_value, bgImage }, ind) => (
