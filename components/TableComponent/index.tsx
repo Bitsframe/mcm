@@ -54,7 +54,7 @@ const TableComponent: React.FC<Props> = ({
   searchHandle,
   searchInputplaceholder,
   RightSideComponent,
-  pdf
+  pdf,
 }) => {
   const { t } = useTranslation([
     translationConstant.STOCKPANEL,
@@ -62,7 +62,8 @@ const TableComponent: React.FC<Props> = ({
   ]);
 
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
-  const isAllSelected = dataList.length > 0 && selectedRows.length === dataList.length;
+  const isAllSelected =
+    dataList.length > 0 && selectedRows.length === dataList.length;
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -75,9 +76,9 @@ const TableComponent: React.FC<Props> = ({
 
   const handleSelectRow = (index: number) => {
     if (selectedRows.includes(index)) {
-      setSelectedRows(prev => prev.filter(i => i !== index));
+      setSelectedRows((prev) => prev.filter((i) => i !== index));
     } else {
-      setSelectedRows(prev => [...prev, index]);
+      setSelectedRows((prev) => [...prev, index]);
     }
   };
 
@@ -103,11 +104,11 @@ const TableComponent: React.FC<Props> = ({
         <div className="flex-1 overflow-auto">
           <Table className="w-full rounded-lg">
             <TableHeader className="sticky top-0 z-10 bg-white dark:bg-[#1E293B]">
-              <TableRow className="border-b border-gray-200 dark:border-gray-700 rounded-lg">
-                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300">
+              <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
+                <TableHead className="w-12 py-3 text-sm font-medium  text-gray-500 dark:text-gray-300">
                   <input
                     type="checkbox"
-                    className="rounded"
+                    className="rounded border border-gray-400 dark:border-gray-600"
                     checked={isAllSelected}
                     onChange={handleSelectAll}
                   />
@@ -115,11 +116,15 @@ const TableComponent: React.FC<Props> = ({
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
                     key={index}
-                    className={`py-3 text-sm text-gray-500 dark:text-gray-300 font-medium ${flex || "flex-1"} ${align || "text-left"}`}
+                    className={`py-3 text-sm text-gray-500 dark:text-gray-300 font-medium ${
+                      flex || "flex-1"
+                    } ${align || "text-left"}`}
                   >
                     {t(label, {
                       ns: translationConstant.STOCKPANEL,
-                      defaultValue: t(label, { ns: translationConstant.POSHISTORY }),
+                      defaultValue: t(label, {
+                        ns: translationConstant.POSHISTORY,
+                      }),
                     })}
                   </TableHead>
                 ))}
@@ -144,24 +149,28 @@ const TableComponent: React.FC<Props> = ({
                     <TableCell className="w-12 py-3">
                       <input
                         type="checkbox"
-                        className="rounded"
+                        className="rounded border border-gray-400 dark:border-gray-600"
                         checked={selectedRows.includes(index)}
                         onChange={() => handleSelectRow(index)}
                       />
                     </TableCell>
-                    {tableHeader.map(({ id, render_value, align, flex }, ind) => {
-                      const content = render_value
-                        ? render_value(elem[id], elem, openModal)
-                        : elem[id];
-                      return (
-                        <TableCell
-                          key={ind}
-                          className={`py-3 text-sm ${flex || "flex-1"} ${align || "text-left"}`}
-                        >
-                          {content}
-                        </TableCell>
-                      );
-                    })}
+                    {tableHeader.map(
+                      ({ id, render_value, align, flex }, ind) => {
+                        const content = render_value
+                          ? render_value(elem[id], elem, openModal)
+                          : elem[id];
+                        return (
+                          <TableCell
+                            key={ind}
+                            className={`py-3 text-sm ${flex || "flex-1"} ${
+                              align || "text-left"
+                            }`}
+                          >
+                            {content}
+                          </TableCell>
+                        );
+                      }
+                    )}
                   </TableRow>
                 ))
               )}

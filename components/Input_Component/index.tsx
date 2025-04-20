@@ -90,7 +90,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
             </label>
           </div>
         ) : (
-          <div className="flex w-full items-center bg-[#f1f4f9] pr-3">
+          <div className="flex w-full items-center bg-[#f1f4f9] dark:bg-[#080e16]">
             <input
               disabled={disabled}
               min={min}

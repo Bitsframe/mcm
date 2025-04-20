@@ -34,7 +34,7 @@ export const Price_Input: React.FC<InputComponentProps> = ({
         <div className='w-full space-y-2'>
             {label && <Label htmlFor="section" value={label} className='font-bold' />}
             <div className={`${border} flex items-center`}>
-                <span className='pl-3 block'>
+                <span className={`pl-3 h-12 items-center justify-center flex rounded-l-lg ${bg_color} block `}>
                     $
                 </span>
                 <input

@@ -139,14 +139,14 @@ const modal_titles: any = {
     modalLabel: "Create New",
     button: {
       label: "Create",
-      color: "info",
+      color: "blue",
     },
   },
   edit: {
     modalLabel: "Edit",
     button: {
       label: "Update",
-      color: "info",
+      color: "blue",
     },
   },
   delete: {
@@ -160,13 +160,13 @@ const modal_titles: any = {
 
 const Promo_Input = () => {
   return (
-    <div className="w-52 flex rounded-md items-center bg-gray-700 p-2 px-2">
+    <div className="w-52 flex rounded-md items-center bg-gray-200 dark:bg-gray-700 p-2 px-2">
       <input
         type="text"
         placeholder="Enter Promo Code"
-        className="w-full px-1 py-1 text-sm border-2 border-gray-600 focus:outline-none focus:border-blue-500 bg-gray-700 text-white"
+        className="w-full px-1 py-1 text-sm border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
       />
-      <IoCloseOutline className="text-gray-400" />
+      <IoCloseOutline className="text-gray-500 dark:text-gray-400" />
     </div>
   );
 };
@@ -176,12 +176,12 @@ const Payment_Method_Select = () => {
     <div className="w-52">
       <Select
         className="w-full h-auto"
-        style={{ backgroundColor: "#2d3748", color: "white" }}
+        style={{ backgroundColor: "#f3f4f6", color: "black" }}
         id="section"
         required={true}
       >
-        <option className="bg-gray-700">Cash</option>
-        <option className="bg-gray-700">Debit Card</option>
+        <option className="bg-white dark:bg-gray-700">Cash</option>
+        <option className="bg-white dark:bg-gray-700">Debit Card</option>
       </Select>
     </div>
   );
@@ -430,19 +430,19 @@ const Patients = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <main className="w-full dark:bg-gray-900 font-normal text-base p-2">
+    <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2">
       <div className="w-full flex justify-center gap-4">
-        <div className="bg-gray-800 rounded-lg shadow-sm w-[65%]">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-[65%]">
           <div className="p-4 flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-medium text-gray-200 mb-4">
+              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
                 All Patients
               </h1>
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder="Search by patient name"
-                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-600 bg-gray-700 text-white"
+                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
               />
             </div>
             <div className="space-x-3 flex items-center">
@@ -451,7 +451,7 @@ const Patients = () => {
                 className={`px-4 py-2 rounded-md text-sm ${
                   activeFilterBtn === 0
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-700 text-gray-200 border border-gray-600"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
                 }`}
               >
                 Today
@@ -461,7 +461,7 @@ const Patients = () => {
                 className={`px-4 py-2 rounded-md text-sm ${
                   activeFilterBtn === 1
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-700 text-gray-200 border border-gray-600"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
                 }`}
               >
                 Past Records
@@ -481,23 +481,29 @@ const Patients = () => {
                 return (
                   <div
                     key={ind}
-                    className="border-b border-gray-700 py-4 flex items-center justify-between"
+                    className="border-b border-gray-300 dark:border-gray-700 py-4 flex items-center justify-between"
                   >
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-400">Name</p>
-                      <p className="text-sm font-medium text-gray-200">{`${firstname} ${lastname}`}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Name
+                      </p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{`${firstname} ${lastname}`}</p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-400">Phone</p>
-                      <p className="text-sm text-gray-300">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Phone
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-400">Created at</p>
-                      <p className="text-sm text-gray-300">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Created at
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formattedDateTime}
                       </p>
                     </div>
@@ -524,7 +530,7 @@ const Patients = () => {
                       </button>
                       <button
                         onClick={() => selectHandle(elem)}
-                        className="border border-gray-600 text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-700 hover:bg-gray-600"
+                        className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -549,9 +555,9 @@ const Patients = () => {
           </div>
         </div>
 
-        <div className="dark:bg-gray-800 rounded-md flex flex-col w-[35%] p-4">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-[35%] p-4">
           <div className="mb-4">
-            <h2 className="text-xl font-medium text-gray-200 text-left">
+            <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
               Add New Patient
             </h2>
           </div>
@@ -565,7 +571,8 @@ const Patients = () => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
-                  bg_color="bg-gray-700"
+                  bg_color="bg-white dark:bg-gray-700"
+                  placeholder="Enter your full name"
                 />
               </div>
 
@@ -576,14 +583,16 @@ const Patients = () => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
-                  bg_color="bg-gray-700"
+                  bg_color="bg-white dark:bg-gray-700"
+                  placeholder="Enter your last name"
+
                 />
               </div>
 
               <div>
                 <Select_Dropdown
                   value={createActionData.gender}
-                  bg_color="bg-gray-700"
+                  bg_color="bg-white dark:bg-gray-700"
                   start_empty={true}
                   options_arr={["Male", "Female"].map((gender) => ({
                     value: gender,
@@ -603,7 +612,9 @@ const Patients = () => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
-                  bg_color="bg-gray-700"
+                  bg_color="bg-white dark:bg-gray-700"
+                  placeholder="Enter your email"
+
                 />
               </div>
 
@@ -620,7 +631,7 @@ const Patients = () => {
               <div>
                 <Select_Dropdown
                   value={createActionData.treatmenttype}
-                  bg_color="bg-gray-700"
+                  bg_color="bg-white dark:bg-gray-700"
                   start_empty={true}
                   // @ts-ignore
                   options_arr={services?.map((service) => ({
@@ -651,97 +662,101 @@ const Patients = () => {
 
       {/* @ts-ignore */}
       <Custom_Modal
-        disabled={!canModalSubmit}
-        submit_button_color={modal_titles[activeModalMode]?.button?.color}
-        loading={modalLoading}
-        buttonLabel={modal_titles[activeModalMode]?.button?.label}
-        is_open={isOpenModal}
-        Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
-        close_handle={closeModalHandle}
-        open_handle={openModalHandle}
-        create_new_handle={modalSubmitHandle}
-      >
-        {activeModalMode === "delete" ? (
-          <div className="text-gray-200">
-            <h1>Are you sure you want to delete this POS?</h1>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className={"col-span-1"}>
-              <Input_Component
-                value={actionData ? actionData["firstname"] : ""}
-                type="text"
-                border="border-2 border-gray-600 rounded-md"
-                bg_color="bg-gray-700"
-                onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
-                label={"First Name"}
-              />
-            </div>
-            <div className={"col-span-1"}>
-              <Input_Component
-                value={actionData ? actionData["lastname"] : ""}
-                type="text"
-                border="border-2 border-gray-600 rounded-md"
-                bg_color="bg-gray-700"
-                onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-                label={"Last Name"}
-              />
-            </div>
-            <div className={"col-span-2"}>
-              <Input_Component
-                value={actionData ? actionData["email"] : ""}
-                type="text"
-                border="border-2 border-gray-600 rounded-md"
-                bg_color="bg-gray-700"
-                onChange={(e: string) => modalInputChangeHandle(e, "email")}
-                label={"Email"}
-              />
-            </div>
-            <div className={"col-span-2"}>
-              <PhoneNumberInput
-                value={actionData ? actionData["phone"] : ""}
-                onChange={(e: string) => modalInputChangeHandle(e, "phone")}
-                label="Phone Number"
-                placeholder={""}
-                breakpoint={false}
-              />
-            </div>
-            {/* @ts-ignore */}
-            <Select_Dropdown
-              value={actionData ? actionData["treatmenttype"] : ""}
-              bg_color="bg-gray-700"
-              start_empty={true}
-              //@ts-ignore
-              options_arr={services?.map((service) => ({
-                value: service,
-                label: service,
-              }))}
-              required={true}
-              on_change_handle={(e: string) =>
-                // @ts-ignore
-                modalInputChangeHandle(e.target.value, "treatmenttype")
-              }
-              label="Treatment Type"
-            />
-            {/* @ts-ignore */}
-            <Select_Dropdown
-              value={actionData ? actionData["gender"] : ""}
-              bg_color="bg-gray-700"
-              start_empty={true}
-              options_arr={["Male", "Female"].map((gender) => ({
-                value: gender,
-                label: gender,
-              }))}
-              required={true}
-              on_change_handle={(e: string) =>
-                // @ts-ignore
-                modalInputChangeHandle(e.target.value, "gender")
-              }
-              label="Gender"
-            />
-          </div>
-        )}
-      </Custom_Modal>
+  disabled={!canModalSubmit}
+  submit_button_color={modal_titles[activeModalMode]?.button?.color}
+  loading={modalLoading}
+  buttonLabel={modal_titles[activeModalMode]?.button?.label}
+  is_open={isOpenModal}
+  Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+  close_handle={closeModalHandle}
+  open_handle={openModalHandle}
+  create_new_handle={modalSubmitHandle}
+>
+  {activeModalMode === "delete" ? (
+    <div className="text-gray-800 dark:text-gray-200">
+      <h1>Are you sure you want to delete this POS?</h1>
+    </div>
+  ) : (
+    <div className="grid grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
+      <div className="col-span-1">
+        <Input_Component
+          value={actionData?.firstname || ""}
+          type="text"
+          border="border-2 border-gray-300 dark:border-none rounded-md"
+          bg_color="bg-white dark:bg-gray-700"
+          onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
+          label="First Name"
+        />
+      </div>
+
+      <div className="col-span-1">
+        <Input_Component
+          value={actionData?.lastname || ""}
+          type="text"
+          border="border-2 border-gray-300 dark:border-none rounded-md"
+          bg_color="bg-white dark:bg-gray-700"
+          onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
+          label="Last Name"
+        />
+      </div>
+
+      <div className="col-span-2">
+        <Input_Component
+          value={actionData?.email || ""}
+          type="text"
+          border="border-2 border-gray-300 dark:border-none rounded-md"
+          bg_color="bg-white dark:bg-gray-700"
+          onChange={(e: string) => modalInputChangeHandle(e, "email")}
+          label="Email"
+        />
+      </div>
+
+      <div className="col-span-2">
+        <PhoneNumberInput
+          value={actionData?.phone || ""}
+          onChange={(e: string) => modalInputChangeHandle(e, "phone")}
+          label="Phone Number"
+          placeholder=""
+          breakpoint={false}
+        />
+      </div>
+
+      <Select_Dropdown
+        value={actionData?.treatmenttype || ""}
+        bg_color="bg-white dark:bg-gray-700"
+        start_empty
+        //@ts-ignore
+        options_arr={services?.map((service) => ({
+          value: service,
+          label: service,
+        }))}
+        required
+        on_change_handle={(e: string) =>
+          //@ts-ignore
+          modalInputChangeHandle(e.target.value, "treatmenttype")
+        }
+        label="Treatment Type"
+      />
+
+      <Select_Dropdown
+        value={actionData?.gender || ""}
+        bg_color="bg-white dark:bg-gray-700"
+        start_empty
+        options_arr={["Male", "Female"].map((gender) => ({
+          value: gender,
+          label: gender,
+        }))}
+        required
+        on_change_handle={(e: string) =>
+          // @ts-ignore
+          modalInputChangeHandle(e.target.value, "gender")
+        }
+        label="Gender"
+      />
+    </div>
+  )}
+</Custom_Modal>
+
     </main>
   );
 };

@@ -140,7 +140,7 @@ const SettingsComponent: React.FC = () => {
   };
 
   return (
-    <div className="h-[80dvh] bg-background p-6 dark:bg-gray-900">
+    <div className="h-[80dvh] bg-background dark:bg-gray-900">
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">

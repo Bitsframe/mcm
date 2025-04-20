@@ -18,37 +18,48 @@ interface PropsInterface {
     darkMode?: any;
 }
 
-export const Custom_Modal: FC<PropsInterface> = ({ 
+export const Custom_Modal: FC<PropsInterface> = ({
     open_handle,
-    children, 
-    submit_button_color = 'blue', 
-    Title = 'Modal Title', 
-    loading = false, 
-    is_open, 
-    close_handle, 
-    create_new_handle, 
-    buttonLabel = 'Create', 
+    children,
+    submit_button_color = 'blue',
+    Title = 'Modal Title',
+    loading = false,
+    is_open,
+    close_handle,
+    create_new_handle,
+    buttonLabel = 'Create',
     disabled = false,
     Trigger_Button,
     darkMode,
 }) => {
     return (
         <Modal show={is_open} onClose={close_handle}>
-            <Modal.Header>{Title}</Modal.Header>
-            <Modal.Body>
-                <div className="space-y-6">
-                    {children}
-                </div>
+            <Modal.Header
+                className="bg-white dark:bg-[#080e16] dark:text-white text-black"
+            >
+                {Title}
+            </Modal.Header>
+
+            <Modal.Body
+                className="bg-white dark:bg-[#080e16] text-black dark:text-white"
+            >
+                <div className="space-y-6">{children}</div>
             </Modal.Body>
-            <Modal.Footer className="flex justify-end">
-                <button className="bg-[#F1F4F9] text-black px-4 py-[10px] rounded-lg" onClick={close_handle}>
+
+            <Modal.Footer
+                className="flex justify-end bg-white dark:bg-[#080e16]"
+            >
+                <button
+                    className="bg-[#F1F4F9] dark:bg-gray-700 text-black dark:text-white px-4 py-[10px] rounded-lg"
+                    onClick={close_handle}
+                >
                     Cancel
                 </button>
-                <Button 
-                    color={submit_button_color} 
-                    className="capitalize" 
-                    isProcessing={loading} 
-                    disabled={loading || disabled} 
+                <Button
+                    color={submit_button_color}
+                    className="capitalize ml-2"
+                    isProcessing={loading}
+                    disabled={loading || disabled}
                     onClick={create_new_handle}
                 >
                     {buttonLabel}
