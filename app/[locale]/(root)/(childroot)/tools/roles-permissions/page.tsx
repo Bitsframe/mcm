@@ -8,9 +8,9 @@ const UserManagement = () => {
 
 
     return (
-        <div className="min-h-full bg-gray-50">
+        <div className="min-h-full">
 
-            <div className="pt-20 px-12">
+            <div className="">
             <RolesAndPermissionsComponent />
             </div>
         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { FC, useState, useCallback, useMemo } from 'react'
+import React, { FC, useCallback, useMemo, useState } from 'react'
 import { Custom_Modal } from '../../Modal_Components/Custom_Modal'
 import ScheduleDateTime from './ScheduleDateTime'
 import moment from 'moment'
@@ -11,21 +11,23 @@ import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
 
-
 interface AppointmentEditModalProps {
   locationData: LocationInterface;
   appointmentDetails: Appointment;
   updateAvailableData: (dataAndTime: string) => void;
   defaultDateTime: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
   locationData,
   appointmentDetails,
   updateAvailableData,
-  defaultDateTime
+  defaultDateTime,
+  isOpen,
+  onClose,
 }) => {
-  const [openModal, setOpenModal] = useState(false);
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [isTimeSelected, setIsTimeSelected] = useState(false);
@@ -73,19 +75,16 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
                     >
                       <span className="text-sm">&#x2715;</span>
                     </button>
-                  </div>,);
+                  </div>);
         updateAvailableData(selectedVal);
-        setOpenModal(false);
+        onClose();
       }
     } catch (error) {
       toast.error('Failed to update appointment');
     } finally {
       setLoadingUpdate(false);
     }
-  }, [appointmentDetails, selectedVal, updateAvailableData]);
-
-  const handleOpenModal = useCallback(() => setOpenModal(true), []);
-  const handleCloseModal = useCallback(() => setOpenModal(false), []);
+  }, [appointmentDetails, selectedVal, updateAvailableData, onClose]);
 
   const handleSelectDateTimeSlot = useCallback((date: Date | '', time?: string) => {
     if (date && time) {
@@ -101,30 +100,16 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
     }
   }, [appointmentDetails.location_id]);
 
-  const {t} = useTranslation(translationConstant.APPOINMENTS)
-  const triggerButton = useMemo(() => {
-
-
-    return(
-    <button
-      onClick={handleOpenModal}
-      className="border-text_primary_color flex-1 text-text_primary_color border-2 active:opacity-60 rounded-md px-4 py-1 ml-2 hover:bg-text_primary_color_hover"
-    >
-      {t("Appoinments_k34")}
-    </button>
-    )
-}, [handleOpenModal]);
-
+  const { t } = useTranslation(translationConstant.APPOINMENTS)
+  
   const isUpdateDisabled = !isDateSelected || !isTimeSelected;
 
   return (
     <Custom_Modal
       disabled={isUpdateDisabled}
-      Trigger_Button={triggerButton}
       create_new_handle={handleCreateContent}
-      open_handle={handleOpenModal}
-      close_handle={handleCloseModal}
-      is_open={openModal}
+      is_open={isOpen}
+      close_handle={onClose}
       Title="Update Appointment Time Slot"
       buttonLabel="Update"
       loading={loadingUpdate}

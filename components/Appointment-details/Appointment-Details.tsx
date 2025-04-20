@@ -42,22 +42,15 @@ const AppointmentDetails = memo(({
     const {t} = useTranslation(translationConstant.APPOINMENTS)
 
     return(
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-end space-x-5 text-black">
-        <div className="flex items-center space-x-1 text-base">
-          <GoDotFill />
-          <p>{appointment_details.new_patient ? 'New Patient' : '-'}</p>
-        </div>
-        <div className="flex items-center space-x-1 text-sm">
-          <GoDotFill />
-          <p>{appointment_details.in_office_patient ? 'In-Office' : '-'}</p>
-        </div>
-      </div>
-      <div className="font-semibold space-y-4 flex-1 text-black">
+      <div className="flex flex-col h-full space-y-5 text-black">
+       <h1 className="text-lg font-semibold">New Patient</h1> 
+      
+    
+      <div className="space-y-3 text-sm">
         {render_detail_keys.map((elem, index) => (
-          <h1 key={index}>
-            {t(elem.label)}:{' '}
-            <span className="font-normal">
+          <div key={index}>
+            <p className="text-gray-500">{t(elem.label)}</p>
+            <p className="font-medium">
               {elem.date_format
                 ? moment(appointment_details['created_at']).format('LLL')
                 : elem.type === 'date_slot' && appointment_details?.date_and_time
@@ -68,23 +61,26 @@ const AppointmentDetails = memo(({
                 ? (appointment_details?.location?.address ?? '-')
                 : elem.key === 'phone'
                 ? (formatPhoneNumber(appointment_details?.phone) ?? '-')
-                : elem.key === 'dob' ?  renderFormattedDate(appointment_details[elem.key as keyof typeof appointment_details], 'YYYY-MM-DD' ) : typeof appointment_details[elem.key as keyof typeof appointment_details] === 'object'
+                : elem.key === 'dob'
+                ? renderFormattedDate(appointment_details[elem.key as keyof typeof appointment_details], 'YYYY-MM-DD')
+                : typeof appointment_details[elem.key as keyof typeof appointment_details] === 'object'
                 ? '-'
                 : String(appointment_details[elem.key as keyof typeof appointment_details] ?? '-')}
-            </span>
-          </h1>
+            </p>
+          </div>
         ))}
       </div>
-      <div className="w-full flex mt-3 gap-3">
+    
+      {/* <div className="flex gap-3 mt-6">
         <button
           onClick={() => onDelete(appointment_details.id)}
-          className="border-red-700 flex-1 text-red-700 border-2 active:opacity-60 rounded-md px-4 py-1 hover:bg-text_primary_color_hover"
+          className="border-2 border-red-700 text-red-700 rounded-md px-4 py-2 text-sm hover:bg-red-50 active:opacity-60 w-full"
         >
           {t("Appoinments_k33")}
         </button>
-        
-      </div>
+      </div> */}
     </div>
+    
     )
   });
 

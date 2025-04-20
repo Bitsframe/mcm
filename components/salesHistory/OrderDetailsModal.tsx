@@ -112,114 +112,142 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
 
         const { t } = useTranslation(translationConstant.POSHISTORY)
         return (
-            isOpen ? <div className="fixed inset-0 z-30 bg-black bg-opacity-50 flex items-center justify-center">
-                {loading ? <div className='h-full w-full flex justify-center items-center '>
-                    <CircularProgress />
-                </div> : <div className="bg-white rounded-lg w-3/4 p-6">
-                    <div className="flex justify-between items-center border-b pb-3">
-                        <h2 className="text-xl font-bold">{t("POS-Historyk11")} {t("POS-Historyk10")}</h2>
-                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">&times;</button>
-                    </div>
+           isOpen ? (
+  <div className="fixed inset-0 z-30 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm"> {/* NEW: Added backdrop blur */}
+    {loading ? (
+      <div className='h-full w-full flex justify-center items-center'>
+        <CircularProgress />
+      </div>
+    ) : (
+      <div className="bg-white rounded-xl shadow-2xl w-11/12 max-w-4xl p-6"> {/* NEW: Increased max width, shadow */}
+        {/* Header Section */}
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200"> {/* NEW: Border color change */}
+          <h2 className="text-2xl font-semibold text-gray-800"> {/* NEW: Larger text */}
+            {t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors" // NEW: Hover effect
+          >
+            <span className="text-2xl text-gray-500 hover:text-gray-700">&times;</span>
+          </button>
+        </div>
 
+        {/* Patient Details */}
+        <div className="my-4 p-4 bg-gray-50 rounded-lg"> {/* NEW: Background container */}
+          <PatientDetailsRender 
+            order_id={order_id?.order_id} 
+            patientData={dataList?.pos}
+            paymentType={dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
+          />
+        </div>
 
-                    <PatientDetailsRender order_id={order_id?.order_id} patientData={dataList?.pos}
+        {/* Order Summary */}
+        <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6"> {/* NEW: Responsive layout */}
+          <h3 className="text-lg font-semibold text-gray-700">{t("POS-Historyk21")}</h3>
+          
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm"> {/* NEW: Grid layout */}
+            <div className="space-y-1">
+              <p className="text-gray-500">Order ID:</p>
+              <p className="font-medium text-gray-700">{dataList?.order_id}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-gray-500">Order Date:</p>
+              <p className="font-medium text-gray-700">
+                {moment(dataList?.order_date).utcOffset(-6).format("DD-MM-YYYY")}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-gray-500">Payment Type:</p>
+              <p className="font-medium text-gray-700">
+                {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-gray-500">{t("POS-Historyk22")}:</p>
+              <p className="font-medium text-gray-700">
+                {calcTotalAmount(dataList)}
+              </p>
+            </div>
+          </div>
 
-                        // paymentType={[null, true].includes(dataList[0].paymentcash) ? "Cash" : "Creadit Card"}
-                        paymentType={dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
+          {/* Pagination */}
+          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-md"> {/* NEW: Styled container */}
+            <span className="text-sm text-gray-500">Page</span>
+            <button
+              onClick={() => changeHistoryHandle("prev")}
+              disabled={page === 1}
+              className={`p-1 rounded hover:bg-gray-200 ${
+                page === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <ArrowLeftFromLine className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-medium text-gray-700">
+              {page}/{totalPages}
+            </span>
+            <button
+              onClick={() => changeHistoryHandle("next")}
+              disabled={page === totalPages}
+              className={`p-1 rounded hover:bg-gray-200 ${
+                page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <ArrowRightFromLine className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-                    />
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <CiSearch 
+              size={20} 
+              className="absolute left-3 top-3 text-gray-400" // NEW: Position adjustment
+            />
+            <input
+              onChange={searchProductHandle}
+              type="text" 
+              placeholder="Search product..." 
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" // NEW: Better focus state
+            />
+          </div>
+        </div>
 
+        {/* Table Section */}
+        <div className="border rounded-lg overflow-hidden"> {/* NEW: Container styling */}
+          {/* Table Header */}
+          <div className="bg-gray-50 px-4 py-3 grid grid-cols-12 gap-4"> {/* NEW: Grid layout */}
+            {tableHeader.map(({ label, align, flex }, index) => (
+              <div 
+                key={index}
+                className={`col-span-2 text-sm font-medium text-gray-500 ${
+                  align === 'right' ? 'text-right' : 'text-left'
+                }`}
+              >
+                {t(label)}
+              </div>
+            ))}
+          </div>
 
-
-
-                    <div className='flex items-center justify-between'>
-                        <h3 className="font-bold">{t("POS-Historyk21")}</h3>
-
-                        <div className='mx-5 flex flex-1 items-center justify-center space-x-4'>
-                            <p className='text-sm '>
-                                Order ID: <span className='font-bold'>
-                                    {dataList?.order_id}
-                                </span>
-                            </p>
-                            {/* <span>|</span> */}
-                            <p className='text-sm '>
-                                Order Date: <span className='font-bold'>
-                                    {moment(dataList?.order_date).utcOffset(-6).format("DD-MM-YYYY")}
-                                </span>
-                            </p>
-                            {/* <span>|</span> */}
-                            <p className='text-sm '>
-                                Payment Type: <span className='font-bold'>
-                                    {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
-                                </span>
-                            </p>
-                            {/* <span>|</span> */}
-                            <p className='text-sm '>
-                                {t("POS-Historyk22")}: <span className='font-bold'>
-                                    {calcTotalAmount(dataList)}
-                                </span>
-                            </p>
-
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
-                            <span className="text-gray-400">Pagination</span>
-                            <button
-                                onClick={() => changeHistoryHandle("prev")}
-                                disabled={page === 1}
-                                className={`text-gray-600 ${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                                <ArrowLeftFromLine />
-                            </button>
-                            <span className="text-gray-400">{page}/{totalPages}</span>
-                            <button
-                                onClick={() => changeHistoryHandle("next")}
-                                disabled={page === totalPages}
-                                className={`text-gray-600 ${page === totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                                <ArrowRightFromLine />
-                            </button>
-                        </div>
-
-
-                    </div>
-
-                    <div className='h-[1px] w-full mt-3 bg-[#E2E8F0]' />
-
-
-
-                    <div className='mt-4'>
-                        <div className='flex border-[#E2E8F0] border-[1px] items-center space-x-3 px-1 py-1 w-72 text-sm bg-white rounded-md'>
-                            <CiSearch size={22} color='gray' />
-                            <input
-                                onChange={searchProductHandle}
-                                type="text" placeholder="Product" className='px-1 focus:outline-none placeholder-gray-400 text-sm font-light' />
-                        </div>
-                    </div>
-
-
-
-                    <div className='pt-5'>
-                        <div className='pb-3 flex text-base text-[#71717A] items-center flex-1 font-normal border-b-2 border-b-[#E4E4E7]'>
-                            {tableHeader.map(({ label, align, flex }, index) => (
-                                <h1 key={index} className={`${flex ? flex : 'flex-[4]'} ${align || 'text-center'}`}>
-                                    {t(label)}
-                                </h1>
-                            ))}
-                        </div>
-
-
-                        <div className='mb-4 h-[25dvh] overflow-y-auto'>
-                            {
-                                salesHistory.map((elem: DataListInterface, index: number) => (
-
-                                    <TableRowRender preDefinedReasonList={preDefinedReasonList} hasReturnedHandle={hasReturnedHandle} isAnyReturned={isAnyReturned || page > 1} key={index} dataList={elem} order_id={order_id} />
-                                ))
-                            }
-
-                        </div>
-                    </div>
-                </div>}
-            </div> : null
+          {/* Table Body */}
+          <div className=" overflow-y-auto divide-y"> {/* NEW: Added divide */}
+            {salesHistory.map((elem: DataListInterface, index: number) => (
+              <TableRowRender 
+                key={index}
+                preDefinedReasonList={preDefinedReasonList}
+                hasReturnedHandle={hasReturnedHandle}
+                isAnyReturned={isAnyReturned || page > 1}
+                dataList={elem} 
+                order_id={order_id}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+) : null
         );
     };
 

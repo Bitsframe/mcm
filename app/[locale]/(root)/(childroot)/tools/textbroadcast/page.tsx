@@ -58,6 +58,32 @@ const TextBroadcast = () => {
   const [location, setLocation] = useState<any>(null);
   const [treatmentType, setTreatmentType] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Check for saved dark mode preference or system preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    if (savedMode !== null) {
+      setDarkMode(savedMode === "true");
+    } else {
+      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, []);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -73,6 +99,7 @@ const TextBroadcast = () => {
     setIsFilterOn(true);
     setOnsite(type);
   };
+
   const handleCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     emailObj: any
@@ -139,7 +166,7 @@ const TextBroadcast = () => {
     );
 
     return [...selectedEmails, ...unselectedEmails].filter((email) =>
-      email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
+      email?.phone?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
   };
 
@@ -216,331 +243,344 @@ const TextBroadcast = () => {
 
 
   return (
-    <main>
-      <div className="text-black mt-24 font-bold text-xl">Text Broadcast</div>
+    <main className="dark:bg-gray-900 dark:text-white">
+      <div className="text-black dark:text-white mt-5 font-bold text-xl">
+        Text Broadcast
+      </div>
 
-      <div className="w-full text-black font-[500] text-[20px] mt-3 h-[33rem] p-5 bg-[#D9DFE9] rounded-xl">
-        <div>
-          <div>Target Patients</div>
-          <div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button className="w-2/4 p-2 my-1 border text-[16px] text-gray-500 text-left border-black rounded">
-                  {checkedItems.length > 0
-                    ? checkedItems
+      <div className="w-full text-black dark:text-white font-[500] text-[20px] mt-3 h-[33rem] p-5 bg-white dark:bg-gray-800 rounded-xl">
+        <div className="flex w-full gap-5">
+          <div className="w-[50%]">
+            <>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4 flex flex-wrap items-center gap-2">
+                {checkedItems.length > 0 ? (
+                  <>
+                    {checkedItems
                       .slice(0, 2)
-                      .map((email: { email: string }) => email.email)
-                      .join(", ") +
-                    (checkedItems.length > 2
-                      ? ` +${checkedItems.length - 2} more`
-                      : "")
-                    : t("EmailB_k1")}
-                </button>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 ">
-                <AlertDialogHeader>
-                  {!filter ? (
-                    <>
-                      <div className="flex items-center cursor-pointer justify-between">
-                        <div className="flex items-center">
-                          <AlertDialogTitle>{t("EmailB_k7")}</AlertDialogTitle>
-                        </div>
-                        <AlertDialogCancel>
-                          {" "}
-                          <X color="gray" />{" "}
-                        </AlertDialogCancel>
-                      </div>
-                      <div className="flex items-center justify-between ">
-                        <div className="flex items-center ">
-                          <h1>{t("EmailB_k8")}</h1>
-                          <div className="ml-2 border border-gray-300 rounded-lg">
-                            <input
-                              placeholder={t("EmailB_k9")}
-                              type="text"
-                              className="p-2  border border-gray-300 rounded-lg"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        {!isFilterOn ? (
-                          <Image
-                            src={Filter}
-                            alt=""
-                            height={25}
-                            width={25}
+                      .map((item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center bg-white dark:bg-gray-600 px-2 py-1 rounded-md"
+                        >
+                          <span className="text-sm dark:text-white">
+                            {item.email}
+                          </span>
+                          <button
+                            className="ml-1 text-gray-500 dark:text-gray-300"
                             onClick={() => {
-                              setFilter(true);
+                              /* Handle remove */
                             }}
-                            className="cursor-pointer"
-                          />
-                        ) : (
-                          <Image
-                            src={Filterblack}
-                            alt=""
-                            height={25}
-                            width={25}
-                            onClick={() => {
-                              setFilter(true);
-                            }}
-                            className="cursor-pointer"
-                          />
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between  ">
-                        <div className="flex items-center ">
-                          <input
-                            type="checkbox"
-                            className="border bg-gray-300 rounded p-2 "
-                            checked={
-                              checkedItems.length === emailList.length &&
-                              emailList.length > 0
-                            }
-                            onChange={(e) =>
-                              handleSelectAndDeselectAll(e.target.checked)
-                            }
-                          />
-
-                          <h2 className="ml-2">{t("EmailB_k10")}/Number</h2>
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18 6L6 18M6 6L18 18"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
                         </div>
-                        <h2>{t("EmailB_k11")}</h2>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center cursor-pointer justify-between">
+                      ))}
+                    {checkedItems.length > 2 && (
+                      <span className="text-sm text-gray-500 dark:text-gray-300">
+                        + {checkedItems.length - 2} more
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-300 text-sm">
+                    Selected Patients will be shown here
+                  </p>
+                )}
+              </div>
+
+              <h2 className="font-medium text-base mb-4 dark:text-white">
+                Select Patients
+              </h2>
+
+              <div className="flex justify-between items-center mb-4">
+                <div className="relative flex-1 mr-4">
+                  <input
+                    placeholder="Search by number"
+                    type="text"
+                    className="w-full p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                        stroke="#6B7280"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                      <Image
+                        src={
+                          isFilterOn
+                            ? Filterblack
+                            : darkMode
+                            ? Filter
+                            : Filterblack
+                        }
+                        alt="Filter icon"
+                        height={20}
+                        width={20}
+                        className="cursor-pointer"
+                      />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Filter
+                      </span>
+                    </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+                    <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <ChevronLeft
-                          onClick={() => {
-                            setFilter(false);
-                          }}
+                          onClick={() => setFilter(false)}
+                          className="cursor-pointer text-gray-500 dark:text-gray-300"
                         />
-                        <AlertDialogTitle>Filter Patients</AlertDialogTitle>
+                        <AlertDialogTitle className="ml-2 dark:text-white">
+                          Filter Patients
+                        </AlertDialogTitle>
                       </div>
-                      <AlertDialogCancel>
-                        {" "}
-                        <X />{" "}
+                      <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600">
+                        <X className="dark:text-white" />
                       </AlertDialogCancel>
                     </div>
-                  )}
-                  <hr />
-                  <AlertDialogDescription>
-                    {!filter && (
-                      <>
-                        {getEmailLoading ? (
-                          <div className="space-y-2">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <Skeleton
-                                key={index}
-                                className="h-10 w-full rounded"
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          filteredEmails.map((email: any, index: any) => (
-                            <div
-                              key={index}
-                              className="flex justify-between items-center p-4 bg-[#F8F8F8] w-[98%] my-2 rounded"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  className="border-2 border-gray-500  bg-gray-300 rounded p-2"
-                                  id={`checkbox-${index}`}
-                                  value={email.email}
-                                  checked={checkedItems.some(
-                                    (item: any) => item.email === email.email
-                                  )}
-                                  onChange={(e) =>
-                                    handleCheckboxChange(e, email)
-                                  }
-                                />
-                                <div className="flex flex-col">
-                                  <Label className="mb-1 text-black font-bold">
-                                    {email.firstname}
-                                  </Label>
-                                  <div className="flex flex-row gap-2 items-center">
-                                    <Label>{email.email}</Label>
-                                    <span className="text-gray-400">|</span>
-                                    <Label className="text-gray-600">
-                                      {email.phone}
-                                    </Label>
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                {" "}
-                                <Label>
-                                  {email.gender === "Male"
-                                    ? "M"
-                                    : email.gender === "Female"
-                                      ? "F"
-                                      : "O"}
-                                </Label>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </>
-                    )}
-
-                    {filter && (
-                      <div>
-                        <br />
-                        <br />
-                        <RadioGroup defaultValue="comfortable">
-                          <div className="flex ">
-                            {" "}
-                            <h1 className="mr-2  font-bold text-black">
-                              Gender
-                            </h1>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="Male"
-                                onChange={handleGenderChange}
-                                className="border bg-gray-300 rounded p-2 "
-                                checked={selectedGender.includes("Male")}
-                              />
-                              <Label htmlFor="r2">Male</Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="Female"
-                                className="border bg-gray-300 rounded p-2 "
-                                onChange={handleGenderChange}
-                                checked={selectedGender.includes("Female")}
-                              />
-                              <Label htmlFor="r3">Female</Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="other"
-                                className="border bg-gray-300 rounded p-2 "
-                                onChange={handleGenderChange}
-                                checked={selectedGender.includes("other")}
-                              />
-                              <Label htmlFor="r3">Other</Label>
-                            </div>
-                          </div>
-                        </RadioGroup>
-                        <br />
-                        <div className="flex items-center  ">
-                          <h1 className="mr-2 font-bold text-black">
-                            Treatment Type
-                          </h1>
-                          <Select
-                            onValueChange={(value) => setTreatmentType(value)}
+                    <hr className="my-2 dark:border-gray-700" />
+                    <RadioGroup defaultValue="comfortable">
+                      <div className="flex mb-4 flex-wrap gap-4">
+                        <h1 className="font-bold text-black dark:text-white w-full">
+                          Gender
+                        </h1>
+                        {["Male", "Female", "other"].map((gender) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={gender}
                           >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue>
-                                {treatmentType
-                                  ? treatmentType
-                                  : "All Treatments"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {serviceList.map((patient: any, index) => (
-                                  <SelectItem value={patient.title} key={index}>
-                                    {patient.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <br />
-                        <RadioGroup defaultValue="comfortable">
-                          <div className="flex ">
-                            {" "}
-                            <h1 className="mr-2 font-bold text-black">
-                              Visit Type
-                            </h1>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                className="border bg-gray-300 rounded p-2 "
-                                checked={onsite === true}
-                                onChange={() => handleVisitChange(true)}
-                              />
-                              <Label htmlFor="r2">On-site</Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                className="border bg-gray-300 rounded p-2 "
-                                checked={onsite === false}
-                                onChange={() => handleVisitChange(false)}
-                              />
-                              <Label htmlFor="r3">Off-site</Label>
-                            </div>
+                            <input
+                              type="checkbox"
+                              value={gender}
+                              onChange={handleGenderChange}
+                              className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                              checked={selectedGender.includes(gender)}
+                            />
+                            <Label className="dark:text-gray-300">
+                              {gender}
+                            </Label>
                           </div>
-                        </RadioGroup>
-                        <br />
-                        <div className="flex items-center  ">
-                          <h1 className="mr-2  font-bold text-black ">
-                            Location
-                          </h1>
-                          <Select onValueChange={(value) => setLocation(value)}>
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue>
-                                {location ? location : "Select Location"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {locationList
-                                  ?.filter(
-                                    (location, index, self) =>
-                                      index ===
-                                      self.findIndex(
-                                        (loc) => loc.title === location.title
-                                      )
-                                  )
-                                  .map((location, index) => (
-                                    <SelectItem
-                                      key={index}
-                                      value={location.title}
-                                    >
-                                      {location.title}
-                                    </SelectItem>
-                                  ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <br />
-                        <Button onClick={() => handleReset()}>Reset</Button>
+                        ))}
                       </div>
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    </RadioGroup>
+                    <div className="mb-4">
+                      <h1 className="mr-2 font-bold text-black dark:text-white">
+                        Treatment Type
+                      </h1>
+                      <Select
+                        onValueChange={(value) => setTreatmentType(value)}
+                      >
+                        <SelectTrigger className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500">
+                          <SelectValue className="dark:text-white">
+                            {treatmentType ? treatmentType : "All Treatments"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                          <SelectGroup>
+                            {serviceList.map((patient: any, index) => (
+                              <SelectItem
+                                value={patient.title}
+                                key={index}
+                                className="dark:hover:bg-gray-700 dark:text-white"
+                              >
+                                {patient.title}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <RadioGroup defaultValue="comfortable">
+                      <div className="flex mb-4 flex-wrap gap-4">
+                        <h1 className="font-bold text-black dark:text-white w-full">
+                          Visit Type
+                        </h1>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                            checked={onsite === true}
+                            onChange={() => handleVisitChange(true)}
+                          />
+                          <Label className="dark:text-gray-300">On-site</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                            checked={onsite === false}
+                            onChange={() => handleVisitChange(false)}
+                          />
+                          <Label className="dark:text-gray-300">Off-site</Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                    <div className="mb-4">
+                      <h1 className="mr-2 font-bold text-black dark:text-white">
+                        Location
+                      </h1>
+                      <Select onValueChange={(value) => setLocation(value)}>
+                        <SelectTrigger className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500">
+                          <SelectValue className="dark:text-white">
+                            {location ? location : "Select Location"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                          <SelectGroup>
+                            {locationList
+                              ?.filter(
+                                (loc, index, self) =>
+                                  index ===
+                                  self.findIndex((l) => l.title === loc.title)
+                              )
+                              .map((location, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={location.title}
+                                  className="dark:hover:bg-gray-700 dark:text-white"
+                                >
+                                  {location.title}
+                                </SelectItem>
+                              ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      onClick={() => handleReset()}
+                      className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                    >
+                      Reset
+                    </Button>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                    checked={
+                      checkedItems.length === emailList.length &&
+                      emailList.length > 0
+                    }
+                    onChange={(e) =>
+                      handleSelectAndDeselectAll(e.target.checked)
+                    }
+                  />
+                  <label className="ml-2 text-sm dark:text-gray-300">
+                    Select all
+                  </label>
+                </div>
+                <span className="text-sm text-gray-500 dark:text-gray-300">
+                  {checkedItems.length} of {emailList.length} row(s) selected.
+                </span>
+              </div>
+
+              <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+                {loading ? (
+                  <div className="space-y-2 p-4">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Skeleton
+                        key={index}
+                        className="h-10 w-full rounded dark:bg-gray-700"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  filteredEmails.map((email: any, index: any) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-4 border-b dark:border-b-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                          id={`checkbox-${index}`}
+                          value={email.email}
+                          checked={checkedItems.some(
+                            (item: any) => item.email === email.email
+                          )}
+                          onChange={(e) => handleCheckboxChange(e, email)}
+                        />
+                        <div>
+                          <p className="font-medium text-sm dark:text-white">
+                            {email.firstname}
+                          </p>
+                          <div className="text-gray-500 dark:text-gray-300 text-sm">
+                            <span>{email.email}</span>
+                            <span className="ml-2 text-gray-400 dark:text-gray-400">
+                              {email.phone}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-gray-500 dark:text-gray-300 text-sm">
+                        {email.gender === "Male"
+                          ? "Male"
+                          : email.gender === "Female"
+                          ? "Female"
+                          : "Other"}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
           </div>
-          <div className="mt-5">
-            <div>Write a Text Message</div>
+
+          <div className="w-[50%]">
+            <div className="dark:text-white">Write a Text Message</div>
             <Textarea
             onChange={(e)=>setMessage(e.target.value)}
             value={message}
               rows={10}
-              className="w-2/4 mt-3 bg-white resize-none h-full"
+              className="w-full mt-3 bg-white dark:bg-gray-700 resize-none dark:text-white dark:border-gray-600"
               placeholder="Text Message..."
             />
-            {error && <div className="text-red-500 mt-2">{error}</div>}
-            <div className="text-gray-500 mt-3 text-lg">
+            <div className="text-gray-500 dark:text-gray-300 mt-3 text-lg">
               This is the text we will use to send text campaign
             </div>
+            <div className="flex w-2/4 mt-4">
+              <button className="w-fit text-lg bg-[#0066ff] hover:bg-blue-700 py-2 px-6 rounded-lg text-white dark:bg-blue-700 dark:hover:bg-blue-800">
+                Run Text Broadcast
+              </button>
+            </div>
           </div>
-          <div className="flex justify-end w-2/4 mt-4">
-        <Button onClick={submitHandle} className="w-48" disabled={loading}>
-          {loading ? "Sending..." : "Run Text Broadcast"}
-        </Button>
-      </div>
         </div>
       </div>
     </main>

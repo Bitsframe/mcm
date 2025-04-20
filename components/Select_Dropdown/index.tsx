@@ -22,7 +22,7 @@ interface Props {
 
 }
 // @ts-ignore
-export const Select_Dropdown = ({ disabled = false, options_arr, on_change_handle, required, value = '', label, start_empty = false, bg_color = '#D9D9D9', initialValue = '' || 0, hideLabel = false }: Props) => {
+export const Select_Dropdown = ({ disabled = false, options_arr, on_change_handle, required, value = '', label, start_empty = false, bg_color = '#F1F4F9', initialValue = '' || 0, hideLabel = false }: Props) => {
     return (
         <div className='w-full'>
             {label && !hideLabel && <Label htmlFor="section" value={label} className='font-bold' />}

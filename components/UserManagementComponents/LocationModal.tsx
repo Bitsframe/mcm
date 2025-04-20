@@ -1,44 +1,69 @@
-import { Modal } from '@mui/material';
-import { MdArrowBackIos } from 'react-icons/md';
-import React, { useState, useEffect } from 'react';
-import { useLocationClinica } from '@/hooks/useLocationClinica';
-import { RiCheckboxBlankFill, RiCheckboxBlankLine } from 'react-icons/ri';
-import { LuChevronDown } from 'react-icons/lu';
+"use client"
+
+import { Modal } from "@mui/material"
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useLocationClinica } from "@/hooks/useLocationClinica"
+import { LuChevronDown, LuX } from "react-icons/lu"
 
 interface LocationModalProps {
-  onChange: (selectedLocations: number[]) => void;
+  onChange: (selectedLocations: number[]) => void
   selectionLocationIds: number[]
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({ onChange,selectionLocationIds }) => {
-  const [open, setOpen] = useState(false);
-  const [selectedLocationList, setSelectedLocationList] = useState<number[]>(selectionLocationIds);
-  const { locations } = useLocationClinica(); // Assuming this hook provides location data.
+const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocationIds }) => {
+  const [open, setOpen] = useState(false)
+  const [selectedLocationList, setSelectedLocationList] = useState<number[]>(selectionLocationIds)
+  const [selectAll, setSelectAll] = useState(false)
+  const { locations } = useLocationClinica() // Assuming this hook provides location data.
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
 
   useEffect(() => {
-    onChange(selectedLocationList);
-  }, [selectedLocationList]);
+    onChange(selectedLocationList)
+  }, [selectedLocationList, onChange])
+
+  useEffect(() => {
+    // Update selectAll state when all locations are selected
+    setSelectAll(locations.length > 0 && selectedLocationList.length === locations.length)
+  }, [selectedLocationList, locations])
 
   const selectLocationHandle = (id: number, add: boolean) => {
     if (add) {
-      setSelectedLocationList((prev) => [...prev, id]);
+      setSelectedLocationList((prev) => [...prev, id])
     } else {
-      setSelectedLocationList((prev) => prev.filter((locationId) => locationId !== id));
+      setSelectedLocationList((prev) => prev.filter((locationId) => locationId !== id))
     }
-  };
+  }
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // If all are selected, deselect all
+      setSelectedLocationList([])
+    } else {
+      // Select all locations
+      setSelectedLocationList(locations.map((location: { id: any }) => location.id))
+    }
+    setSelectAll(!selectAll)
+  }
+
+  const handleDone = () => {
+    onChange(selectedLocationList)
+    handleClose()
+  }
 
   return (
     <div>
       {/* Trigger button */}
       <button
         onClick={handleOpen}
-        className="border-[1px] w-full border-gray-300 text-start px-3 py-2 text-gray-500 rounded-md"
+        className="border-[1px] w-full bg-[#f1f4f9] text-start px-3 py-2 text-gray-500 rounded-md"
       >
         <div className="flex items-center justify-between">
-          <span>{selectedLocationList.length > 0 ? `${selectedLocationList.length} Selected` : 'Select Locations'}</span>
+          <span>
+            {selectedLocationList.length > 0 ? `${selectedLocationList.length} Selected` : "Select Locations"}
+          </span>
           <LuChevronDown />
         </div>
       </button>
@@ -51,45 +76,77 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange,selectionLocatio
         aria-describedby="location-modal-description"
       >
         <div className="w-full h-full flex justify-center items-center">
-          <div className="bg-white rounded-md px-4 py-5 min-w-[650px] h-[450px]">
-            <div className="flex items-center space-x-2">
-              <button onClick={handleClose}>
-                <MdArrowBackIos />
-              </button>
-              <h2 id="location-modal-title" className="font-bold">
-                Locations ({selectedLocationList.length} Selected)
+          <div className="bg-white rounded-lg w-[35%]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 id="location-modal-title" className="text-lg font-medium">
+                Locations
               </h2>
+              <button
+                onClick={handleClose}
+                className="text-gray-400 hover:text-gray-500 rounded-full p-1 hover:bg-gray-100"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
+
+            {/* Select All */}
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="select-all"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="select-all" className="ml-2 text-sm text-gray-700">
+                  Select All
+                </label>
+              </div>
+              <span className="text-sm text-gray-500">{selectedLocationList.length} Selected</span>
             </div>
 
             {/* Locations List */}
-            <div className="flex flex-col w-full space-y-4 flex-1 mt-4">
-              <div className="h-[380px] overflow-y-auto space-y-3">
-                {locations.map(({ title, id }: { title: string; id: number }) => {
-                  const isAdded = selectedLocationList.includes(id);
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => selectLocationHandle(id, !isAdded)}
-                      className="border-[1px] w-full border-gray-300 rounded-lg py-3 px-2 flex items-center space-x-4"
-                    >
-                      <div>
-                        {isAdded ? (
-                          <RiCheckboxBlankFill color="green" />
-                        ) : (
-                          <RiCheckboxBlankLine color="lightgray" />
-                        )}
-                      </div>
-                      <h1>{title}</h1>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="max-h-[300px] overflow-y-auto">
+              {locations.map(({ title, id }: { title: string; id: number }) => {
+                const isSelected = selectedLocationList.includes(id)
+                return (
+                  <div key={id} className="bg-gray-50 m-2 rounded-lg">
+                    <div className="p-3 flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`location-${id}`}
+                        checked={isSelected}
+                        onChange={() => selectLocationHandle(id, !isSelected)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label htmlFor={`location-${id}`} className="ml-2 text-sm text-gray-700 flex-1">
+                        {title}
+                      </label>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Footer with buttons */}
+            <div className="p-4 border-t flex justify-end space-x-2">
+              <button
+                onClick={handleClose}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button onClick={handleDone} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Done
+              </button>
             </div>
           </div>
         </div>
       </Modal>
     </div>
-  );
-};
+  )
+}
 
-export default LocationModal;
+export default LocationModal

@@ -16,7 +16,7 @@ export default function layout({
                 },
             }}
         >
-            <div className="bg-gray-50">
+            <div className="bg-white">
             {children}
             </div>
 

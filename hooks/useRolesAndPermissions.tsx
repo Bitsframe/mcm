@@ -65,20 +65,65 @@ export function useRolesAndPermissions() {
     };
 
 
-    const handleAddRole = async (val: string) => {
-        setNewAddLoading(true)
-        const { data: res_data, error } = await create_content_service({ table: 'roles', language: '', post_data: { name: val } });
-        if (error) {
+    const handleAddRole = async (roleData: { name: string; permissions: Record<string, boolean> }) => {
+        setNewAddLoading(true);
+        
+        try {
+            // First create the role
+            const { data: roleRes, error: roleError } = await create_content_service({ 
+                table: 'roles', 
+                language: '', 
+                post_data: { name: roleData.name } 
+            });
+    
+            if (roleError) {
+                console.log(roleError.message);
+                toast.error(roleError.message);
+                setNewAddLoading(false);
+                return;
+            }
+    
+            if (roleRes?.length) {
+                const newRole = roleRes[0];
+                
+                // Then update permissions for the new role
+                const permissionUpdates = Object.entries(roleData.permissions).map(([permName, allowed]) => ({
+                    permission: permName,
+                    allowed
+                }));
+    
+                const { error: permError } = await create_content_service({
+                    table: 'role_permissions',
+                    language: '',
+                    post_data: {
+                        role_id: newRole.id,
+                        permissions: permissionUpdates
+                    }
+                });
+    
+                if (permError) {
+                    console.log(permError.message);
+                    toast.error("Role created but failed to set permissions");
+                    // Still add the role even if permissions failed
+                    setData((pre: any) => [...pre, newRole]);
+                    setNewAddLoading(false);
+                    setActiveForAddNewRoleInput(false);
+                    return;
+                }
+    
+                toast.success('New role with permissions successfully added!');
+                setData((pre: any) => [...pre, {
+                    ...newRole,
+                    permissions: roleData.permissions
+                }]);
+            }
+        } catch (error) {
+            //@ts-ignore
             console.log(error.message);
-            toast.error(error.message);
-            setNewAddLoading(false)
-            // throw new Error(error.message);
-        }
-        if (res_data?.length) {
-            toast.success('New role successfully added!');
-            setData((pre: any) => [...pre, res_data[0]])
-            setNewAddLoading(false)
-            setActiveForAddNewRoleInput(false)
+            toast.error("An unexpected error occurred");
+        } finally {
+            setNewAddLoading(false);
+            setActiveForAddNewRoleInput(false);
         }
     };
 
