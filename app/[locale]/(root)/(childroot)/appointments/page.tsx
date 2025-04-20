@@ -332,7 +332,7 @@ const Appointments = () => {
             />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center ">
             <Add_Appointment_Modal newAddedRow={newAddedRow} />
           </div>
         </div>

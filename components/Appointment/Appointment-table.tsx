@@ -221,7 +221,7 @@ const MemoizedTableRow = memo(({
               onEdit?.(appointment)
             }}
           >
-            <SquarePen className="h-4 w-4" />
+            <SquarePen className="h-4 w-4" color="#0066ff" />
           </button>
           <button 
             className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
@@ -230,7 +230,7 @@ const MemoizedTableRow = memo(({
               onDelete?.(appointment.id)
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" color="red" />
           </button>
         </div>
       </TableCell>
