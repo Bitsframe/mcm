@@ -49,7 +49,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Man! Don&#39;t neglect your health. Get a prostate exam + general exam for ${price} at Clínica San Miguel. Schedule your appointment!
           </Text>

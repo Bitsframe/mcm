@@ -42,10 +42,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import moment from "moment";
+import moment from 'moment';
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
+import axios from "axios";
+import { toast } from "sonner";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -256,6 +258,8 @@ const EmailBroadcast: React.FC = () => {
         return;
       }
 
+      // console.log(selectedGender, onsite, location, treatmentType);
+
       const toastId = toast.loading("Loading...");
       const res = await fetch("/api/sendEmail", {
         method: "POST",
@@ -270,10 +274,10 @@ const EmailBroadcast: React.FC = () => {
           name,
           clinicName,
           reason,
-          startDate: moment(startDate).format("MM/DD/YYYY"),
-          endDate: moment(endDate).format("MM/DD/YYYY"),
+          startDate: moment(startDate).format('MM/DD/YYYY'),
+          endDate: moment(endDate).format('MM/DD/YYYY'),
           email: checkedItems,
-          price,
+          price
         }),
       });
       if (res.ok) {
@@ -281,22 +285,23 @@ const EmailBroadcast: React.FC = () => {
           render: "Success! Email sent.",
           type: "success",
           isLoading: false,
-          autoClose: 3000,
+          autoClose: 3000, // Dismiss after 3 seconds
         });
       } else {
         toast.update(toastId, {
           render: "Error",
           type: "error",
           isLoading: false,
-          autoClose: 3000,
+          autoClose: 3000, // Dismiss after 3 seconds
         });
+        // console.log(res.error);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const { t } = useTranslation(translationConstant.EMAILB);
+  const {t} = useTranslation(translationConstant.EMAILB)
 
   return (
     <main className="w-full flex flex-row justify-between overflow-hidden p-6 gap-8 dark:bg-gray-900">

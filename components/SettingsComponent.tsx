@@ -51,6 +51,12 @@ const TimeSelector = forwardRef<
     return { label: formattedTime, value };
   });
 
+  // Add 12:00 AM with value as 11:59 PM
+  timeOptions.push({
+    label: "12:00 AM",
+    value: "23:59:00", // 11:59 PM
+  });
+
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       {/* @ts-ignore */}

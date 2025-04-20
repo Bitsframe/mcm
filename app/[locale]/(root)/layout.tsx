@@ -14,11 +14,12 @@ const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Priv
 
 export default async function layout({
 	children,
-	params: { locale },
+	params,
 }: {
 	children: React.ReactNode;
 	params: any;
 }) {
+	const { locale } = await params
   const { resources } = await initTranslations(locale, i18nNamespaces);
 
 	return (

@@ -98,6 +98,7 @@ interface Patient {
   gender: string;
   created_at: string;
   lastvisit: string;
+  note: string;
 }
 
 // 50-53: Interface for component props
@@ -1165,6 +1166,12 @@ const PatientDetails: FC<{
             </p>
           </div>
         </div>
+
+
+        <dl>
+          <dd className='font-semibold text-lg'>{patient?.note || '-'}</dd>
+          <dt className='text-sm text-[#707070]'>{t("Note")}</dt>
+        </dl>
       </div>
     </div>
   );
@@ -1182,6 +1189,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     phone: "",
     email: "",
     treatmenttype: "",
+    note: ""
   });
 
   const [loading, setLoading] = useState(false);
@@ -1196,11 +1204,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         phone: patientDetails.phone || "",
         email: patientDetails.email || "",
         treatmenttype: patientDetails.treatmenttype || "",
+        note: patientDetails.note || "",
       });
     }
   }, [patientDetails]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
   };

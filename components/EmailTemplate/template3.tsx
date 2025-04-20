@@ -50,7 +50,7 @@ import {
             alt="Koala"
             style={logo}
           />
-          <Text style={paragraph}>Dear {userFirstname},</Text>
+          <Text style={paragraph}>Dear Patient,</Text>
           <Text style={paragraph}>
           Pink October! Take care of yourself and take care of the women you love. Mammography only ${price}. San Miguel Clinic. Schedule your appointment today!
           </Text>

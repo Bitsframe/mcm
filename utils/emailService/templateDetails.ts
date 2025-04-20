@@ -21,9 +21,9 @@ export enum EmailBodyTempEnum {
 }
 
 export const emailFromDetails = {
-  [EmailBodyTempEnum.APPOINTMENT_CONFIRMATION]: 'Appoinment@notify.clinicsanmiguel.com',
-  [EmailBodyTempEnum.UPDATE_TO_YOUR_APPOINTMENT_DETAILS]: 'Appoinment@notify.clinicsanmiguel.com',
-  [EmailBodyTempEnum.CONFIRMATION_OF_FORM_SUBMISSION]: 'POS@notify.clinicsanmiguel.com',
+  [EmailBodyTempEnum.APPOINTMENT_CONFIRMATION]: 'Appoinment@alerts.myclinicmd.com',
+  [EmailBodyTempEnum.UPDATE_TO_YOUR_APPOINTMENT_DETAILS]: 'Appoinment@alerts.myclinicmd.com',
+  [EmailBodyTempEnum.CONFIRMATION_OF_FORM_SUBMISSION]: 'POS@alerts.myclinicmd.com',
 }
 
 export interface EmailContent {

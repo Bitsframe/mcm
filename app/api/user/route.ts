@@ -99,6 +99,7 @@ export const POST = async (req: Request) => {
                     email: patientData.email,
                     phone: patientData.phone,
                     treatmenttype: patientData.treatmenttype,
+                    note: patientData?.note,
                 }
             ]);
 
@@ -143,6 +144,7 @@ export const PUT = async (req: Request) => {
                 email: patientData.email,
                 phone: patientData.phone,
                 treatmenttype: patientData.treatmenttype,
+                note: patientData?.note,
             })
             .eq("id", Number(patientData.id))
             .select();
