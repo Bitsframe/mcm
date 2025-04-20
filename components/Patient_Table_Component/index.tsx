@@ -702,14 +702,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             patientDetails={patient}
                             serviceList={serviceList}
                           />
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-gray-500 dark:text-gray-400"
                           >
                             <Trash2 className="h-4 w-4" color="red" />
                             <span className="sr-only">Delete</span>
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -783,13 +783,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               >
                 Edit
               </Button>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 className="bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1"
               >
                 Delete
-              </Button>
+              </Button> */}
             </div>
           </div>
         </SheetContent>
