@@ -554,7 +554,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <AlertDialogCancel asChild>
                   <Button
                     variant="outline"
-                    className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
                   >
                     Cancel
                   </Button>
@@ -1275,7 +1275,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         </div>
 
         <AlertDialogFooter className="mt-6 flex justify-end gap-2">
-          <AlertDialogCancel className="border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+          <AlertDialogCancel className="border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
             {t("Patients_k21")}
           </AlertDialogCancel>
           <AlertDialogAction

@@ -3,6 +3,8 @@ import { fetch_content_service } from "@/utils/supabase/data_services/data_servi
 import { translationConstant } from "@/utils/translationConstants";
 import React, { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import Image from "next/image";
+import { Group198, Group193, Vector } from "@/assets/images";
 
 const InventoryCards = ({ archived }: { archived: boolean }) => {
   const [procucts_count, setProcucts_count] = useState(0);
@@ -72,74 +74,61 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
+      {/* Products Count Card */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">{procucts_count}</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k12")}</p>
-        <div className="mt-2">
-          <svg width="100%" height="60" viewBox="0 0 200 100">
-            <path
-              d="M20,80 A80,80 0 0,1 180,80"
-              fill="none"
-              stroke="#E6EEFF"
-              strokeWidth="20"
-              strokeLinecap="round"
-            />
-            <path
-              d="M20,80 A80,80 0 0,1 120,80"
-              fill="none"
-              stroke="#4285F4"
-              strokeWidth="20"
-              strokeLinecap="round"
-            />
-          </svg>
+        <div className="mt-2 h-[60px] relative ml-14 items-center">
+          <Image
+            src={Group193.src} // Replace with your image path
+            alt="Products chart"
+            objectFit="contain"
+            className="dark:invert"
+            width={150}
+            height={150}
+          />
         </div>
       </div>
 
+      {/* Categories Count Card */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">{categories_count}</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k11")}</p>
-        <div className="flex items-end h-[60px] mt-2 space-x-2">
-          {[
-            "30%",
-            "80%",
-            "60%",
-            "40%",
-            "50%",
-            "90%",
-            "35%",
-          ].map((h, i) => (
-            <div
-              key={i}
-              className="w-1/7 bg-[#1a73e8] rounded-sm"
-              style={{ height: h }}
-            ></div>
-          ))}
+        <div className="mt-2 h-[60px] relative ml-10 items-center">
+          <Image
+            src={Group198.src} // Replace with your image path
+            alt="Categories chart"
+            objectFit="contain"
+            className="dark:invert"
+            width={220}
+            height={220}
+          />
         </div>
       </div>
 
+      {/* Stock Value Card */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
-        <h1 className="text-4xl font-bold">{usdFormatter.format(stock_value)}</h1>
+        <h1 className="text-4xl font-bold">
+          {usdFormatter.format(stock_value)}
+        </h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k10")}</p>
-        <div className="mt-2">
-          <svg width="100%" height="60" viewBox="0 0 200 100">
-            <polyline
-              points="0,80 30,70 60,40 90,50 120,30 150,45 180,20 200,40"
-              fill="none"
-              stroke="#4ade80"
-              strokeWidth="2"
-            />
-            <path
-              d="M0,80 30,70 60,40 90,50 120,30 150,45 180,20 200,40 200,100 0,100 Z"
-              fill="rgba(74, 222, 128, 0.1)"
-            />
-          </svg>
+        <div className="mt-2 h-[60px] relative ml-8 items-center">
+          <Image
+            src={Vector.src} // Replace with your image path
+            alt="Stock value chart"
+            objectFit="contain"
+            className="dark:invert"
+            width={220}
+            height={220}
+          />
         </div>
       </div>
 
+      {/* Percentage Card */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
         <h1 className="text-4xl font-bold">20%</h1>
         <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k9")}</p>
-        <div className="mt-2 flex items-center">
+        <div className="mt-12  flex items-center">
           <div className="w-2/3 h-6 bg-gray-200 dark:bg-gray-700 rounded-md">
             <div
               className="h-full bg-amber-500 rounded-md"

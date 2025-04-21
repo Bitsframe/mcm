@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Archive, RefreshCcw, ShieldCheck } from "lucide-react";
+import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
@@ -95,7 +95,7 @@ const tableHeader = [
                 ? "border-[#CCE0FF] dark:border-blue-800"
                 : "border-[#CCE0FF] dark:border-blue-800"
             }
-            icon = {<RefreshCcw size={18}/>}
+            icon={<RefreshCcw size={18} />}
           />
           <Action_Button
             label={getDataArchiveType ? "Unarchive" : "Archive"}
@@ -104,7 +104,7 @@ const tableHeader = [
                 ? "text-[#0EA542] dark:text-green-400"
                 : "text-[#F71B1B] dark:text-red-400"
             }
-            icon = {<Archive size={18}/>}
+            icon={<Archive size={18} />}
             bg_color={
               getDataArchiveType
                 ? "bg-[#E7FDEF] dark:bg-green-900/30"
@@ -429,8 +429,9 @@ const Inventory = () => {
               />
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
+                className="flex w-full items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-base px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
               >
+                <CirclePlus className="w-6 h-6" />
                 Create Product
               </button>
             </div>
@@ -590,7 +591,7 @@ const Inventory = () => {
         //@ts-ignore
         Trigger_Button={null}
       >
-        <div className="w-full grid grid-cols-2 gap-4 dark:bg-gray-800">
+        <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
           {requiredInputFields.map((elem) => {
             const { id, label, colSpan, type } = elem;
             return id === "category_id" ? (
@@ -639,8 +640,9 @@ const Inventory = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     py="py-3"
-                    border="border-[1px] border-gray-300 rounded-md dark:border-gray-600"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
                     label={label}
+                    bg_color="bg-white dark:bg-[#0e1725]"
                   />
                 ) : (
                   <Input_Component
@@ -648,8 +650,9 @@ const Inventory = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     py="py-3"
-                    border="border-[1px] border-gray-300 rounded-md dark:border-gray-600"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
                     label={label}
+                    bg_color="bg-white dark:bg-[#0e1725]"
                   />
                 )}
               </div>

@@ -66,21 +66,21 @@ const render_details = [
 const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
   return (
     <div className="w-52">
-      <Select
-        onChange={handleSelectChange}
-        className="w-full h-auto dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-        style={{ backgroundColor: "white" }}
-        id="section"
-        required={true}
-      >
-        <option value="Cash" className="dark:bg-gray-800 dark:text-white">
-          Cash
-        </option>
-        <option value="Debit Card" className="dark:bg-gray-800 dark:text-white">
-          Debit Card
-        </option>
-      </Select>
-    </div>
+  <Select
+    onChange={handleSelectChange}
+    className="w-full h-auto border rounded-md text-sm focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
+    id="section"
+    required={true}
+  >
+    <option value="Cash" className="dark:bg-[#122136] dark:text-white text-black">
+      Cash
+    </option>
+    <option value="Debit Card" className="dark:bg-[#122136] dark:text-white text-black">
+      Debit Card
+    </option>
+  </Select>
+</div>
+
   );
 };
 

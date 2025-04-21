@@ -1,3 +1,4 @@
+// TopTabs.tsx
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,7 +23,7 @@ const TopTabs = () => {
   return (
     <nav className="mt-5">
       <div className="max-w-7xl mx-auto">
-        <ul className="flex gap-1 w-fit p-1 rounded-lg dark:bg-[#080E16]">
+        <ul className="flex gap-1 w-fit p-1 rounded-xl bg-gray-100 dark:bg-[#080E16]">
           {PosTopMenu.map((menuItem, index) => {
             const isActive =
               pathname === `/pos/sales/${menuItem.url}` ||
@@ -34,15 +35,15 @@ const TopTabs = () => {
               <li key={index}>
                 <Link
                   href={`/pos/sales/${menuItem.url}`}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-xl font-medium transition-all ${
                     isActive
                       ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-white"
+                      : "text-gray-600 dark:text-gray-300"
                   }`}
                 >
                   <Icon
                     className={`w-4 h-4 ${
-                      isActive ? "text-white" : "text-gray-300"
+                      isActive ? "text-white" : "text-gray-400"
                     }`}
                   />
                   {menuItem.title}
