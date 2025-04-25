@@ -464,10 +464,10 @@ const Page = () => {
               <TableHeader>
                 <TableRow className="dark:border-gray-700">
                   <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    <input
+                    {/* <input
                       type="checkbox"
                       className="dark:bg-gray-700 dark:border-gray-600"
-                    />
+                    /> */}
                   </TableHead>
                   {fields
                     .filter(({ table_column }) => table_column)
@@ -521,10 +521,10 @@ const Page = () => {
                         onClick={() => detailsViewHandle(elem)}
                       >
                         <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
-                          <input
+                          {/* <input
                             type="checkbox"
                             className="dark:bg-gray-700 dark:border-gray-600"
-                          />
+                          /> */}
                         </TableCell>
 
                         {fields

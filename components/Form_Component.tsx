@@ -24,7 +24,7 @@ export const Form_Component = (props: any) => {
   const { t } = useTranslation(translationConstant.WEBCONT);
   return (
     <>
-  <h6 className="text-lg font-semibold text-gray-800 mb-4">
+  <h6 className="text-lg font-semibold dark:text-white text-gray-800 mb-4">
     {t("WebCont_k9")}
   </h6>
 

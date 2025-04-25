@@ -165,7 +165,7 @@ const PrivateFeedbackComponent: FC = () => {
         </h1>
       </div>
 
-      <div className="w-full min-h-[80.5dvh] h-full py-2 grid grid-cols-3 gap-2">
+      <div className="w-full max-h-[69dvh] h-full py-2 grid grid-cols-3 gap-2">
         <div className="bg-[#F1F4F7] dark:bg-[#080e16] h-full col-span-2 rounded-md py-2">
           <div className="space-y-6 px-3 pb-4 flex justify-between">
             <input

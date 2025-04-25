@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import moment from 'moment';
+import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -70,32 +70,6 @@ const EmailBroadcast: React.FC = () => {
   const [location, setLocation] = useState<any>(null);
   const [treatmentType, setTreatmentType] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check for saved dark mode preference or system preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode");
-    if (savedMode !== null) {
-      setDarkMode(savedMode === "true");
-    } else {
-      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    }
-  }, []);
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const templates = [
     { label: "Template 1", value: "template1", component: emailtemplate1 },
@@ -169,17 +143,21 @@ const EmailBroadcast: React.FC = () => {
 
     if (SelectedTemplateComponent) {
       return (
-        <SelectedTemplateComponent
-          userFirstname={"[Patient]"}
-          reason={reason || "[Reason]"}
-          clinicName={clinicName || "[ClinicName]"}
-          name={name || "[Name]"}
-          buttonText={buttonText || "[Button Text]"}
-          buttonLink={buttonLink || "[buttonLink]"}
-          startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
-          endDate={moment(endDate).format("MM/DD/YYYY") || "[End Date]"}
-          price={price || "0"}
-        />
+        <div className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+          <SelectedTemplateComponent
+            userFirstname={"[Patient]"}
+            reason={reason || "[Reason]"}
+            clinicName={clinicName || "[ClinicName]"}
+            name={name || "[Name]"}
+            buttonText={buttonText || "[Button Text]"}
+            buttonLink={buttonLink || "[buttonLink]"}
+            startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
+            endDate={moment(endDate).format("MM/DD/YYYY") || "[End Date]"}
+            price={price || "0"}
+            // @ts-ignore
+            className="text-foreground dark:text-white"
+          />
+        </div>
       );
     }
     return null;
@@ -247,8 +225,8 @@ const EmailBroadcast: React.FC = () => {
   }, []);
 
   const sendEmail = async () => {
-    if (!checkedItems && checkedItems.length == 0) {
-      toast.error("No email selected .", { position: "top-center" });
+    if (!checkedItems || checkedItems.length === 0) {
+      toast.error("No email selected.", { position: "top-center" });
       return;
     }
     try {
@@ -257,9 +235,13 @@ const EmailBroadcast: React.FC = () => {
         return;
       }
 
-      // console.log(selectedGender, onsite, location, treatmentType);
+      const toastId = toast.loading("Sending emails...", {
+        position: "top-center",
+        autoClose: false,
+        closeButton: false,
+        theme: "dark",
+      });
 
-      const toastId = toast.loading("Loading...");
       const res = await fetch("/api/sendEmail", {
         method: "POST",
         headers: {
@@ -273,49 +255,72 @@ const EmailBroadcast: React.FC = () => {
           name,
           clinicName,
           reason,
-          startDate: moment(startDate).format('MM/DD/YYYY'),
-          endDate: moment(endDate).format('MM/DD/YYYY'),
+          startDate: moment(startDate).format("MM/DD/YYYY"),
+          endDate: moment(endDate).format("MM/DD/YYYY"),
           email: checkedItems,
-          price
+          price,
         }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
         toast.update(toastId, {
-          render: "Success! Email sent.",
+          render: (
+            <div className="flex flex-col">
+              <div className="font-bold text-lg">Email Sent Successfully!</div>
+              <div className="text-sm mt-1">
+                Sent to {checkedItems.length} recipient(s)
+              </div>
+            </div>
+          ),
           type: "success",
           isLoading: false,
-          autoClose: 3000, // Dismiss after 3 seconds
+          autoClose: 5000,
+          closeButton: true,
+          position: "top-center",
+          theme: "dark",
+          className: "bg-green-600 text-white",
         });
       } else {
+        console.error("Email sending failed:", data);
         toast.update(toastId, {
-          render: "Error",
+          render: data.message || "Failed to send email",
           type: "error",
           isLoading: false,
-          autoClose: 3000, // Dismiss after 3 seconds
+          autoClose: 5000,
+          closeButton: true,
+          position: "top-center",
+          theme: "dark",
         });
-        // console.log(res.error);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error("Email sending error:", error);
+      toast.error(error.message || "Failed to send email", {
+        position: "top-center",
+        autoClose: 5000,
+        theme: "dark",
+      });
     }
   };
 
-  const {t} = useTranslation(translationConstant.EMAILB)
+  const { t } = useTranslation(translationConstant.EMAILB);
 
   return (
-    <main className="w-full flex flex-row justify-between overflow-hidden p-6 gap-8 dark:bg-gray-900">
+    <main className="w-full flex flex-row justify-between overflow-hidden p-6 gap-8 dark:bg-gray-900 text-white">
       <div className="w-1/2">
         <div className="space-y-6">
           <div className="space-y-2">
             <label
               htmlFor="patients"
-              className="text-sm font-medium flex items-center dark:text-white"
+              className="text-sm font-medium flex items-center text-foreground"
             >
-              Target Patients <span className="text-red-500 ml-1">*</span>
+              Target Patients <span className="text-destructive ml-1">*</span>
             </label>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button className="w-full p-2 my-1 border text-[16px] text-gray-500 dark:text-gray-300 text-left border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700">
+                <button className="w-full p-2 my-1 border text-[16px] bg-[#f1f4f7] text-muted-foreground text-left border-input rounded dark:bg-[#374151]">
                   {checkedItems.length > 0
                     ? checkedItems
                         .slice(0, 2)
@@ -327,63 +332,50 @@ const EmailBroadcast: React.FC = () => {
                     : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 dark:bg-gray-800 dark:border-gray-700">
+
+              <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
                 <AlertDialogHeader>
                   {!filter ? (
                     <>
                       <div className="flex items-center cursor-pointer justify-between">
                         <div className="flex items-center">
-                          <AlertDialogTitle className="bg-[#F1F4F9] dark:bg-gray-700 dark:text-white">
+                          <AlertDialogTitle className="bg-accent dark:bg-[#0e1725] text-accent-foreground">
                             {t("EmailB_k7")}
                           </AlertDialogTitle>
                         </div>
-                        <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600">
-                          {" "}
-                          <X color="gray" />{" "}
+                        <AlertDialogCancel className="bg-accent dark:bg-[#0e1725] text-accent-foreground hover:bg-accent/90 dark:hover:bg-[#0e1725]/90 border-input dark:border-[#0e1725]">
+                          <X className="text-muted-foreground" />
                         </AlertDialogCancel>
                       </div>
-                      <div className="flex items-center justify-between ">
-                        <div className="flex items-center ">
-                          <h1 className="dark:text-white">{t("EmailB_k8")}</h1>
-                          <div className="ml-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <h1 className="text-foreground">{t("EmailB_k8")}</h1>
+                          <div className="ml-2 border border-input dark:border-[#0e1725] rounded-lg">
                             <input
                               placeholder={t("EmailB_k9")}
                               type="text"
-                              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                              className="p-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                             />
                           </div>
                         </div>
-                        {!isFilterOn ? (
-                          <Image
-                            src={darkMode ? Filter : Filterblack}
-                            alt=""
-                            height={25}
-                            width={25}
-                            onClick={() => {
-                              setFilter(true);
-                            }}
-                            className="cursor-pointer"
-                          />
-                        ) : (
-                          <Image
-                            src={Filterblack}
-                            alt=""
-                            height={25}
-                            width={25}
-                            onClick={() => {
-                              setFilter(true);
-                            }}
-                            className="cursor-pointer"
-                          />
-                        )}
+                        <Image
+                          src={Filter}
+                          alt=""
+                          height={25}
+                          width={25}
+                          onClick={() => setFilter(true)}
+                          className="cursor-pointer dark:invert"
+                        />
                       </div>
-                      <div className="flex items-center justify-between  ">
-                        <div className="flex items-center ">
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                            className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                             checked={
                               checkedItems.length === emailList.length &&
                               emailList.length > 0
@@ -392,33 +384,31 @@ const EmailBroadcast: React.FC = () => {
                               handleSelectAndDeselectAll(e.target.checked)
                             }
                           />
-                          <h2 className="ml-2 dark:text-white">
+                          <h2 className="ml-2 text-foreground">
                             {t("EmailB_k10")}
                           </h2>
                         </div>
-                        <h2 className="dark:text-white">{t("EmailB_k11")}</h2>
+                        <h2 className="text-foreground">{t("EmailB_k11")}</h2>
                       </div>
                     </>
                   ) : (
                     <div className="flex items-center cursor-pointer justify-between">
                       <div className="flex items-center">
                         <ChevronLeft
-                          onClick={() => {
-                            setFilter(false);
-                          }}
-                          className="dark:text-white"
+                          onClick={() => setFilter(false)}
+                          className="text-foreground"
                         />
-                        <AlertDialogTitle className="dark:text-white">
+                        <AlertDialogTitle className="text-foreground">
                           Filter Patients
                         </AlertDialogTitle>
                       </div>
-                      <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600">
-                        {" "}
-                        <X className="dark:text-white" />{" "}
+                      <AlertDialogCancel className="bg-accent dark:bg-[#0e1725] text-accent-foreground hover:bg-accent/90 dark:hover:bg-[#0e1725]/90 border-input dark:border-[#0e1725]">
+                        <X className="text-foreground" />
                       </AlertDialogCancel>
                     </div>
                   )}
-                  <hr className="dark:border-gray-700" />
+                  <hr className="border-border dark:border-[#0e1725]" />
+
                   <AlertDialogDescription>
                     {!filter && (
                       <>
@@ -427,7 +417,7 @@ const EmailBroadcast: React.FC = () => {
                             {Array.from({ length: 5 }).map((_, index) => (
                               <Skeleton
                                 key={index}
-                                className="h-10 w-full rounded dark:bg-gray-700"
+                                className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
                               />
                             ))}
                           </div>
@@ -435,12 +425,12 @@ const EmailBroadcast: React.FC = () => {
                           filteredEmails.map((email: any, index: any) => (
                             <div
                               key={index}
-                              className="flex justify-between items-center p-4 bg-[#F8F8F8] dark:bg-gray-700 w-[98%] my-2 rounded"
+                              className="flex justify-between items-center p-4 bg-accent dark:bg-[#0e1725] w-[98%] my-2 rounded"
                             >
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
-                                  className="border-2 border-gray-500 bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                  className="border-2 border-muted bg-secondary dark:bg-[#0e1725] rounded p-2"
                                   id={`checkbox-${index}`}
                                   value={email.email}
                                   checked={checkedItems.some(
@@ -451,17 +441,16 @@ const EmailBroadcast: React.FC = () => {
                                   }
                                 />
                                 <div className="flex flex-col">
-                                  <Label className="mb-1 text-black dark:text-white font-bold">
+                                  <Label className="mb-1 font-bold text-foreground">
                                     {email.firstname}
                                   </Label>
-                                  <Label className="dark:text-gray-300">
+                                  <Label className="text-muted-foreground">
                                     {email.email}
                                   </Label>
                                 </div>
                               </div>
                               <div>
-                                {" "}
-                                <Label className="dark:text-white">
+                                <Label className="text-foreground">
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
@@ -474,14 +463,14 @@ const EmailBroadcast: React.FC = () => {
                         )}
                       </>
                     )}
+
                     {filter && (
                       <div>
                         <br />
                         <br />
                         <RadioGroup defaultValue="comfortable">
                           <div className="flex">
-                            {" "}
-                            <h1 className="mr-2 font-bold text-black dark:text-white">
+                            <h1 className="mr-2 font-bold text-foreground">
                               Gender
                             </h1>
                             <div className="flex items-center space-x-2">
@@ -489,10 +478,10 @@ const EmailBroadcast: React.FC = () => {
                                 type="checkbox"
                                 value="Male"
                                 onChange={handleGenderChange}
-                                className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                                 checked={selectedGender.includes("Male")}
                               />
-                              <Label htmlFor="r2" className="dark:text-white">
+                              <Label htmlFor="r2" className="text-foreground">
                                 Male
                               </Label>
                             </div>
@@ -500,11 +489,11 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="Female"
-                                className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("Female")}
                               />
-                              <Label htmlFor="r3" className="dark:text-white">
+                              <Label htmlFor="r3" className="text-foreground">
                                 Female
                               </Label>
                             </div>
@@ -512,38 +501,39 @@ const EmailBroadcast: React.FC = () => {
                               <input
                                 type="checkbox"
                                 value="other"
-                                className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                                 onChange={handleGenderChange}
                                 checked={selectedGender.includes("other")}
                               />
-                              <Label htmlFor="r3" className="dark:text-white">
+                              <Label htmlFor="r3" className="text-foreground">
                                 Other
                               </Label>
                             </div>
                           </div>
                         </RadioGroup>
+
                         <br />
                         <div className="flex items-center">
-                          <h1 className="mr-2 font-bold text-black dark:text-white">
+                          <h1 className="mr-2 font-bold text-foreground">
                             Treatment Type
                           </h1>
                           <Select
                             onValueChange={(value) => setTreatmentType(value)}
                           >
-                            <SelectTrigger className="w-[180px] dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                              <SelectValue className="dark:text-white">
+                            <SelectTrigger className="w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground">
+                              <SelectValue className="text-foreground">
                                 {treatmentType
                                   ? treatmentType
                                   : "All Treatments"}
                               </SelectValue>
                             </SelectTrigger>
-                            <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                            <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
                               <SelectGroup>
                                 {serviceList.map((patient: any, index) => (
                                   <SelectItem
                                     value={patient.title}
                                     key={index}
-                                    className="dark:hover:bg-gray-700 dark:text-white"
+                                    className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground"
                                   >
                                     {patient.title}
                                   </SelectItem>
@@ -552,49 +542,50 @@ const EmailBroadcast: React.FC = () => {
                             </SelectContent>
                           </Select>
                         </div>
+
                         <br />
                         <RadioGroup defaultValue="comfortable">
                           <div className="flex">
-                            {" "}
-                            <h1 className="mr-2 font-bold text-black dark:text-white">
+                            <h1 className="mr-2 font-bold text-foreground">
                               Visit Type
                             </h1>
                             <div className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
-                                className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                                 checked={onsite === true}
                                 onChange={() => handleVisitChange(true)}
                               />
-                              <Label htmlFor="r2" className="dark:text-white">
+                              <Label htmlFor="r2" className="text-foreground">
                                 On-site
                               </Label>
                             </div>
                             <div className="flex ml-2 items-center space-x-2">
                               <input
                                 type="checkbox"
-                                className="border bg-gray-300 dark:bg-gray-600 rounded p-2"
+                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
                                 checked={onsite === false}
                                 onChange={() => handleVisitChange(false)}
                               />
-                              <Label htmlFor="r3" className="dark:text-white">
+                              <Label htmlFor="r3" className="text-foreground">
                                 Off-site
                               </Label>
                             </div>
                           </div>
                         </RadioGroup>
+
                         <br />
                         <div className="flex items-center">
-                          <h1 className="mr-2 font-bold text-black dark:text-white">
+                          <h1 className="mr-2 font-bold text-foreground">
                             Location
                           </h1>
                           <Select onValueChange={(value) => setLocation(value)}>
-                            <SelectTrigger className="w-[180px] dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                              <SelectValue className="dark:text-white">
+                            <SelectTrigger className="w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground">
+                              <SelectValue className="text-foreground">
                                 {location ? location : "Select Location"}
                               </SelectValue>
                             </SelectTrigger>
-                            <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                            <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
                               <SelectGroup>
                                 {locationList
                                   ?.filter(
@@ -608,7 +599,7 @@ const EmailBroadcast: React.FC = () => {
                                     <SelectItem
                                       key={index}
                                       value={location.title}
-                                      className="dark:hover:bg-gray-700 dark:text-white"
+                                      className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground"
                                     >
                                       {location.title}
                                     </SelectItem>
@@ -617,10 +608,11 @@ const EmailBroadcast: React.FC = () => {
                             </SelectContent>
                           </Select>
                         </div>
+
                         <br />
                         <Button
                           onClick={() => handleReset()}
-                          className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                          className="bg-secondary dark:bg-[#0e1725] text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-[#0e1725]/80"
                         >
                           Reset
                         </Button>
@@ -628,7 +620,19 @@ const EmailBroadcast: React.FC = () => {
                     )}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter></AlertDialogFooter>
+                <AlertDialogFooter className="sticky bottom-0 bg-background dark:bg-[#080e16] pt-4 pb-2 border-t border-border dark:border-[#0e1725]">
+                <AlertDialogCancel className="bg-background dark:bg-[#080e16]">
+
+                  {!filter && checkedItems.length > 0 && (
+                    <Button
+                      onClick={() => setFilter(false)}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Next
+                    </Button>
+                  )}
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
@@ -636,14 +640,16 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2">
             <label
               htmlFor="template"
-              className="text-sm font-medium flex items-center dark:text-white"
+              className="text-sm font-medium flex items-center text-foreground dark:text-white"
             >
-              Email Template <span className="text-red-500 ml-1">*</span>
+              Email Template{" "}
+              <span className="text-destructive dark:text-red-500 ml-1">*</span>
             </label>
+
             <div className="relative">
               <select
                 id="template"
-                className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-white rounded-md border border-gray-200 dark:border-gray-600 appearance-none"
+                className="w-full p-3 bg-[#f1f4f7] dark:bg-gray-700 text-sm text-foreground dark:text-white rounded-md border border-input dark:border-gray-600 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500"
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
               >
@@ -651,12 +657,13 @@ const EmailBroadcast: React.FC = () => {
                   <option
                     key={template.value}
                     value={template.value}
-                    className="dark:bg-gray-700 dark:text-white"
+                    className="bg-background dark:bg-gray-700 text-foreground dark:text-white"
                   >
                     {template.label}
                   </option>
                 ))}
               </select>
+
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <svg
                   width="16"
@@ -664,10 +671,11 @@ const EmailBroadcast: React.FC = () => {
                   viewBox="0 0 16 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  className="text-muted-foreground dark:text-gray-400"
                 >
                   <path
                     d="M4 6L8 10L12 6"
-                    stroke="#6B7280"
+                    stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -680,9 +688,10 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2">
             <label
               htmlFor="subject"
-              className="text-sm font-medium flex items-center dark:text-white"
+              className="text-sm font-medium flex items-center text-foreground dark:text-white"
             >
-              Subject <span className="text-red-500 ml-1">*</span>
+              Subject{" "}
+              <span className="text-destructive dark:text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
@@ -691,14 +700,14 @@ const EmailBroadcast: React.FC = () => {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Subject"
-              className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-sm rounded-md border border-gray-200 dark:border-gray-600 dark:text-white"
+              className="w-full p-3 dark:bg-gray-700 bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
           </div>
 
           <div className="space-y-2">
             <label
               htmlFor="name"
-              className="text-sm font-medium dark:text-white"
+              className="text-sm font-medium text-foreground dark:text-white"
             >
               Name
             </label>
@@ -707,7 +716,7 @@ const EmailBroadcast: React.FC = () => {
               id="name"
               name="name"
               placeholder="Name"
-              className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-sm rounded-md border border-gray-200 dark:border-gray-600 dark:text-white"
+              className="w-full p-3 bg-[#f1f4f7] dark:bg-gray-700 text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -716,7 +725,7 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2">
             <label
               htmlFor="price"
-              className="text-sm font-medium dark:text-white"
+              className="text-sm font-medium text-foreground dark:text-white"
             >
               Price
             </label>
@@ -725,7 +734,7 @@ const EmailBroadcast: React.FC = () => {
               id="price"
               name="price"
               placeholder="Price"
-              className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-sm rounded-md border border-gray-200 dark:border-gray-600 dark:text-white"
+              className="w-full p-3 bg-[#f1f4f7] dark:bg-gray-700 text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
@@ -733,7 +742,7 @@ const EmailBroadcast: React.FC = () => {
 
           <div>
             <button
-              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               onClick={sendEmail}
             >
               Run Email Broadcast
@@ -743,8 +752,10 @@ const EmailBroadcast: React.FC = () => {
       </div>
 
       <div className="w-1/2 p-5">
-        <h2 className="text-sm font-medium mb-4 dark:text-white">Preview</h2>
-        <div className="border border-gray-200 dark:border-gray-600 rounded-md p-6 bg-white dark:bg-gray-800">
+        <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
+          Preview
+        </h2>
+        <div className="border border-border bg-[#f1f4f7] dark:border-gray-600 rounded-md p-6 dark:bg-gray-800">
           <RenderTemplate />
         </div>
       </div>

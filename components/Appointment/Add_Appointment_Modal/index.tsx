@@ -354,7 +354,7 @@ export const Add_Appointment_Modal = ({
                   }
                   value={formData.first_name}
                   placeholder="FirstName"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -366,7 +366,8 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("last_name", e)}
                   value={formData.last_name}
                   placeholder="LastName"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
+
                 />
               </div>
             </div>
@@ -384,7 +385,7 @@ export const Add_Appointment_Modal = ({
                   type="email"
                   value={formData.email_address}
                   placeholder="Email"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -396,7 +397,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("phone", e)}
                   value={formData.phone}
                   placeholder="Phone Number"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
                 />
               </div>
             </div>
@@ -411,7 +412,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("dob", e)}
                   value={formData.dob}
                   placeholder="mm/dd/yyyy"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -469,7 +470,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("zipcode", e)}
                   value={formData.zipcode}
                   placeholder="Enter Zipcode"
-                  darkMode
+                  bg_color="dark:bg-[#374151] bg-white"
                 />
               </div>
             </div>
@@ -485,8 +486,8 @@ export const Add_Appointment_Modal = ({
                 }
                 value={formData.street_address}
                 placeholder="Enter your address with zipcode"
-                darkMode
-              />
+                bg_color="dark:bg-[#374151] bg-white"
+                />
             </div>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
@@ -517,7 +518,7 @@ export const Add_Appointment_Modal = ({
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   Time

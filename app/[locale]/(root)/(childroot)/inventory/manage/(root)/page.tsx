@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   useCallback,
   useContext,
@@ -100,43 +101,6 @@ const Categories = () => {
   const [modalState, setModalState] = useState("");
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check for saved dark mode preference or system preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode !== null) {
-      setDarkMode(savedMode === 'true');
-    } else {
-      setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-  }, []);
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  const openModalHandle = (state: string) => {
-    setOpenModal(true);
-    setModalState(state);
-  };
-  
-  const closeModalHandle = () => {
-    setOpenModal(false);
-    setModalState(modalStateEnum.EMPTY);
-    setModalData({});
-  };
 
   const fetch_handle = async (archive: boolean) => {
     setLoading(true);
@@ -149,6 +113,16 @@ const Categories = () => {
     setDataList(fetched_data);
     setAllData(fetched_data);
     setLoading(false);
+  };
+  const openModalHandle = (state: string) => {
+    setOpenModal(true);
+    setModalState(state);
+  };
+  
+  const closeModalHandle = () => {
+    setOpenModal(false);
+    setModalState(modalStateEnum.EMPTY);
+    setModalData({});
   };
 
   const onChangeHandle = (e: any) => {
@@ -215,30 +189,31 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 dark:text-gray-300 bg-[#F1F4F9] dark:bg-gray-800 p-1 space-x-1 flex items-center justify-end w-full rounded-lg">
-        <button
-          onClick={handleActiveClick}
-          className={`${
-            !getDataArchiveType
-              ? "bg-blue-600 dark:bg-blue-700 text-white"
-              : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-          } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
-        >
-          <ShieldCheck size={16} />
-          <span>Active</span>
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`${
-            getDataArchiveType
-              ? "bg-blue-600 dark:bg-blue-700 text-white"
-              : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-          } px-4 py-2 rounded-md flex items-center space-x-2 transition`}
-        >
-          <Archive size={16} />
-          <span>Archived</span>
-        </button>
-      </div>
+      <div className="text-sm p-1 space-x-1 flex items-center justify-end w-full rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
+  <button
+    onClick={handleActiveClick}
+    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
+      !getDataArchiveType
+        ? "bg-blue-700 text-white"
+        : "text-gray-700 dark:text-gray-300"
+    }`}
+  >
+    <ShieldCheck size={16} />
+    <span>Active</span>
+  </button>
+  <button
+    onClick={handleArchiveClick}
+    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
+      getDataArchiveType
+        ? "bg-blue-700 text-white"
+        : "text-gray-700 dark:text-gray-300"
+    }`}
+  >
+    <Archive size={16} />
+    <span>Archived</span>
+  </button>
+</div>
+
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -282,10 +257,10 @@ const Categories = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
 
   return (
-    <main className="w-full h-full font-medium text-base dark:bg-gray-900 dark:text-white">
+    <main className="w-full h-full font-medium text-base dark:bg-gray-900 text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
-          <h1 className="text-lg font-semibold px-3 mb-3 dark:text-white">Categories</h1>
+          <h1 className="text-lg font-semibold px-3 mb-3 text-white">Categories</h1>
           <div className="px-3 flex justify-between w-full">
             <div className="space-y-1">
               <div className="flex items-center w-full justify-between gap-x-3">
@@ -294,11 +269,11 @@ const Categories = () => {
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("Inventory_k4")}
-                    className="block px-3 py-2 w-72 text-sm rounded-md focus:outline-none bg-white dark:bg-gray-800 border-2 border-gray-500 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-600 dark:text-white"
+                    className="block px-3 py-[10px] w-72 text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-gray-800 border-2 border-gray-600 focus:border-blue-600 text-white"
                   />
                 </div>
                 <button
-                  className="flex items-center gap-2 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition"
+                  className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition"
                   onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 >
                   <svg
@@ -325,93 +300,88 @@ const Categories = () => {
           </div>
 
           <div className="px-3 pt-5">
-            <div className="border rounded-md dark:border-gray-700">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-gray-800 border-b border-b-[#E4E4E7] dark:border-b-gray-700">
-                  <TableRow className="flex hover:bg-transparent">
-                    <TableHead className="w-12 p-3">
-                      <Checkbox className="dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600" />
-                    </TableHead>
-                    {tableHeader.map(({ label, align }, index) => (
-                      <TableHead
-                        key={index}
-                        className={`flex-1 ${
-                          align || "text-start"
-                        } text-base text-[#71717A] dark:text-gray-300 font-normal p-3`}
-                      >
-                        {t(label)}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
+  <div className="border rounded-md border-gray-300 dark:border-gray-700">
+    <Table>
+      <TableHeader className="bg-gray-100 dark:bg-gray-800 border-b border-b-gray-300 dark:border-b-gray-700">
+        <TableRow className="flex hover:bg-transparent">
+          <TableHead className="w-12 p-3">
+            {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+          </TableHead>
+          {tableHeader.map(({ label, align }, index) => (
+            <TableHead
+              key={index}
+              className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+            >
+              {t(label)}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
 
-                <TableBody className="mb-4 h-[60dvh] overflow-y-auto block dark:bg-gray-900">
-                  {loading ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex items-center justify-center dark:bg-gray-900">
-                        <Spinner size="xl" />
-                      </TableCell>
-                    </TableRow>
-                  ) : dataList.length === 0 ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center dark:bg-gray-900">
-                        <h1 className="dark:text-white">No Category is available</h1>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    dataList.map((elem, index) => (
-                      <TableRow
-                        key={index}
-                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-[#E4E4E7] dark:border-b-gray-700 px-3 py-4"
-                      >
-                        <TableCell className="w-12 p-0">
-                          <Checkbox className="dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600" />
-                        </TableCell>
-                        {tableHeader.map(({ id, Render_Value, align }, ind) => {
-                          const content = Render_Value ? (
-                            <Render_Value
-                              getDataArchiveType={getDataArchiveType}
-                              isLoading={deleteLoading}
-                              onClickHandle={() =>
-                                onClickHandle(elem.category_id)
-                              }
-                            />
-                          ) : (
-                            <span className="dark:text-white">{elem[id]}</span>
-                          );
+      <TableBody className="mb-4 h-[30dvh] overflow-y-auto block bg-white dark:bg-gray-900">
+        {loading ? (
+          <TableRow className="flex h-full">
+            <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-gray-900">
+              <Spinner size="xl" />
+            </TableCell>
+          </TableRow>
+        ) : dataList.length === 0 ? (
+          <TableRow className="flex h-full">
+            <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
+              <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+            </TableCell>
+          </TableRow>
+        ) : (
+          dataList.map((elem, index) => (
+            <TableRow
+              key={index}
+              className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
+            >
+              <TableCell className="w-12 p-0">
+                {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+              </TableCell>
+              {tableHeader.map(({ id, Render_Value, align }, ind) => {
+                const content = Render_Value ? (
+                  <Render_Value
+                    getDataArchiveType={getDataArchiveType}
+                    isLoading={deleteLoading}
+                    onClickHandle={() => onClickHandle(elem.category_id)}
+                  />
+                ) : (
+                  <span className="text-gray-800 dark:text-white">{elem[id]}</span>
+                );
 
-                          return (
-                            <TableCell
-                              key={ind}
-                              className={`flex-1 ${
-                                align || "text-start"
-                              } text-base p-0 dark:text-white`}
-                            >
-                              {content}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                return (
+                  <TableCell
+                    key={ind}
+                    className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
+                  >
+                    {content}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
 
-              <div className="flex items-center justify-between p-4 border-t dark:border-t-gray-700">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  0 of {dataList.length} row(s) selected.
-                </div>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 dark:text-white disabled:opacity-50">
-                    Previous
-                  </button>
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 dark:text-white">
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="flex items-center justify-between p-4 border-t border-t-gray-300 dark:border-t-gray-700">
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        0 of {dataList.length} row(s) selected.
+      </div>
+      <div className="flex gap-2">
+        <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
+          Previous
+        </button>
+        <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
         </div>
       </div>
 
@@ -429,24 +399,24 @@ const Categories = () => {
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          border="border-[1px] border-gray-300 dark:border-gray-600 rounded-md"
+          border="border-[1px] border-gray-600 rounded-md"
           label="Category"
-          darkMode={darkMode}
+          darkMode={true}
         />
       </Custom_Modal>
 
       {activeDeleteId ? (
-        <div className="fixed bg-black/75 dark:bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
+        <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
           <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-              <h1 className="font-bold text-xl text-black dark:text-white mb-5">
+            <div className="bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
+              <h1 className="font-bold text-xl text-white mb-5">
                 Confirmation
               </h1>
-              <p className="text-lg dark:text-gray-300">
+              <p className="text-lg text-gray-300">
                 Do you really want to{" "}
                 {getDataArchiveType ? "Unarchive" : "Archive"} this category
               </p>
-              <p className="text-sm dark:text-gray-400">
+              <p className="text-sm text-gray-400">
                 Remember All of the associated products will also be{" "}
                 {getDataArchiveType ? "Unarchive" : "Archive"} with the category
               </p>
@@ -456,7 +426,7 @@ const Categories = () => {
                   disabled={deleteLoading}
                   onClick={() => setActiveDeleteId(0)}
                   color="gray"
-                  className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                  className="bg-gray-700 text-white hover:bg-gray-600"
                 >
                   Cancel
                 </Button>
@@ -464,7 +434,7 @@ const Categories = () => {
                   isProcessing={deleteLoading}
                   color={"failure"}
                   onClick={deleteHandle}
-                  className="dark:bg-red-700 dark:hover:bg-red-800"
+                  className="bg-red-700 hover:bg-red-800"
                 >
                   {getDataArchiveType ? "Unarchive" : "Archive"}
                 </Button>

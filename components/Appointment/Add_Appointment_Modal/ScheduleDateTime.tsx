@@ -101,7 +101,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 <select
                     value={selectedSlot}
                     onChange={(e) => selectSlotHandle(e.target.value)}
-                    className='w-full h-[46px] border-[1px] border-[#CBD5E1] text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none rounded-[10px]'
+                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-[#F1F4F7] dark:bg-[#374151] outline-none rounded-[10px]'
                     disabled={isClosed}
                 >
                     {isClosed ? (
@@ -127,16 +127,14 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 <label className="text-[16px] text-customGray font-poppins font-bold">
                 {t("Appoinments_k2")}<span className='text-red-700'>&nbsp;*</span>
                 </label>
-                <div className='!border-[1px] !border-[#CBD5E1] !border-solid rounded-[10px]'>
                 <ReactDatePicker
                     minDate={new Date()}
                     selected={date}
                     onChange={dateTimeChangeHandle}
                     placeholderText={"Select Schedule date"}
                     dateFormat="MM-dd-yyyy"
-                    className="w-full h-[46px]  text-[16px] text-[#000000] placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-transparent outline-none "
+                    className="w-full h-[46px]  text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f1f4f7] placeholder:text-customGray placeholder:text-opacity-50 px-5 dark:bg-[#374151] outline-none "
                 />
-                </div>
             </div>
         </div>
     )

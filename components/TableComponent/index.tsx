@@ -49,7 +49,7 @@ const TableComponent: React.FC<Props> = ({
   loading,
   dataList,
   openModal,
-  tableBodyHeight = "h-[26dvh]",
+  tableBodyHeight = "",
   tableHeight = "h-[82dvh]",
   searchHandle,
   searchInputplaceholder,
@@ -100,18 +100,19 @@ const TableComponent: React.FC<Props> = ({
         {RightSideComponent ? <RightSideComponent /> : null}
       </div>
 
-      <div className="w-full border border-gray-200 dark:border-gray-700 rounded-md h-[600px] flex flex-col">
-        <div className="flex-1 overflow-auto">
+      <div className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableBodyHeight} flex flex-col`}  >
+        {/* Header Table - Fixed */}
+        <div className="overflow-hidden">
           <Table className="w-full rounded-lg">
-            <TableHeader className="sticky top-0 z-10 bg-white dark:bg-[#1E293B]">
+            <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
-                <TableHead className="w-12 py-3 text-sm font-medium  text-gray-500 dark:text-gray-300">
-                  <input
+                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300">
+                  {/* <input
                     type="checkbox"
                     className="rounded border border-gray-400 dark:border-gray-600"
                     checked={isAllSelected}
                     onChange={handleSelectAll}
-                  />
+                  /> */}
                 </TableHead>
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
@@ -130,7 +131,12 @@ const TableComponent: React.FC<Props> = ({
                 ))}
               </TableRow>
             </TableHeader>
+          </Table>
+        </div>
 
+        {/* Body Table - Scrollable */}
+        <div className="flex-1 overflow-auto">
+          <Table className="w-full rounded-lg">
             <TableBody>
               {loading ? (
                 <TableRow>
@@ -147,12 +153,12 @@ const TableComponent: React.FC<Props> = ({
                     className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700"
                   >
                     <TableCell className="w-12 py-3">
-                      <input
+                      {/* <input
                         type="checkbox"
                         className="rounded border border-gray-400 dark:border-gray-600"
                         checked={selectedRows.includes(index)}
                         onChange={() => handleSelectRow(index)}
-                      />
+                      /> */}
                     </TableCell>
                     {tableHeader.map(
                       ({ id, render_value, align, flex }, ind) => {

@@ -68,7 +68,7 @@ const ROUTES = {
     PROMO_CODES: '/tools/promo-codes',
     ROLES_PERMISSIONS: '/tools/roles-permissions',
     USER_MANAGEMENT: '/tools/user-management',
-    TEXT_BROADCAST: '/tools/textbroadcast',
+    // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
   },
 } as const;
@@ -176,12 +176,12 @@ export const routeList: Route[] = [
         label: "Sidebar_k18",
         route: ROUTES.TOOLS.USER_MANAGEMENT
       },
-      {
-        id: 'tools-text',
-        name: "Text-Broadcast",
-        label: "Sidebar_k23",
-        route: ROUTES.TOOLS.TEXT_BROADCAST,
-      },
+      // {
+      //   id: 'tools-text',
+      //   name: "Text-Broadcast",
+      //   label: "Sidebar_k23",
+      //   route: ROUTES.TOOLS.TEXT_BROADCAST,
+      // },
       {
         id: 'settings',
         name: "Settings",

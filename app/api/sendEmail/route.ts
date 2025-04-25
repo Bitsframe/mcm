@@ -43,6 +43,21 @@ export async function POST(req: any) {
       price
     } = await req.json();
 
+    console.log("Received email request:", {
+      subject,
+      template,
+      recipientCount: email?.length,
+      hasRequiredFields: !!subject && !!name && !!price
+    });
+
+    // Validate required fields
+    if (!subject || !name || !price) {
+      return NextResponse.json(
+        { message: "Missing required fields: subject, name, or price" },
+        { status: 400 }
+      );
+    }
+
     // Find the matching template component
     const selectedTemplate = templates.find((t) => t.value === template);
     if (!selectedTemplate) {
@@ -52,37 +67,13 @@ export async function POST(req: any) {
       );
     }
 
-    // Send emails to each address in the list
-    // await Promise.all(
-    //   email.map(async (recipient: any) => {
-    //     const emailHtml = await render(
-    //       selectedTemplate.component({
-    //         reason,
-    //         clinicName,
-    //         userFirstname: recipient.firstname,
-    //         name,
-    //         buttonText,
-    //         buttonLink,
-    //         endDate,
-    //         startDate,
-    //         price
-    //       })
-    //     );
-
-    //     const payload = {
-    //       from: process.env.EMAIL,
-    //       recipients: [recipient.email],
-    //       subject,
-    //       html: emailHtml,
-    //     };
-    //     const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email`;
-    //     await axios.post(endpoint, payload, {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //     });
-    //   })
-    // );
+    // Validate email recipients
+    if (!email || !Array.isArray(email) || email.length === 0) {
+      return NextResponse.json(
+        { message: "No valid email recipients provided" },
+        { status: 400 }
+      );
+    }
 
     const emailHtmls = render(
       selectedTemplate.component({
@@ -99,28 +90,53 @@ export async function POST(req: any) {
 
     // Create a payload that includes all recipients
     const payload = {
-      from: process.env.SENDER_BROADCAST_EMAIL,
-      recipients: email.map((recipient: any) => recipient.email), // Pass all emails in an array
+      from: process.env.SENDER_BROADCAST_EMAIL || "test@alerts.myclinicmd.com",
+      recipients: email.map((recipient: any) => recipient.email),
       subject,
-      html: emailHtmls, // Array of rendered HTMLs
+      html: emailHtmls,
     };
 
-    const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email`;
+    console.log("Sending email payload:", {
+      from: payload.from,
+      recipientCount: payload.recipients.length,
+      subject: payload.subject
+    });
 
-    await axios.post(endpoint, payload, {
+    const endpoint = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
+
+    const response = await axios.post(endpoint, payload, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
+    console.log("Email service response:", {
+      status: response.status,
+      data: response.data
+    });
+
+    if (response.status !== 200) {
+      throw new Error(response.data?.message || 'Failed to send email');
+    }
+
     return NextResponse.json(
-      { message: "Emails sent successfully", ok:true },
+      { message: "Emails sent successfully", ok: true },
       { status: 201 }
     );
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error("Email sending error details:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config
+    });
+    
     return NextResponse.json(
-      { message: "An error occurred while sending emails." },
+      { 
+        message: error.message || "An error occurred while sending emails.",
+        error: error.response?.data || error.message,
+        details: error.response?.data?.details || "No additional details available"
+      },
       { status: 500 }
     );
   }

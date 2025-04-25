@@ -74,88 +74,88 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
-      {/* Products Count Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
-        <h1 className="text-4xl font-bold">{procucts_count}</h1>
-        <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k12")}</p>
-        <div className="mt-2 h-[60px] relative ml-14 items-center">
-          <Image
-            src={Group193.src} // Replace with your image path
-            alt="Products chart"
-            objectFit="contain"
-            className="dark:invert"
-            width={150}
-            height={150}
-          />
-        </div>
-      </div>
+  {/* Products Count Card */}
+  <div className="p-4 rounded-lg bg-white dark:bg-[#080e16] shadow-sm h-40">
+    <h1 className="text-3xl font-bold">{procucts_count}</h1>
+    <p className="text-gray-500 dark:text-gray-300 mb-2 text-sm">{t("SP_k12")}</p>
+    <div className="h-[50px] relative ml-14">
+      <Image
+        src={Group193.src}
+        alt="Products chart"
+        objectFit="contain"
+        className="dark:invert"
+        width={150}
+        height={150}
+      />
+    </div>
+  </div>
 
-      {/* Categories Count Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
-        <h1 className="text-4xl font-bold">{categories_count}</h1>
-        <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k11")}</p>
-        <div className="mt-2 h-[60px] relative ml-10 items-center">
-          <Image
-            src={Group198.src} // Replace with your image path
-            alt="Categories chart"
-            objectFit="contain"
-            className="dark:invert"
-            width={220}
-            height={220}
-          />
-        </div>
-      </div>
+  {/* Categories Count Card */}
+  <div className="p-4 rounded-lg bg-white dark:bg-[#080e16] shadow-sm h-40">
+    <h1 className="text-3xl font-bold">{categories_count}</h1>
+    <p className="text-gray-500 dark:text-gray-300 mb-2 text-sm">{t("SP_k11")}</p>
+    <div className="h-[50px] relative ml-10">
+      <Image
+        src={Group198.src}
+        alt="Categories chart"
+        objectFit="contain"
+        className="dark:invert"
+        width={220}
+        height={220}
+      />
+    </div>
+  </div>
 
-      {/* Stock Value Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
-        <h1 className="text-4xl font-bold">
-          {usdFormatter.format(stock_value)}
-        </h1>
-        <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k10")}</p>
-        <div className="mt-2 h-[60px] relative ml-8 items-center">
-          <Image
-            src={Vector.src} // Replace with your image path
-            alt="Stock value chart"
-            objectFit="contain"
-            className="dark:invert"
-            width={220}
-            height={220}
-          />
-        </div>
-      </div>
+  {/* Stock Value Card */}
+  <div className="p-4 rounded-lg bg-white dark:bg-[#080e16] shadow-sm h-40">
+    <h1 className="text-3xl font-bold">
+      {usdFormatter.format(stock_value)}
+    </h1>
+    <p className="text-gray-500 dark:text-gray-300 mb-2 text-sm">{t("SP_k10")}</p>
+    <div className="h-[50px] relative ml-8">
+      <Image
+        src={Vector.src}
+        alt="Stock value chart"
+        objectFit="contain"
+        className="dark:invert"
+        width={220}
+        height={220}
+      />
+    </div>
+  </div>
 
-      {/* Percentage Card */}
-      <div className="p-5 rounded-lg bg-white dark:bg-[#080e16] shadow-sm">
-        <h1 className="text-4xl font-bold">20%</h1>
-        <p className="text-gray-500 dark:text-gray-300 mb-3">{t("SP_k9")}</p>
-        <div className="mt-12  flex items-center">
-          <div className="w-2/3 h-6 bg-gray-200 dark:bg-gray-700 rounded-md">
-            <div
-              className="h-full bg-amber-500 rounded-md"
-              style={{ width: "20%" }}
-            ></div>
-          </div>
-          <div className="ml-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-amber-500"
-            >
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </div>
-        </div>
+  {/* Percentage Card */}
+  <div className="p-4 rounded-lg bg-white dark:bg-[#080e16] shadow-sm h-40">
+    <h1 className="text-3xl font-bold">20%</h1>
+    <p className="text-gray-500 dark:text-gray-300 mb-2 text-sm">{t("SP_k9")}</p>
+    <div className="mt-6 flex items-center">
+      <div className="w-2/3 h-4 bg-gray-200 dark:bg-gray-700 rounded-md">
+        <div
+          className="h-full bg-amber-500 rounded-md"
+          style={{ width: "20%" }}
+        ></div>
+      </div>
+      <div className="ml-3">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-amber-500"
+        >
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
       </div>
     </div>
+  </div>
+</div>
   );
 };
 

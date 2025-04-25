@@ -580,7 +580,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
                 <TableHead className="w-[50px] py-3 dark:border-gray-800">
-                  <Checkbox
+                  {/* <Checkbox
                     checked={
                       selectedPatients.length ===
                         filteredAndSortedPatients.length &&
@@ -595,7 +595,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                         setSelectedPatients([]);
                       }
                     }}
-                  />
+                  /> */}
                 </TableHead>
                 <TableHead className="py-3 font-medium w-72 text-gray-700 dark:text-gray-300">
                   {t("Patients_k4")}
@@ -646,7 +646,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </TableHeader>
           </Table>
 
-          <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
+          <div className="max-h-[calc(100vh-420px)] overflow-y-auto">
             <Table>
               <TableBody>
                 {loading ? (
@@ -664,12 +664,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="hover:bg-gray-50 border-b border-gray-200 dark:hover:bg-gray-800 dark:border-gray-800"
                     >
                       <TableCell className="w-[50px] dark:border-gray-800">
-                        <Checkbox
+                        {/* <Checkbox
                           checked={selectedPatients.includes(patient.id)}
                           onCheckedChange={() =>
                             togglePatientSelection(patient.id)
                           }
-                        />
+                        /> */}
                       </TableCell>
                       <TableCell className="font-medium w-72 text-gray-900 dark:text-white">
                         {patient.id}
@@ -774,7 +774,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 )}
               </ScrollArea>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-5">
               <Button
                 variant="ghost"
                 size="sm"

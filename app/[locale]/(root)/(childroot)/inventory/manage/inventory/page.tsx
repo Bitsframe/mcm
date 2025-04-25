@@ -444,10 +444,10 @@ const Inventory = () => {
               <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
                 <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                   <TableHead className="w-10 p-4">
-                    <input
+                    {/* <input
                       type="checkbox"
                       className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#0e1725]"
-                    />
+                    /> */}
                   </TableHead>
                   {tableHeader.map(({ label, align, can_sort, id }, index) => (
                     <TableHead
@@ -484,7 +484,8 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="divide-y divide-gray-200 mb-4 h-[60dvh] overflow-y-auto block dark:bg-[#0e1725]">
+              <TableBody className="divide-y divide-gray-200 mb-4 h-[28dvh] overflow-y-auto block dark:bg-[#0e1725]">
+                
                 {loading ? (
                   <TableRow className="flex h-full">
                     <TableCell
@@ -523,10 +524,10 @@ const Inventory = () => {
                       `}
                     >
                       <TableCell className="w-10 p-4">
-                        <input
+                        {/* <input
                           type="checkbox"
                           className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                        />
+                        /> */}
                       </TableCell>
                       {tableHeader.map((element, ind) => {
                         const { id, Render_Value, align } = element;

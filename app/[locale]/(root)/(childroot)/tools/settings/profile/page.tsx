@@ -78,7 +78,7 @@ const Profile = () => {
   
       const token = localStorage.getItem('authToken') || '';
       
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/upload-profile', {
         method: 'POST',
         body: formData,
         headers: {

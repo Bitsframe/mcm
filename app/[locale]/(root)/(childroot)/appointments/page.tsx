@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState, useCallback, memo } from "react";
+import { useContext, useEffect, useState, useCallback, memo, useRef } from "react";
 import {
   delete_appointment_service,
   fetchApprovedAppointmentsByLocation,
@@ -73,6 +73,10 @@ const Appointments = () => {
     []
   );
 
+  // Add these refs to store original unsorted data
+  const originalApprovedRef = useRef<Appointment[]>([]);
+  const originalUnapprovedRef = useRef<Appointment[]>([]);
+
   const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
@@ -94,6 +98,10 @@ const Appointments = () => {
       setFilteredApproved(approvedData as any);
       setUnapprovedAppointments(unapprovedData as any);
       setFilteredUnapproved(unapprovedData as any);
+      
+      // Store original unsorted data
+      originalApprovedRef.current = approvedData as any;
+      originalUnapprovedRef.current = unapprovedData as any;
     } catch (error) {
       toast.error("Failed to fetch appointments.");
     } finally {
@@ -134,6 +142,10 @@ const Appointments = () => {
       setUnapprovedAppointments(updateState);
       setFilteredUnapproved(updateState);
 
+      // Update original refs as well
+      originalApprovedRef.current = updateState(originalApprovedRef.current);
+      originalUnapprovedRef.current = updateState(originalUnapprovedRef.current);
+
       toast.success("Deleted successfully");
       setAppointmentDetails(null);
     } else {
@@ -172,6 +184,20 @@ const Appointments = () => {
 
   const sortHandle = useCallback(
     (column: string) => {
+      // If clicking the same column that's already sorted, return to original order
+      if (sortColumn === column) {
+        setFilteredApproved([...originalApprovedRef.current]);
+        setFilteredUnapproved([...originalUnapprovedRef.current]);
+        setSortColumn("");
+        return;
+      }
+
+      // Store original data if this is the first sort
+      if (!sortColumn) {
+        originalApprovedRef.current = [...filteredApproved];
+        originalUnapprovedRef.current = [...filteredUnapproved];
+      }
+
       setSortColumn(column);
       const sortAppointments = (appointments: Appointment[]) => {
         return [...appointments].sort((a, b) => {
@@ -197,7 +223,7 @@ const Appointments = () => {
       setFilteredApproved(sortAppointments(filteredApproved));
       setFilteredUnapproved(sortAppointments(filteredUnapproved));
     },
-    [filteredApproved, filteredUnapproved]
+    [filteredApproved, filteredUnapproved, sortColumn]
   );
 
   const newAddedRow = useCallback(() => {
@@ -354,19 +380,6 @@ const Appointments = () => {
           //@ts-ignore
           setSelectedAppointments={setSelectedAppointments}
         />
-        {/* <div className="mt-5 text-gray-600 dark:text-gray-400">
-          {selectedAppointments.length > 0
-            ? `${selectedAppointments.length} of ${
-                activeTab === "approved"
-                  ? approvedAppointments.length
-                  : unapprovedAppointments.length
-              } row(s) selected`
-            : `${
-                activeTab === "approved"
-                  ? approvedAppointments.length
-                  : unapprovedAppointments.length
-              } row(s) in total`}
-        </div> */}
       </div>
 
       <AppointmentDetailsPanel
