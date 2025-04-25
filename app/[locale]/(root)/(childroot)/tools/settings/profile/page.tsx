@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import React, { useState, useRef, useContext, useEffect } from "react";
 import { AuthContext } from "@/context";
+import { toast } from "sonner";
+import axios from "axios";
 
 interface UserData {
   fullName: string;
@@ -12,7 +14,7 @@ interface UserData {
 }
 
 const Profile = () => {
-  const { userProfile, userRole } = useContext(AuthContext);
+  const { userProfile, userRole, setAuthState } = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData>({
     fullName: '',
@@ -121,36 +123,27 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploadError(null);
-    
     try {
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fullName: userData.fullName,
-          email: userData.email,
-          profileImage: profileImage
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Profile update failed');
+      const response = await axios.post('/api/update-profile', userData);
+      if (response.data.success) {
+        toast.success('Profile updated successfully');
+        // Refresh user data in AuthContext
+        const userResponse = await axios.get('/api/user');
+        const { role, permissions, locations, profile } = userResponse.data.data;
+        setAuthState({
+          checkingAuth: false,
+          userProfile: profile,
+          allowedLocations: locations,
+          userRole: role,
+          permissions: permissions,
+          authError: null
+        });
+      } else {
+        toast.error(response.data.message || 'Profile update failed');
       }
-
-      const data = await response.json();
-      console.log('Profile updated:', data);
-      setSaveSuccess(true);
-      setUploadSuccess(false);
-      
-    } catch (error) {
-      console.error('Update error:', error);
-      setUploadError(
-        error instanceof Error ? error.message : 'Profile update failed'
-      );
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      toast.error(error.response?.data?.message || 'Profile update failed');
     }
   };
 

@@ -65,22 +65,21 @@ const render_details = [
 
 const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
   return (
-    <div className="w-52">
-  <Select
-    onChange={handleSelectChange}
-    className="w-full h-auto border rounded-md text-sm focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
-    id="section"
-    required={true}
-  >
-    <option value="Cash" className="dark:bg-[#122136] dark:text-white text-black">
-      Cash
-    </option>
-    <option value="Debit Card" className="dark:bg-[#122136] dark:text-white text-black">
-      Debit Card
-    </option>
-  </Select>
-</div>
-
+    <div className="w-48">
+      <Select
+        onChange={handleSelectChange}
+        className="w-full h-auto border rounded-md text-sm focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
+        id="section"
+        required={true}
+      >
+        <option value="Cash" className="dark:bg-[#122136] dark:text-white text-black">
+          Cash
+        </option>
+        <option value="Debit Card" className="dark:bg-[#122136] dark:text-white text-black">
+          Debit Card
+        </option>
+      </Select>
+    </div>
   );
 };
 
@@ -137,9 +136,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   };
 
   return (
-    <div className="bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-lg">
+    <div className="bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md">
       <div className="flex items-center">
-        <div className="flex-1 flex items-center space-x-4">
+        <div className="flex-1 flex items-center space-x-3">
           <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
             <button
               onClick={() => qtyHandle("inc")}
@@ -147,11 +146,11 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               disabled={quantity_available === quantity}
             >
               <IoIosArrowUp
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
-            <span className="block text-lg font-bold text-[#121111] dark:text-white">
+            <span className="block text-base font-bold text-[#121111] dark:text-white">
               {quantity}
             </span>
             <button
@@ -160,26 +159,26 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               onClick={() => qtyHandle("dec")}
             >
               <IoIosArrowDown
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
           </div>
           <dl>
-            <dt className="text-lg dark:text-white">{product_name}</dt>
-            <dd className="text-[15px] text-gray-700 dark:text-gray-400">
+            <dt className="text-base dark:text-white">{product_name}</dt>
+            <dd className="text-sm text-gray-700 dark:text-gray-400">
               {category_name}
             </dd>
           </dl>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <p className="font-bold text-[#121111] dark:text-white">
             {calcTotalAmount(price, quantity)}
           </p>
           <div>
             <button onClick={removeItemHandle}>
               <IoCloseOutline
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
@@ -407,24 +406,24 @@ const Orders = () => {
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full h-full font-medium text-base dark:bg-gray-900 dark:text-white">
       <div className="w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto col-span-2 rounded-md">
-          <div className="space-y-6 dark:bg-[#080E16]">
+          <div className="space-y-5 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
-              <div className="w-full flex flex-col justify-center h-full space-y-3">
-                <CircularProgress size={24} className="dark:text-white" />
-                <h1 className="text-sm text-gray-400 dark:text-gray-300">
+              <div className="w-full flex flex-col justify-center h-full space-y-2">
+                <CircularProgress size={20} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
                   Fetching patient details
                 </h1>
               </div>
             ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-lg shadow-sm">
-                <h2 className="text-lg font-semibold mb-4 dark:text-white">
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-4 rounded-lg shadow-sm">
+                <h2 className="text-base font-semibold mb-3 dark:text-white">
                   Patient Details
                 </h2>
                 {selectedPatient ? (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {render_details.map(({ label, key, render_value }, ind) => {
                       const extracted_val = render_value
                         ? render_value(selectedPatient)
@@ -432,12 +431,12 @@ const Orders = () => {
                       return (
                         <div
                           key={ind}
-                          className="space-y-1 bg-white dark:bg-[#0E1725] p-3 rounded-xl"
+                          className="space-y-1 bg-white dark:bg-[#0E1725] p-2 rounded-lg"
                         >
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {label}
                           </p>
-                          <p className="text-base font-medium dark:text-white">
+                          <p className="text-sm font-medium dark:text-white">
                             {extracted_val}
                           </p>
                         </div>
@@ -446,7 +445,7 @@ const Orders = () => {
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-red-600 dark:text-red-400">
+                    <h1 className="text-red-600 dark:text-red-400 text-sm">
                       {t("POS-Sales_k4")}
                     </h1>
                   </div>
@@ -454,19 +453,18 @@ const Orders = () => {
               </div>
             )}
 
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-xl shadow-sm mt-6">
-              <h2 className="text-lg font-semibold mb-4 dark:text-white">
+            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-4 rounded-lg shadow-sm mt-4">
+              <h2 className="text-base font-semibold mb-3 dark:text-white">
                 Product Details
               </h2>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <div className="w-full">
                     <Searchable_Dropdown
                       disabled={!selectedPatient}
                       initialValue={0}
                       value={selectedCategory}
-                      
                       //@ts-ignore
                       dark_bg_color="gray.700"
                       start_empty={true}
@@ -485,7 +483,7 @@ const Orders = () => {
 
                 <div>
                   {loadingProducts ? (
-                    <div className="text-sm text-black dark:text-white">
+                    <div className="text-xs text-black dark:text-white">
                       {selectedCategory
                         ? "Loading Products..."
                         : "Select Category First.."}
@@ -495,7 +493,6 @@ const Orders = () => {
                       <Searchable_Dropdown
                         disabled={!selectedPatient}
                         initialValue={0}
-                        
                         //@ts-ignore
                         dark_bg_color="gray.700"
                         start_empty={true}
@@ -515,7 +512,7 @@ const Orders = () => {
                 </div>
 
                 <div>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Quantity_Field
                       disabled={!selectedPatient}
                       maxAvailability={
@@ -527,11 +524,11 @@ const Orders = () => {
 
                     {selectedProduct && (
                       <div className="space-y-0.5 flex justify-between items-center text-gray-600 dark:text-gray-300 pl-1">
-                        <div className="text-sm">
+                        <div className="text-xs">
                           {currencyFormatHandle(selectedProduct?.price || 0)}{" "}
                           per unit
                         </div>
-                        <div className="text-sm text-amber-600 dark:text-amber-400">
+                        <div className="text-xs text-amber-600 dark:text-amber-400">
                           {selectedProduct.quantity_available - productQty}{" "}
                           units are remaining
                         </div>
@@ -544,7 +541,7 @@ const Orders = () => {
                   <button
                     disabled={!productQty}
                     onClick={addToCartHandle}
-                    className="bg-[#0066FF] text-white font-medium py-3 px-9 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50"
+                    className="bg-[#0066FF] text-white font-medium py-2 px-6 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50 text-sm"
                     type="submit"
                   >
                     {t("POS-Sales_k8")}
@@ -555,20 +552,20 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-3">
-          <div className="px-6 py-5 bg-white dark:bg-[#0E1725] rounded-lg border-b border-gray-100">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-2">
+          <div className="px-4 py-3 bg-white dark:bg-[#0E1725] rounded-lg border-b border-gray-100">
             <div className="flex-1">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h1 className="text-base font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t("POS-Sales_k10")} # --
               </p>
             </div>
           </div>
 
-          <div className="overflow-auto flex-1 px-4 py-2 my-2 bg-white dark:bg-[#0e1725] rounded-lg">
-            <div className="space-y-2">
+          <div className="overflow-auto flex-1 px-3 py-1 my-1 bg-white dark:bg-[#0e1725] rounded-lg">
+            <div className="space-y-1">
               {cartArray.map((data: CartArrayInterface, ind) => {
                 return (
                   <CartItemComponent
@@ -583,14 +580,14 @@ const Orders = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-700 mt-auto rounded-b-lg">
-            <div className="py-4 px-6 space-y-4 rounded-lg dark:bg-[#0E1725]">
+            <div className="py-3 px-4 space-y-3 rounded-lg dark:bg-[#0E1725]">
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
               />
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k12")}
                 </h1>
                 <Payment_Method_Select
@@ -600,7 +597,7 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k13")}
                 </h1>
                 <div className="flex items-center">
@@ -609,7 +606,7 @@ const Orders = () => {
                       appliedDiscount
                         ? "text-red-500 dark:text-red-400"
                         : "text-gray-700 dark:text-gray-300"
-                    } text-sm font-medium`}
+                    } text-xs font-medium`}
                   >
                     {appliedDiscount
                       ? `-${
@@ -622,37 +619,37 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k14")}
                 </h1>
                 <div className="flex items-center">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs font-medium text-gray-900 dark:text-white">
                     ${grandTotalHandle(cartArray).amount}
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-1">
                 <button
                   onClick={placeOrderHandle}
                   disabled={!cartArray.length}
-                  className="bg-blue-600 rounded-lg py-2 px-4 text-white disabled:opacity-50 flex items-center"
+                  className="bg-blue-600 rounded-md py-1 px-3 text-white disabled:opacity-50 flex items-center text-sm"
                 >
                   {placeOrderLoading ? (
-                    <div className="h-8 flex justify-center items-center">
-                      <CircularProgress size={20} color="secondary" />
+                    <div className="h-6 flex justify-center items-center">
+                      <CircularProgress size={16} color="secondary" />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between space-x-3">
+                    <div className="flex items-center justify-between space-x-2">
                       <div>
                         <span className="font-medium">
                           {grandTotalHandle(cartArray, appliedDiscount).amount}
                         </span>
-                        <span className="text-xs block text-blue-100 dark:text-blue-200">
+                        <span className="text-[10px] block text-blue-100 dark:text-blue-200">
                           {grandTotalHandle(cartArray).qty} items
                         </span>
                       </div>
-                      <PiCaretCircleRightFill size={24} />
+                      <PiCaretCircleRightFill size={20} />
                     </div>
                   )}
                 </button>
@@ -667,7 +664,6 @@ const Orders = () => {
 
 export default Orders;
 
-// function to send email notification
 const sendOrderEmail = async (
   orderDetails: any,
   patientInfo: any,
@@ -704,99 +700,95 @@ const sendOrderEmail = async (
     }-${today.getFullYear()}`;
 
     const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-                <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
-                
-                <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
-                
-                <h3 style="margin-top: 20px;">Invoice Details:</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Invoice Number:</strong> I-${
-                      orderDetails.order_id
-                    }</li>
-                    <li><strong>Invoice Date:</strong> ${formattedDate}</li>
-                    <li><strong>Payment Method:</strong> ${
-                      orderDetails.paymentcash ? "Cash" : "Debit Card"
-                    }</li>
-                    <li><strong>Total Amount:</strong> ${totalAmount}</li>
-                </ul>
-                
-                <h3>Billing Information:</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Patient Name:</strong> ${
-                      patientInfo.firstname
-                    } ${patientInfo.lastname}</li>
-                    <li><strong>Location:</strong> Clinica San Miguel ${
-                      patientInfo.location || "Pasadena"
-                    }</li>
-                </ul>
-                
-                <h3>Invoice Summary:</h3>
-                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                    <thead>
-                        <tr style="background-color: #eee;">
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
-                            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
-                            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orderItems
-                          .map(
-                            (item) => `
-                            <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                                  item.category_name
-                                }</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                                  item.product_name
-                                }</td>
-                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
-                                  item.quantity
-                                }</td>
-                                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
-                                  item.price * item.quantity
-                                )}</td>
-                            </tr>
-                        `
-                          )
-                          .join("")}
-                    </tbody>
-                    ${
-                      discountAmount > 0
-                        ? `
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
-                                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
-                                  discountAmount
-                                )}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
-                            </tr>
-                        </tfoot>
-                    `
-                        : `
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
-                            </tr>
-                        </tfoot>
-                    `
-                    }
-                </table>
-                
-                <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
-                
-                <p>Thank you for your trust in us.</p>
-                
-                <p>Best regards,<br>Clinica San Miguel Team</p>
-            </div>
-        `;
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
+        
+        <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
+        
+        <h3 style="margin-top: 20px;">Invoice Details:</h3>
+        <ul style="list-style-type: none; padding-left: 0;">
+          <li><strong>Invoice Number:</strong> I-${orderDetails.order_id}</li>
+          <li><strong>Invoice Date:</strong> ${formattedDate}</li>
+          <li><strong>Payment Method:</strong> ${
+            orderDetails.paymentcash ? "Cash" : "Debit Card"
+          }</li>
+          <li><strong>Total Amount:</strong> ${totalAmount}</li>
+        </ul>
+        
+        <h3>Billing Information:</h3>
+        <ul style="list-style-type: none; padding-left: 0;">
+          <li><strong>Patient Name:</strong> ${patientInfo.firstname} ${patientInfo.lastname}</li>
+          <li><strong>Location:</strong> Clinica San Miguel ${
+            patientInfo.location || "Pasadena"
+          }</li>
+        </ul>
+        
+        <h3>Invoice Summary:</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+          <thead>
+            <tr style="background-color: #eee;">
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
+              <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
+              <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orderItems
+              .map(
+                (item) => `
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                  item.category_name
+                }</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                  item.product_name
+                }</td>
+                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
+                  item.quantity
+                }</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
+                  item.price * item.quantity
+                )}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+          ${
+            discountAmount > 0
+              ? `
+            <tfoot>
+              <tr>
+                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
+                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
+                  discountAmount
+                )}</td>
+              </tr>
+              <tr>
+                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+              </tr>
+            </tfoot>
+          `
+              : `
+            <tfoot>
+              <tr>
+                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+              </tr>
+            </tfoot>
+          `
+          }
+        </table>
+        
+        <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
+        
+        <p>Thank you for your trust in us.</p>
+        
+        <p>Best regards,<br>Clinica San Miguel Team</p>
+      </div>
+    `;
 
     console.log("Email HTML:", emailHtml);
 

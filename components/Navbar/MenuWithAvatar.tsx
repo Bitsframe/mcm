@@ -34,6 +34,9 @@ export default function MenuWithAvatar() {
     handleClose();
   };
 
+  console.log("user profile=====>>>>>", userProfile?.profile_pictures);
+  
+
   return (
     <div>
       <Button
