@@ -22,7 +22,7 @@ export default function SettingsLayout({
 				<TopTabs />
 			</div>
 			<main
-				style={{ zIndex: 9999999}}
+				// style={{ zIndex: 9999999}}
 				className="min-h-[calc(83dvh)] w-full h-[100%] font-[500] text-[20px] space-y-5 rounded-md"
 			>
 				<main>{children}</main>

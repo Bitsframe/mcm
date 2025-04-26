@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
-import { sendInvoice } from '@/utils/smsServices/sendInvoice';
+import { sendInvoice } from "@/utils/smsServices/sendInvoice";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -65,17 +65,23 @@ const render_details = [
 
 const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
   return (
-    <div className="w-48">
+    <div className="w-30">
       <Select
         onChange={handleSelectChange}
-        className="w-full h-auto border rounded-md text-sm focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
+        className="w-full border rounded-md text-xs focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
         id="section"
         required={true}
       >
-        <option value="Cash" className="dark:bg-[#122136] dark:text-white text-black">
+        <option
+          value="Cash"
+          className="dark:bg-[#122136] dark:text-white text-black"
+        >
           Cash
         </option>
-        <option value="Debit Card" className="dark:bg-[#122136] dark:text-white text-black">
+        <option
+          value="Debit Card"
+          className="dark:bg-[#122136] dark:text-white text-black"
+        >
           Debit Card
         </option>
       </Select>
@@ -406,24 +412,24 @@ const Orders = () => {
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
-    <main className="w-full h-full font-medium text-base dark:bg-gray-900 dark:text-white">
-      <div className="w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto col-span-2 rounded-md">
-          <div className="space-y-5 dark:bg-[#080E16]">
+    <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
+      <div className="w-full h-[77dvh] p-1 grid grid-cols-3 gap-1">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto col-span-2 rounded">
+          <div className="space-y-3 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
-              <div className="w-full flex flex-col justify-center h-full space-y-2">
-                <CircularProgress size={20} className="dark:text-white" />
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
                 <h1 className="text-xs text-gray-400 dark:text-gray-300">
                   Fetching patient details
                 </h1>
               </div>
             ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-4 rounded-lg shadow-sm">
-                <h2 className="text-base font-semibold mb-3 dark:text-white">
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
+                <h2 className="text-sm font-semibold mb-2 dark:text-white">
                   Patient Details
                 </h2>
                 {selectedPatient ? (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     {render_details.map(({ label, key, render_value }, ind) => {
                       const extracted_val = render_value
                         ? render_value(selectedPatient)
@@ -431,9 +437,9 @@ const Orders = () => {
                       return (
                         <div
                           key={ind}
-                          className="space-y-1 bg-white dark:bg-[#0E1725] p-2 rounded-lg"
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
                         >
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {label}
                           </p>
                           <p className="text-sm font-medium dark:text-white">
@@ -445,7 +451,7 @@ const Orders = () => {
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-red-600 dark:text-red-400 text-sm">
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
                       {t("POS-Sales_k4")}
                     </h1>
                   </div>
@@ -453,66 +459,60 @@ const Orders = () => {
               </div>
             )}
 
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-4 rounded-lg shadow-sm mt-4">
-              <h2 className="text-base font-semibold mb-3 dark:text-white">
+            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
+              <h2 className="text-sm font-semibold mb-2 dark:text-white">
                 Product Details
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <div>
-                  <div className="w-full">
-                    <Searchable_Dropdown
-                      disabled={!selectedPatient}
-                      initialValue={0}
-                      value={selectedCategory}
-                      //@ts-ignore
-                      dark_bg_color="gray.700"
-                      start_empty={true}
-                      options_arr={categories.map(
-                        ({ category_id, category_name }: any) => ({
-                          value: category_id,
-                          label: category_name,
-                        })
-                      )}
-                      required={true}
-                      on_change_handle={category_change_handle}
-                      label="POS-Sales_k6"
-                    />
-                  </div>
+                  <Searchable_Dropdown
+                    disabled={!selectedPatient}
+                    initialValue={0}
+                    value={selectedCategory}
+                    //@ts-ignore
+                    dark_bg_color="gray.700"
+                    start_empty={true}
+                    options_arr={categories.map(
+                      ({ category_id, category_name }: any) => ({
+                        value: category_id,
+                        label: category_name,
+                      })
+                    )}
+                    required={true}
+                    on_change_handle={category_change_handle}
+                    label="POS-Sales_k6"
+                  />
                 </div>
 
                 <div>
                   {loadingProducts ? (
                     <div className="text-xs text-black dark:text-white">
-                      {selectedCategory
-                        ? "Loading Products..."
-                        : "Select Category First.."}
+                      {selectedCategory ? "Loading..." : "Select Category.."}
                     </div>
                   ) : (
-                    <div className="w-full">
-                      <Searchable_Dropdown
-                        disabled={!selectedPatient}
-                        initialValue={0}
-                        //@ts-ignore
-                        dark_bg_color="gray.700"
-                        start_empty={true}
-                        options_arr={products.map(
-                          ({ product_id, product_name }: any) => ({
-                            value: product_id,
-                            label: product_name,
-                          })
-                        )}
-                        required={true}
-                        value={selectedProduct ? selectedProduct.product_id : 0}
-                        on_change_handle={select_product_change_handle}
-                        label="Select Product"
-                      />
-                    </div>
+                    <Searchable_Dropdown
+                      disabled={!selectedPatient}
+                      initialValue={0}
+                    //@ts-ignore
+                      dark_bg_color="gray.700"
+                      start_empty={true}
+                      options_arr={products.map(
+                        ({ product_id, product_name }: any) => ({
+                          value: product_id,
+                          label: product_name,
+                        })
+                      )}
+                      required={true}
+                      value={selectedProduct ? selectedProduct.product_id : 0}
+                      on_change_handle={select_product_change_handle}
+                      label="Select Product"
+                    />
                   )}
                 </div>
 
                 <div>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Quantity_Field
                       disabled={!selectedPatient}
                       maxAvailability={
@@ -523,14 +523,13 @@ const Orders = () => {
                     />
 
                     {selectedProduct && (
-                      <div className="space-y-0.5 flex justify-between items-center text-gray-600 dark:text-gray-300 pl-1">
+                      <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
                         <div className="text-xs">
-                          {currencyFormatHandle(selectedProduct?.price || 0)}{" "}
-                          per unit
+                          {currencyFormatHandle(selectedProduct?.price || 0)}
+                          /unit
                         </div>
                         <div className="text-xs text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty}{" "}
-                          units are remaining
+                          {selectedProduct.quantity_available - productQty} left
                         </div>
                       </div>
                     )}
@@ -541,7 +540,7 @@ const Orders = () => {
                   <button
                     disabled={!productQty}
                     onClick={addToCartHandle}
-                    className="bg-[#0066FF] text-white font-medium py-2 px-6 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50 text-sm"
+                    className="bg-[#0066FF] text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-xs"
                     type="submit"
                   >
                     {t("POS-Sales_k8")}
@@ -552,10 +551,10 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-2">
-          <div className="px-4 py-3 bg-white dark:bg-[#0E1725] rounded-lg border-b border-gray-100">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1">
+          <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100">
             <div className="flex-1">
-              <h1 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -564,30 +563,28 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="overflow-auto flex-1 px-3 py-1 my-1 bg-white dark:bg-[#0e1725] rounded-lg">
-            <div className="space-y-1">
-              {cartArray.map((data: CartArrayInterface, ind) => {
-                return (
-                  <CartItemComponent
-                    index={ind}
-                    data={data}
-                    key={ind}
-                    controllProductQtyHandle={controllProductQtyHandle}
-                  />
-                );
-              })}
+          <div className="overflow-auto flex-1 p-1 my-0.5 bg-white dark:bg-[#0e1725] rounded">
+            <div className="space-y-0.5">
+              {cartArray.map((data: CartArrayInterface, ind) => (
+                <CartItemComponent
+                  index={ind}
+                  data={data}
+                  key={ind}
+                  controllProductQtyHandle={controllProductQtyHandle}
+                />
+              ))}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b-lg">
-            <div className="py-3 px-4 space-y-3 rounded-lg dark:bg-[#0E1725]">
+          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b">
+            <div className="p-2 space-y-2 rounded dark:bg-[#0E1725]">
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
               />
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k12")}
                 </h1>
                 <Payment_Method_Select
@@ -597,60 +594,49 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k13")}
                 </h1>
-                <div className="flex items-center">
-                  <p
-                    className={`${
-                      appliedDiscount
-                        ? "text-red-500 dark:text-red-400"
-                        : "text-gray-700 dark:text-gray-300"
-                    } text-xs font-medium`}
-                  >
-                    {appliedDiscount
-                      ? `-${
-                          grandTotalHandle(cartArray, appliedDiscount)
-                            .discountAmount
-                        }`
-                      : "NILL"}
-                  </p>
-                </div>
+                <p
+                  className={`text-xs ${
+                    appliedDiscount
+                      ? "text-red-500 dark:text-red-400"
+                      : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {appliedDiscount
+                    ? `-${
+                        grandTotalHandle(cartArray, appliedDiscount)
+                          .discountAmount
+                      }`
+                    : "NILL"}
+                </p>
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k14")}
                 </h1>
-                <div className="flex items-center">
-                  <p className="text-xs font-medium text-gray-900 dark:text-white">
-                    ${grandTotalHandle(cartArray).amount}
-                  </p>
-                </div>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  ${grandTotalHandle(cartArray).amount}
+                </p>
               </div>
 
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-0.5">
                 <button
                   onClick={placeOrderHandle}
                   disabled={!cartArray.length}
-                  className="bg-blue-600 rounded-md py-1 px-3 text-white disabled:opacity-50 flex items-center text-sm"
+                  className="bg-blue-600 rounded py-0.5 px-2 text-white disabled:opacity-50 flex items-center text-xs"
                 >
                   {placeOrderLoading ? (
-                    <div className="h-6 flex justify-center items-center">
-                      <CircularProgress size={16} color="secondary" />
-                    </div>
+                    <CircularProgress size={14} color="secondary" />
                   ) : (
-                    <div className="flex items-center justify-between space-x-2">
-                      <div>
-                        <span className="font-medium">
-                          {grandTotalHandle(cartArray, appliedDiscount).amount}
-                        </span>
-                        <span className="text-[10px] block text-blue-100 dark:text-blue-200">
-                          {grandTotalHandle(cartArray).qty} items
-                        </span>
-                      </div>
-                      <PiCaretCircleRightFill size={20} />
-                    </div>
+                    <>
+                      <span className="font-medium">
+                        {grandTotalHandle(cartArray, appliedDiscount).amount}
+                      </span>
+                      <PiCaretCircleRightFill size={16} className="ml-1" />
+                    </>
                   )}
                 </button>
               </div>
@@ -699,96 +685,113 @@ const sendOrderEmail = async (
       months[today.getMonth()]
     }-${today.getFullYear()}`;
 
+    // Create a feedback URL with order ID and patient ID for tracking
+    const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
+
     const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-        <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
-        
-        <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
-        
-        <h3 style="margin-top: 20px;">Invoice Details:</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-          <li><strong>Invoice Number:</strong> I-${orderDetails.order_id}</li>
-          <li><strong>Invoice Date:</strong> ${formattedDate}</li>
-          <li><strong>Payment Method:</strong> ${
-            orderDetails.paymentcash ? "Cash" : "Debit Card"
-          }</li>
-          <li><strong>Total Amount:</strong> ${totalAmount}</li>
-        </ul>
-        
-        <h3>Billing Information:</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-          <li><strong>Patient Name:</strong> ${patientInfo.firstname} ${patientInfo.lastname}</li>
-          <li><strong>Location:</strong> Clinica San Miguel ${
-            patientInfo.location || "Pasadena"
-          }</li>
-        </ul>
-        
-        <h3>Invoice Summary:</h3>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-          <thead>
-            <tr style="background-color: #eee;">
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
-              <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
-              <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${orderItems
-              .map(
-                (item) => `
-              <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                  item.category_name
-                }</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                  item.product_name
-                }</td>
-                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
-                  item.quantity
-                }</td>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
-                  item.price * item.quantity
-                )}</td>
-              </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-          ${
-            discountAmount > 0
-              ? `
-            <tfoot>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
-                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
-                  discountAmount
-                )}</td>
-              </tr>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
-              </tr>
-            </tfoot>
-          `
-              : `
-            <tfoot>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
-              </tr>
-            </tfoot>
-          `
-          }
-        </table>
-        
-        <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
-        
-        <p>Thank you for your trust in us.</p>
-        
-        <p>Best regards,<br>Clinica San Miguel Team</p>
-      </div>
-    `;
+
+
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
+                
+                <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
+                
+                <h3 style="margin-top: 20px;">Invoice Details:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Invoice Number:</strong> I-${
+                      orderDetails.order_id
+                    }</li>
+                    <li><strong>Invoice Date:</strong> ${formattedDate}</li>
+                    <li><strong>Payment Method:</strong> ${
+                      orderDetails.paymentcash ? "Cash" : "Debit Card"
+                    }</li>
+                    <li><strong>Total Amount:</strong> ${totalAmount}</li>
+                </ul>
+                
+                <h3>Billing Information:</h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li><strong>Patient Name:</strong> ${
+                      patientInfo.firstname
+                    } ${patientInfo.lastname}</li>
+                    <li><strong>Location:</strong> Clinica San Miguel ${
+                      patientInfo.location || "Pasadena"
+                    }</li>
+                </ul>
+                
+                <h3>Invoice Summary:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr style="background-color: #eee;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
+                            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orderItems
+                          .map(
+                            (item) => `
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                                  item.category_name
+                                }</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                                  item.product_name
+                                }</td>
+                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
+                                  item.quantity
+                                }</td>
+                                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
+                                  item.price * item.quantity
+                                )}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                    ${
+                      discountAmount > 0
+                        ? `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
+                                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
+                                  discountAmount
+                                )}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    `
+                        : `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+                                <td style="padding: 10px; text-align: right; font-weight: bold;">${totalAmount}</td>
+                            </tr>
+                        </tfoot>
+                    `
+                    }
+                </table>
+                
+                <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
+                
+                <p>Thank you for your trust in us.</p>
+                
+                <p>Best regards,<br>Clinica San Miguel Team</p>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center;">
+                    <p style="color: #666;">We value your feedback!</p>
+                    <a href="${feedbackUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Share Your Feedback & Get a Promo Code</a>
+                    <p style="color: #666; font-size: 12px; margin-top: 10px;">Complete our quick survey and receive a promotional code for your next visit.</p>
+                </div>
+            </div>
+        `
+
+
 
     console.log("Email HTML:", emailHtml);
 

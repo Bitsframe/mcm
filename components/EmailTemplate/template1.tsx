@@ -49,14 +49,14 @@ export const  VercelInviteUserEmail = ({
           alt="Koala"
           style={logo}
         />
-        <Text style={paragraph}>Dear Patient,</Text>
-        <Text style={paragraph}>
+        <Text style={{...paragraph, color: "var(--text-color, #000000)"}}>Dear Patient,</Text>
+        <Text style={{...paragraph, color: "var(--text-color, #000000)"}}>
         🍂October is the month to fight breast cancer! 💝Protect yourself! At Clínica San Miguel we give you the mammogram order for only ${price}. Don&#39;t wait any longer! It is without appointment.
         </Text>
         <Section style={btnContainer}>
        
         </Section>
-        <Text style={paragraph}>
+        <Text style={{...paragraph, color: "var(--text-color, #000000)"}}>
           Best,
           <br />
           {name}
@@ -129,4 +129,7 @@ const hr = {
 const footer = {
   color: "#8898aa",
   fontSize: "12px",
+  "@media (prefers-color-scheme: dark)": {
+    color: "#666666"
+  }
 };

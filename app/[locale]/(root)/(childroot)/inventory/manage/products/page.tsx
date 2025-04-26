@@ -351,7 +351,7 @@ const Products = () => {
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
 
               <button
@@ -520,7 +520,6 @@ const Products = () => {
                 <Input_Component
                   value={modalData[id]}
                   onChange={(e: string) => modalInputChangeHandle(id, e)}
-                  py="py-3"
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
                   label={label}
                   bg_color="bg-white dark:bg-[#0e1725]"

@@ -72,6 +72,8 @@ const InfoCard = memo(
   }
 );
 
+InfoCard.displayName = "InfoCard";
+
 const DataField = memo(
   ({
     label,
@@ -95,6 +97,8 @@ const DataField = memo(
     </dl>
   )
 );
+
+DataField.displayName = "DataField"
 
 const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
   const { t } = useTranslation();
@@ -150,6 +154,8 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
   );
 });
 
+SSLSection.displayName = "SSLSection"
+
 const DNSSection = memo(({ dns }: { dns: DNS }) => {
   const { t } = useTranslation(translationConstant.DASHBOARD);
   return (
@@ -188,6 +194,8 @@ const DNSSection = memo(({ dns }: { dns: DNS }) => {
     </div>
   );
 });
+
+DNSSection.displayName = "DNSSection"
 
 const MonitorDetails = memo(
   ({
@@ -276,6 +284,8 @@ const MonitorDetails = memo(
   }
 );
 
+MonitorDetails.displayName = "MonitorDetails"
+
 const RenderData = memo(({ data }: { data: Monitor }) => {
   const {
     attributes: {
@@ -337,6 +347,8 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
     </div>
   );
 });
+
+RenderData.displayName = "RenderData"
 
 const Page = () => {
   if (!cronitorSampleData) {

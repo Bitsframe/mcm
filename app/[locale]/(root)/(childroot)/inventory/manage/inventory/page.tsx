@@ -425,7 +425,7 @@ const Inventory = () => {
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}

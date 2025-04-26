@@ -399,9 +399,10 @@ const Categories = () => {
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          border="border-[1px] border-gray-600 rounded-md"
+          // border="border-[1px] border-gray-600 rounded-md"
           label="Category"
           darkMode={true}
+          bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"
         />
       </Custom_Modal>
 

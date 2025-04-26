@@ -74,6 +74,8 @@ export default function MenuWithAvatar() {
           style: {
             width: "200px",
             borderRadius: "12px",
+            zIndex: 9999,
+            position: 'relative',
           },
         }}
       >

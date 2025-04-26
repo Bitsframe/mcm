@@ -89,16 +89,16 @@ const About = () => {
     return (
         <WebsiteContentLayout>
             <div className='mb-5 px-3' >
-                <div className='grid grid-cols-5 lg:flex-row lg:gap-24 my-5'>
+                <div className='grid grid-cols-1 lg:flex-row pr-3 lg:gap-24 my-5'>
 
                     {/* <Select_Dropdown value={''} label='Section' options_arr={about_section_options} on_change_handle={select_section_handle} required={true} /> */}
-                    <Select_Dropdown value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                    <Select_Dropdown bg_color='dark:bg-[#f1f4f7]' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                 </div>
                 <div className="border-t my-3 border-black"></div>
 
 
 
-                <div className='px-3 w-1/2 space-y-5'>
+                <div className='px-3 w-full space-y-5'>
                     {data && <Form_Component reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={only_fields_to_render[selected_section]} on_change_handle={on_change_handle} />}
 
                 </div>

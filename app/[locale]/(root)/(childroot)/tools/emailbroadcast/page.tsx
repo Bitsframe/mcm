@@ -143,7 +143,12 @@ const EmailBroadcast: React.FC = () => {
 
     if (SelectedTemplateComponent) {
       return (
-        <div className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+        <div 
+          className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
+          style={{
+            "--text-color": "var(--foreground)",
+          } as React.CSSProperties}
+        >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
             reason={reason || "[Reason]"}
