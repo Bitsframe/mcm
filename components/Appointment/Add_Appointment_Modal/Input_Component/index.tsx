@@ -9,7 +9,7 @@ interface Props {
     max?: number;
     required?: boolean;
     value: string;
-    darkMode?: boolean;
+    bg_color?: string;
 }
 
 export const Input_Component_Appointment: FC<Props> = ({
@@ -20,7 +20,7 @@ export const Input_Component_Appointment: FC<Props> = ({
     type = 'text',
     max = undefined,
     required = false,
-    darkMode = false,
+    bg_color = ""
 }) => {
     return (
         <div className='w-full flex flex-1 flex-col space-y-1'>
@@ -28,10 +28,10 @@ export const Input_Component_Appointment: FC<Props> = ({
                 <Label
                     htmlFor="section"
                     value={label}
-                    className={`font-bold break-words ${darkMode ? 'text-white' : 'text-gray-900'}`}
+                    className={`font-bold break-words ${bg_color}`}
                 />
             )}
-            <div className={`border rounded-lg ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+            <div className={`border rounded-lg ${bg_color}`}>
                 <input
                     maxLength={max}
                     placeholder={placeholder}
@@ -39,7 +39,7 @@ export const Input_Component_Appointment: FC<Props> = ({
                     type={type}
                     required={required}
                     className={`w-full h-auto rounded-lg py-3 px-3 outline-none
-                        ${darkMode ? 'bg-[#1a1e24] text-white placeholder-gray-400' : 'bg-white text-black placeholder-gray-500'}`}
+                        ${bg_color}`}
                     id="section"
                     value={value}
                 />

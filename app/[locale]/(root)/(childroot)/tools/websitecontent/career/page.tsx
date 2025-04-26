@@ -72,11 +72,12 @@ const Career = () => {
                                 <Select_Dropdown
                                     value={selected_list_id} label={t('WebCont_k14')} start_empty={true} options_arr={data_list.map(({ id, }) => ({ value: id, label: id }))}
                                     on_change_handle={change_selected_list_id}
-                                    required={true} />
+                                    required={true} 
+                                    bg_color='Dark:bg-[#oe1725]'/>
                             </div>
 
                             <div className='flex flex-1'>
-                                <Select_Dropdown value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                                <Select_Dropdown bg_color='Dark:bg-[#oe1725]' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                             </div>
                         </div>
 

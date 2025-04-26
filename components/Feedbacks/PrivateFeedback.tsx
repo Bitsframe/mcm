@@ -136,21 +136,25 @@ const PrivateFeedbackComponent: FC = () => {
   const details = useMemo(
     () =>
       dataDetails && (
-        <div className="overflow-auto h-full px-4 py-4 space-y-5">
+        <div className="overflow-auto px-4 py-4 grid grid-cols-2 gap-4">
           {detailsArray(dataDetails).map((detail, index) => (
-            <dl key={index}>
-              <dd className="text-[17px] text-gray-800 dark:text-gray-200">
-                {detail.value}
-              </dd>
+            <div
+              key={index}
+              className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+            >
               <dt className="text-sm text-[#707070] dark:text-gray-400">
                 {detail.label}
               </dt>
-            </dl>
+              <dd className="text-[17px] text-gray-800 dark:text-gray-200 font-medium">
+                {detail.value}
+              </dd>
+            </div>
           ))}
         </div>
       ),
     [dataDetails]
   );
+  
 
   const { t } = useTranslation(translationConstant.PRIVATEFEEDBACK);
 
@@ -165,7 +169,7 @@ const PrivateFeedbackComponent: FC = () => {
         </h1>
       </div>
 
-      <div className="w-full min-h-[80.5dvh] h-full py-2 grid grid-cols-3 gap-2">
+      <div className="w-full max-h-[69dvh] h-full py-2 grid grid-cols-3 gap-2">
         <div className="bg-[#F1F4F7] dark:bg-[#080e16] h-full col-span-2 rounded-md py-2">
           <div className="space-y-6 px-3 pb-4 flex justify-between">
             <input

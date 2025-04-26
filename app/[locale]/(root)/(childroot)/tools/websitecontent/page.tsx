@@ -62,6 +62,7 @@ const Home = () => {
             options_arr={home_section_options}
             on_change_handle={select_section_handle}
             required={true}
+            bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
           />
           <Select_Dropdown
             value={selected_language}
@@ -69,6 +70,8 @@ const Home = () => {
             options_arr={langage_list_options}
             on_change_handle={select_language_handle}
             required={true}
+            bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
+
           />
           {selected_section === "Mission" && (
             <Select_Dropdown
@@ -77,6 +80,8 @@ const Home = () => {
               options_arr={data_list.map((e) => ({ label: e.id, value: e.id }))}
               on_change_handle={change_selected_list_id}
               required={true}
+              bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
+
             />
           )}
         </div>

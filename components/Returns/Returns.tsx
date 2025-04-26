@@ -296,10 +296,10 @@ const Returns: FC<Props> = () => {
                   <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                     <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
                       <TableHead className="p-4 w-10">
-                        <input
+                        {/* <input
                           type="checkbox"
                           className="rounded bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500"
-                        />
+                        /> */}
                       </TableHead>
                       <TableHead className="text-left text-gray-600 dark:text-gray-300">
                         {t("POS-Returnk3")}
@@ -411,7 +411,7 @@ const Returns: FC<Props> = () => {
                             className="cursor-pointer border-b border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 bg-white dark:bg-gray-800"
                           >
                             <TableCell className="p-4">
-                              <input
+                              {/* <input
                                 type="checkbox"
                                 className="rounded border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600"
                                 checked={selectedRows.includes(return_id)}
@@ -422,7 +422,7 @@ const Returns: FC<Props> = () => {
                                     e.target.checked
                                   );
                                 }}
-                              />
+                              /> */}
                             </TableCell>
                             <TableCell className="p-4 text-gray-800 dark:text-gray-200">
                               {return_id}

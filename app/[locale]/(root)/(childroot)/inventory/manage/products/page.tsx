@@ -351,7 +351,7 @@ const Products = () => {
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
 
               <button
@@ -359,7 +359,7 @@ const Products = () => {
                 className="flex w-full items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
               >
                 <CirclePlus className="w-6 h-6" />
-                Create Product
+                Add Product
               </button>
             </div>
 
@@ -372,10 +372,10 @@ const Products = () => {
                 <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
                   <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                     <TableHead className="w-12 p-3">
-                      <input
+                      {/* <input
                         type="checkbox"
                         className="h-4 w-4 dark:bg-gray-700 dark:border-gray-600"
-                      />
+                      /> */}
                     </TableHead>
                     {tableHeader.map(
                       ({ label, align, can_sort, id }, index) => (
@@ -408,7 +408,7 @@ const Products = () => {
                   </TableRow>
                 </TableHeader>
 
-                <TableBody className="mb-4 h-[60dvh] overflow-y-auto block">
+                <TableBody className="mb-4 h-[25dvh] overflow-y-auto block">
                   {loading ? (
                     <TableRow className="flex h-full">
                       <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
@@ -428,10 +428,10 @@ const Products = () => {
                         className="flex items-center hover:bg-gray-100 border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700"
                       >
                         <TableCell className="w-12 p-3">
-                          <input
+                          {/* <input
                             type="checkbox"
                             className="h-4 w-4 dark:bg-gray-700 dark:border-gray-600"
-                          />
+                          /> */}
                         </TableCell>
                         {tableHeader.map((element, ind) => {
                           const { id, Render_Value, align } = element;
@@ -520,7 +520,6 @@ const Products = () => {
                 <Input_Component
                   value={modalData[id]}
                   onChange={(e: string) => modalInputChangeHandle(id, e)}
-                  py="py-3"
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
                   label={label}
                   bg_color="bg-white dark:bg-[#0e1725]"

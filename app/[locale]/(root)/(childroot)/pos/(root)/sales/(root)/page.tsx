@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
-import { sendInvoice } from '@/utils/smsServices/sendInvoice';
+import { sendInvoice } from "@/utils/smsServices/sendInvoice";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -65,22 +65,27 @@ const render_details = [
 
 const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
   return (
-    <div className="w-52">
+    <div className="w-30">
       <Select
         onChange={handleSelectChange}
-        className="w-full h-auto border rounded-md text-sm focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
+        className="w-full border rounded-md text-xs focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
         id="section"
         required={true}
       >
-        <option value="Cash" className="dark:bg-[#122136] dark:text-white text-black">
+        <option
+          value="Cash"
+          className="dark:bg-[#122136] dark:text-white text-black"
+        >
           Cash
         </option>
-        <option value="Debit Card" className="dark:bg-[#122136] dark:text-white text-black">
+        <option
+          value="Debit Card"
+          className="dark:bg-[#122136] dark:text-white text-black"
+        >
           Debit Card
         </option>
       </Select>
     </div>
-
   );
 };
 
@@ -140,9 +145,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   };
 
   return (
-    <div className="bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-lg">
+    <div className="bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md">
       <div className="flex items-center">
-        <div className="flex-1 flex items-center space-x-4">
+        <div className="flex-1 flex items-center space-x-3">
           <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
             <button
               onClick={() => qtyHandle("inc")}
@@ -150,11 +155,11 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               disabled={quantity_available === quantity}
             >
               <IoIosArrowUp
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
-            <span className="block text-lg font-bold text-[#121111] dark:text-white">
+            <span className="block text-base font-bold text-[#121111] dark:text-white">
               {quantity}
             </span>
             <button
@@ -163,26 +168,26 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               onClick={() => qtyHandle("dec")}
             >
               <IoIosArrowDown
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
           </div>
           <dl>
-            <dt className="text-lg dark:text-white">{product_name}</dt>
-            <dd className="text-[15px] text-gray-700 dark:text-gray-400">
+            <dt className="text-base dark:text-white">{product_name}</dt>
+            <dd className="text-sm text-gray-700 dark:text-gray-400">
               {category_name}
             </dd>
           </dl>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <p className="font-bold text-[#121111] dark:text-white">
             {calcTotalAmount(price, quantity)}
           </p>
           <div>
             <button onClick={removeItemHandle}>
               <IoCloseOutline
-                size={20}
+                size={18}
                 className="text-primary_color dark:text-blue-400"
               />
             </button>
@@ -417,24 +422,24 @@ const Orders = () => {
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
-      <div className="w-full h-[77dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto col-span-2 rounded-md">
-          <div className="space-y-6 dark:bg-[#080E16]">
+    <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
+      <div className="w-full h-[77dvh] p-1 grid grid-cols-3 gap-1">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto col-span-2 rounded">
+          <div className="space-y-3 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
-              <div className="w-full flex flex-col justify-center h-full space-y-3">
-                <CircularProgress size={24} className="dark:text-white" />
-                <h1 className="text-sm text-gray-400 dark:text-gray-300">
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
                   Fetching patient details
                 </h1>
               </div>
             ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-lg shadow-sm">
-                <h2 className="text-lg font-semibold mb-4 dark:text-white">
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
+                <h2 className="text-sm font-semibold mb-2 dark:text-white">
                   Patient Details
                 </h2>
                 {selectedPatient ? (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2">
                     {render_details.map(({ label, key, render_value }, ind) => {
                       const extracted_val = render_value
                         ? render_value(selectedPatient)
@@ -442,12 +447,12 @@ const Orders = () => {
                       return (
                         <div
                           key={ind}
-                          className="space-y-1 bg-white dark:bg-[#0E1725] p-3 rounded-xl"
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
                         >
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {label}
                           </p>
-                          <p className="text-base font-medium dark:text-white">
+                          <p className="text-sm font-medium dark:text-white">
                             {extracted_val}
                           </p>
                         </div>
@@ -456,7 +461,7 @@ const Orders = () => {
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-red-600 dark:text-red-400">
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
                       {t("POS-Sales_k4")}
                     </h1>
                   </div>
@@ -464,68 +469,60 @@ const Orders = () => {
               </div>
             )}
 
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-6 rounded-xl shadow-sm mt-6">
-              <h2 className="text-lg font-semibold mb-4 dark:text-white">
+            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
+              <h2 className="text-sm font-semibold mb-2 dark:text-white">
                 Product Details
               </h2>
 
-              <div className="space-y-6">
+              <div className="space-y-2">
                 <div>
-                  <div className="w-full">
-                    <Searchable_Dropdown
-                      disabled={!selectedPatient}
-                      initialValue={0}
-                      value={selectedCategory}
-
-                      //@ts-ignore
-                      dark_bg_color="gray.700"
-                      start_empty={true}
-                      options_arr={categories.map(
-                        ({ category_id, category_name }: any) => ({
-                          value: category_id,
-                          label: category_name,
-                        })
-                      )}
-                      required={true}
-                      on_change_handle={category_change_handle}
-                      label="POS-Sales_k6"
-                    />
-                  </div>
+                  <Searchable_Dropdown
+                    disabled={!selectedPatient}
+                    initialValue={0}
+                    value={selectedCategory}
+                    //@ts-ignore
+                    dark_bg_color="gray.700"
+                    start_empty={true}
+                    options_arr={categories.map(
+                      ({ category_id, category_name }: any) => ({
+                        value: category_id,
+                        label: category_name,
+                      })
+                    )}
+                    required={true}
+                    on_change_handle={category_change_handle}
+                    label="POS-Sales_k6"
+                  />
                 </div>
 
                 <div>
                   {loadingProducts ? (
-                    <div className="text-sm text-black dark:text-white">
-                      {selectedCategory
-                        ? "Loading Products..."
-                        : "Select Category First.."}
+                    <div className="text-xs text-black dark:text-white">
+                      {selectedCategory ? "Loading..." : "Select Category.."}
                     </div>
                   ) : (
-                    <div className="w-full">
-                      <Searchable_Dropdown
-                        disabled={!selectedPatient}
-                        initialValue={0}
-
-                        //@ts-ignore
-                        dark_bg_color="gray.700"
-                        start_empty={true}
-                        options_arr={products.map(
-                          ({ product_id, product_name }: any) => ({
-                            value: product_id,
-                            label: product_name,
-                          })
-                        )}
-                        required={true}
-                        value={selectedProduct ? selectedProduct.product_id : 0}
-                        on_change_handle={select_product_change_handle}
-                        label="Select Product"
-                      />
-                    </div>
+                    <Searchable_Dropdown
+                      disabled={!selectedPatient}
+                      initialValue={0}
+                    //@ts-ignore
+                      dark_bg_color="gray.700"
+                      start_empty={true}
+                      options_arr={products.map(
+                        ({ product_id, product_name }: any) => ({
+                          value: product_id,
+                          label: product_name,
+                        })
+                      )}
+                      required={true}
+                      value={selectedProduct ? selectedProduct.product_id : 0}
+                      on_change_handle={select_product_change_handle}
+                      label="Select Product"
+                    />
                   )}
                 </div>
 
                 <div>
-                  <div className="space-y-2">
+                  <div className="space-y-0.5">
                     <Quantity_Field
                       disabled={!selectedPatient}
                       maxAvailability={
@@ -536,14 +533,13 @@ const Orders = () => {
                     />
 
                     {selectedProduct && (
-                      <div className="space-y-0.5 flex justify-between items-center text-gray-600 dark:text-gray-300 pl-1">
-                        <div className="text-sm">
-                          {currencyFormatHandle(selectedProduct?.price || 0)}{" "}
-                          per unit
+                      <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
+                        <div className="text-xs">
+                          {currencyFormatHandle(selectedProduct?.price || 0)}
+                          /unit
                         </div>
-                        <div className="text-sm text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty}{" "}
-                          units are remaining
+                        <div className="text-xs text-amber-600 dark:text-amber-400">
+                          {selectedProduct.quantity_available - productQty} left
                         </div>
                       </div>
                     )}
@@ -554,7 +550,7 @@ const Orders = () => {
                   <button
                     disabled={!productQty}
                     onClick={addToCartHandle}
-                    className="bg-[#0066FF] text-white font-medium py-3 px-9 rounded-md hover:opacity-90 active:opacity-70 disabled:opacity-50"
+                    className="bg-[#0066FF] text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-xs"
                     type="submit"
                   >
                     {t("POS-Sales_k8")}
@@ -565,42 +561,40 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[75dvh] overflow-auto rounded-lg flex flex-col shadow-sm p-3">
-          <div className="px-6 py-5 bg-white dark:bg-[#0E1725] rounded-lg border-b border-gray-100">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1">
+          <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100">
             <div className="flex-1">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t("POS-Sales_k10")} # --
               </p>
             </div>
           </div>
 
-          <div className="overflow-auto flex-1 px-4 py-2 my-2 bg-white dark:bg-[#0e1725] rounded-lg">
-            <div className="space-y-2">
-              {cartArray.map((data: CartArrayInterface, ind) => {
-                return (
-                  <CartItemComponent
-                    index={ind}
-                    data={data}
-                    key={ind}
-                    controllProductQtyHandle={controllProductQtyHandle}
-                  />
-                );
-              })}
+          <div className="overflow-auto flex-1 p-1 my-0.5 bg-white dark:bg-[#0e1725] rounded">
+            <div className="space-y-0.5">
+              {cartArray.map((data: CartArrayInterface, ind) => (
+                <CartItemComponent
+                  index={ind}
+                  data={data}
+                  key={ind}
+                  controllProductQtyHandle={controllProductQtyHandle}
+                />
+              ))}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b-lg">
-            <div className="py-4 px-6 space-y-4 rounded-lg dark:bg-[#0E1725]">
+          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b">
+            <div className="p-2 space-y-2 rounded dark:bg-[#0E1725]">
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
               />
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k12")}
                 </h1>
                 <Payment_Method_Select
@@ -610,58 +604,49 @@ const Orders = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k13")}
                 </h1>
-                <div className="flex items-center">
-                  <p
-                    className={`${appliedDiscount
+                <p
+                  className={`text-xs ${
+                    appliedDiscount
                       ? "text-red-500 dark:text-red-400"
                       : "text-gray-700 dark:text-gray-300"
-                      } text-sm font-medium`}
-                  >
-                    {appliedDiscount
-                      ? `-${grandTotalHandle(cartArray, appliedDiscount)
-                        .discountAmount
+                  }`}
+                >
+                  {appliedDiscount
+                    ? `-${
+                        grandTotalHandle(cartArray, appliedDiscount)
+                          .discountAmount
                       }`
-                      : "NILL"}
-                  </p>
-                </div>
+                    : "NILL"}
+                </p>
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k14")}
                 </h1>
-                <div className="flex items-center">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    ${grandTotalHandle(cartArray).amount}
-                  </p>
-                </div>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  ${grandTotalHandle(cartArray).amount}
+                </p>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-0.5">
                 <button
                   onClick={placeOrderHandle}
                   disabled={!cartArray.length}
-                  className="bg-blue-600 rounded-lg py-2 px-4 text-white disabled:opacity-50 flex items-center"
+                  className="bg-blue-600 rounded py-0.5 px-2 text-white disabled:opacity-50 flex items-center text-xs"
                 >
                   {placeOrderLoading ? (
-                    <div className="h-8 flex justify-center items-center">
-                      <CircularProgress size={20} color="secondary" />
-                    </div>
+                    <CircularProgress size={14} color="secondary" />
                   ) : (
-                    <div className="flex items-center justify-between space-x-3">
-                      <div>
-                        <span className="font-medium">
-                          {grandTotalHandle(cartArray, appliedDiscount).amount}
-                        </span>
-                        <span className="text-xs block text-blue-100 dark:text-blue-200">
-                          {grandTotalHandle(cartArray).qty} items
-                        </span>
-                      </div>
-                      <PiCaretCircleRightFill size={24} />
-                    </div>
+                    <>
+                      <span className="font-medium">
+                        {grandTotalHandle(cartArray, appliedDiscount).amount}
+                      </span>
+                      <PiCaretCircleRightFill size={16} className="ml-1" />
+                    </>
                   )}
                 </button>
               </div>
@@ -675,7 +660,6 @@ const Orders = () => {
 
 export default Orders;
 
-// function to send email notification
 const sendOrderEmail = async (
   orderDetails: any,
   patientInfo: any,
@@ -711,6 +695,8 @@ const sendOrderEmail = async (
     const netAmount = +totalAmount - +discountAmount
 
     const emailHtml = `
+
+
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
                 <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
                 
@@ -803,7 +789,9 @@ const sendOrderEmail = async (
                     <p style="color: #666; font-size: 12px; margin-top: 10px;">Complete our quick survey and receive a promotional code for your next visit.</p>
                 </div>
             </div>
-        `;
+        `
+
+
 
 
     const fromEmail = "test@alerts.myclinicmd.com";

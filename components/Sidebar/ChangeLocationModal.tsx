@@ -43,9 +43,17 @@ const ChangeLocationModal = () => {
         onClose={handleClose}
         aria-labelledby="date-range-modal-title"
         aria-describedby="date-range-modal-description"
+        sx={{
+          zIndex: 9999999,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
       >
         <div className="w-full h-full flex justify-center items-center">
-          <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 min-w-[650px] h-[480px]">
+          <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 min-w-[650px] h-[480px] relative">
             <div className="flex items-center space-x-2 justify-between">
               <h2 id="date-range-modal-title" className="font-bold">
                 Change Location

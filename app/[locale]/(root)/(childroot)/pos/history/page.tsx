@@ -202,6 +202,7 @@ const SalesHistory = () => {
           openModal={openModal}
           searchHandle={onChangeHandle}
           searchInputplaceholder={t("POS-Historyk3")}
+          tableBodyHeight="h-[50dvh]"
         />
       </div>
 

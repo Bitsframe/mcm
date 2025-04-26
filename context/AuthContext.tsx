@@ -12,24 +12,33 @@ interface AuthState {
     authError: any;
 }
 
-export const AuthContext = createContext<AuthState>({
+interface AuthContextType extends AuthState {
+    setAuthState: (state: Partial<AuthState>) => void;
+}
+
+const initialAuthState: AuthState = {
     checkingAuth: true,
     userProfile: null,
     allowedLocations: [],
     userRole: 'admin',
     permissions: [],
     authError: null
+};
+
+export const AuthContext = createContext<AuthContextType>({
+    ...initialAuthState,
+    setAuthState: () => {}
 });
 
 export const AuthProvider = ({ children }: any) => {
-    const [authState, setAuthState] = useState({
-        checkingAuth: true,
-        userProfile: null,
-        allowedLocations: [],
-        userRole: 'admin',
-        permissions: [],
-        authError: null
-    });
+    const [authState, setAuthState] = useState<AuthState>(initialAuthState);
+
+    const updateAuthState = (newState: Partial<AuthState>) => {
+        setAuthState(prev => ({
+            ...prev,
+            ...newState
+        }));
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -38,7 +47,7 @@ export const AuthProvider = ({ children }: any) => {
                 const { role, permissions, locations, profile } = response.data.data;
 
                 console.log("RESPONSE -> ", response);
-                setAuthState({
+                updateAuthState({
                     checkingAuth: false,
                     userProfile: profile,
                     allowedLocations: locations,
@@ -48,11 +57,10 @@ export const AuthProvider = ({ children }: any) => {
                 });
             } catch (error) {
                 console.log("ERROR -> ", error);
-                setAuthState(prev => ({
-                    ...prev,
+                updateAuthState({
                     checkingAuth: false,
                     authError: axios.isAxiosError(error) ? error.response?.data || error.message : "Failed to fetch user data."
-                }));
+                });
             }
         };
 
@@ -60,7 +68,7 @@ export const AuthProvider = ({ children }: any) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={authState}>
+        <AuthContext.Provider value={{ ...authState, setAuthState: updateAuthState }}>
             {children}
         </AuthContext.Provider>
     );

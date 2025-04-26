@@ -30,11 +30,11 @@ export const fields_list_components: fieldsListComponentsInterface = {
 
             const {t} = useTranslation(translationConstant.WEBCONT)
             return <div>
-                <p className='font-bold text-primary_color'>{t(label)} :</p>
+                <p className='font-bold dark:text-white text-primary_color'>{t(label)} :</p>
                 <input
                     value={data[key_id] || ''}
                     type="text"
-                    className='w-full  p-3 rounded-lg bg-[#F1F4F9]'
+                    className='w-full  p-3 rounded-lg dark:bg-[#374151] dark:text-white bg-[#F1F4F9]'
                     onChange={(e) => on_change_handle(key_id, e.target.value)}
                 />
             </div>
@@ -45,9 +45,9 @@ export const fields_list_components: fieldsListComponentsInterface = {
 
             const {t} = useTranslation(translationConstant.WEBCONT)
             return <div>
-                <p className='font-bold text-primary_color'>{label} :</p>
+                <p className='font-bold dark:text-white text-primary_color'>{label} :</p>
                 <textarea
-                    className='rounded-lg w-full  bg-[#F1F4F9] resize-none outline-none border-none'
+                    className='rounded-lg w-full dark:bg-[#374151] dark:text-white bg-[#F1F4F9] resize-none outline-none border-none'
                     rows={6} cols={51}
                     value={data[key_id] || ''}
                     onChange={(e) => on_change_handle(key_id, e.target.value)}
@@ -59,7 +59,7 @@ export const fields_list_components: fieldsListComponentsInterface = {
         Component_Render: ({ on_change_handle, label, key_id, data }) => {
             const val = data[key_id] ? data[key_id] : 0
             return <div>
-                <p className='font-bold text-primary_color'>{label} :</p>
+                <p className='font-bold dark:text-white text-primary_color'>{label} :</p>
                 <Rating
                     size='large'
                     name="simple-controlled"

@@ -247,10 +247,10 @@ const UserManagementComponent = () => {
               <TableHeader>
                 <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-gray-700">
                   <TableHead className="w-10">
-                    <input
+                    {/* <input
                       type="checkbox"
                       className="rounded dark:bg-gray-700 dark:border-gray-600"
-                    />
+                    /> */}
                   </TableHead>
                   {tableHeader.map(({ label, align, classNames }, index) => (
                     <TableHead
@@ -286,10 +286,10 @@ const UserManagementComponent = () => {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
                     >
                       <TableCell className="py-4 pr-3 dark:bg-gray-800">
-                        <input
+                        {/* <input
                           type="checkbox"
                           className="rounded dark:bg-gray-700 dark:border-gray-600"
-                        />
+                        /> */}
                       </TableCell>
                       {tableHeader.map(({ id, classNames, align }, ind) => {
                         const content = elem[id];

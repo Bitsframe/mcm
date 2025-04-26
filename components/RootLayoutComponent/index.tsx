@@ -64,7 +64,7 @@ const MainContent = ({ children }: { children: ReactNode }) => {
       <section
         className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725]" // optional slightly lighter than #080E16
         style={{
-          minHeight: '110vh',
+          maxHeight: '90vh',
           overflowY: 'hidden',
         }}
       >

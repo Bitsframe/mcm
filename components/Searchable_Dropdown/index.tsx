@@ -29,16 +29,14 @@ export const Searchable_Dropdown = ({
     value = '',
     label,
     start_empty = false,
-    // @ts-ignore
+    //@ts-ignore
     initialValue = '' || 0,
 }: Props) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedValue, setSelectedValue] = useState(value);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
     const { t } = useTranslation(translationConstant.POSSALES);
-
     const filteredOptions = options_arr.filter((option) =>
         option.label.toString().toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -77,35 +75,35 @@ export const Searchable_Dropdown = ({
 
     return (
         <div className="w-full relative" ref={dropdownRef}>
-            {label && (
+            {/* {label && (
                 <Label
                     htmlFor="searchable-select"
                     value={t(label)}
-                    className="font-bold text-gray-900 dark:text-gray-200 mb-1 block"
+                    className="font-bold text-gray-900 dark:text-gray-200 mb-0.5 block text-sm"
                 />
-            )}
+            )} */}
 
             <div
                 onClick={() => {
                     setShowDropdown(true);
                     setSearchTerm('');
                 }}
-                className={`w-full p-4 rounded-xl cursor-pointer bg-white dark:bg-[#0e1725] border dark:border-gray-700`}
+                className={`w-full p-2 rounded-lg cursor-pointer bg-white dark:bg-[#0e1725] border dark:border-gray-700 text-sm`}
             >
-                <p className="text-base text-gray-900 dark:text-gray-200">
+                <p className="text-gray-900 dark:text-gray-200">
                     {options_arr.find((opt) => opt.value === selectedValue)?.label || t(label as any)}
                 </p>
             </div>
 
             {showDropdown && (
-                <ul className="absolute z-10 w-full bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-700 rounded max-h-48 overflow-auto text-base mt-2">
+                <ul className="absolute z-10 w-full bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-700 rounded max-h-40 overflow-auto text-sm mt-1">
                     <input
                         type="text"
                         value={showDropdown ? searchTerm : options_arr.find((opt) => opt.value === selectedValue)?.label || ''}
                         onChange={handleInputChange}
                         onFocus={() => setShowDropdown(true)}
                         placeholder={'Search...'}
-                        className="w-full p-2 border-b border-gray-300 dark:border-gray-600 rounded-t text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800"
+                        className="w-full p-1 border-b border-gray-300 dark:border-gray-600 rounded-t text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 text-sm"
                         disabled={disabled}
                         required={required}
                         readOnly={false}
@@ -115,8 +113,9 @@ export const Searchable_Dropdown = ({
                         <li
                             key={ind}
                             onClick={() => !disabled && handleSelectOption(value)}
-                            className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-900 dark:text-gray-200 ${disabled ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
+                            className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-900 dark:text-gray-200 text-sm ${
+                                disabled ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                         >
                             {label}
                         </li>

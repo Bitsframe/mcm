@@ -7,20 +7,20 @@ interface PosLayoutProps {
 
 const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
   return (
-    <div className="">
-      <div className="space-y-5 p-3 ">
+    <div>
+      <div className="space-y-3 p-2">
         <div>
-          <h1 className="text-2xl font-bold">Sales</h1>
-          <h1 className="mt-1 mb-2 text-gray-500">POS  /  Sales</h1>
+          <h1 className="text-xl font-bold">Sales</h1>
+          <p className="mt-0.5 mb-1 text-gray-500 text-sm">POS / Sales</p>
         </div>
-        <div className="h-[1px] w-full bg-gray-400"></div>
+        <div className="h-px w-full bg-gray-300"></div>
         <TopTabs />
       </div>
       <main
         style={{ zIndex: 9999999 }}
-        className="h-[calc(80dvh)] w-full bg-white dark:bg-[#0e1725]   font-[500] text-[20px] space-y-5 p-2 rounded-md"
+        className="h-[80dvh] w-full bg-white dark:bg-[#0e1725] font-medium text-base space-y-3 p-1 rounded"
       >
-        <main className="">{children}</main>
+        {children}
       </main>
     </div>
   );

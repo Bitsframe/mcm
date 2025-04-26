@@ -91,7 +91,8 @@ const Locations = () => {
                         <Select_Dropdown
                             value={selected_list_id} label={t('WebCont_k5')} start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
                             on_change_handle={change_selected_list_id}
-                            required={true} />
+                            required={true}
+                            bg_color='dark:bg-[#374151]' />
 
                     </div>
                     <Custom_Modal create_new_handle={create_content_handle} open_handle={open_modal} close_handle={close_modal} is_open={create_modal_open} Title='Create Location' loading={create_data_loading} >
