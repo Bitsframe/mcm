@@ -703,6 +703,9 @@ const sendOrderEmail = async (
       months[today.getMonth()]
     }-${today.getFullYear()}`;
 
+    // Create a feedback URL with order ID and patient ID for tracking
+    const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
+
     const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
                 <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
@@ -795,6 +798,12 @@ const sendOrderEmail = async (
                 <p>Thank you for your trust in us.</p>
                 
                 <p>Best regards,<br>Clinica San Miguel Team</p>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center;">
+                    <p style="color: #666;">We value your feedback!</p>
+                    <a href="${feedbackUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Share Your Feedback & Get a Promo Code</a>
+                    <p style="color: #666; font-size: 12px; margin-top: 10px;">Complete our quick survey and receive a promotional code for your next visit.</p>
+                </div>
             </div>
         `;
 
