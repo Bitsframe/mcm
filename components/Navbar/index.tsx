@@ -2,43 +2,42 @@
 
 import { HiOutlineBell } from "react-icons/hi";
 import { useContext, useEffect } from "react";
-import { TabContext } from "@/context";
+import { AuthContext, TabContext } from "@/context";
 import MenuWithAvatar from "./MenuWithAvatar";
 import LanguageChanger from "../LanguageChanger";
 import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
-import i18n from "@/i18n"; // i18n import kiya
+import i18n from "@/i18n";
 import { translationConstant } from "@/utils/translationConstants";
+import ThemeToggleButton from "../Themetoggle";
 
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
-  const locale = useLocale();
-  const { t } = useTranslation(translationConstant.SIDEBAR); // Direct namespace use kiya
+  const { userProfile } = useContext(AuthContext);
 
-  // ✅ Sync i18n language on locale change
+  const locale = useLocale();
+  const { t } = useTranslation(translationConstant.SIDEBAR);
+
   useEffect(() => {
     i18n.changeLanguage(locale);
   }, [locale]);
 
-  // Logs for debugging
-  console.log("Current Locale:", locale);
-  console.log("Active Title Key:", activeTitle);
-  console.log("Translated Text:", t(activeTitle));
-
   return (
     <header
-      className={`h-[70px] px-5 flex justify-between items-center fixed bg-[#B8C8E1]`}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px]`}
       style={{ width: `calc(100% - ${width})` }}
     >
-      <div className="text-[#121111] text-[16px] font-[700]">
-        {t(activeTitle)}
-      </div>
-      <div className="flex gap-4 items-center pr-5">
-        <div className="z-50">
-          <LanguageChanger locale={locale} />
+      <div className="text-[16px] font-[700]">
+        <div>
+          <span className="text-[#79808B] dark:text-gray-400">Welcome Back,</span>{" "}
+          {userProfile?.full_name}
         </div>
-        <div className="text-[#000000] text-[16px]">
-          <HiOutlineBell />
+      </div>
+      <div className="flex gap-4 items-center pr-4">
+        <LanguageChanger locale={locale} />
+        <ThemeToggleButton />
+        <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#1A1F27] p-4 rounded-full border border-[#E0E0E0] dark:border-[#2F3640]">
+          <HiOutlineBell size={25} />
         </div>
         <MenuWithAvatar />
       </div>

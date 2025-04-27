@@ -67,7 +67,7 @@ export default function DateRangeModal({
         <div>
             <button
                 onClick={handleOpen}
-                className="bg-black text-base px-3 py-2 text-white rounded-md"
+                className="bg-[#0066FF] text-base px-3 py-2 text-white rounded-md"
             >
                 {t("POS-Historyk1")}
             </button>

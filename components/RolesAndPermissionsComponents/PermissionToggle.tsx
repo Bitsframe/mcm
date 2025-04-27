@@ -13,9 +13,10 @@ interface PermissionToggleProps {
   disabled?: boolean;
   permission: Permission;
   onToggle: (id: number, isAllowed: boolean) => void;
+  darkMode?: any;
 }
 
-const PermissionToggle: React.FC<PermissionToggleProps> = ({ permission, onToggle, isAllowed, disabled=false }) => {
+const PermissionToggle: React.FC<PermissionToggleProps> = ({ permission, onToggle, isAllowed, disabled=false, darkMode }) => {
   return (
     <div className="flex items-center justify-between px-3 py-2 ">
       <span>{permission.name}</span>

@@ -9,6 +9,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { Avatar } from "@/assets/images";
 import { signOut } from "@/actions/supabase_auth/action";
 import { AuthContext } from "@/context";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
 
 export default function MenuWithAvatar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -33,6 +34,9 @@ export default function MenuWithAvatar() {
     handleClose();
   };
 
+  console.log("user profile=====>>>>>", userProfile?.profile_pictures);
+  
+
   return (
     <div>
       <Button
@@ -41,21 +45,23 @@ export default function MenuWithAvatar() {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        className="p-0"
       >
-        <div className="flex items-center">
+        <div className="flex items-center  dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] w-48 px-3 py-1 border-[1px] border-[#E0E0E0] ">
           <Image
-            src={Avatar}
+            src={userProfile?.profile_pictures || Avatar}
             alt="User Avatar"
             width={48}
             height={48}
             className="rounded-full object-contain"
           />
           <div className="ml-2 flex flex-col items-start">
-            <span className="text-[#121111] text-[16px] font-semibold">
+            <span className="text-[#121111] dark:text-white text-[16px] font-semibold">
               {userProfile?.full_name}
             </span>
-            <span className="text-[#121111] text-xs">{userRole}</span>
+            <span className="text-[#121111] text-xs dark:text-white">{userRole}</span>
           </div>
+          <ChevronDown size={20} color="black" strokeWidth={3} />
         </div>
       </Button>
       <Menu
@@ -64,9 +70,46 @@ export default function MenuWithAvatar() {
         open={open}
         onClose={handleClose}
         MenuListProps={{ "aria-labelledby": "avatar-menu-button" }}
+        PaperProps={{
+          style: {
+            width: "200px",
+            borderRadius: "12px",
+            zIndex: 9999,
+            position: 'relative',
+          },
+        }}
       >
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        <MenuItem onClick={handleChangePassword}>Change Password</MenuItem>
+        <MenuItem
+          onClick={handleClose}
+          style={{
+            padding: "8px 16px",
+            fontSize: "14px",
+            fontWeight: 500,
+            borderBottom: "1px solid #f0f0f0",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            color: '#0066ff'
+          }}
+        >
+          <Settings size={18} color="#0066ff" />
+          Settings
+        </MenuItem>
+        <MenuItem
+          onClick={handleLogout}
+          style={{
+            padding: "8px 16px",
+            fontSize: "14px",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            color: 'red'
+          }}
+        >
+          <LogOut size={18} color="red" />
+          Log Out
+        </MenuItem>
       </Menu>
     </div>
   );

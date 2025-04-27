@@ -1,13 +1,14 @@
 import { clinca_logo } from "@/assets/images";
 import Image from "next/image";
 import ChangeLocationModal from "./ChangeLocationModal";
+import { ChevronUp } from "lucide-react";
 // import ChangeLocationModal from "./ChangeLocationModal";
 
 export const Clinic = () => {
   return (
-    <article className="w-[233px] bg-white flex justify-center">
+    <article className="w-[233px] flex justify-center">
       {/* <ChangeLocationModal /> */}
-      <div className="w-[185px] h-[55px] rounded-[8px] bg-[#8AA0C2] p-2 flex items-center justify-start gap-3">
+      <div className="w-[185px] h-[55px] rounded-[30px] bg-[#0066FF] p-2 flex items-center justify-start gap-3">
         <Image
           src={clinca_logo}
           alt="logo"
@@ -17,7 +18,8 @@ export const Clinic = () => {
           {/* <h3 className="text-[#FFFFFF] text-[12px]">Clinca San Miguel</h3> */}
           <ChangeLocationModal />
         </div>
-      </div>
+        <ChevronUp size={20} color="white" strokeWidth={3} />
+        </div>
     </article>
   );
 };

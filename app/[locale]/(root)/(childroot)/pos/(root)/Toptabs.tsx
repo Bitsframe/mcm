@@ -1,42 +1,60 @@
-"use client"
+// TopTabs.tsx
+"use client";
 import Link from "next/link";
-import { GoDotFill } from "react-icons/go";
-import { usePathname } from 'next/navigation'
+import { usePathname } from "next/navigation";
+import { ShoppingBasket, UsersIcon } from "lucide-react";
 
 const TopTabs = () => {
-    const pathname = usePathname()
+  const pathname = usePathname();
 
-    const PosTopMenu = [
-        {
-            title: "Orders",
-            url: "/"
-        },
-        {
-            title: "Patients",
-            url: "patients"
-        },
+  const PosTopMenu = [
+    {
+      title: "Orders",
+      url: "/",
+      icon: ShoppingBasket,
+    },
+    {
+      title: "Patients",
+      url: "patients",
+      icon: UsersIcon,
+    },
+  ];
 
-    ];
+  return (
+    <nav className="mt-5">
+      <div className="max-w-7xl mx-auto">
+        <ul className="flex gap-1 w-fit p-1 rounded-xl bg-gray-100 dark:bg-[#080E16]">
+          {PosTopMenu.map((menuItem, index) => {
+            const isActive =
+              pathname === `/pos/sales/${menuItem.url}` ||
+              (pathname === "/pos/sales" && menuItem.url === "/");
 
+            const Icon = menuItem.icon;
 
-    return (
-        <nav className="flex items-center justify-between" >
-            <ul className="flex gap-6 sm:flex-col md:flex-row lg:flex-row" >
-                {PosTopMenu.map((menuItem, index) => (
-                    <li className="text-text_primary_color me-4" key={index}>
-                        <Link
-                            className={`flex gap-2 items-center ${pathname === `/pos/sales/${menuItem.url}` || (pathname === "/pos/sales" && menuItem.url === "/") ? 'text-text_primary_color underline underline-offset-8' : 'text-gray-500'}`}
-                            href={`/pos/sales/${menuItem.url}`}>
-                            <span> {<GoDotFill size={15} />}</span>
-                            <span className="text-lg font-bold" > {menuItem.title}</span>
-                        </Link>
+            return (
+              <li key={index}>
+                <Link
+                  href={`/pos/sales/${menuItem.url}`}
+                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-xl font-medium transition-all ${
+                    isActive
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 dark:text-gray-300"
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive ? "text-white" : "text-gray-400"
+                    }`}
+                  />
+                  {menuItem.title}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </nav>
+  );
+};
 
-                    </li>
-                ))}
-            </ul>
-        </nav>
-    );
-}
-
-
-export default TopTabs
+export default TopTabs;

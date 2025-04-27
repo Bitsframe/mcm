@@ -1,63 +1,60 @@
 import { translationConstant } from '@/utils/translationConstants';
-import { Label, Select } from 'flowbite-react'
-import React, { FC, useEffect, useState } from 'react'
+import { Label } from 'flowbite-react';
+import React, { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AiFillPlusCircle } from "react-icons/ai";
-import { AiFillMinusCircle } from "react-icons/ai";
-
+import { AiFillPlusCircle, AiFillMinusCircle } from "react-icons/ai";
 
 interface QuantityFieldInterface {
     quantity: number;
     quantityHandle: (e: number) => void;
     maxAvailability: number;
     disabled?: boolean;
-
 }
 
+export const Quantity_Field: FC<QuantityFieldInterface> = ({ 
+    quantity, 
+    quantityHandle, 
+    maxAvailability, 
+    disabled = false 
+}) => {
+    const [canAddMore, setCanAddMore] = useState(true);
+    const { t } = useTranslation(translationConstant.POSSALES);
 
-export const Quantity_Field: FC<QuantityFieldInterface> = ({ quantity, quantityHandle, maxAvailability, disabled = false }) => {
-
-    const [canAddMore, setCanAddMore] = useState(true)
-
-    const handlePlusClick = () => {
-        const quantityNow = quantity + 1
-        quantityHandle(quantityNow)
-
-    }
-    const handleMinusClick = () => {
-        if (quantity > 0) quantityHandle(quantity - 1)
-    }
-
+    const handlePlusClick = () => quantityHandle(quantity + 1);
+    const handleMinusClick = () => quantity > 0 && quantityHandle(quantity - 1);
 
     useEffect(() => {
-
-        if (quantity === maxAvailability) {
-            setCanAddMore(false)
-        } else {
-            setCanAddMore(true)
-        }
-
-    }, [quantity, maxAvailability])
-
-
-    const {t} = useTranslation(translationConstant.POSSALES)
-
+        setCanAddMore(quantity !== maxAvailability);
+    }, [quantity, maxAvailability]);
 
     return (
-        <div className={`w-28 ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            <Label htmlFor="quantity" value={t("POS-Sales_k7")} className='font-bold' />
-            <div className='bg-white py-1 px-3 rounded-lg flex items-center'>
-                <p className='flex-1'>{quantity}</p>
-                <div>
-                    <button onClick={handlePlusClick} disabled={!canAddMore} className={`block disabled:opacity-60 disabled:cursor-default`}>
-                        <AiFillPlusCircle className={`text-gray-600 `} />
+        <div className={`w-full ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            <Label
+                htmlFor="quantity"
+                value={t("POS-Sales_k7")}
+                className="font-bold text-gray-900 dark:text-gray-200 mb-0.5 block text-sm"
+            />
+            
+            <div className="bg-white dark:bg-[#0e1725] p-2 rounded-lg flex items-center w-full border dark:border-gray-700">
+                <p className="flex-1 text-gray-900 dark:text-gray-100 text-sm">{quantity}</p>
+                <div className="flex gap-1 items-center">
+                    <button
+                        onClick={handlePlusClick}
+                        disabled={!canAddMore || disabled}
+                        className="disabled:opacity-60 disabled:cursor-default"
+                    >
+                        <AiFillPlusCircle className="text-gray-600 dark:text-gray-300 text-lg" />
                     </button>
-
-                    <button onClick={handleMinusClick} disabled={quantity === 0} className={`block disabled:opacity-60 disabled:cursor-default`}>
-                        <AiFillMinusCircle className={`text-gray-600`} />
+                    
+                    <button
+                        onClick={handleMinusClick}
+                        disabled={quantity === 0 || disabled}
+                        className="disabled:opacity-60 disabled:cursor-default"
+                    >
+                        <AiFillMinusCircle className="text-gray-600 dark:text-gray-300 text-lg" />
                     </button>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

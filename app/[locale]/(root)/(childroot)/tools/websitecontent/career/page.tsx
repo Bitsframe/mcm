@@ -67,16 +67,17 @@ const Career = () => {
 
                     <div className='flex flex-1'>
 
-                        <div className='flex w-2/5 items-end justify-center gap-4'>
+                        <div className='flex w-full gap-5'>
                             <div className='flex flex-1'>
                                 <Select_Dropdown
                                     value={selected_list_id} label={t('WebCont_k14')} start_empty={true} options_arr={data_list.map(({ id, }) => ({ value: id, label: id }))}
                                     on_change_handle={change_selected_list_id}
-                                    required={true} />
+                                    required={true} 
+                                    bg_color='Dark:bg-[#oe1725]'/>
                             </div>
 
                             <div className='flex flex-1'>
-                                <Select_Dropdown value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                                <Select_Dropdown bg_color='Dark:bg-[#oe1725]' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                             </div>
                         </div>
 
@@ -128,10 +129,10 @@ const Career = () => {
 
 
 
-                <div className='px-3 flex flex-col gap-5'>
+                <div className=' flex flex-col gap-5'>
 
 
-                    <div className='px-3 w-1/2 space-y-5'>
+                    <div className=' w-full space-y-5'>
                         {data && <Form_Component reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={['Text']} on_change_handle={on_change_handle} />}
 
                     </div>

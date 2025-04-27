@@ -9,10 +9,12 @@ interface RenderDataProps {
 }
 
 interface RenderArrInterface {
+  icon: string;
   label: string;
   key: keyof Monitor | string;
   type?: 'text' | 'image';
   render_value?: (data: Monitor) => string | number;
+  bgImage?: string;
 }
 
 // DNS and SSL types

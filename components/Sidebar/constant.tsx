@@ -8,6 +8,23 @@ import {
   tools,
 } from "@/assets/SVGs";
 
+import { 
+  Home, 
+  Circle, 
+  Users, 
+  CalendarCheck2, 
+  BadgeCheck, 
+  Warehouse, 
+  Layers, 
+  Hammer,
+  IdCard,
+  Calculator
+} from "lucide-react";
+import { ComponentType } from "react";
+
+
+
+
 // Types
 interface Icon {
   src: string;
@@ -18,7 +35,7 @@ interface Icon {
 interface Route {
   id: string;
   name: string;
-  icon?: Icon;
+  icon?: ComponentType<{ className?: string }>;
   route?: string;
   children?: Route[];
   label: string;
@@ -51,7 +68,7 @@ const ROUTES = {
     PROMO_CODES: '/tools/promo-codes',
     ROLES_PERMISSIONS: '/tools/roles-permissions',
     USER_MANAGEMENT: '/tools/user-management',
-    TEXT_BROADCAST: '/tools/textbroadcast',
+    // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
   },
 } as const;
@@ -61,7 +78,7 @@ export const routeList: Route[] = [
     id: 'home',
     name: "Home",
     label: "Sidebar_k1",
-    icon: home,
+    icon: Home,
     children: [
       { id: 'home-dashboard', name: "Dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
     ],
@@ -70,7 +87,7 @@ export const routeList: Route[] = [
     id: 'patients',
     name: "Patients",
     label: "Sidebar_k3",
-    icon: patients,
+    icon: Users,
     children: [
       { id: 'patients-all', name: "All Patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
       { id: 'patients-onsite', name: "On-site", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
@@ -81,14 +98,14 @@ export const routeList: Route[] = [
     id: 'appointments',
     name: "Appointments",
     label: "Sidebar_k7",
-    icon: appointment,
+    icon: CalendarCheck2,
     route: ROUTES.APPOINTMENTS,
   },
   {
     id: 'reputation',
     name: "Reputation",
     label: "Sidebar_k8",
-    icon: reputation,
+    icon: IdCard,
     children: [
       {
         id: 'reputation-private-feedback',
@@ -102,7 +119,7 @@ export const routeList: Route[] = [
     id: 'pos',
     name: "POS",
     label: "Sidebar_k10",
-    icon: pos,
+    icon: Calculator,
     children: [
       { id: 'pos-sales', name: "Sales", label: "Sidebar_k19", route: ROUTES.POS.SALES },
       { id: 'pos-return', name: "Return", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
@@ -113,21 +130,21 @@ export const routeList: Route[] = [
     id: 'inventory',
     name: "Inventory",
     label: "Sidebar_k11",
-    icon: inventory,
+    icon: Warehouse,
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
     id: 'inventory-stock',
     name: "Stock Panel",
     label: "Sidebar_k12",
-    icon: inventory,
+    icon: Layers,
     route: ROUTES.INVENTORY.STOCK_PANEL,
   },
   {
     id: 'tools',
     name: "Tools",
     label: "Sidebar_k13",
-    icon: tools,
+    icon: Hammer,
     children: [
       {
         id: 'tools-email',
@@ -159,12 +176,12 @@ export const routeList: Route[] = [
         label: "Sidebar_k18",
         route: ROUTES.TOOLS.USER_MANAGEMENT
       },
-      {
-        id: 'tools-text',
-        name: "Text-Broadcast",
-        label: "Sidebar_k23",
-        route: ROUTES.TOOLS.TEXT_BROADCAST,
-      },
+      // {
+      //   id: 'tools-text',
+      //   name: "Text-Broadcast",
+      //   label: "Sidebar_k23",
+      //   route: ROUTES.TOOLS.TEXT_BROADCAST,
+      // },
       {
         id: 'settings',
         name: "Settings",

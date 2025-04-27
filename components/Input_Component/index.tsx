@@ -18,11 +18,12 @@ interface InputComponentProps {
   max?: string;
   passwordEye?: boolean;
   isDate?: boolean; 
+  darkMode?: boolean;
 }
 
 export const Input_Component: React.FC<InputComponentProps> = ({
   label,
-  bg_color = "bg-white",
+  bg_color = "bg-[#F1F4F9]",
   border = "",
   py = "py-2",
   onChange,
@@ -34,6 +35,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
   passwordEye = false,
   disabled = false,
   isDate = false,
+  darkMode,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -88,7 +90,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
             </label>
           </div>
         ) : (
-          <div className="flex w-full items-center pr-3">
+          <div className="flex w-full items-center bg-[#f1f4f9] dark:bg-[#080e16]">
             <input
               disabled={disabled}
               min={min}
