@@ -5,6 +5,7 @@ import React, { useState, useRef, useContext, useEffect } from "react";
 import { AuthContext } from "@/context";
 import { toast } from "sonner";
 import axios from "axios";
+import { update_content_service } from "@/utils/supabase/data_services/data_services";
 
 interface UserData {
   fullName: string;
@@ -124,26 +125,31 @@ const Profile = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/update-profile', userData);
-      if (response.data.success) {
-        toast.success('Profile updated successfully');
-        // Refresh user data in AuthContext
-        const userResponse = await axios.get('/api/user');
-        const { role, permissions, locations, profile } = userResponse.data.data;
-        setAuthState({
-          checkingAuth: false,
-          userProfile: profile,
-          allowedLocations: locations,
-          userRole: role,
-          permissions: permissions,
-          authError: null
-        });
-      } else {
-        toast.error(response.data.message || 'Profile update failed');
-      }
+      await update_content_service({
+        table: "profiles",
+        post_data: {
+          id: userProfile?.id,
+          full_name: userData.fullName,
+          email: userData.email,
+          profile_pictures: userData.profileImage
+        }
+      });
+      
+      toast.success('Profile updated successfully');
+      // Refresh user data in AuthContext
+      const userResponse = await axios.get('/api/user');
+      const { role, permissions, locations, profile } = userResponse.data.data;
+      setAuthState({
+        checkingAuth: false,
+        userProfile: profile,
+        allowedLocations: locations,
+        userRole: role,
+        permissions: permissions,
+        authError: null
+      });
     } catch (error: any) {
       console.error('Profile update error:', error);
-      toast.error(error.response?.data?.message || 'Profile update failed');
+      toast.error(error.message || 'Profile update failed');
     }
   };
 
