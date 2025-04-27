@@ -532,7 +532,7 @@ const Orders = () => {
                       quantityHandle={quantityHandle}
                     />
 
-                    {selectedProduct && (
+                    {selectedProduct? (
                       <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
                         <div className="text-xs">
                           {currencyFormatHandle(selectedProduct?.price || 0)}
@@ -542,7 +542,7 @@ const Orders = () => {
                           {selectedProduct.quantity_available - productQty} left
                         </div>
                       </div>
-                    )}
+                    ): null}
                   </div>
                 </div>
 

@@ -49,7 +49,7 @@ export default function MenuWithAvatar() {
       >
         <div className="flex items-center  dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] w-48 px-3 py-1 border-[1px] border-[#E0E0E0] ">
           <Image
-            src={Avatar}
+            src={userProfile?.profile_pictures || Avatar}
             alt="User Avatar"
             width={48}
             height={48}
