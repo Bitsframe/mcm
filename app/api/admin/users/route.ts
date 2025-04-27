@@ -6,7 +6,7 @@ export const POST = async (req: Request) => {
 
     const supabaseAdmin: any = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     const { email, roleId = 1, locationIds, fullName, password } = await req.json();
 
@@ -53,7 +53,7 @@ export const POST = async (req: Request) => {
 export const GET = async () => {
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
     try {
