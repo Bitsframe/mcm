@@ -417,7 +417,7 @@ const Products = () => {
                     </TableRow>
                   ) : dataList.length === 0 ? (
                     <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                      <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
                         <h1>No Product is available</h1>
                       </TableCell>
                     </TableRow>

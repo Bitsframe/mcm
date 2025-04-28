@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useContext, useEffect } from 'react';
+import { ReactNode, useContext, useEffect, memo, useCallback, useState } from 'react';
 import { CircularProgress } from '@mui/material';
 import { AuthContext, TabContext } from '@/context';
 import { SidebarSection } from '../Sidebar';
@@ -9,6 +9,7 @@ import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from '@/utils/translationConstants';
 import i18n from "@/i18n";
+import { usePathname } from 'next/navigation';
 
 const LAYOUT_CONFIG = {
   sidebarWidth: '233px',
@@ -21,36 +22,51 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const LoadingState = () => (
+const LoadingState = memo(() => (
   <div className="h-screen w-full grid place-items-center">
     <CircularProgress />
   </div>
-);
+));
 
-const ErrorState = ({ message }: { message: string }) => (
+LoadingState.displayName = 'LoadingState';
+
+const ErrorState = memo(({ message }: { message: string }) => (
   <div className="h-screen w-full grid place-items-center">
     <h1 className="text-red-600 text-xl">{message}</h1>
   </div>
-);
+));
 
-const FixedSidebar = () => (
+ErrorState.displayName = 'ErrorState';
+
+const FixedSidebar = memo(() => (
   <section
     className="fixed left-0 top-0 h-full"
     style={{ width: LAYOUT_CONFIG.sidebarWidth }}
   >
     <SidebarSection />
   </section>
-);
+));
 
-const MainContent = ({ children }: { children: ReactNode }) => {
+FixedSidebar.displayName = 'FixedSidebar';
+
+const MainContent = memo(({ children }: { children: ReactNode }) => {
   const { activeTitle, parentTitle } = useContext(TabContext);
-
   const locale = useLocale();
   const { t } = useTranslation(translationConstant.SIDEBAR);
+  const [isLoading, setIsLoading] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     i18n.changeLanguage(locale);
   }, [locale]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const translatedTitle = t(activeTitle);
   const formattedTitle = parentTitle ? `${parentTitle}/${translatedTitle}` : translatedTitle;
@@ -62,19 +78,26 @@ const MainContent = ({ children }: { children: ReactNode }) => {
     >
       <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
       <section
-        className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725]" // optional slightly lighter than #080E16
+        className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725] relative"
         style={{
           maxHeight: '90vh',
-          overflowY: 'hidden',
+          overflowY: 'auto',
         }}
       >
+        {isLoading && (
+          <div className="absolute inset-0 bg-white dark:bg-[#0E1725] flex items-center justify-center z-50">
+            <CircularProgress />
+          </div>
+        )}
         {children}
       </section>
     </section>
   );
-};
+});
 
-const RootLayoutComponent = ({ children }: RootLayoutProps) => {
+MainContent.displayName = 'MainContent';
+
+const RootLayoutComponent = memo(({ children }: RootLayoutProps) => {
   const authState = useContext(AuthContext);
 
   if (authState?.checkingAuth) {
@@ -92,6 +115,8 @@ const RootLayoutComponent = ({ children }: RootLayoutProps) => {
       <MainContent>{children}</MainContent>
     </div>
   );
-};
+});
+
+RootLayoutComponent.displayName = 'RootLayoutComponent';
 
 export default RootLayoutComponent;
