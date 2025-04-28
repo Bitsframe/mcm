@@ -499,7 +499,7 @@ const Inventory = () => {
                   <TableRow className="flex h-full">
                     <TableCell
                       colSpan={tableHeader.length}
-                      className="h-[60dvh] text-center dark:text-gray-300"
+                      className="h-[30dvh] text-center dark:text-gray-300"
                     >
                       <h1>No Product is available</h1>
                     </TableCell>

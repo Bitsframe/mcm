@@ -327,7 +327,7 @@ const Categories = () => {
           </TableRow>
         ) : dataList.length === 0 ? (
           <TableRow className="flex h-full">
-            <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
+            <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
               <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
             </TableCell>
           </TableRow>

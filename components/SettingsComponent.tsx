@@ -84,6 +84,7 @@ const SettingsComponent: React.FC = () => {
   );
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchLocations();
@@ -159,6 +160,8 @@ const SettingsComponent: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search locations"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
                   className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
                 <svg
@@ -178,19 +181,23 @@ const SettingsComponent: React.FC = () => {
             </div>
 
             <div className="overflow-auto h-[calc(80dvh-200px)]">
-              {locations.map((location) => (
-                <div
-                  key={location.id}
-                  onClick={() => selectLocation(location)}
-                  className={`px-4 py-3 cursor-pointer border-b text-sm dark:border-gray-700 ${
-                    selectedLocation?.id === location.id
-                      ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  }`}
-                >
-                  {location.title}
-                </div>
-              ))}
+              {locations
+                .filter(location =>
+                  location.title.toLowerCase().includes(search.toLowerCase())
+                )
+                .map((location) => (
+                  <div
+                    key={location.id}
+                    onClick={() => selectLocation(location)}
+                    className={`px-4 py-3 cursor-pointer border-b text-sm dark:border-gray-700 ${
+                      selectedLocation?.id === location.id
+                        ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {location.title}
+                  </div>
+                ))}
             </div>
           </div>
 

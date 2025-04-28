@@ -24,7 +24,7 @@ export const Navbar = ({ width }: { width: string }) => {
 
   return (
     <header
-      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px]`}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px] z-50`}
       style={{ width: `calc(100% - ${width})` }}
     >
       <div className="text-[16px] font-[700]">

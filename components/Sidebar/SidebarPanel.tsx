@@ -1,13 +1,21 @@
 "use client";
 
 import { CustomFlowbiteTheme, Sidebar } from "flowbite-react";
-import { usePathname } from "next/navigation";
-import { ComponentType, useContext, useEffect, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  ComponentType,
+  useContext,
+  useEffect,
+  useMemo,
+  memo,
+  useState,
+} from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { AuthContext, TabContext } from "@/context";
 import { routeList, Route } from "./constant";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import Link from "next/link";
 
 const THEME: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -21,182 +29,166 @@ const STYLE = {
   marginBottom: "80px",
 };
 
-const ActiveIndicator = () => (
+const ActiveIndicator = memo(() => (
   <div
     style={{ zIndex: 30 }}
     className="w-[6px] h-[40px] bg-[#0F4698] bg-opacity-30 dark:bg-[#B3D4FF] dark:bg-opacity-20 rounded-r-[20px] absolute left-0 -ml-[1.25rem]"
   />
+));
+
+ActiveIndicator.displayName = "ActiveIndicator";
+
+const RouteIcon = memo(
+  ({
+    icon: Icon,
+    isActive = false,
+  }: {
+    icon?: ComponentType<{ className?: string }>;
+    isActive?: boolean;
+  }) => (
+    <div className="flex items-center">
+      {Icon && (
+        <Icon
+          className={`w-6 h-6 ${
+            isActive ? "text-[#0066ff]" : "text-gray-500 dark:text-gray-400"
+          }`}
+        />
+      )}
+    </div>
+  )
 );
 
-const RouteIcon = ({
-  icon: Icon,
-  isActive = false,
-}: {
-  icon?: ComponentType<{ className?: string }>;
-  isActive?: boolean;
-}) => (
-  <div className="flex items-center">
-    {Icon && (
-      <Icon
-        className={`w-6 h-6 ${
-          isActive ? "text-[#0066ff]" : "text-gray-500 dark:text-gray-400"
-        }`}
-      />
-    )}
-  </div>
-);
+RouteIcon.displayName = "RouteIcon";
 
 interface SingleRouteProps {
   route: Route;
   isActive: boolean;
+  onNavigate: () => void;
 }
 
-const SingleRoute = ({ route, isActive }: SingleRouteProps) => {
-  const { t } = useTranslation(translationConstant.SIDEBAR);
+const SingleRoute = memo(
+  ({ route, isActive, onNavigate }: SingleRouteProps) => {
+    const { t } = useTranslation(translationConstant.SIDEBAR);
 
-  return (
-    <div className="relative w-full">
-      {isActive && <ActiveIndicator />}
-      <Sidebar.Item
-        href={route.route}
-        icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
-        label={
-          <FaChevronRight
-            className={`text-[15px] ${
+    return (
+      <div className="relative w-full">
+        {isActive && <ActiveIndicator />}
+        <Link href={route.route || "#"} passHref onClick={onNavigate}>
+          <Sidebar.Item
+            icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
+            label={
+              <FaChevronRight
+                className={`text-[15px] ${
+                  isActive
+                    ? "text-[#0066ff]"
+                    : "text-[#79808B] dark:text-gray-400"
+                } -mr-1`}
+              />
+            }
+            labelColor="transparent"
+            className={`hover:text-[#0066ff] ${
               isActive ? "text-[#0066ff]" : "text-[#79808B] dark:text-gray-400"
-            } -mr-1`}
-          />
-        }
-        labelColor="transparent"
-        className={`hover:text-[#0066ff] ${
-          isActive
-            ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]"
-            : "text-[#79808B] dark:text-gray-400"
-        }`}
-      >
-        <div className="flex items-center gap-2">
-          <h3 className={`${isActive ? "text-[#0066ff]" : ""}`}>
-            {t(route.label)}
-          </h3>
-        </div>
-      </Sidebar.Item>
-    </div>
-  );
-};
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <h3 className={`${isActive ? "text-[#0066ff]" : ""}`}>
+                {t(route.label)}
+              </h3>
+            </div>
+          </Sidebar.Item>
+        </Link>
+      </div>
+    );
+  }
+);
+
+SingleRoute.displayName = "SingleRoute";
 
 interface CollapsibleRouteProps {
   route: Route;
   isActive: boolean;
   currentPath: string;
+  onNavigate: () => void;
 }
 
-const CollapsibleRoute = ({
-  route,
-  isActive,
-  currentPath,
-}: CollapsibleRouteProps) => {
-  const { t } = useTranslation(translationConstant.SIDEBAR);
+const CollapsibleRoute = memo(
+  ({ route, isActive, currentPath, onNavigate }: CollapsibleRouteProps) => {
+    const { t } = useTranslation(translationConstant.SIDEBAR);
 
-  return (
-    <div className="relative w-full">
-      {isActive && <ActiveIndicator />}
-      <Sidebar.Collapse
-        icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
-        label={t(route.label)}
-        className={`hover:text-[#0066ff] transition-all ease-out delay-75 ${
-          isActive
-            ? "bg-white dark:bg-[#1A1F27] text-[#0066ff]"
-            : "text-[#79808B] dark:text-gray-400"
-        }`}
-        open={isActive}
-      >
-        {route.children?.map((item) => {
-          const isCurrent = currentPath === item.route;
+    return (
+      <div className="relative w-full">
+        {isActive && <ActiveIndicator />}
+        <Sidebar.Collapse
+          icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
+          label={t(route.label)}
+          className={`hover:text-[#0066ff] transition-all ease-out delay-75 ${
+            isActive ? "text-[#0066ff]" : "text-[#79808B] dark:text-gray-400"
+          }`}
+          open={isActive}
+        >
+          {route.children?.map((item) => {
+            const isCurrent = currentPath === item.route;
 
-          return (
-            <Sidebar.Item
-              key={item.id}
-              href={item.route}
-              className={`text-left text-sm hover:text-[#0066ff] ${
-                isCurrent
-                  ? "text-[#0066ff]"
-                  : "text-[#79808B] dark:text-gray-400"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="relative w-4 h-4">
-                  {isCurrent && (
-                    <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
-                  )}
-                  <span
-                    className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
-                      isCurrent
-                        ? "bg-[#0066ff]"
-                        : "bg-[#79808B] dark:bg-gray-400"
-                    }`}
-                  />
-                </span>
-                <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
-                  {t(item.label)}
-                </span>
-              </div>
-            </Sidebar.Item>
-          );
-        })}
-      </Sidebar.Collapse>
-    </div>
-  );
-};
+            return (
+              <Link
+                key={item.id}
+                href={item.route || "#"}
+                passHref
+                onClick={onNavigate}
+              >
+                <Sidebar.Item
+                  className={`text-left text-sm hover:text-[#0066ff] ${
+                    isCurrent
+                      ? "text-[#0066ff]"
+                      : "text-[#79808B] dark:text-gray-400"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="relative w-4 h-4">
+                      {isCurrent && (
+                        <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
+                      )}
+                      <span
+                        className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
+                          isCurrent
+                            ? "bg-[#0066ff]"
+                            : "bg-[#79808B] dark:bg-gray-400"
+                        }`}
+                      />
+                    </span>
+                    <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
+                      {t(item.label)}
+                    </span>
+                  </div>
+                </Sidebar.Item>
+              </Link>
+            );
+          })}
+        </Sidebar.Collapse>
+      </div>
+    );
+  }
+);
 
-export const SidebarPanel = () => {
+CollapsibleRoute.displayName = "CollapsibleRoute";
+
+export const SidebarPanel = memo(() => {
   const pathname = usePathname();
-  const { userRole, permissions } = useContext(AuthContext);
-  const { setActiveTitle } = useContext(TabContext);
+  const router = useRouter();
+  const { userRole } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredRoutes = useMemo(() => {
-    if (userRole === "super admin") return routeList;
-
-    const filterRoutes = (routes: Route[]): Route[] => {
-      return routes
-        .map((route) => {
-          const isParentAllowed = permissions.some((perm: string) =>
-            route.name.toLowerCase().includes(perm.toLowerCase())
-          );
-
-          if (isParentAllowed) return route;
-
-          if (route.children) {
-            const filteredChildren = filterRoutes(route.children);
-            if (filteredChildren.length > 0) {
-              return { ...route, children: filteredChildren };
-            }
-          }
-          return null;
-        })
-        .filter((route): route is Route => route !== null);
-    };
-
-    return filterRoutes(routeList);
-  }, [userRole, permissions]);
+  const handleNavigate = () => {
+    setIsLoading(true);
+  };
 
   useEffect(() => {
-    const findActiveRoute = (routes: Route[]): Route | undefined => {
-      for (const route of routes) {
-        if (route.route === pathname) return route;
-        if (route.children) {
-          const childRoute = route.children.find(
-            (child) => child.route === pathname
-          );
-          if (childRoute) return childRoute;
-        }
-      }
-    };
+    setIsLoading(false);
+  }, [pathname]);
 
-    const activeRoute = findActiveRoute(routeList);
-    if (activeRoute) {
-      setActiveTitle(activeRoute.name);
-    }
-  }, [pathname, setActiveTitle]);
+  const filteredRoutes = useMemo(() => {
+    return routeList;
+  }, []);
 
   return (
     <Sidebar
@@ -214,6 +206,7 @@ export const SidebarPanel = () => {
                   key={route.id}
                   route={route}
                   isActive={route.route === pathname}
+                  onNavigate={handleNavigate}
                 />
               );
             }
@@ -228,6 +221,7 @@ export const SidebarPanel = () => {
                 route={route}
                 isActive={isRouteActive}
                 currentPath={pathname}
+                onNavigate={handleNavigate}
               />
             );
           })}
@@ -235,4 +229,6 @@ export const SidebarPanel = () => {
       </Sidebar.Items>
     </Sidebar>
   );
-};
+});
+
+SidebarPanel.displayName = "SidebarPanel";

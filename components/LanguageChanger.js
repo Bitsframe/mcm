@@ -28,7 +28,7 @@ export default function LanguageChanger({ locale }) {
   };
 
   return (
-    <div className="relative w-44">
+    <div className="relative w-44 z-50">
       {/* Selected Language */}
       <button
         onClick={() => setIsOpen(!isOpen)}
