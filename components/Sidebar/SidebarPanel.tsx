@@ -175,7 +175,7 @@ CollapsibleRoute.displayName = "CollapsibleRoute";
 export const SidebarPanel = memo(() => {
   const pathname = usePathname();
   const router = useRouter();
-  const { userRole } = useContext(AuthContext);
+  const { userRole, permissions } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNavigate = () => {
@@ -187,8 +187,32 @@ export const SidebarPanel = memo(() => {
   }, [pathname]);
 
   const filteredRoutes = useMemo(() => {
-    return routeList;
-  }, []);
+    // Super admin can see all routes
+    if (userRole === 'super admin') {
+      return routeList;
+    }
+
+    return routeList.filter(route => {
+      // Check if user has permission for this route
+      const hasPermission = permissions.some(perm => {
+        // Check exact permission match
+        if (route.name.toLowerCase() === perm.toLowerCase()) {
+          return true;
+        }
+        
+        // Check if any child route has permission
+        if (route.children) {
+          return route.children.some(child => 
+            permissions.some(p => child.name.toLowerCase() === p.toLowerCase())
+          );
+        }
+        
+        return false;
+      });
+
+      return hasPermission;
+    });
+  }, [permissions, userRole]);
 
   return (
     <Sidebar

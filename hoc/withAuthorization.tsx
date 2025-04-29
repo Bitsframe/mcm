@@ -1,7 +1,7 @@
 import { routeList } from "@/components/Sidebar/constant";
 import { AuthContext } from "@/context";
 import { CircularProgress } from "@mui/material";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect, useState } from "react";
 
 interface Route {
@@ -13,6 +13,7 @@ interface Route {
 const withAuthorization = (Component: any) => {
   return function AuthenticatedComponent(props: any) {
     const pathname = usePathname();
+    const router = useRouter();
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -63,14 +64,41 @@ const withAuthorization = (Component: any) => {
           return false;
         });
 
-        console.log("Current Route:", currentRoute.name);
-        console.log("User Permissions:", permissions);
-        console.log("Has Permission:", hasPermission);
+        if (!hasPermission) {
+          // Find first allowed route
+          const findFirstAllowedRoute = (routes: any[]): string | null => {
+            for (const route of routes) {
+              const hasRoutePermission = permissions.some(perm => 
+                route.name.toLowerCase() === perm.toLowerCase()
+              );
+              
+              if (hasRoutePermission) {
+                if (route.children && route.children.length > 0) {
+                  return route.children[0].route;
+                }
+                if (route.route) {
+                  return route.route;
+                }
+              }
+              
+              if (route.children) {
+                const childRoute = findFirstAllowedRoute(route.children);
+                if (childRoute) return childRoute;
+              }
+            }
+            return null;
+          };
+
+          const allowedRoute = findFirstAllowedRoute(routeList);
+          if (allowedRoute) {
+            router.push(allowedRoute);
+          }
+        }
 
         setIsAuthorized(hasPermission);
         setLoading(false);
       })();
-    }, [pathname, permissions, userRole]);
+    }, [pathname, permissions, userRole, router]);
 
     if (loading) {
       return (
