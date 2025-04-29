@@ -328,8 +328,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                     <Switch
                       id={`perm-${perm.name}`}
                       checked={newRolePermissions[perm.name] || false}
-                      //@ts-ignore
-                      onCheckedChange={(checked) =>
+                      onChange={(checked: boolean) =>
                         handlePermissionChange(perm.name, checked)
                       }
                       className="dark:bg-gray-600"
@@ -345,7 +344,11 @@ const RolesAndPermissionsComponent: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => toggleActivateAddNewRoleHandle(false)}
+                onClick={() => {
+                  setNewRoleName("");
+                  setNewRolePermissions({});
+                  toggleActivateAddNewRoleHandle(false);
+                }}
                 className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
               >
                 {t("RP_k4")}
@@ -356,7 +359,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 disabled={newAddLoading || !newRoleName.trim()}
                 className="dark:bg-blue-700 dark:hover:bg-blue-800"
               >
-                {newAddLoading ? <CircularProgress size={20} /> : t("RP_k8")}
+                {newAddLoading ? <CircularProgress size={20} /> : t("RP_k5")}
               </Button>
             </div>
           </SheetFooter>
