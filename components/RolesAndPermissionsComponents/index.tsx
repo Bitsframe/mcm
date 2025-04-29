@@ -32,17 +32,7 @@ const SingleRoleHandle = ({
   selectedRole,
 }: any) => {
   const [editValue, setEditValue] = useState(data.name);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check for dark mode preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode");
-    if (savedMode !== null) {
-      setDarkMode(savedMode === "true");
-    } else {
-      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    }
-  }, []);
+  const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
   const handleCancel = () => {
     setEditValue(data.name);
@@ -54,8 +44,6 @@ const SingleRoleHandle = ({
       updateRoleHandle({ id: data.id, name: editValue });
     }
   };
-
-  const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
   return (
     <div
@@ -141,42 +129,6 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const [newRolePermissions, setNewRolePermissions] = useState<
     Record<string, boolean>
   >({});
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check for dark mode preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode");
-    if (savedMode !== null) {
-      setDarkMode(savedMode === "true");
-    } else {
-      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    }
-  }, []);
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  const handleAllowAll = (allowed: boolean) => {
-    toggleAllPermissions(allowed);
-  };
-
-  const { setActiveTitle } = useContext(TabContext);
-
-  useEffect(() => {
-    setActiveTitle("Sidebar_k17");
-  }, []);
 
   // Initialize permissions for new role
   useEffect(() => {
@@ -206,6 +158,16 @@ const RolesAndPermissionsComponent: React.FC = () => {
       toggleActivateAddNewRoleHandle(false);
     }
   };
+
+  const handleAllowAll = (allowed: boolean) => {
+    toggleAllPermissions(allowed);
+  };
+
+  const { setActiveTitle } = useContext(TabContext);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k17");
+  }, []);
 
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
@@ -279,7 +241,6 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   disabled={selectedRole?.id === 1}
                   permission={perm}
                   onToggle={handlePermissionToggle}
-                  darkMode={darkMode}
                 />
               ))}
             </div>
