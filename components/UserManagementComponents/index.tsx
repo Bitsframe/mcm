@@ -52,32 +52,6 @@ const UserManagementComponent = () => {
   const [editData, setEditData] = useState<any>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check for saved dark mode preference or system preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode");
-    if (savedMode !== null) {
-      setDarkMode(savedMode === "true");
-    } else {
-      setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    }
-  }, []);
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -212,41 +186,40 @@ const UserManagementComponent = () => {
 
   return (
     <div className="flex justify-center px-4 py-3 dark:bg-gray-900">
-      <div className="w-full bg-white dark:bg-gray-800">
+      <div className="w-full bg-white rounded-lg dark:bg-gray-900">
         {/* Header with search and add button */}
         <div className="p-6 flex justify-between items-center">
           <div className="relative w-60">
             <input
               onChange={onChangeHandle}
-              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
               type="text"
               placeholder={t("Search users by name")}
             />
             <IoSearchOutline
-              className="absolute left-2 top-2.5 dark:text-gray-300"
+              className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300"
               size={18}
-              color={darkMode ? "#9CA3AF" : "#71717A"}
             />
           </div>
 
           <button
             onClick={handleOpen}
-            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:hover:bg-blue-700 dark:active:bg-blue-900 flex items-center gap-2"
+            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 flex items-center gap-2"
           >
             <span className="text-lg">+</span> {t("Add New User")}
           </button>
         </div>
 
         {/* Table */}
-        <div className="px-6">
+        <div className="px-6 pb-6">
           <div
-            className="border rounded-md overflow-auto dark:border-gray-700"
+            className="border rounded-md overflow-auto dark:border-gray-700 relative"
             style={{ maxHeight: "400px" }}
           >
             <Table>
-              <TableHeader>
+            <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                 <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-gray-700">
-                  <TableHead className="w-10">
+                  <TableHead className="w-10 dark:bg-gray-800">
                     {/* <input
                       type="checkbox"
                       className="rounded dark:bg-gray-700 dark:border-gray-600"
@@ -257,12 +230,12 @@ const UserManagementComponent = () => {
                       key={index}
                       className={`font-medium ${align || "text-left"} ${
                         classNames || ""
-                      } dark:text-white`}
+                      } dark:text-white dark:bg-gray-800`}
                     >
                       {t(label)}
-                      {index < tableHeader.length - 1 && (
+                      {/* {index < tableHeader.length - 1 && (
                         <span className="ml-1">↕</span>
-                      )}
+                      )} */}
                     </TableHead>
                   ))}
                 </TableRow>

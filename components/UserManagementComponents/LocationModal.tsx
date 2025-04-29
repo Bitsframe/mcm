@@ -60,7 +60,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
         onClick={handleOpen}
         className="border-[1px] w-full bg-[#f1f4f9] text-start px-3 py-2 text-gray-500 rounded-md"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between dark:text-gray-600">
           <span>
             {selectedLocationList.length > 0 ? `${selectedLocationList.length} Selected` : "Select Locations"}
           </span>
@@ -76,7 +76,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
         aria-describedby="location-modal-description"
       >
         <div className="w-full h-full flex justify-center items-center">
-          <div className="bg-white rounded-lg w-[35%]">
+          <div className="bg-white rounded-lg w-[35%] dark:bg-[#0e1725]">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <h2 id="location-modal-title" className="text-lg font-medium">
