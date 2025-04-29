@@ -86,40 +86,59 @@ export function useRolesAndPermissions() {
             if (roleRes?.length) {
                 const newRole = roleRes[0];
                 
-                // Then update permissions for the new role
-                const permissionUpdates = Object.entries(roleData.permissions).map(([permName, allowed]) => ({
-                    permission: permName,
-                    allowed
-                }));
-    
-                const { error: permError } = await create_content_service({
-                    table: 'role_permissions',
-                    language: '',
-                    post_data: {
-                        role_id: newRole.id,
-                        permissions: permissionUpdates
+                // Create permissions for the new role
+                const permissionEntries = Object.entries(roleData.permissions);
+                const permissionPromises = permissionEntries.map(async ([permName, allowed]) => {
+                    if (allowed) {
+                        const permission = permissionsList.find(p => p.name === permName);
+                        if (permission) {
+                            const { data: permData, error: permError } = await create_content_service({
+                                table: 'user_permissions',
+                                post_data: {
+                                    roles: newRole.id,
+                                    permissions: permission.id
+                                }
+                            });
+                            if (permError) {
+                                console.error(`Error creating permission ${permName}:`, permError);
+                                return null;
+                            }
+                            return permData;
+                        }
                     }
+                    return null;
                 });
-    
-                if (permError) {
-                    console.log(permError.message);
-                    toast.error("Role created but failed to set permissions");
-                    // Still add the role even if permissions failed
-                    setData((pre: any) => [...pre, newRole]);
-                    setNewAddLoading(false);
-                    setActiveForAddNewRoleInput(false);
-                    return;
+
+                // Wait for all permission creations to complete
+                const permissionResults = await Promise.all(permissionPromises);
+                
+                // Filter out null results and flatten the array
+                const successfulPermissions = permissionResults
+                    .filter(result => result !== null)
+                    .flat();
+
+                if (successfulPermissions.length > 0) {
+                    // Update the permissions list state
+                    setPermissionsList(prevPermissions => 
+                        prevPermissions.map(perm => ({
+                            ...perm,
+                            allowed: roleData.permissions[perm.name] || false
+                        }))
+                    );
+                    
+                    // Update the user permissions record
+                    setUserPermissionsListRecord(prev => [...prev, ...successfulPermissions]);
+                    
+                    toast.success('New role with permissions successfully added!');
+                } else {
+                    toast.success('New role created, but no permissions were added');
                 }
-    
-                toast.success('New role with permissions successfully added!');
-                setData((pre: any) => [...pre, {
-                    ...newRole,
-                    permissions: roleData.permissions
-                }]);
+
+                // Add the new role to the list
+                setData(prev => [...prev, newRole]);
             }
         } catch (error) {
-            //@ts-ignore
-            console.log(error.message);
+            console.error(error);
             toast.error("An unexpected error occurred");
         } finally {
             setNewAddLoading(false);
