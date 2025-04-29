@@ -86,9 +86,9 @@ export default function AddEditUserModal({
     aria-describedby="add-edit-user-modal-description"
   >
     <div className="w-full h-full flex justify-center items-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-2xl px-6 py-6 w-full max-w-[500px] shadow-lg">
+      <div className="bg-white rounded-2xl px-6 py-6 w-full dark:bg-[#0e1725] max-w-[500px] shadow-lg ">
         <div className="flex justify-between items-center mb-6">
-          <h2 id="add-edit-user-modal-title" className="text-lg font-semibold text-gray-900">
+          <h2 id="add-edit-user-modal-title" className="text-lg font-semibold dark:text-white text-gray-900">
             {editData ? t("UM_k15") : t("UM_k2")}
           </h2>
           <button onClick={closeModalHandle} className="text-gray-400 hover:text-gray-600 text-xl font-bold">
@@ -101,7 +101,7 @@ export default function AddEditUserModal({
             <Input_Component
               value={formData.fullName}
               placeholder={t("UM_k7")}
-              border="border border-gray-200 rounded-lg"
+              border="border border-gray-200 rounded-lg dark:border-none"
               onChange={(value) => handleInputChange("fullName", value)}
             />
 
@@ -114,6 +114,7 @@ export default function AddEditUserModal({
               options_arr={roles.map((role) => ({ value: role.id, label: role.name }))}
               on_change_handle={(e) => handleInputChange("roleId", Number(e.target.value))}
               required
+              
             />
           </div>
 
@@ -122,7 +123,7 @@ export default function AddEditUserModal({
             disabled={!!editData}
             placeholder={t("UM_k9")}
             type="email"
-            border="border border-gray-200 rounded-lg"
+            border="border border-gray-200 rounded-lg dark:border-none"
             onChange={(value) => handleInputChange("email", value)}
           />
 
@@ -132,13 +133,14 @@ export default function AddEditUserModal({
             disabled={!!editData}
             placeholder={t("UM_k10")}
             type="password"
-            border="border border-gray-200 rounded-lg"
+            border="border border-gray-200 rounded-lg dark:border-none"
             onChange={(value) => handleInputChange("password", value)}
           />
 
           <LocationModal
             selectionLocationIds={formData.locationIds}
             onChange={(value: number[]) => handleInputChange("locationIds", value)}
+          
           />
 
           <div className="flex justify-end gap-3 pt-4">
