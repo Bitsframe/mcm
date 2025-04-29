@@ -76,40 +76,40 @@ const ROUTES = {
 export const routeList: Route[] = [
   {
     id: 'home',
-    name: "Home",
+    name: "dashboard",
     label: "Sidebar_k1",
     icon: Home,
     children: [
-      { id: 'home-dashboard', name: "Dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
+      { id: 'home-dashboard', name: "dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
     ],
   },
   {
     id: 'patients',
-    name: "Patients",
+    name: "patients",
     label: "Sidebar_k3",
     icon: Users,
     children: [
-      { id: 'patients-all', name: "All Patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
-      { id: 'patients-onsite', name: "On-site", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
-      { id: 'patients-offsite', name: "Off-site", label: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
+      { id: 'patients-all', name: "patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
+      { id: 'patients-onsite', name: "patients", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
+      { id: 'patients-offsite', name: "patients", label: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
     ],
   },
   {
     id: 'appointments',
-    name: "Appointments",
+    name: "appointment",
     label: "Sidebar_k7",
     icon: CalendarCheck2,
     route: ROUTES.APPOINTMENTS,
   },
   {
     id: 'reputation',
-    name: "Reputation",
+    name: "reputation",
     label: "Sidebar_k8",
     icon: IdCard,
     children: [
       {
         id: 'reputation-private-feedback',
-        name: "Private Feedback",
+        name: "reputation",
         label: "Sidebar_k9",
         route: ROUTES.REPUTATION.PRIVATE_FEEDBACK
       },
@@ -117,74 +117,68 @@ export const routeList: Route[] = [
   },
   {
     id: 'pos',
-    name: "POS",
+    name: "pos",
     label: "Sidebar_k10",
     icon: Calculator,
     children: [
-      { id: 'pos-sales', name: "Sales", label: "Sidebar_k19", route: ROUTES.POS.SALES },
-      { id: 'pos-return', name: "Return", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
-      { id: 'pos-history', name: "History", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
+      { id: 'pos-sales', name: "pos", label: "Sidebar_k19", route: ROUTES.POS.SALES },
+      { id: 'pos-return', name: "pos", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
+      { id: 'pos-history', name: "pos", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
     ],
   },
   {
     id: 'inventory',
-    name: "Inventory",
+    name: "inventory",
     label: "Sidebar_k11",
     icon: Warehouse,
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
     id: 'inventory-stock',
-    name: "Stock Panel",
+    name: "inventory",
     label: "Sidebar_k12",
     icon: Layers,
     route: ROUTES.INVENTORY.STOCK_PANEL,
   },
   {
     id: 'tools',
-    name: "Tools",
+    name: "tools",
     label: "Sidebar_k13",
     icon: Hammer,
     children: [
       {
         id: 'tools-email',
-        name: "Email Broadcast",
+        name: "email broadcast",
         label: "Sidebar_k14",
         route: ROUTES.TOOLS.EMAIL_BROADCAST
       },
       {
         id: 'tools-website',
-        name: "Website Content",
+        name: "website content",
         label: "Sidebar_k15",
         route: ROUTES.TOOLS.WEBSITE_CONTENT
       },
       {
         id: 'tools-promo',
-        name: "Promo Codes",
+        name: "promo codes",
         label: "Sidebar_k16",
         route: ROUTES.TOOLS.PROMO_CODES
       },
       {
         id: 'tools-roles',
-        name: "Roles and Permissions",
+        name: "roles and permissions",
         label: "Sidebar_k17",
         route: ROUTES.TOOLS.ROLES_PERMISSIONS
       },
       {
         id: 'tools-users',
-        name: "User Management",
+        name: "user management",
         label: "Sidebar_k18",
         route: ROUTES.TOOLS.USER_MANAGEMENT
       },
-      // {
-      //   id: 'tools-text',
-      //   name: "Text-Broadcast",
-      //   label: "Sidebar_k23",
-      //   route: ROUTES.TOOLS.TEXT_BROADCAST,
-      // },
       {
         id: 'settings',
-        name: "Settings",
+        name: "settings",
         label: "Sidebar_k22",
         route: ROUTES.TOOLS.SETTINGS
       }

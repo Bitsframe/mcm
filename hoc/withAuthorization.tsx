@@ -1,6 +1,5 @@
 import { routeList } from "@/components/Sidebar/constant";
 import { AuthContext } from "@/context";
-import { rolePermissions } from "@/utils/permissions";
 import { CircularProgress } from "@mui/material";
 import { usePathname } from "next/navigation";
 import React, { useContext, useEffect, useState } from "react";
@@ -11,73 +10,67 @@ interface Route {
   children?: Route[];
 }
 
-const withAuthorization = (
-  Component: any
-) => {
+const withAuthorization = (Component: any) => {
   return function AuthenticatedComponent(props: any) {
     const pathname = usePathname();
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const {userRole, permissions} = useContext(AuthContext);
-
-
+    const { userRole, permissions } = useContext(AuthContext);
 
     useEffect(() => {
       (() => {
-        if (userRole === 'super admin') {
+        if (userRole === "super admin") {
           setIsAuthorized(true);
           setLoading(false);
-          return; 
+          return;
         }
-        const allowedRoutes = permissions;
-        const filterRoutes = (routes: any): Route[] => {
-          return routes
-            .map((route: any) => {
-              const isParentAllowed = allowedRoutes.some((perm:any) =>
-                route.name.toLowerCase().includes(perm.toLowerCase())
-              );
 
-              if (isParentAllowed) {
-                return route;
-              }
-
-              if (route.children) {
-                const filteredChildren = filterRoutes(route.children);
-                if (filteredChildren.length > 0) {
-                  return {
-                    ...route,
-                    children: filteredChildren,
-                  };
-                }
-              }
-
-              return null;
-            })
-            .filter((route: any): route is Route => route !== null);
+        const findRouteByPath = (path: string, routes: any[]): any => {
+          for (const route of routes) {
+            if (route.route === path) return route;
+            if (route.children) {
+              const found = findRouteByPath(path, route.children);
+              if (found) return found;
+            }
+          }
+          return null;
         };
 
-        const memoizedRouteList = filterRoutes(routeList);
+        const currentRoute = findRouteByPath(pathname, routeList);
 
-        const isAllowed = memoizedRouteList.some((route) => {
-          const checkRoute = (route: any): boolean => {
-            if (pathname === route.route) return true;
-            if (route.children) {
-              return route.children.some((childRoute: any) => pathname === childRoute.route);
-            }
-            return false;
-          };
-
-          return checkRoute(route);
-        });
-
-        if (isAllowed) {
-          setIsAuthorized(true);
+        if (!currentRoute) {
+          setIsAuthorized(false);
+          setLoading(false);
+          return;
         }
 
+        const hasPermission = permissions.some((perm) => {
+          if (currentRoute.name.toLowerCase() === perm.toLowerCase()) {
+            return true;
+          }
+
+          const parentRoute = routeList.find((r) =>
+            r.children?.some((child) => child.route === currentRoute.route)
+          );
+          if (
+            parentRoute &&
+            parentRoute.name.toLowerCase() === perm.toLowerCase()
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+
+        console.log("Current Route:", currentRoute.name);
+        console.log("User Permissions:", permissions);
+        console.log("Has Permission:", hasPermission);
+
+        setIsAuthorized(hasPermission);
         setLoading(false);
       })();
-    }, [pathname, rolePermissions, routeList]);
+    }, [pathname, permissions, userRole]);
 
     if (loading) {
       return (
@@ -87,7 +80,7 @@ const withAuthorization = (
       );
     }
 
-    return <Component {...props} isAllowed={isAuthorized} />
+    return <Component {...props} isAllowed={isAuthorized} />;
   };
 };
 

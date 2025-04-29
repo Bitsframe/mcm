@@ -636,7 +636,7 @@ const Orders = () => {
                 <button
                   onClick={placeOrderHandle}
                   disabled={!cartArray.length}
-                  className="bg-blue-600 rounded py-0.5 px-2 text-white disabled:opacity-50 flex items-center text-xs"
+                  className="bg-blue-600 rounded py-1 px-3 text-white disabled:opacity-50 flex items-center text-sm"
                 >
                   {placeOrderLoading ? (
                     <CircularProgress size={14} color="secondary" />
