@@ -39,68 +39,76 @@ interface DeleteContentServiceInterface {
   id: string | number;
 }
 
-
-export async function fetchLocations() {
+export const getUserAllowedLocations = async (userId: string) => {
+  try {
   const { data, error } = await supabase
-    .from('Locations')
-    .select('*')
+  // @ts-ignore
+      .from('user_locations')
+      .select('location_id')
+      .eq('user_id', userId);
 
-  if (error) {
-    throw new Error(error.message)
+    if (error) throw error;
+    return data.map(item => item.location_id);
+  } catch (error) {
+    console.error('Error fetching user locations:', error);
+    return [];
   }
+};
 
-  return data
-}
-
-export async function fetchApprovedAppointmentsByLocation(locationId: number | null) {
-  let query = supabase
-    .from('Appoinments')
-    .select(`*, location:Locations (
-      id,
-      title,
-      address,  
-      phone
-    )`)
-    .eq('isApproved', true); 
-
-  if (locationId) {
-    query = query.eq('location_id', locationId);
+export const fetchLocations = async (userId?: string) => {
+  try {
+    let query = supabase.from('Locations').select('*');
+    
+    // If userId is provided, only fetch locations allowed for that user
+    if (userId) {
+      const allowedLocationIds = await getUserAllowedLocations(userId);
+      if (allowedLocationIds.length > 0) {
+        query = query.in('id', allowedLocationIds);
+      } else {
+        return []; // Return empty array if user has no allowed locations
+      }
   }
 
   const { data, error } = await query;
-
-  if (error) {
-    console.log(error.message);
-    throw new Error(error.message);
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    return [];
   }
+};
 
+export const fetchApprovedAppointmentsByLocation = async (locationId: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('Appoinments')
+      .select('*')
+      .eq('location_id', locationId)
+      .eq('isApproved', true);
+
+    if (error) throw error;
   return data;
+  } catch (error) {
+    console.error('Error fetching approved appointments:', error);
+    return [];
 }
+};
 
-export async function fetchUnapprovedAppointmentsByLocation(locationId: number | null) {
-  let query = supabase
+export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) => {
+  try {
+    const { data, error } = await supabase
     .from('Appoinments')
-    .select(`*, location:Locations (
-      id,
-      title,
-      address,  
-      phone
-    )`)
+      .select('*')
+      .eq('location_id', locationId)
     .eq('isApproved', false); 
 
-  if (locationId) {
-    query = query.eq('location_id', locationId);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.log(error.message);
-    throw new Error(error.message);
-  }
-
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching unapproved appointments:', error);
+    return [];
 }
+};
 
 export async function ApproveAppointment  (id: number) {
   const { data, error } = await supabase
