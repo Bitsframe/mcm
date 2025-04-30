@@ -65,6 +65,7 @@ const Testimonials = () => {
     const select_location_handle = (val: React.ChangeEvent<HTMLSelectElement>) => {
         const value = val.target.value
         console.log('first')
+        //@ts-ignore
         set_location_handle(value)
         const filterByLocation = data_list.filter(data => data.location_id == value)
         setfilteredData(filterByLocation)
