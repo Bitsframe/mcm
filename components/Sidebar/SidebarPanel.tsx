@@ -114,6 +114,27 @@ interface CollapsibleRouteProps {
 const CollapsibleRoute = memo(
   ({ route, isActive, currentPath, onNavigate }: CollapsibleRouteProps) => {
     const { t } = useTranslation(translationConstant.SIDEBAR);
+    const { permissions, userRole } = useContext(AuthContext);
+
+    // Filter children based on permissions
+    const filteredChildren = useMemo(() => {
+      // Super admin can see all child routes
+      if (userRole === 'super admin') {
+        return route.children;
+      }
+
+      return route.children?.filter(child => {
+        // Check if user has permission for this child route
+        return permissions.some(perm => 
+          child.name.toLowerCase() === perm.toLowerCase()
+        );
+      });
+    }, [route.children, permissions, userRole]);
+
+    // If no children are accessible, don't render the parent
+    if (!filteredChildren?.length) {
+      return null;
+    }
 
     return (
       <div className="relative w-full">
@@ -126,7 +147,7 @@ const CollapsibleRoute = memo(
           }`}
           open={isActive}
         >
-          {route.children?.map((item) => {
+          {filteredChildren.map((item) => {
             const isCurrent = currentPath === item.route;
 
             return (
