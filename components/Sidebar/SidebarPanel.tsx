@@ -208,31 +208,39 @@ export const SidebarPanel = memo(() => {
   }, [pathname]);
 
   const filteredRoutes = useMemo(() => {
-    // Super admin can see all routes
     if (userRole === 'super admin') {
       return routeList;
     }
 
-    return routeList.filter(route => {
-      // Check if user has permission for this route
-      const hasPermission = permissions.some(perm => {
-        // Check exact permission match
-        if (route.name.toLowerCase() === perm.toLowerCase()) {
-          return true;
+    return routeList
+      .map(route => {
+        if (!route.children) {
+          // Parent without children
+          if (permissions.some(perm => route.name.toLowerCase() === perm.toLowerCase())) {
+            return route;
+          }
+          return null;
         }
-        
-        // Check if any child route has permission
-        if (route.children) {
-          return route.children.some(child => 
-            permissions.some(p => child.name.toLowerCase() === p.toLowerCase())
-          );
-        }
-        
-        return false;
-      });
 
-      return hasPermission;
-    });
+        // Parent with children
+        const allowedChildren = route.children.filter(child =>
+          permissions.some(perm => child.name.toLowerCase() === perm.toLowerCase())
+        );
+
+        // If parent allowed, show all children
+        if (permissions.some(perm => route.name.toLowerCase() === perm.toLowerCase())) {
+          return route;
+        }
+
+        // If any child allowed, show parent with only allowed children
+        if (allowedChildren.length > 0) {
+          return { ...route, children: allowedChildren };
+        }
+
+        // Otherwise, hide parent
+        return null;
+      })
+      .filter(Boolean); // Remove nulls
   }, [permissions, userRole]);
 
   return (
@@ -245,25 +253,26 @@ export const SidebarPanel = memo(() => {
       <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
         <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
           {filteredRoutes.map((route) => {
-            if (!route.children) {
+            //@ts-ignore
+            if (!route?.children) {
               return (
                 <SingleRoute
-                  key={route.id}
-                  route={route}
-                  isActive={route.route === pathname}
+                  key={route?.id}
+                  route={route!}
+                  isActive={route?.route === pathname}
                   onNavigate={handleNavigate}
                 />
               );
             }
 
-            const isRouteActive = route.children.some(
+            const isRouteActive = route?.children.some(
               (item) => pathname === item.route
             );
 
             return (
               <CollapsibleRoute
-                key={route.id}
-                route={route}
+                key={route?.id}
+                route={route!}
                 isActive={isRouteActive}
                 currentPath={pathname}
                 onNavigate={handleNavigate}

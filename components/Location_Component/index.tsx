@@ -8,6 +8,7 @@ const Location_Component = () => {
 
     const select_location_handle = (val: React.ChangeEvent<HTMLSelectElement>) => {
         const value = val.target.value
+        //@ts-ignore
         set_location_handle(value)
     }
 
