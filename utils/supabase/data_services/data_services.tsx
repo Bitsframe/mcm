@@ -1,7 +1,5 @@
 import { supabase } from "@/services/supabase"
 
-// data.js
-
 interface SortOptions {
   column: string;
   order: 'asc' | 'desc';
@@ -132,19 +130,32 @@ export async function fetch_content_service({
     .from(`${table}${language}`)
     .select(`*${selectParam ? selectParam : ''}`);
 
-  // Handle single or multiple match cases
   if (matchCase) {
     if (Array.isArray(matchCase)) {
-      // Apply each filter in the array
       matchCase.forEach((condition) => {
         if(condition){
           query = query.eq(condition.key, condition.value,);
         }
-        
       });
     } else {
-      // Apply single match case
       query = query.eq(matchCase.key, matchCase.value);
+    }
+  }
+
+  // Add location filtering for tables that have location_id
+  const locationBasedTables = ['allpatients', 'Appoinments', 'pos', 'inventory', 'sales_history'];
+  if (locationBasedTables.includes(table)) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: userLocations } = await supabase
+        .from('user_locations')
+        .select('location_id')
+        .eq('profile_id', user.id);
+      
+      if (userLocations && userLocations.length > 0) {
+        const locationIds = userLocations.map(loc => loc.location_id);
+        query = query.in('locationid', locationIds);
+      }
     }
   }
 

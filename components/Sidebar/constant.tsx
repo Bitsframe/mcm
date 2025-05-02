@@ -135,7 +135,7 @@ export const routeList: Route[] = [
   },
   {
     id: 'inventory-stock',
-    name: "inventory",
+    name: "Stock Panel",
     label: "Sidebar_k12",
     icon: Layers,
     route: ROUTES.INVENTORY.STOCK_PANEL,
