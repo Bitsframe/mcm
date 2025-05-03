@@ -84,6 +84,7 @@ const TableComponent: React.FC<Props> = ({
 
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full overflow-hidden text-black dark:text-white">
+      {/* Search and header section - unchanged */}
       <div className="py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155]">
           <CiSearch size={18} color="gray" />
@@ -100,19 +101,16 @@ const TableComponent: React.FC<Props> = ({
         {RightSideComponent ? <RightSideComponent /> : null}
       </div>
 
-      <div className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableBodyHeight} flex flex-col`}  >
-        {/* Header Table - Fixed */}
-        <div className="overflow-hidden">
-          <Table className="w-full rounded-lg">
+      {/* Table container - only changed the structure here */}
+      <div className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}>
+        {/* Single scrollable container for the entire table */}
+        <div className="flex-1 overflow-auto">
+          <Table className="w-full rounded-lg border-collapse">
+            {/* Header - unchanged content */}
             <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
-                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300">
-                  {/* <input
-                    type="checkbox"
-                    className="rounded border border-gray-400 dark:border-gray-600"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                  /> */}
+                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300 sticky left-0 bg-white dark:bg-[#1E293B] z-20">
+                  {/* Checkbox if needed */}
                 </TableHead>
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
@@ -131,12 +129,8 @@ const TableComponent: React.FC<Props> = ({
                 ))}
               </TableRow>
             </TableHeader>
-          </Table>
-        </div>
 
-        {/* Body Table - Scrollable */}
-        <div className="flex-1 overflow-auto">
-          <Table className="w-full rounded-lg">
+            {/* Body - unchanged content */}
             <TableBody>
               {loading ? (
                 <TableRow>
@@ -152,13 +146,8 @@ const TableComponent: React.FC<Props> = ({
                     key={index}
                     className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700"
                   >
-                    <TableCell className="w-12 py-3">
-                      {/* <input
-                        type="checkbox"
-                        className="rounded border border-gray-400 dark:border-gray-600"
-                        checked={selectedRows.includes(index)}
-                        onChange={() => handleSelectRow(index)}
-                      /> */}
+                    <TableCell className="w-12 py-3 sticky left-0 bg-white dark:bg-[#0e1725] z-10">
+                      {/* Checkbox if needed */}
                     </TableCell>
                     {tableHeader.map(
                       ({ id, render_value, align, flex }, ind) => {
@@ -185,6 +174,7 @@ const TableComponent: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* Footer section - unchanged */}
       <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300">
         <div>
           {selectedRows.length} of {dataList.length} row(s) selected.

@@ -243,8 +243,8 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4 ">
-            <div className="bg-blue-50 p-3 rounded-lg dark:bg-gray-700">
-              <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <Calendar className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -259,8 +259,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-green-50 p-3 rounded-lg dark:bg-gray-700">
-              <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <CheckCircle className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -275,8 +275,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-yellow-50 p-3 rounded-lg dark:bg-gray-700">
-              <Clock className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <Clock className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -291,8 +291,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-purple-50 p-3 rounded-lg dark:bg-gray-700">
-              <UserPlus className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <UserPlus className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -416,8 +416,9 @@ const AppointmentDetailsPanel = ({
           updateReflectOnCloseModal();
         }
       }}
+  
     >
-      <SheetContent className="p-0 dark:bg-gray-900">
+      <SheetContent className="p-0 dark:bg-gray-900 m-3 rounded-xl">
         <SheetTitle className="sr-only">
           {appointmentDetails
             ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`

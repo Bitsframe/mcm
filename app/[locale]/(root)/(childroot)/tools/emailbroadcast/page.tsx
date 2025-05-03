@@ -143,11 +143,13 @@ const EmailBroadcast: React.FC = () => {
 
     if (SelectedTemplateComponent) {
       return (
-        <div 
+        <div
           className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
-          style={{
-            "--text-color": "var(--foreground)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--text-color": "var(--foreground)",
+            } as React.CSSProperties
+          }
         >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
@@ -340,6 +342,43 @@ const EmailBroadcast: React.FC = () => {
 
               <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
                 <AlertDialogHeader>
+                  <h3 className="text-sm font-medium text-foreground mb-2">
+                    {t("EmailB_k1") || "Selected Emails"}:
+                  </h3>
+                  {/* New Selected Items Display Section */}
+                  {checkedItems.length > 0 && (
+                    <div className="mb-4 p-3 bg-accent dark:bg-[#0e1725] rounded border border-input dark:border-[#0e1725]">
+                      <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
+                        {checkedItems.map((item: any, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+                          >
+                            {item.email}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCheckboxChange(
+                                  {
+                                    //@ts-ignore
+                                    target: {
+                                      value: item.email,
+                                      checked: false,
+                                    },
+                                  },
+                                  item
+                                );
+                              }}
+                              className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 dark:hover:bg-blue-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {!filter ? (
                     <>
                       <div className="flex items-center cursor-pointer justify-between">
@@ -435,7 +474,7 @@ const EmailBroadcast: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
-                                  className="border-2 border-muted bg-secondary dark:bg-[#0e1725] rounded p-2"
+                                  className="border-2 border-black bg-slate-200 dark:bg-[#f1f4f9] rounded p-2"
                                   id={`checkbox-${index}`}
                                   value={email.email}
                                   checked={checkedItems.some(
@@ -626,16 +665,15 @@ const EmailBroadcast: React.FC = () => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="sticky bottom-0 bg-background dark:bg-[#080e16] pt-4 pb-2 border-t border-border dark:border-[#0e1725]">
-                <AlertDialogCancel className="bg-background dark:bg-[#080e16]">
-
-                  {!filter && checkedItems.length > 0 && (
-                    <Button
-                      onClick={() => setFilter(false)}
-                      className="bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      Next
-                    </Button>
-                  )}
+                  <AlertDialogCancel className="bg-background dark:bg-[#080e16]">
+                    {!filter && checkedItems.length > 0 && (
+                      <Button
+                        onClick={() => setFilter(false)}
+                        className="bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        Next
+                      </Button>
+                    )}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
