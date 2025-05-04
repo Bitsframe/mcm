@@ -1,8 +1,9 @@
-const { useEffect, useState } = require("react");
+import { useEffect, useState } from "react";
 import { AuthContext, LocationContext } from '@/context';
 import { fetchLocations, updateLocationData } from '@/utils/supabase/data_services/data_services'
 import { useContext } from 'react';
 import { toast } from 'react-toastify';
+
 
 const LOCAL_STORAGE_KEY = "@location";
 
@@ -100,4 +101,3 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
         set_update_loading,
         handle_update
     };
-}

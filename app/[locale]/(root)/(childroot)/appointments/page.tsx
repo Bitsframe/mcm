@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import withAuthorization from '@/hoc/withAuthorization';
 
 interface Appointment {
   id: number;
@@ -46,6 +47,24 @@ interface Appointment {
   location?: LocationInterface;
   in_office_patient: boolean;
   new_patient: boolean;
+}
+
+interface AppointmentResponse {
+  id: number;
+  email_Address: string | null;
+  date_and_time: string | null;
+  address: string | null;
+  location_id: number;
+  first_name: string | null;
+  dob: string | null;
+  last_name: string | null;
+  service: string | null;
+  sex: string | null;
+  phone: string | null;
+  created_at: string;
+  in_office_patient: boolean;
+  new_patient: boolean;
+  isApproved: boolean;
 }
 
 const Appointments = () => {
@@ -110,10 +129,54 @@ const Appointments = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedLocation) {
-      fetchDataHandler(Number(selectedLocation.id));
-    }
-  }, [selectedLocation, fetchDataHandler]);
+    const fetchAppointments = async () => {
+      if (selectedLocation) {
+        setAppointLoading(true);
+        try {
+          const approved = await fetchApprovedAppointmentsByLocation(selectedLocation.id) as AppointmentResponse[];
+          const unapproved = await fetchUnapprovedAppointmentsByLocation(selectedLocation.id) as AppointmentResponse[];
+          
+          // Map the data to match the Appointment interface
+          const mappedApproved = approved?.map(app => ({
+            ...app,
+            email_address: app.email_Address || '',
+            date_and_time: app.date_and_time || '',
+            phone: app.phone || '',
+            first_name: app.first_name || '',
+            last_name: app.last_name || '',
+            service: app.service || '',
+            sex: app.sex || '',
+            address: app.address || '',
+            dob: app.dob || ''
+          })) || [];
+
+          const mappedUnapproved = unapproved?.map(app => ({
+            ...app,
+            email_address: app.email_Address || '',
+            date_and_time: app.date_and_time || '',
+            phone: app.phone || '',
+            first_name: app.first_name || '',
+            last_name: app.last_name || '',
+            service: app.service || '',
+            sex: app.sex || '',
+            address: app.address || '',
+            dob: app.dob || ''
+          })) || [];
+
+          setApprovedAppointments(mappedApproved);
+          setFilteredApproved(mappedApproved);
+          setUnapprovedAppointments(mappedUnapproved);
+          setFilteredUnapproved(mappedUnapproved);
+        } catch (error) {
+          console.error('Error fetching appointments:', error);
+          toast.error('Failed to fetch appointments');
+        } finally {
+          setAppointLoading(false);
+        }
+      }
+    };
+    fetchAppointments();
+  }, [selectedLocation]);
 
   const findLocations = useCallback(
     (locationId: number) => {
