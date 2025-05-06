@@ -23,6 +23,7 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
         const fetchData = async () => {
             try {
                 const allLocations = await fetchLocations();
+
                 
                 // Check if user has full access
                 const hasFullAccess = FULL_ACCESS_ROLES.includes(userRole?.toLowerCase());
@@ -57,7 +58,8 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
     const set_location_handle = (value: any) => {
         setSelected_location(value);
-        const data = locations.find((item: { id: number | string; }) => item.id == value)
+
+        const data: any = locations.find((item: { id: number | string; }) => item.id == value)
         localStorage.setItem(LOCAL_STORAGE_KEY, value.toLocaleString())
         setSelected_location_data(data)
         setSelectedLocation(data)
@@ -78,10 +80,14 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
     const handle_update = async () => {
         set_update_loading(true);
-        const res_data = await updateLocationData(change_data.id, change_data);
-        if (res_data?.length) {
-            toast.success('Updated successfully');
+        if (change_data) {
+            const res_data = await updateLocationData(change_data.id, change_data);
+            if (res_data?.length) {
+                toast.success('Updated successfully');
+            }
+            setSelected_location_data(() => res_data[0]);
         }
+
         setSelected_location_data(() => res_data[0]);
         set_update_loading(false);
         set_is_edited(false);

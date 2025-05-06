@@ -5,17 +5,22 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useLocationClinica } from "@/hooks/useLocationClinica"
 import { LuChevronDown, LuX } from "react-icons/lu"
+import { getUserAllowedLocations } from "@/utils/supabase/data_services/data_services"
+//@ts-ignore
+import { Location } from "@/types/location"
 
 interface LocationModalProps {
   onChange: (selectedLocations: number[]) => void
   selectionLocationIds: number[]
+  userId?: string // Add userId prop
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocationIds }) => {
+const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocationIds, userId }) => {
   const [open, setOpen] = useState(false)
   const [selectedLocationList, setSelectedLocationList] = useState<number[]>(selectionLocationIds)
   const [selectAll, setSelectAll] = useState(false)
-  const { locations } = useLocationClinica() // Assuming this hook provides location data.
+  const [allowedLocations, setAllowedLocations] = useState<Location[]>([])
+  const { locations } = useLocationClinica()
 
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
@@ -25,9 +30,23 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
   }, [selectedLocationList, onChange])
 
   useEffect(() => {
-    // Update selectAll state when all locations are selected
-    setSelectAll(locations.length > 0 && selectedLocationList.length === locations.length)
-  }, [selectedLocationList, locations])
+    // Filter locations based on user's allowed locations
+    const filterLocations = async () => {
+      if (userId) {
+        const allowedIds = await getUserAllowedLocations(userId)
+        const filtered = locations.filter((loc: Location) => allowedIds.includes(loc.id))
+        setAllowedLocations(filtered)
+      } else {
+        setAllowedLocations(locations)
+      }
+    }
+    filterLocations()
+  }, [userId, locations])
+
+  useEffect(() => {
+    // Update selectAll state when all allowed locations are selected
+    setSelectAll(allowedLocations.length > 0 && selectedLocationList.length === allowedLocations.length)
+  }, [selectedLocationList, allowedLocations])
 
   const selectLocationHandle = (id: number, add: boolean) => {
     if (add) {
@@ -42,8 +61,8 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
       // If all are selected, deselect all
       setSelectedLocationList([])
     } else {
-      // Select all locations
-      setSelectedLocationList(locations.map((location: { id: any }) => location.id))
+      // Select all allowed locations
+      setSelectedLocationList(allowedLocations.map((location) => location.id))
     }
     setSelectAll(!selectAll)
   }
@@ -109,7 +128,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
 
             {/* Locations List */}
             <div className="max-h-[300px] overflow-y-auto">
-              {locations.map(({ title, id }: { title: string; id: number }) => {
+              {allowedLocations.map(({ title, id }) => {
                 const isSelected = selectedLocationList.includes(id)
                 return (
                   <div key={id} className="bg-gray-50 m-2 rounded-lg">

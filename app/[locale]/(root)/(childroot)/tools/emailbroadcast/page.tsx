@@ -41,12 +41,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
+import { toast } from "sonner";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -242,12 +243,12 @@ const EmailBroadcast: React.FC = () => {
         return;
       }
 
-      const toastId = toast.loading("Sending emails...", {
-        position: "top-center",
-        autoClose: false,
-        closeButton: false,
-        theme: "dark",
-      });
+      // const toastId = toast.loading("Sending emails...", {
+      //   position: "top-center",
+      //   autoClose: false,
+      //   closeButton: false,
+      //   theme: "dark",
+      // });
 
       const res = await fetch("/api/sendEmail", {
         method: "POST",
@@ -272,42 +273,26 @@ const EmailBroadcast: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.update(toastId, {
-          render: (
-            <div className="flex flex-col">
-              <div className="font-bold text-lg">Email Sent Successfully!</div>
-              <div className="text-sm mt-1">
-                Sent to {checkedItems.length} recipient(s)
-              </div>
-            </div>
-          ),
-          type: "success",
-          isLoading: false,
-          autoClose: 5000,
-          closeButton: true,
-          position: "top-center",
-          theme: "dark",
-          className: "bg-green-600 text-white",
-        });
+        toast.success(`Email Sent Successfully to ${checkedItems.length} recipient(s)`);
+        setSubject('')
+        setButtonLink('')
+        setButtonText('')
+        setName('')
+        setClinicName('')
+        setReason('')
+        setStartDate(undefined)
+        setEndDate(undefined)
+        setCheckedItems([])
+        setPrice('')
+
+
       } else {
         console.error("Email sending failed:", data);
-        toast.update(toastId, {
-          render: data.message || "Failed to send email",
-          type: "error",
-          isLoading: false,
-          autoClose: 5000,
-          closeButton: true,
-          position: "top-center",
-          theme: "dark",
-        });
+        toast.error(data.message || "Failed to send email");
       }
     } catch (error: any) {
       console.error("Email sending error:", error);
-      toast.error(error.message || "Failed to send email", {
-        position: "top-center",
-        autoClose: 5000,
-        theme: "dark",
-      });
+      toast.error(error.message || "Failed to send email");
     }
   };
 
@@ -330,12 +315,12 @@ const EmailBroadcast: React.FC = () => {
                 <button className="w-full p-2 my-1 border text-[16px] bg-[#f1f4f7] text-muted-foreground text-left border-input rounded dark:bg-[#374151]">
                   {checkedItems.length > 0
                     ? checkedItems
-                        .slice(0, 2)
-                        .map((email: { email: string }) => email.email)
-                        .join(", ") +
-                      (checkedItems.length > 2
-                        ? ` +${checkedItems.length - 2} more`
-                        : "")
+                      .slice(0, 2)
+                      .map((email: { email: string }) => email.email)
+                      .join(", ") +
+                    (checkedItems.length > 2
+                      ? ` +${checkedItems.length - 2} more`
+                      : "")
                     : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
@@ -498,8 +483,8 @@ const EmailBroadcast: React.FC = () => {
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
-                                    ? "F"
-                                    : "O"}
+                                      ? "F"
+                                      : "O"}
                                 </Label>
                               </div>
                             </div>

@@ -102,7 +102,7 @@ export async function POST(req: any) {
       subject: payload.subject
     });
 
-    const endpoint = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
+    const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email` || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
 
     const response = await axios.post(endpoint, payload, {
       headers: {

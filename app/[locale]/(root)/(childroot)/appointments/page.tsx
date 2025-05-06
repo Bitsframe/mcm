@@ -30,23 +30,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface Appointment {
-  id: number;
-  email_address: string;
-  date_and_time: string;
-  address: string;
-  location_id: number;
-  first_name: string;
-  dob: string;
-  last_name: string;
-  service: string;
-  sex: string;
-  phone: string;
-  created_at: string;
-  location?: LocationInterface;
-  in_office_patient: boolean;
-  new_patient: boolean;
-}
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -117,7 +100,8 @@ const Appointments = () => {
 
   const findLocations = useCallback(
     (locationId: number) => {
-      return locations.find((location: any) => location.id === locationId);
+      const location = locations.find((location: any) => location.id === locationId);
+      return location as unknown as LocationInterface || null;
     },
     [locations]
   );
