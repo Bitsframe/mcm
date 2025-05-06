@@ -1,5 +1,5 @@
 import { Modal } from "@mui/material";
-import { MdArrowBackIos, MdClose } from "react-icons/md";
+import { MdClose } from "react-icons/md";
 import React, { useState } from "react";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { RiCheckboxBlankFill, RiCheckboxBlankLine } from "react-icons/ri";
@@ -14,7 +14,7 @@ const ChangeLocationModal = () => {
     selected_location_data,
   } = useLocationClinica({ defaultSetFirst: true });
 
-  const [selectedId, setSelectedId] = useState(0);
+  const [selectedId, setSelectedId] = useState<any>(0);
 
   const handleOpen = () => {
     setOpen(true);

@@ -41,12 +41,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
+import { toast } from "sonner";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -143,11 +144,13 @@ const EmailBroadcast: React.FC = () => {
 
     if (SelectedTemplateComponent) {
       return (
-        <div 
+        <div
           className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
-          style={{
-            "--text-color": "var(--foreground)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--text-color": "var(--foreground)",
+            } as React.CSSProperties
+          }
         >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
@@ -240,12 +243,12 @@ const EmailBroadcast: React.FC = () => {
         return;
       }
 
-      const toastId = toast.loading("Sending emails...", {
-        position: "top-center",
-        autoClose: false,
-        closeButton: false,
-        theme: "dark",
-      });
+      // const toastId = toast.loading("Sending emails...", {
+      //   position: "top-center",
+      //   autoClose: false,
+      //   closeButton: false,
+      //   theme: "dark",
+      // });
 
       const res = await fetch("/api/sendEmail", {
         method: "POST",
@@ -270,42 +273,26 @@ const EmailBroadcast: React.FC = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.update(toastId, {
-          render: (
-            <div className="flex flex-col">
-              <div className="font-bold text-lg">Email Sent Successfully!</div>
-              <div className="text-sm mt-1">
-                Sent to {checkedItems.length} recipient(s)
-              </div>
-            </div>
-          ),
-          type: "success",
-          isLoading: false,
-          autoClose: 5000,
-          closeButton: true,
-          position: "top-center",
-          theme: "dark",
-          className: "bg-green-600 text-white",
-        });
+        toast.success(`Email Sent Successfully to ${checkedItems.length} recipient(s)`);
+        setSubject('')
+        setButtonLink('')
+        setButtonText('')
+        setName('')
+        setClinicName('')
+        setReason('')
+        setStartDate(undefined)
+        setEndDate(undefined)
+        setCheckedItems([])
+        setPrice('')
+
+
       } else {
         console.error("Email sending failed:", data);
-        toast.update(toastId, {
-          render: data.message || "Failed to send email",
-          type: "error",
-          isLoading: false,
-          autoClose: 5000,
-          closeButton: true,
-          position: "top-center",
-          theme: "dark",
-        });
+        toast.error(data.message || "Failed to send email");
       }
     } catch (error: any) {
       console.error("Email sending error:", error);
-      toast.error(error.message || "Failed to send email", {
-        position: "top-center",
-        autoClose: 5000,
-        theme: "dark",
-      });
+      toast.error(error.message || "Failed to send email");
     }
   };
 
@@ -328,18 +315,55 @@ const EmailBroadcast: React.FC = () => {
                 <button className="w-full p-2 my-1 border text-[16px] bg-[#f1f4f7] text-muted-foreground text-left border-input rounded dark:bg-[#374151]">
                   {checkedItems.length > 0
                     ? checkedItems
-                        .slice(0, 2)
-                        .map((email: { email: string }) => email.email)
-                        .join(", ") +
-                      (checkedItems.length > 2
-                        ? ` +${checkedItems.length - 2} more`
-                        : "")
+                      .slice(0, 2)
+                      .map((email: { email: string }) => email.email)
+                      .join(", ") +
+                    (checkedItems.length > 2
+                      ? ` +${checkedItems.length - 2} more`
+                      : "")
                     : t("EmailB_k1")}
                 </button>
               </AlertDialogTrigger>
 
               <AlertDialogContent className="w-[500px] h-[500px] overflow-auto flex-1 p-4 bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
                 <AlertDialogHeader>
+                  <h3 className="text-sm font-medium text-foreground mb-2">
+                    {t("EmailB_k1") || "Selected Emails"}:
+                  </h3>
+                  {/* New Selected Items Display Section */}
+                  {checkedItems.length > 0 && (
+                    <div className="mb-4 p-3 bg-accent dark:bg-[#0e1725] rounded border border-input dark:border-[#0e1725]">
+                      <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
+                        {checkedItems.map((item: any, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+                          >
+                            {item.email}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCheckboxChange(
+                                  {
+                                    //@ts-ignore
+                                    target: {
+                                      value: item.email,
+                                      checked: false,
+                                    },
+                                  },
+                                  item
+                                );
+                              }}
+                              className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 dark:hover:bg-blue-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {!filter ? (
                     <>
                       <div className="flex items-center cursor-pointer justify-between">
@@ -435,7 +459,7 @@ const EmailBroadcast: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
-                                  className="border-2 border-muted bg-secondary dark:bg-[#0e1725] rounded p-2"
+                                  className="border-2 border-black bg-slate-200 dark:bg-[#f1f4f9] rounded p-2"
                                   id={`checkbox-${index}`}
                                   value={email.email}
                                   checked={checkedItems.some(
@@ -459,8 +483,8 @@ const EmailBroadcast: React.FC = () => {
                                   {email.gender === "Male"
                                     ? "M"
                                     : email.gender === "Female"
-                                    ? "F"
-                                    : "O"}
+                                      ? "F"
+                                      : "O"}
                                 </Label>
                               </div>
                             </div>
@@ -626,16 +650,15 @@ const EmailBroadcast: React.FC = () => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="sticky bottom-0 bg-background dark:bg-[#080e16] pt-4 pb-2 border-t border-border dark:border-[#0e1725]">
-                <AlertDialogCancel className="bg-background dark:bg-[#080e16]">
-
-                  {!filter && checkedItems.length > 0 && (
-                    <Button
-                      onClick={() => setFilter(false)}
-                      className="bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      Next
-                    </Button>
-                  )}
+                  <AlertDialogCancel className="bg-background dark:bg-[#080e16]">
+                    {!filter && checkedItems.length > 0 && (
+                      <Button
+                        onClick={() => setFilter(false)}
+                        className="bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        Next
+                      </Button>
+                    )}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
