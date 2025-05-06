@@ -272,15 +272,15 @@ export const Add_Appointment_Modal = ({
         <CirclePlus color="white" />
         {t("Appoinments_k15")}
       </button>
-      <Modal
-        show={open}
-        onClose={close_handle}
-      >
+      <Modal show={open} onClose={close_handle}>
         <Modal.Header className="border-b border-gray-200 dark:bg-[#080e16] dark:border-gray-700">
-          <div className="flex items-center justify-between">
+          <div>
             <h1 className="font-bold text-xl text-black dark:text-white">
               Add an Appointment
             </h1>
+            <p className="text-base text-gray-600 dark:text-gray-300">
+              Make changes to the patient’s information and save them.
+            </p>
           </div>
         </Modal.Header>
 
@@ -367,7 +367,6 @@ export const Add_Appointment_Modal = ({
                   value={formData.last_name}
                   placeholder="LastName"
                   bg_color="dark:bg-[#374151] bg-white"
-
                 />
               </div>
             </div>
@@ -487,7 +486,7 @@ export const Add_Appointment_Modal = ({
                 value={formData.street_address}
                 placeholder="Enter your address with zipcode"
                 bg_color="dark:bg-[#374151] bg-white"
-                />
+              />
             </div>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>

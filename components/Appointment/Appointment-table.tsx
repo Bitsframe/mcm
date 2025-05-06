@@ -90,19 +90,11 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       ) : (
         <>
           <div className="relative overflow-hidden flex flex-col h-[calc(100vh-470px)]">
-            {/* Header Table - Fixed */}
-            <div className="overflow-x-auto">
+            <div className="overflow-auto">
               <Table className="border-collapse w-full">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
                   <TableRow className="dark:border-gray-700">
                     <TableHead className="w-12 dark:border-gray-700 sticky left-0 bg-gray-50 dark:bg-[#0E1725] z-20">
-                      {/* <Checkbox
-                        checked={allSelected}
-                        onCheckedChange={handleSelectAll}
-                        //@ts-ignore
-                        indeterminate={someSelected}
-                        className="dark:border-gray-600"
-                      /> */}
                     </TableHead>
                     {[
                       { label: t("Appoinments_k26"), sort: "name" },
@@ -138,13 +130,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-              </Table>
-            </div>
 
-            {/* Body Table - Scrollable */}
-            <div className="overflow-y-auto flex-1">
-              <Table className="border-collapse w-full">
-                <TableBody>
+                <TableBody className="overflow-y-auto">
                   {appointments.map((appointment: Appointment) => (
                     <MemoizedTableRow
                       key={appointment.id}

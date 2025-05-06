@@ -14,7 +14,9 @@ const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
           <p className="mt-0.5 mb-1 text-gray-500 text-sm">POS / Sales</p>
         </div>
         <div className="h-px w-full bg-gray-300"></div>
+        <div className="flex justify-start">
         <TopTabs />
+        </div>
       </div>
       <main
         style={{ zIndex: 9999999 }}

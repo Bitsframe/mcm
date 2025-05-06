@@ -6,14 +6,14 @@ import { createContext, useEffect, useState } from "react";
 interface AuthState {
     checkingAuth: boolean;
     userProfile: any;
-    allowedLocations: any[];
+    allowedLocations: number[];
     userRole: string;
-    permissions: any[];
+    permissions: string[];
     authError: any;
 }
 
 interface AuthContextType extends AuthState {
-    setAuthState: (state: Partial<AuthState>) => void;
+    setAuthState: (newState: Partial<AuthState>) => void;
 }
 
 const initialAuthState: AuthState = {
@@ -46,17 +46,22 @@ export const AuthProvider = ({ children }: any) => {
                 const response = await axios.get('/api/user');
                 const { role, permissions, locations, profile } = response.data.data;
 
-                console.log("RESPONSE -> ", response);
+                // Ensure locations is an array of numbers
+                const locationIds = Array.isArray(locations) ? locations : [];
+
                 updateAuthState({
                     checkingAuth: false,
                     userProfile: profile,
-                    allowedLocations: locations,
+                    allowedLocations: locationIds,
                     userRole: role,
                     permissions: permissions,
                     authError: null
                 });
+
+                // Store allowed locations in localStorage for persistence
+                localStorage.setItem('allowedLocations', JSON.stringify(locationIds));
             } catch (error) {
-                console.log("ERROR -> ", error);
+                console.error("Error fetching user data:", error);
                 updateAuthState({
                     checkingAuth: false,
                     authError: axios.isAxiosError(error) ? error.response?.data || error.message : "Failed to fetch user data."

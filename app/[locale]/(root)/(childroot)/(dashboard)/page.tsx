@@ -32,29 +32,44 @@ const InfoCard = memo(
     value,
     type = "text",
     icon,
-    customBgClass = "bg-white dark:bg-slate-800",
+    customBgClass = "bg-gray-100 dark:bg-slate-700", // Changed default to gray
     bgImage,
+    isFirstCard = false // Added new prop to identify first card
   }: {
     label: string;
     value: any;
     type?: "text" | "image";
-    icon?: string;
+    icon?: string
     customBgClass?: string;
     bgImage?: string;
+    isFirstCard?: boolean; // Added new prop
   }) => {
     const { t } = useTranslation();
+    // Determine background class based on isFirstCard
+    const backgroundClass = isFirstCard 
+      ? "bg-[#0066ff] text-white" 
+      : customBgClass;
+      
     return (
       <div
-        className={`w-full h-full ${customBgClass} rounded-[16px] p-3 flex flex-col bg-no-repeat bg-cover bg-center text-slate-800 dark:text-slate-200`}
-        style={bgImage ? { backgroundImage: `url(${bgImage})` } : {}}
+        className={`w-full h-full ${backgroundClass} rounded-[16px] p-3 flex flex-col bg-no-repeat bg-cover bg-center text-slate-800 dark:text-slate-200`}
+        style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: '80% auto', // Smaller background image
+        backgroundPosition: 'right center', } : {}}
       >
         <div className="mb-2">
           {icon && (
             <div className="flex justify-start mb-1.5">
-              <img src={icon} alt="icon" className="w-6 h-6 object-contain" />
+              <div className={`w-8 h-8 rounded-md ${
+                isFirstCard ? 'bg-white/20' : 'bg-white'
+              } flex items-center justify-center`}>
+                <img src={icon} alt="icon" className="w-4 h-4 object-contain" />
+              </div>
             </div>
           )}
-          <h1 className="text-sm font-bold text-left">{t(label)}</h1>
+
+          <h1 className={`text-sm text-left  ${
+            isFirstCard ? 'text-white' : 'text-[#79808B] dark:text-slate-200'
+          }`}>{t(label)}</h1>
         </div>
         <div className="mt-auto">
           {type === "image" ? (
@@ -63,7 +78,9 @@ const InfoCard = memo(
             </div>
           ) : (
             <div className="text-left">
-              <p className="break-words text-base font-bold">{value}</p>
+              <p className={`break-words text-base font-bold ${
+                isFirstCard ? 'text-white' : 'text-slate-800 dark:text-slate-200'
+              }`}>{value}</p>
             </div>
           )}
         </div>
@@ -91,7 +108,7 @@ const DataField = memo(
         </div>
       )}
       <div className="flex flex-col justify-end">
-        <dt className="font-bold text-xs">{label}</dt>
+        <dt className="font-bold text-sm">{label}</dt>
         <dd className="break-words text-xs">{value}</dd>
       </div>
     </dl>
@@ -106,13 +123,13 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
   const expiresAt = moment(ssl.expires_at);
   const now = moment();
   const progress = Math.min(
-    Math.max(((now.diff(issuedAt) / expiresAt.diff(issuedAt)) * 100, 0), 100)
-  );
+    Math.max(((now.diff(issuedAt) / expiresAt.diff(issuedAt)) * 100, 0), 100
+  ));
   const daysLeft = expiresAt.diff(now, "days");
 
   return (
     <div className="text-slate-800 dark:text-slate-200 text-sm">
-      <h1 className="mb-2 text-sm font-bold">{t("SSL Certificate")}</h1>
+      <h1 className="mb-2 text-base font-bold">{t("SSL Certificate")}</h1>
       <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2.5 rounded-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <DataField
@@ -160,7 +177,7 @@ const DNSSection = memo(({ dns }: { dns: DNS }) => {
   const { t } = useTranslation(translationConstant.DASHBOARD);
   return (
     <div className="text-slate-800 dark:text-slate-200 text-sm">
-      <h1 className="mb-2 text-sm font-bold">{t("Dashboard_k21")}</h1>
+      <h1 className="mb-2 text-base font-bold">{t("Dashboard_k21")}</h1>
       <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2.5 rounded-md h-[200px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <DataField
@@ -216,13 +233,13 @@ const MonitorDetails = memo(
 
     return (
       <div className="col-span-1 md:col-span-2 text-slate-800 dark:text-slate-200 text-sm">
-        <h1 className="mb-2 text-sm font-bold">{t("Dashboard_k11")}</h1>
+        <h1 className="mb-2 text-base font-bold">{t("Dashboard_k11")}</h1>
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] rounded-md p-2.5">
           <div className="space-y-3">
             <DataField
               icon={<GitPullRequestArrow size={15} />}
               label={
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center text-sm gap-1.5">
                   <span>{t("Dashboard_k12")}</span>
                   <span className="rounded-md bg-[#0066ff] px-2 py-0.5 text-white text-xs">
                     {t("Dashboard_k4")}
@@ -298,15 +315,15 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
   return (
     <div className="text-slate-700 dark:text-slate-200 p-2.5 pb-7">
       <div>
-        <h1 className="text-lg font-bold">Dashboard</h1>
-        <h1 className="mt-1 mb-2 text-xs text-gray-500 dark:text-gray-400">
+        <h1 className="text-xl font-bold">Dashboard</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           Home / Dashboard
         </h1>
       </div>
       <div className="space-y-3 mt-3">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2.5">
           <div className="col-span-1 md:col-span-3">
-            <h2 className="text-sm font-bold">Quick Stats</h2>
+            <h2 className="text-base font-bold">Quick Stats</h2>
             <div className="pt-2 rounded-md mt-1.5">
               <div className="grid grid-cols-2 gap-2.5">
                 {render_arr.map(
@@ -319,11 +336,7 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
                         render_value ? render_value(data) : (data as any)[key]
                       }
                       type={type}
-                      customBgClass={
-                        ind === 0
-                          ? "bg-[#0066ff] text-white"
-                          : "bg-white dark:bg-slate-800"
-                      }
+                      isFirstCard={ind === 0} // Pass isFirstCard prop
                       bgImage={bgImage}
                     />
                   )
