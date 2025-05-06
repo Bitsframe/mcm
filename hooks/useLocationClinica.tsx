@@ -14,8 +14,8 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
     const { allowedLocations, userRole } = useContext(AuthContext);
     const [locations, setLocations] = useState([])
     const [selected_location, setSelected_location] = useState('')
-    const [selected_location_data, setSelected_location_data] = useState<any>(null)
-    const [change_data, setChange_data] = useState<any>(null)
+    const [selected_location_data, setSelected_location_data] = useState(null)
+    const [change_data, setChange_data] = useState(null)
     const [is_edited, set_is_edited] = useState(false);
     const [update_loading, set_update_loading] = useState(false);
 
