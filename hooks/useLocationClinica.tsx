@@ -24,15 +24,14 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
             try {
                 const allLocations = await fetchLocations();
 
-                
                 // Check if user has full access
                 const hasFullAccess = FULL_ACCESS_ROLES.includes(userRole?.toLowerCase());
-                
+
                 // If user has full access, show all locations
                 // Otherwise, filter based on allowedLocations
-                const filteredLocations = hasFullAccess 
-                    ? allLocations 
-                    : allLocations.filter((location: any) => 
+                const filteredLocations: any = hasFullAccess
+                    ? allLocations
+                    : allLocations.filter((location: any) =>
                         allowedLocations.includes(location.id)
                     );
 
@@ -58,7 +57,6 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
     const set_location_handle = (value: any) => {
         setSelected_location(value);
-
         const data: any = locations.find((item: { id: number | string; }) => item.id == value)
         localStorage.setItem(LOCAL_STORAGE_KEY, value.toLocaleString())
         setSelected_location_data(data)
@@ -87,8 +85,6 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
             }
             setSelected_location_data(() => res_data[0]);
         }
-
-        setSelected_location_data(() => res_data[0]);
         set_update_loading(false);
         set_is_edited(false);
     };
