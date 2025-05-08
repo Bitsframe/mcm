@@ -61,7 +61,7 @@ const Career = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3' >
+            <div className='mb-5 px-3 py-2 border-2 border-gray-300 rounded-xl' >
                 <div className='flex items-end my-5'>
 
 

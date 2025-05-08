@@ -550,7 +550,7 @@ const Orders = () => {
                   <button
                     disabled={!productQty}
                     onClick={addToCartHandle}
-                    className="bg-[#0066FF] text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-xs"
+                    className="bg-[#0066FF] my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
                     type="submit"
                   >
                     {t("POS-Sales_k8")}
@@ -633,22 +633,23 @@ const Orders = () => {
               </div>
 
               <div className="flex justify-end pt-0.5">
-                <button
-                  onClick={placeOrderHandle}
-                  disabled={!cartArray.length}
-                  className="bg-blue-600 rounded py-1 px-3 text-white disabled:opacity-50 flex items-center text-sm"
-                >
-                  {placeOrderLoading ? (
-                    <CircularProgress size={14} color="secondary" />
-                  ) : (
-                    <>
-                      <span className="font-medium">
-                        {grandTotalHandle(cartArray, appliedDiscount).amount}
-                      </span>
-                      <PiCaretCircleRightFill size={16} className="ml-1" />
-                    </>
-                  )}
-                </button>
+              <button
+  onClick={placeOrderHandle}
+  disabled={!cartArray.length}
+  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
+>
+  {placeOrderLoading ? (
+    <CircularProgress size={14} color="secondary" />
+  ) : (
+    <>
+      <span className="font-medium">
+        {grandTotalHandle(cartArray, appliedDiscount).amount}
+      </span>
+      <PiCaretCircleRightFill size={16} />
+    </>
+  )}
+</button>
+
               </div>
             </div>
           </div>

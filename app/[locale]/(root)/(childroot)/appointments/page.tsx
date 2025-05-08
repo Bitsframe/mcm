@@ -29,43 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import withAuthorization from '@/hoc/withAuthorization';
 
-interface Appointment {
-  id: number;
-  email_address: string;
-  date_and_time: string;
-  address: string;
-  location_id: number;
-  first_name: string;
-  dob: string;
-  last_name: string;
-  service: string;
-  sex: string;
-  phone: string;
-  created_at: string;
-  location?: LocationInterface;
-  in_office_patient: boolean;
-  new_patient: boolean;
-}
-
-interface AppointmentResponse {
-  id: number;
-  email_Address: string | null;
-  date_and_time: string | null;
-  address: string | null;
-  location_id: number;
-  first_name: string | null;
-  dob: string | null;
-  last_name: string | null;
-  service: string | null;
-  sex: string | null;
-  phone: string | null;
-  created_at: string;
-  in_office_patient: boolean;
-  new_patient: boolean;
-  isApproved: boolean;
-}
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -129,58 +93,15 @@ const Appointments = () => {
   }, []);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (selectedLocation) {
-        setAppointLoading(true);
-        try {
-          const approved = await fetchApprovedAppointmentsByLocation(selectedLocation.id) as AppointmentResponse[];
-          const unapproved = await fetchUnapprovedAppointmentsByLocation(selectedLocation.id) as AppointmentResponse[];
-          
-          // Map the data to match the Appointment interface
-          const mappedApproved = approved?.map(app => ({
-            ...app,
-            email_address: app.email_Address || '',
-            date_and_time: app.date_and_time || '',
-            phone: app.phone || '',
-            first_name: app.first_name || '',
-            last_name: app.last_name || '',
-            service: app.service || '',
-            sex: app.sex || '',
-            address: app.address || '',
-            dob: app.dob || ''
-          })) || [];
-
-          const mappedUnapproved = unapproved?.map(app => ({
-            ...app,
-            email_address: app.email_Address || '',
-            date_and_time: app.date_and_time || '',
-            phone: app.phone || '',
-            first_name: app.first_name || '',
-            last_name: app.last_name || '',
-            service: app.service || '',
-            sex: app.sex || '',
-            address: app.address || '',
-            dob: app.dob || ''
-          })) || [];
-
-          setApprovedAppointments(mappedApproved);
-          setFilteredApproved(mappedApproved);
-          setUnapprovedAppointments(mappedUnapproved);
-          setFilteredUnapproved(mappedUnapproved);
-        } catch (error) {
-          console.error('Error fetching appointments:', error);
-          toast.error('Failed to fetch appointments');
-        } finally {
-          setAppointLoading(false);
-        }
-      }
-    };
-    fetchAppointments();
-  }, [selectedLocation]);
+    if (selectedLocation) {
+      fetchDataHandler(Number(selectedLocation.id));
+    }
+  }, [selectedLocation, fetchDataHandler]);
 
   const findLocations = useCallback(
     (locationId: number) => {
-      return locations.find((location: any) => location.id === locationId);
+      const location = locations.find((location: any) => location.id === locationId);
+      return location as unknown as LocationInterface || null;
     },
     [locations]
   );
@@ -306,8 +227,8 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4 ">
-            <div className="bg-blue-50 p-3 rounded-lg dark:bg-gray-700">
-              <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <Calendar className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -322,8 +243,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-green-50 p-3 rounded-lg dark:bg-gray-700">
-              <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <CheckCircle className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -338,8 +259,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-yellow-50 p-3 rounded-lg dark:bg-gray-700">
-              <Clock className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <Clock className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -354,8 +275,8 @@ const Appointments = () => {
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-purple-50 p-3 rounded-lg dark:bg-gray-700">
-              <UserPlus className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
+              <UserPlus className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -479,8 +400,9 @@ const AppointmentDetailsPanel = ({
           updateReflectOnCloseModal();
         }
       }}
+  
     >
-      <SheetContent className="p-0 dark:bg-gray-900">
+      <SheetContent className="p-0 dark:bg-gray-900 m-3 rounded-xl">
         <SheetTitle className="sr-only">
           {appointmentDetails
             ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`

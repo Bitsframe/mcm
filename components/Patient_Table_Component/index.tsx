@@ -744,7 +744,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           }
         }}
       >
-        <SheetContent className="dark:bg-gray-900">
+        <SheetContent className="dark:bg-gray-900 m-3 rounded-xl">
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10 dark:border-gray-700">
               <h3 className="text-xl font-semibold dark:text-white">Patient Detail</h3>
