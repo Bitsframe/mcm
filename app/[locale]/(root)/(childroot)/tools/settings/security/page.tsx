@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import axios from 'axios'
+import { toast } from "react-toastify";
+import { signOut } from '@/actions/supabase_auth/action';
+import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context';
+
 
 const Security = () => {
   const [passwords, setPasswords] = useState({
@@ -13,6 +19,10 @@ const Security = () => {
     newPassword: false,
     retypePassword: false
   });
+
+
+  const router = useRouter()
+  const { userProfile } = useContext(AuthContext);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,9 +39,16 @@ const Security = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your password change logic here
+    try {
+      await axios.post('/api/admin/users/change-password', { id: userProfile.id, password: passwords.newPassword });
+      await signOut()
+      toast.success("Password has been changed!, please login again");
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error(`Error: ${error?.response?.data?.message || error.message}`);
+    }
   };
 
   return (
@@ -49,7 +66,7 @@ const Security = () => {
               <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
                 Change Password
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs text-gray-500 dark:text-gray-400">New Password</label>
@@ -71,7 +88,7 @@ const Security = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-xs text-gray-500 dark:text-gray-400">Retype New Password</label>
                   <div className="relative">
@@ -97,13 +114,13 @@ const Security = () => {
 
             <div className="flex justify-start mt-72">
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   type="button"
                   className="px-6 py-2 text-red-500 bg-red-100 dark:bg-red-900/20 rounded-lg text-sm hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
                 >
                   Reset
                 </button>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg"
                 >
