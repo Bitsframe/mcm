@@ -13,6 +13,12 @@ export async function middleware(request: NextRequest) {
 
   const isLoginPage = pathname === "/login" || pathname.startsWith(`/${locale}/login`);
   const isAPIRequest = pathname.startsWith("/api/");
+  const hasSignOutParam = nextUrl.searchParams.has('t'); // Check for our cache-busting parameter
+
+  // If we're on the login page with a sign-out parameter, allow access
+  if (isLoginPage && hasSignOutParam) {
+    return NextResponse.next();
+  }
 
   const i18nResponse = await i18nRouter(request, i18nConfig);
   const response = i18nResponse || NextResponse.next();
@@ -25,8 +31,13 @@ export async function middleware(request: NextRequest) {
 
     if (error) {
       console.error("Error fetching session:", error.message);
+      // If there's an error getting the session, allow access to login page
+      if (isLoginPage) {
+        return NextResponse.next();
+      }
     }
-
+    
+    console.log("session ->>", session);
     if (session) {
       if (isLoginPage) {
         return NextResponse.redirect(new URL(`/${locale}`, url));
@@ -47,6 +58,10 @@ export async function middleware(request: NextRequest) {
       }
     }
   } catch (err) {
+    // If there's any error, allow access to login page
+    if (isLoginPage) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL(`/${locale}/login`, url));
   }
 
