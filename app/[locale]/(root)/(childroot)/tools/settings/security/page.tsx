@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios'
 import { toast } from "react-toastify";
 import { signOut } from '@/actions/supabase_auth/action';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
 
 
@@ -21,7 +21,7 @@ const Security = () => {
   });
 
 
-  const router = useRouter()
+  // const router = useRouter()
   const { userProfile } = useContext(AuthContext);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
