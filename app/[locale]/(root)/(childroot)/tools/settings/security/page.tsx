@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios'
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { signOut } from '@/actions/supabase_auth/action';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
@@ -21,7 +21,7 @@ const Security = () => {
   });
 
 
-  const router = useRouter()
+  const router = useRouter();
   const { userProfile } = useContext(AuthContext);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,15 +41,33 @@ const Security = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (passwords.newPassword !== passwords.retypePassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     try {
-      await axios.post('/api/admin/users/change-password', { id: userProfile.id, password: passwords.newPassword });
-      await signOut()
-      toast.success("Password has been changed!, please login again");
+      await axios.post('/api/admin/users/change-password', { id: userProfile.id, password: passwords.newPassword }, { withCredentials: true });
+      await signOut();
+      router.push('/login');
+      toast.success("Password has been changed! Please login again.");
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(`Error: ${error?.response?.data?.message || error.message}`);
+      console.log("Error:", error);
+      // toast.error(`Error: ${error?.response?.data?.message || error.message}`);
     }
   };
+
+  const handleReset = () => {
+    setPasswords({
+      newPassword: '',
+      retypePassword: ''
+    });
+    setShowPassword({
+      newPassword: false,
+      retypePassword: false
+    });
+  }
 
   return (
     <div className="h-[80dvh] bg-background dark:bg-gray-900">
@@ -116,6 +134,7 @@ const Security = () => {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
+                  onClick={handleReset}
                   className="px-6 py-2 text-red-500 bg-red-100 dark:bg-red-900/20 rounded-lg text-sm hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
                 >
                   Reset

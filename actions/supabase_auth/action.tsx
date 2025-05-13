@@ -30,20 +30,25 @@ export async function login(formData: FormData) {
 
 
 export async function signOut() {
-  const supabase = createClient();
+  try {
+    const supabase = createClient();
 
-  const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    console.log(error.message);
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error.message);
+      }
+    }
 
-    // Redirect to a custom error page or login page with an error message
-    return redirect(`/login?error_message=${error.message}`);
+    await supabase.auth.refreshSession();
+    
+    const loginUrl = `/login?t=${Date.now()}`;
+    return redirect(loginUrl);
+  } catch (error) {
+    console.error('Error during sign out:', error);
+    return redirect('/login');
   }
-
-  // Revalidate any paths if necessary (for example, layout or other pages)
-  // revalidatePath('/', 'layout');
-
-  // Redirect to the homepage or another page after successful sign out
-  return redirect('/login');
 }
