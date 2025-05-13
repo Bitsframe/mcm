@@ -312,6 +312,7 @@ const Orders = () => {
     setCartArray([...cartArray]);
   };
 
+
   const placeOrderHandle = async () => {
     try {
       setPlaceOrderLoading(true);
@@ -377,7 +378,7 @@ const Orders = () => {
 
           await sendOrderEmail(
             orderDetails,
-            selectedPatient,
+            {...selectedPatient, location: selectedLocation.title},
             cartArray,
             GrossTotalAmount,
             Number(discountAmount),
@@ -504,7 +505,7 @@ const Orders = () => {
                     <Searchable_Dropdown
                       disabled={!selectedPatient}
                       initialValue={0}
-                    //@ts-ignore
+                      //@ts-ignore
                       dark_bg_color="gray.700"
                       start_empty={true}
                       options_arr={products.map(
@@ -532,7 +533,7 @@ const Orders = () => {
                       quantityHandle={quantityHandle}
                     />
 
-                    {selectedProduct? (
+                    {selectedProduct ? (
                       <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
                         <div className="text-xs">
                           {currencyFormatHandle(selectedProduct?.price || 0)}
@@ -542,7 +543,7 @@ const Orders = () => {
                           {selectedProduct.quantity_available - productQty} left
                         </div>
                       </div>
-                    ): null}
+                    ) : null}
                   </div>
                 </div>
 
@@ -608,17 +609,15 @@ const Orders = () => {
                   {t("POS-Sales_k13")}
                 </h1>
                 <p
-                  className={`text-xs ${
-                    appliedDiscount
+                  className={`text-xs ${appliedDiscount
                       ? "text-red-500 dark:text-red-400"
                       : "text-gray-700 dark:text-gray-300"
-                  }`}
+                    }`}
                 >
                   {appliedDiscount
-                    ? `-${
-                        grandTotalHandle(cartArray, appliedDiscount)
-                          .discountAmount
-                      }`
+                    ? `-${grandTotalHandle(cartArray, appliedDiscount)
+                      .discountAmount
+                    }`
                     : "NILL"}
                 </p>
               </div>
@@ -633,22 +632,22 @@ const Orders = () => {
               </div>
 
               <div className="flex justify-end pt-0.5">
-              <button
-  onClick={placeOrderHandle}
-  disabled={!cartArray.length}
-  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
->
-  {placeOrderLoading ? (
-    <CircularProgress size={14} color="secondary" />
-  ) : (
-    <>
-      <span className="font-medium">
-        {grandTotalHandle(cartArray, appliedDiscount).amount}
-      </span>
-      <PiCaretCircleRightFill size={16} />
-    </>
-  )}
-</button>
+                <button
+                  onClick={placeOrderHandle}
+                  disabled={!cartArray.length}
+                  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
+                >
+                  {placeOrderLoading ? (
+                    <CircularProgress size={14} color="secondary" />
+                  ) : (
+                    <>
+                      <span className="font-medium">
+                        {grandTotalHandle(cartArray, appliedDiscount).amount}
+                      </span>
+                      <PiCaretCircleRightFill size={16} />
+                    </>
+                  )}
+                </button>
 
               </div>
             </div>
@@ -669,7 +668,7 @@ const sendOrderEmail = async (
   discountAmount: number = 0,
   appliedDiscount: number = 0
 ) => {
-  
+
 
   try {
     const today = new Date();
@@ -719,7 +718,7 @@ const sendOrderEmail = async (
                 <ul style="list-style-type: none; padding-left: 0;">
                     <li><strong>Patient Name:</strong> ${patientInfo.firstname
       } ${patientInfo.lastname}</li>
-                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || "Pasadena"
+                    <li><strong>Location:</strong> ${patientInfo.location || " Clinica San Miguel Pasadena"
       }</li>
                 </ul>
                 

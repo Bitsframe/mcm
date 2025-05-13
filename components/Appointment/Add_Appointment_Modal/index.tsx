@@ -1,7 +1,7 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio, Select } from "flowbite-react";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ScheduleDateTime from "./ScheduleDateTime";
 import { supabase } from "@/services/supabase";
 import moment from "moment";
@@ -11,11 +11,18 @@ import { validateFormData } from "@/utils/validationCheck";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { CirclePlus } from "lucide-react";
+import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
+import { sendEmail } from "@/utils/emailService";
+import { LocationContext } from "@/context";
 
 interface RadioButtonOptionsInterface {
   label: string;
   value: string;
 }
+
+
+
+
 
 const RadioButton = ({ value, name, label, checked, onChange }: any) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
@@ -117,6 +124,8 @@ export const Add_Appointment_Modal = ({
   newAddedRow: (e: any) => void;
 }) => {
   const { locations } = useLocationClinica();
+  const { selectedLocation } = useContext(LocationContext);
+
   const [formData, setFormData] = useState<any>({});
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
@@ -124,7 +133,9 @@ export const Add_Appointment_Modal = ({
 
   const close_handle = () => {
     setOpen(false);
-    setFormData({});
+    setFormData({
+      location_id: selectedLocation.id
+    });
   };
   const open_handle = () => {
     setOpen(true);
@@ -241,6 +252,20 @@ export const Add_Appointment_Modal = ({
           </button>
         </div>
       );
+
+      const emailType = EmailBodyTempEnum.APPOINTMENT_CONFIRMATION
+
+      const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails
+      const data: any = {
+        email: email_address,
+        name: `${first_name} ${last_name}`,
+        location: selectedLocation,
+        service: service,
+        date: date_and_time ? date_and_time?.split?.('|')?.[1]?.split?.(' - ')?.[0] : '-',
+        time: date_and_time ? date_and_time?.split?.(' - ')?.[1] : '-'
+
+      }
+      await sendEmail({ lang: 'en', emailType, data })
       console.log(data, "Appointment Submitted");
       close_handle();
     }
@@ -258,8 +283,10 @@ export const Add_Appointment_Modal = ({
     };
 
     fetchServices();
+    setFormData({
+      location_id: selectedLocation.id
+    });
   }, []);
-  console.log(formData);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
@@ -287,7 +314,10 @@ export const Add_Appointment_Modal = ({
         <Modal.Body className="bg-white dark:bg-[#080e16] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-medium text-gray-800 dark:text-gray-300">
+
+              <p>Current Location: </p>
+              <h1 className="font-bold text-xl">{selectedLocation.title}</h1>
+              {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
                 Locations
               </Label>
               <Select
@@ -309,7 +339,7 @@ export const Add_Appointment_Modal = ({
                     {location.address}
                   </option>
                 ))}
-              </Select>
+              </Select> */}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -544,9 +574,8 @@ export const Add_Appointment_Modal = ({
             <button
               disabled={loading}
               onClick={submitHandle}
-              className={`bg-[#0066ff] ${
-                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
-              } px-4 py-2 rounded-md text-white transition-colors`}
+              className={`bg-[#0066ff] ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
+                } px-4 py-2 rounded-md text-white transition-colors`}
             >
               {loading ? "Submitting..." : "Save Changes"}
             </button>
