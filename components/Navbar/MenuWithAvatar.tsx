@@ -50,12 +50,12 @@ export default function MenuWithAvatar() {
         className="p-0"
       >
         <div className="flex items-center justify-between dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] min-w-[230px] px-3 py-1 border-[1px] border-[#E0E0E0]">
-          <div className="relative w-12 h-12">
+          <div className="relative w-12 h-12 overflow-hidden">
             {userProfile?.profile_pictures ? (
               <img
                 src={userProfile.profile_pictures}
                 alt="User Avatar"
-                className="rounded-full object-cover"
+                className="rounded-full object-cover "
               />
             ) : (
               <Image
