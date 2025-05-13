@@ -133,9 +133,11 @@ export const Add_Appointment_Modal = ({
 
   const close_handle = () => {
     setOpen(false);
-    setFormData({
+   if(selectedLocation){
+     setFormData({
       location_id: selectedLocation.id
     });
+   }
   };
   const open_handle = () => {
     setOpen(true);
@@ -283,9 +285,11 @@ export const Add_Appointment_Modal = ({
     };
 
     fetchServices();
-    setFormData({
+    if(selectedLocation){
+      setFormData({
       location_id: selectedLocation.id
     });
+    }
   }, []);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
@@ -316,10 +320,10 @@ export const Add_Appointment_Modal = ({
             <div className="space-y-2">
 
               <p>Current Location: </p>
-              <h1 className="font-bold text-xl">{selectedLocation.title}</h1>
+              <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
               {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
                 Locations
-              </Label>
+              </Label>x
               <Select
                 value={formData.location_id}
                 onChange={(e) =>
