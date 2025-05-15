@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { Slidercomp } from "@/components/sliderComp";
 import { TabContext } from "@/context";
-import { Eye, EyeIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { Eye, EyeIcon, PencilIcon, PlusCircle, Search, TrashIcon } from "lucide-react";
 
 const fields = [
   {
@@ -143,7 +143,7 @@ const modal_titles: any = {
     modalLabel: "Create New Promocode",
     button: {
       label: "Create Promocode",
-      color: "info",
+      color: "blue",
     },
   },
   edit: {
@@ -177,6 +177,12 @@ const Page = () => {
   const [newDetails, setNewDetails] = useState<any>({});
   const [modalLoading, setModalLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
+  const currentData = dataList.slice(startIndex, endIndex);
 
   // Check for saved dark mode preference or system preference
   useEffect(() => {
@@ -426,6 +432,14 @@ const Page = () => {
   }, []);
 
   const { t } = useTranslation(translationConstant.PROCODE);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   return (
     <main className="w-full h-full font-[500] text-[20px] overflow-x-hidden dark:bg-gray-900 dark:text-white">
       <div className="grid grid-cols-3 w-[150%]">
@@ -438,22 +452,24 @@ const Page = () => {
 
       <div className="w-full min-h-[84dvh] py-2 px-2 grid grid-cols-3 gap-2">
         <div className="h-[100%] col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%]">
-          <div className="space-y-6 px-3 pb-4 flex justify-between mt-3">
+          <div className="space-y-6 pb-4 flex justify-between mt-3">
             <div className="flex justify-between items-center w-full">
-              <div>
+              <div className="relative w-96">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <input
                   onChange={onChangeHandle}
                   type="text"
                   placeholder={t("Procode_k3")}
-                  className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full py-3 pl-10 pr-3 text-sm rounded-md focus:outline-none bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
               <div>
                 <button
                   onClick={addNewHandle}
-                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800"
+                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800 flex items-center gap-2"
                 >
-                  {t("Procode_k2")}
+                  <PlusCircle className="w-4 h-4" />
+                  {t("Procode_k2")} Promo Code
                 </button>
               </div>
             </div>
@@ -463,12 +479,12 @@ const Page = () => {
             <Table className="border-collapse border border-gray-200 dark:border-gray-700 w-full">
               <TableHeader>
                 <TableRow className="dark:border-gray-700">
-                  <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    {/* <input
+                  {/* <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
+                    <input
                       type="checkbox"
                       className="dark:bg-gray-700 dark:border-gray-600"
-                    /> */}
-                  </TableHead>
+                    />
+                  </TableHead> */}
                   {fields
                     .filter(({ table_column }) => table_column)
                     .map(({ id, label, align, type }, ind) => (
@@ -512,7 +528,7 @@ const Page = () => {
                     </TableCell>
                   </TableRow>
                 ) : dataList.length > 0 ? (
-                  dataList.map((elem) => {
+                  currentData.map((elem) => {
                     const { id, status } = elem;
                     return (
                       <TableRow
@@ -520,12 +536,12 @@ const Page = () => {
                         className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-300 dark:border-gray-700"
                         onClick={() => detailsViewHandle(elem)}
                       >
-                        <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
-                          {/* <input
+                        {/* <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
+                          <input
                             type="checkbox"
                             className="dark:bg-gray-700 dark:border-gray-600"
-                          /> */}
-                        </TableCell>
+                          />
+                        </TableCell> */}
 
                         {fields
                           .filter(({ table_column }) => table_column)
@@ -606,13 +622,31 @@ const Page = () => {
             {/* Footer */}
             <div className="flex items-center justify-between mt-4 px-2">
               <p className="text-sm text-muted-foreground dark:text-gray-300">
-                0 of {dataList.length} row(s) selected.
+                {dataList.length === 0
+                  ? "Showing 0 to 0 of 0 results"
+                  : `Showing ${startIndex + 1} to ${endIndex} of ${
+                      dataList.length
+                    } results`}
               </p>
               <div className="flex space-x-2">
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                    currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
                   Previous
                 </button>
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages || dataList.length === 0}
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                    currentPage === totalPages || dataList.length === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
                   Next
                 </button>
               </div>

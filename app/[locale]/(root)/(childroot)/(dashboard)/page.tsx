@@ -1,5 +1,6 @@
 "use client";
 import { memo, useEffect } from "react";
+import { Group48 } from "@/assets/images/index"
 import moment from "moment";
 import { cronitorSampleData, render_arr } from "@/data";
 import {
@@ -32,9 +33,9 @@ const InfoCard = memo(
     value,
     type = "text",
     icon,
-    customBgClass = "bg-gray-100 dark:bg-slate-700", // Changed default to gray
+    customBgClass = "bg-gray-100 dark:bg-slate-800",
     bgImage,
-    isFirstCard = false // Added new prop to identify first card
+    isFirstCard = false
   }: {
     label: string;
     value: any;
@@ -42,45 +43,44 @@ const InfoCard = memo(
     icon?: string
     customBgClass?: string;
     bgImage?: string;
-    isFirstCard?: boolean; // Added new prop
+    isFirstCard?: boolean;
   }) => {
     const { t } = useTranslation();
-    // Determine background class based on isFirstCard
-    const backgroundClass = isFirstCard 
-      ? "bg-[#0066ff] text-white" 
+    const backgroundClass = isFirstCard
+      ? "bg-[#0066ff] text-white"
       : customBgClass;
-      
+
     return (
       <div
         className={`w-full h-full ${backgroundClass} rounded-[16px] p-3 flex flex-col bg-no-repeat bg-cover bg-center text-slate-800 dark:text-slate-200`}
-        style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: '80% auto', // Smaller background image
-        backgroundPosition: 'right center', } : {}}
+        style={bgImage ? {
+          backgroundImage: `url(${bgImage})`, backgroundSize: '80% auto', // Smaller background image
+          backgroundPosition: 'right center',
+        } : {}}
       >
         <div className="mb-2">
           {icon && (
             <div className="flex justify-start mb-1.5">
-              <div className={`w-8 h-8 rounded-md ${
-                isFirstCard ? 'bg-white/20' : 'bg-white'
-              } flex items-center justify-center`}>
+              <div className={`w-8 h-8 rounded-md  ${isFirstCard ? 'bg-white/20' : 'bg-white dark:bg-slate-700'
+                } flex items-center justify-center`}>
                 <img src={icon} alt="icon" className="w-4 h-4 object-contain" />
               </div>
             </div>
           )}
 
-          <h1 className={`text-sm text-left  ${
-            isFirstCard ? 'text-white' : 'text-[#79808B] dark:text-slate-200'
-          }`}>{t(label)}</h1>
+          <h1 className={`text-sm text-left  ${isFirstCard ? 'text-white' : 'text-[#79808B] dark:text-slate-200'
+            }`}>{t(label)}</h1>
         </div>
         <div className="mt-auto">
           {type === "image" ? (
             <div className="flex justify-start">
-              <img src={value} alt={label} className="w-24 h-4" />
+              {/* <img src={value} alt={label} className="w-24 h-4" /> */}
+              <img src={Group48.src} alt={label} className="w-26 h-5" />
             </div>
           ) : (
             <div className="text-left">
-              <p className={`break-words text-base font-bold ${
-                isFirstCard ? 'text-white' : 'text-slate-800 dark:text-slate-200'
-              }`}>{value}</p>
+              <p className={`break-words text-base font-bold ${isFirstCard ? 'text-white' : 'text-slate-800 dark:text-slate-200'
+                }`}>{value}</p>
             </div>
           )}
         </div>
@@ -96,24 +96,41 @@ const DataField = memo(
     label,
     value,
     icon,
+    iconPosition = "left",
   }: {
     label: React.ReactNode;
     value: React.ReactNode;
     icon?: React.ReactNode;
+    iconPosition?: "left" | "right";
   }) => (
-    <dl className="bg-white dark:bg-slate-800 h-[68px] p-2 rounded-[11px] flex items-start gap-2 text-xs">
-      {icon && (
-        <div className="p-1.5 rounded-md text-[#0066ff] bg-[#f1f4f9] dark:bg-slate-700">
+    <dl className="bg-white dark:bg-slate-800 h-[68px] p-2 rounded-[11px] flex items-center justify-between text-xs gap-2 relative">
+      {iconPosition === "left" && icon && (
+        <div className="absolute top-2 left-2 p-1.5 rounded-md text-[#0066ff] bg-[#f1f4f9] dark:bg-slate-700">
           {icon}
         </div>
       )}
-      <div className="flex flex-col justify-end">
+
+      <div
+        className={
+          iconPosition === "right"
+            ? "absolute bottom-2 left-2 right-2 flex flex-col"
+            : "flex flex-col justify-end flex-1 pl-[40px] pr-[40px]"
+        }
+      >
         <dt className="font-bold text-sm">{label}</dt>
         <dd className="break-words text-xs">{value}</dd>
       </div>
+
+      {iconPosition === "right" && icon && (
+        <div className="absolute top-2 right-2 p-1.5 rounded-md text-[#0066ff] bg-[#f1f4f9] dark:bg-slate-700">
+          {icon}
+        </div>
+      )}
     </dl>
   )
 );
+
+
 
 DataField.displayName = "DataField"
 
@@ -124,7 +141,7 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
   const now = moment();
   const progress = Math.min(
     Math.max(((now.diff(issuedAt) / expiresAt.diff(issuedAt)) * 100, 0), 100
-  ));
+    ));
   const daysLeft = expiresAt.diff(now, "days");
 
   return (
@@ -253,16 +270,19 @@ const MonitorDetails = memo(
                 icon={<RefreshCcw size={15} />}
                 label={t("Dashboard_k13")}
                 value={schedule}
+                iconPosition="right"
               />
               <DataField
                 icon={<Network size={15} />}
                 label={t("Dashboard_k14")}
                 value={platform}
+                iconPosition="right"
               />
               <DataField
                 icon={<Layers size={15} />}
                 label={t("Dashboard_k16")}
                 value={Object.keys(request.headers).length || "none"}
+                iconPosition="right"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -270,15 +290,11 @@ const MonitorDetails = memo(
                 icon={<Timer size={15} />}
                 label={t("Dashboard_k15")}
                 value={`${request.timeout_seconds} seconds`}
+                iconPosition="right"
               />
               <DataField
                 label={
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1 rounded-md text-[#0066ff] bg-[#f1f4f9] dark:bg-slate-700">
-                      <Server size={15} />
-                    </div>
-                    <span>{t("Dashboard_k17")}</span>
-                  </div>
+                  <span>{t("Dashboard_k17")}</span> // Only text in label
                 }
                 value={
                   <div className="flex flex-wrap gap-1 mt-0.5">
@@ -292,7 +308,12 @@ const MonitorDetails = memo(
                     ))}
                   </div>
                 }
+                icon={
+                  <Server size={15} />
+                }
+                iconPosition="right"
               />
+
             </div>
           </div>
         </div>

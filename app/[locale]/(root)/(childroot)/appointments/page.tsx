@@ -26,6 +26,9 @@ import {
   Clock,
   CirclePlus,
   UserPlus,
+  Hourglass,
+  CalendarPlus,
+  CheckCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -244,7 +247,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <CheckCircle className="h-6 w-6" />
+              <CheckCheck className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -260,7 +263,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <Clock className="h-6 w-6" />
+              <Hourglass className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -276,7 +279,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <UserPlus className="h-6 w-6" />
+              <CalendarPlus className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -290,7 +293,7 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg p-4 dark:bg-[#0E1725]">
+      <div className="bg-white rounded-lg px-4 pb-4 dark:bg-[#0E1725]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 ">
           <Tabs
             className="w-full"

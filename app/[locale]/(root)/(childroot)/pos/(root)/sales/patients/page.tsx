@@ -41,6 +41,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 interface PatientDetailsInterface {
   firstname: string;
@@ -438,12 +439,17 @@ const Patients = () => {
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
                 All Patients
               </h1>
-              <input
-                onChange={onChangeHandle}
-                type="text"
-                placeholder="Search by patient name"
-                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-              />
+              <div className="relative">
+  <Search 
+    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" 
+  />
+  <input
+    onChange={onChangeHandle}
+    type="text"
+    placeholder="Search by patient name"
+    className="pl-10 pr-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+  />
+</div>
             </div>
             <div className="space-x-3 flex items-center">
               <button

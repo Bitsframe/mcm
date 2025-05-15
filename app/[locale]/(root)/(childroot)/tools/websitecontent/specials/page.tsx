@@ -14,7 +14,7 @@ const Career = () => {
     };
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-300 rounded-xl' >
+            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl' >
                 <div className='flex  justify-between items-start p-0 my-5'>
                     <div className='w-1/2' >
                         <Select_Dropdown

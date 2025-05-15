@@ -17,6 +17,7 @@ import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
+import { Eye } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
@@ -66,9 +67,12 @@ const tableHeader = [
     render_value: (_val: string, elem: any, openModal: Function) => (
       <button
         onClick={() => openModal(elem)}
-        className=" bg-[#0066ff] text-white text-base border-2 px-2 py-1 rounded-md transition-colors"
+        className=" bg-[#cce0ff] text-[#0066ff] border-2 border-[#0066ff] text-base px-2 py-1 rounded-md transition-colors"
       >
-        Details
+        <div className="flex justify-center items-center gap-2">
+    <Eye className="w-4 h-4" />
+    Details
+    </div>
       </button>
     ),
     align: "text-center",
@@ -203,6 +207,7 @@ const SalesHistory = () => {
           searchHandle={onChangeHandle}
           searchInputplaceholder={t("POS-Historyk3")}
           tableBodyHeight="h-[50dvh]"
+          tableHeight = "h-[57dvh]"
         />
       </div>
 
