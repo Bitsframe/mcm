@@ -304,7 +304,7 @@ export const Add_Appointment_Modal = ({
         {t("Appoinments_k15")}
       </button>
       <Modal show={open} onClose={close_handle}>
-        <Modal.Header className="border-b border-gray-200 dark:bg-[#080e16] dark:border-gray-700">
+        <Modal.Header className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
           <div>
             <h1 className="font-bold text-xl text-black dark:text-white">
               Add an Appointment
@@ -315,7 +315,7 @@ export const Add_Appointment_Modal = ({
           </div>
         </Modal.Header>
 
-        <Modal.Body className="bg-white dark:bg-[#080e16] text-black dark:text-white">
+        <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
 
@@ -329,7 +329,7 @@ export const Add_Appointment_Modal = ({
                 onChange={(e) =>
                   select_change_handle("location_id", e.target.value)
                 }
-                className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
                   All locations
@@ -388,7 +388,7 @@ export const Add_Appointment_Modal = ({
                   }
                   value={formData.first_name}
                   placeholder="FirstName"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
               <div className="space-y-2">
@@ -400,7 +400,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("last_name", e)}
                   value={formData.last_name}
                   placeholder="LastName"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
             </div>
@@ -418,7 +418,7 @@ export const Add_Appointment_Modal = ({
                   type="email"
                   value={formData.email_address}
                   placeholder="Email"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
               <div className="space-y-2">
@@ -430,7 +430,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("phone", e)}
                   value={formData.phone}
                   placeholder="Phone Number"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
             </div>
@@ -445,7 +445,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("dob", e)}
                   value={formData.dob}
                   placeholder="mm/dd/yyyy"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
               <div className="space-y-2">
@@ -475,7 +475,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e) =>
                     select_change_handle("state", e.target.value)
                   }
-                  className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                  className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
                 >
                   <option
                     disabled
@@ -503,7 +503,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("zipcode", e)}
                   value={formData.zipcode}
                   placeholder="Enter Zipcode"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
             </div>
@@ -519,7 +519,7 @@ export const Add_Appointment_Modal = ({
                 }
                 value={formData.street_address}
                 placeholder="Enter your address with zipcode"
-                bg_color="dark:bg-[#374151] bg-white"
+                bg_color="dark:bg-[#374151] bg-[#f9fafb]"
               />
             </div>
 
@@ -534,7 +534,7 @@ export const Add_Appointment_Modal = ({
                 onChange={(e) =>
                   select_change_handle("service", e.target.value)
                 }
-                className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
                   Select treatment type
@@ -567,8 +567,8 @@ export const Add_Appointment_Modal = ({
           </div>
         </Modal.Body>
 
-        <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#080e16]">
-          <div className="flex w-full justify-between">
+        <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725]">
+          <div className="flex w-full justify-end gap-3">
             <button
               onClick={close_handle}
               className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-black dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"

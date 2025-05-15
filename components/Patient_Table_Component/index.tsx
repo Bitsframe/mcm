@@ -112,6 +112,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -229,6 +231,23 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     return result;
   }, [patients, searchTerm, sortConfig]);
 
+  const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPatients = filteredAndSortedPatients.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const formatDate = useCallback((date: string) => {
     return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY");
   }, []);
@@ -316,15 +335,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           {renderType === "all"
             ? t("Patients_k1")
             : renderType === "onsite"
-            ? "Onsite Patients"
-            : "Offsite Patients"}
+              ? "Onsite Patients"
+              : "Offsite Patients"}
         </h1>
         <h1 className="mt-1 text-gray-500 dark:text-gray-400">
           {renderType === "all"
             ? "Patients  /  All"
             : renderType === "onsite"
-            ? "Patients  /  Onsite"
-            : "Patients  /  Offsite"}
+              ? "Patients  /  Onsite"
+              : "Patients  /  Offsite"}
         </h1>
       </div>
 
@@ -336,7 +355,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             value={searchTerm}
             type="text"
             placeholder={t("Patients_k3")}
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
+            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-[#0E1725] dark:text-white dark:placeholder-gray-400"
           />
         </div>
         <Button
@@ -349,7 +368,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <AlertDialogContent className="sm:max-w-[600px] max-h-[90vh] p-0 overflow-y-auto dark:bg-gray-900">
+        <AlertDialogContent className="sm:max-w-[600px] max-h-[95vh] p-0 overflow-y-auto dark:bg-gray-900">
           <div className="p-6">
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
@@ -367,7 +386,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </AlertDialogHeader>
 
             {selectedLocation?.title && (
-              <div className="mt-4 flex items-center gap-2 p-3 bg-gray-50 rounded-md dark:bg-gray-800">
+              <div className="mt-4 flex items-center gap-2 p-3 rounded-md">
                 <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Current Location</p>
@@ -395,7 +414,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           firstname: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
 
@@ -412,7 +431,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           lastname: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
@@ -432,7 +451,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           phone: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
 
@@ -450,7 +469,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           email: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
@@ -467,13 +486,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       setPatientData({ ...patientData, treatmenttype: value })
                     }
                   >
-                    <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
                       <SelectValue placeholder="Select treatment type" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+
+                    <SelectContent className="dark:bg-[#122136] dark:border-gray-700">
                       {serviceList.map((service: { title: string }) => (
-                        <SelectItem 
-                          key={service.title} 
+                        <SelectItem
+                          key={service.title}
                           value={service.title}
                           className="dark:hover:bg-gray-700 dark:text-white"
                         >
@@ -482,23 +502,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="note" className="text-sm text-gray-500 dark:text-gray-400">
-                    Note
-                  </Label>
-                  <Input
-                    id="note"
-                    placeholder="Enter any note about the patient"
-                    onChange={(e) =>
-                      setPatientData({
-                        ...patientData,
-                        note: e.target.value,
-                      })
-                    }
-                    className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -548,6 +551,25 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     </RadioGroup>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="note" className="text-sm text-gray-500 dark:text-gray-400">
+                    Note
+                  </Label>
+                  <Input
+                    id="note"
+                    placeholder="Enter any note about the patient"
+                    onChange={(e) =>
+                      setPatientData({
+                        ...patientData,
+                        note: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                  />
+                </div>
+
+
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
@@ -604,9 +626,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                   >
                     <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "id" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
+                      className={`inline ${sortConfig.key === "id" ? "text-blue-600 dark:text-blue-400" : ""
+                        }`}
                     />
                   </button>
                 </TableHead>
@@ -617,9 +638,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                   >
                     <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "name" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
+                      className={`inline ${sortConfig.key === "name" ? "text-blue-600 dark:text-blue-400" : ""
+                        }`}
                     />
                   </button>
                 </TableHead>
@@ -630,9 +650,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                   >
                     <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "date" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
+                      className={`inline ${sortConfig.key === "date" ? "text-blue-600 dark:text-blue-400" : ""
+                        }`}
                     />
                   </button>
                 </TableHead>
@@ -657,8 +676,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : filteredAndSortedPatients.length > 0 ? (
-                  filteredAndSortedPatients.map((patient) => (
+                ) : currentPatients.length > 0 ? (
+                  currentPatients.map((patient) => (
                     <TableRow
                       key={patient.id}
                       className="hover:bg-gray-50 border-b border-gray-200 dark:hover:bg-gray-800 dark:border-gray-800"
@@ -729,10 +748,41 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </TableBody>
             </Table>
           </div>
+
+          {!loading && filteredAndSortedPatients.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                  {filteredAndSortedPatients.length} results
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="text-sm text-gray-500 mt-5 dark:text-gray-400">
+        {/* <div className="text-sm text-gray-500 mt-5 dark:text-gray-400">
           {selectedPatients.length} of {patients.length} row(s) selected.
-        </div>
+        </div> */}
       </div>
 
       <Sheet
@@ -774,12 +824,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 )}
               </ScrollArea>
             )}
-            <div className="flex gap-2 mt-5">
+            <div className="flex gap-2 mb-5">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium w-20 px-3 py-1"
               >
                 Edit
               </Button>
@@ -838,7 +888,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         onsite: formData.onsite,
         note: formData.note,
       });
-      
+
       if (response.data.success) {
         setEditPatientData(formData);
         toast.success("Patient updated successfully");
@@ -851,15 +901,15 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   };
 
   return (
-    <div className="space-y-6 py-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">First Name</Label>
           <Input
             name="firstname"
             value={formData.firstname}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -868,19 +918,19 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             name="lastname"
             value={formData.lastname}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">Phone</Label>
           <Input
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -889,7 +939,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
       </div>
@@ -898,17 +948,17 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         <Label className="text-sm text-gray-500 dark:text-gray-400">Treatment Type</Label>
         <Select
           value={formData.treatmenttype}
-          onValueChange={(value) => 
+          onValueChange={(value) =>
             setFormData({ ...formData, treatmenttype: value })
           }
         >
-          <SelectTrigger className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white">
             <SelectValue placeholder="Select treatment type" />
           </SelectTrigger>
-          <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+          <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
             {serviceList.map((service) => (
-              <SelectItem 
-                key={service.title} 
+              <SelectItem
+                key={service.title}
                 value={service.title}
                 className="dark:hover:bg-gray-700 dark:text-white"
               >
@@ -925,17 +975,17 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           name="note"
           value={formData.note || ""}
           onChange={handleChange}
-          className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+          className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           placeholder="Add any note about the patient"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-1 gap-4">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">Gender</Label>
           <RadioGroup
             value={formData.gender}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setFormData({ ...formData, gender: value })
             }
             className="flex gap-3"
@@ -959,7 +1009,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           <Label className="text-sm text-gray-500 dark:text-gray-400">Location</Label>
           <RadioGroup
             value={formData.onsite ? "true" : "false"}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setFormData({ ...formData, onsite: value === "true" })
             }
             className="flex gap-3"
@@ -980,7 +1030,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         <Button
           variant="outline"
           onClick={onCancel}
-          className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="border-gray-200 dark:bg-[#111827] text-gray-700 dark:border-gray-600 dark:text-gray-300"
         >
           Cancel
         </Button>
@@ -1004,20 +1054,19 @@ const PatientDetails: FC<{
   const { t } = useTranslation(translationConstant.PATIENTS);
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-2 py-4">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k4")}</p>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{patient.id}</h2>
+          <h2 className="text-base text-gray-900 dark:text-white">{patient.id}</h2>
         </div>
         {renderType === "all" && (
           <div>
             <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${
-                patient.onsite
+              className={`px-3 py-1 text-sm font-medium rounded-full ${patient.onsite
                   ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                   : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-              }`}
+                }`}
             >
               {patient.onsite ? "On-site" : "Off-site"} Patient
             </span>
@@ -1027,14 +1076,12 @@ const PatientDetails: FC<{
 
       <div>
         <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k5")}</p>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-base text-gray-900 dark:text-white">
           {patient.firstname} {patient.lastname}
         </h2>
       </div>
 
-      <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
-
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k9")}</p>
           <p className="text-base font-medium dark:text-gray-300">
@@ -1178,12 +1225,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-4 mt-3">
+        <div className="space-y-4">
           {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
             <div className="space-y-2">
               <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k17")}</Label>
               <Input
@@ -1191,7 +1238,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="firstname"
                 value={patientData.firstname}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
             <div className="space-y-2">
@@ -1201,12 +1248,12 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="lastname"
                 value={patientData.lastname}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
             <div className="space-y-2">
               <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k19")}</Label>
               <Input
@@ -1214,7 +1261,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="phone"
                 value={patientData.phone}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
             <div className="space-y-2">
@@ -1224,7 +1271,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="email"
                 value={patientData.email}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
           </div>
@@ -1236,7 +1283,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               name="note"
               value={patientData.note}
               onChange={handleChange}
-              className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               placeholder="Add any note about the patient"
             />
           </div>
@@ -1245,7 +1292,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
             <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k11")}</Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <Button variant="outline" className="w-full justify-between bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white">
                   {patientData.treatmenttype || "Select Treatment"}
                   <MoreHorizontal className="h-4 w-4 opacity-50" />
                 </Button>

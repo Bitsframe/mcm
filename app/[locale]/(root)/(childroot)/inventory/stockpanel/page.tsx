@@ -160,7 +160,7 @@ const StockPanel = () => {
       <div className="w-full min-h-[81dvh] h-full overflow-auto py-2 px-2">
         <InventoryCards archived={getDataArchiveType} />
         <TableComponent
-          tableHeight="h-[71.5dvh]"
+          tableHeight="h-[45dvh]"
           tableBodyHeight="h-[35dvh]"
           tableHeader={tableHeader}
           loading={loading}

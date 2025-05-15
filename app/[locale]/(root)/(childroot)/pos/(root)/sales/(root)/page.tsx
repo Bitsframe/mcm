@@ -627,7 +627,7 @@ const Orders = () => {
                   {t("POS-Sales_k14")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  ${grandTotalHandle(cartArray).amount}
+                  {grandTotalHandle(cartArray).amount}
                 </p>
               </div>
 
