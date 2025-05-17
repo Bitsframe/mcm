@@ -32,7 +32,14 @@ import {
 } from "@/components/ui/sheet";
 import { Slidercomp } from "@/components/sliderComp";
 import { TabContext } from "@/context";
-import { Eye, EyeIcon, PencilIcon, PlusCircle, Search, TrashIcon } from "lucide-react";
+import {
+  Eye,
+  EyeIcon,
+  PencilIcon,
+  PlusCircle,
+  Search,
+  TrashIcon,
+} from "lucide-react";
 
 const fields = [
   {
@@ -195,19 +202,19 @@ const Page = () => {
   }, []);
 
   // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
+  // useEffect(() => {
+  //   if (darkMode) {
+  //     document.documentElement.classList.add("dark");
+  //     localStorage.setItem("darkMode", "true");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //     localStorage.setItem("darkMode", "false");
+  //   }
+  // }, [darkMode]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  // const toggleDarkMode = () => {
+  //   setDarkMode(!darkMode);
+  // };
 
   const openModalHandle = () => {
     setIsOpenModal(true);
@@ -476,148 +483,156 @@ const Page = () => {
           </div>
 
           <div className="">
-            <Table className="border-collapse border border-gray-200 dark:border-gray-700 w-full">
-              <TableHeader>
-                <TableRow className="dark:border-gray-700">
-                  {/* <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    <input
-                      type="checkbox"
-                      className="dark:bg-gray-700 dark:border-gray-600"
-                    />
-                  </TableHead> */}
-                  {fields
-                    .filter(({ table_column }) => table_column)
-                    .map(({ id, label, align, type }, ind) => (
-                      <TableHead
-                        key={ind}
-                        className={`${
-                          align || "text-left"
-                        } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b text-left border-gray-300 dark:border-gray-700`}
-                      >
-                        {t(label)}
-                        <button
-                          onClick={() => sortHandle(id, type)}
-                          className="active:opacity-50 ml-1"
+            <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-[#172945]">
+              <Table className="border-collapse w-full">
+                <TableHeader>
+                  <TableRow className="dark:border-gray-700">
+                    {/* <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
+            <input
+              type="checkbox"
+              className="dark:bg-gray-700 dark:border-gray-600"
+            />
+          </TableHead> */}
+                    {fields
+                      .filter(({ table_column }) => table_column)
+                      .map(({ id, label, align, type }, ind) => (
+                        <TableHead
+                          key={ind}
+                          className={`${
+                            align || "text-left"
+                          } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b text-left border-gray-300 dark:border-gray-700`}
                         >
-                          <PiCaretUpDownBold
-                            className={`inline ${
-                              sortColumn === id
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-gray-400/50 dark:text-gray-500"
-                            } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
-                          />
-                        </button>
-                      </TableHead>
-                    ))}
-                  <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={fields.filter((f) => f.table_column).length + 2}
-                      className="dark:bg-gray-800"
-                    >
-                      <div className="flex h-full flex-1 flex-col justify-center items-center">
-                        <Spinner size="xl" />
-                      </div>
-                    </TableCell>
+                          {t(label)}
+                          <button
+                            onClick={() => sortHandle(id, type)}
+                            className="active:opacity-50 ml-1"
+                          >
+                            <PiCaretUpDownBold
+                              className={`inline ${
+                                sortColumn === id
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-gray-400/50 dark:text-gray-500"
+                              } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                            />
+                          </button>
+                        </TableHead>
+                      ))}
+                    <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ) : dataList.length > 0 ? (
-                  currentData.map((elem) => {
-                    const { id, status } = elem;
-                    return (
-                      <TableRow
-                        key={id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-300 dark:border-gray-700"
-                        onClick={() => detailsViewHandle(elem)}
+                </TableHeader>
+
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={
+                          fields.filter((f) => f.table_column).length + 2
+                        }
+                        className="dark:bg-gray-800"
                       >
-                        {/* <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
-                          <input
-                            type="checkbox"
-                            className="dark:bg-gray-700 dark:border-gray-600"
-                          />
-                        </TableCell> */}
+                        <div className="flex h-full flex-1 flex-col justify-center items-center">
+                          <Spinner size="xl" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : dataList.length > 0 ? (
+                    currentData.map((elem) => {
+                      const { id, status } = elem;
+                      return (
+                        <TableRow
+                          key={id}
+                          className="hover:bg-gray-50 cursor-pointer border-b border-gray-300 dark:border-gray-700"
+                          onClick={() => detailsViewHandle(elem)}
+                        >
+                          {/* <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
+                  <input
+                    type="checkbox"
+                    className="dark:bg-gray-700 dark:border-gray-600"
+                  />
+                </TableCell> */}
 
-                        {fields
-                          .filter(({ table_column }) => table_column)
-                          .map(({ id: fieldKey, align, render_value }: any) => {
-                            const extract_val = render_value
-                              ? render_value(elem[fieldKey])
-                              : elem[fieldKey];
+                          {fields
+                            .filter(({ table_column }) => table_column)
+                            .map(
+                              ({ id: fieldKey, align, render_value }: any) => {
+                                const extract_val = render_value
+                                  ? render_value(elem[fieldKey])
+                                  : elem[fieldKey];
 
-                            return (
-                              <TableCell
-                                key={fieldKey}
-                                className={`${
-                                  align || "text-left"
-                                } font-normal text-left text-base px-5 py-2 dark:text-white dark:bg-gray-800`}
-                              >
-                                {fieldKey === "status" ? (
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                      extract_val === "Active"
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
-                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
-                                    }`}
+                                return (
+                                  <TableCell
+                                    key={fieldKey}
+                                    className={`${
+                                      align || "text-left"
+                                    } font-normal text-left text-base px-5 py-3 dark:text-white dark:bg-[#111827]`}
                                   >
-                                    {extract_val}
-                                  </span>
-                                ) : (
-                                  extract_val
-                                )}
-                              </TableCell>
-                            );
-                          })}
+                                    {fieldKey === "status" ? (
+                                      <span
+                                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                          extract_val === "Active"
+                                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
+                                            : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
+                                        }`}
+                                      >
+                                        {extract_val}
+                                      </span>
+                                    ) : (
+                                      extract_val
+                                    )}
+                                  </TableCell>
+                                );
+                              }
+                            )}
 
-                        <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-gray-800">
-                          <EyeIcon
-                            className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 inline cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              detailsViewHandle(elem);
-                            }}
-                          />
-                          <PencilIcon
-                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 inline cursor-pointer ml-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setNewDetails(elem);
-                              setActiveModalMode("edit");
-                              setIsOpenModal(true);
-                            }}
-                          />
-                          <TrashIcon
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 inline cursor-pointer ml-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setNewDetails(elem);
-                              setActiveModalMode("delete");
-                              setIsOpenModal(true);
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={fields.filter((f) => f.table_column).length + 2}
-                      className="dark:bg-gray-800"
-                    >
-                      <div className="flex h-full flex-1 flex-col justify-center items-center">
-                        <h1 className="dark:text-white">No Data found!</h1>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                          <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-[#111827]">
+                            <EyeIcon
+                              className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 inline cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                detailsViewHandle(elem);
+                              }}
+                            />
+                            <PencilIcon
+                              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 inline cursor-pointer ml-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNewDetails(elem);
+                                setActiveModalMode("edit");
+                                setIsOpenModal(true);
+                              }}
+                            />
+                            <TrashIcon
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 inline cursor-pointer ml-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNewDetails(elem);
+                                setActiveModalMode("delete");
+                                setIsOpenModal(true);
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={
+                          fields.filter((f) => f.table_column).length + 2
+                        }
+                        className="dark:bg-[#111827]"
+                      >
+                        <div className="flex h-full flex-1 flex-col justify-center items-center">
+                          <h1 className="dark:text-white">No Data found!</h1>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-4 px-2">
