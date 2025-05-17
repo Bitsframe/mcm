@@ -250,7 +250,8 @@ const Inventory = () => {
     });
   };
 
-  const modalSubmitHandle = async () => {
+  const modalSubmitHandle = async (e: any ) => {
+    e.preventDefault();
     setModalEventLoading(true);
     if (modalState === modalStateEnum.CREATE) {
       const invenPostData = {
@@ -587,6 +588,7 @@ const Inventory = () => {
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
+        //@ts-ignore
         create_new_handle={modalSubmitHandle}
         buttonLabel={modalState}
         //@ts-ignore

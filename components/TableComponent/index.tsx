@@ -38,7 +38,7 @@ interface Props {
   searchInputplaceholder?: string;
   RightSideComponent?: () => React.ReactNode;
   pdf?: () => React.ReactNode;
-  resetPaginationTrigger?: any; // Add this prop to trigger pagination reset
+  resetPaginationTrigger?: any;
 }
 
 interface DataListInterface {
@@ -56,7 +56,7 @@ const TableComponent: React.FC<Props> = ({
   searchInputplaceholder,
   RightSideComponent,
   pdf,
-  resetPaginationTrigger, // Destructure the new prop
+  resetPaginationTrigger,
 }) => {
   const { t } = useTranslation([
     translationConstant.STOCKPANEL,
@@ -67,7 +67,6 @@ const TableComponent: React.FC<Props> = ({
   const isAllSelected =
     dataList.length > 0 && selectedRows.length === dataList.length;
 
-  // Pagination logic
   const ITEMS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = React.useState(1);
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
@@ -107,9 +106,8 @@ const TableComponent: React.FC<Props> = ({
 
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full overflow-hidden text-black dark:text-white">
-      {/* Search and header section */}
       <div className="pb-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155]">
+        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10">
           <CiSearch size={18} color="gray" />
           <input
             onChange={searchHandle}
@@ -124,14 +122,11 @@ const TableComponent: React.FC<Props> = ({
         {RightSideComponent ? <RightSideComponent /> : null}
       </div>
 
-      {/* Table container */}
       <div
         className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}
       >
-        {/* Table content with scroll */}
         <div className="flex-1 overflow-auto">
           <Table className="w-full rounded-lg border-collapse">
-            {/* Header */}
             <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
                 {tableHeader.map(({ label, align, flex }, index) => (
@@ -152,7 +147,6 @@ const TableComponent: React.FC<Props> = ({
               </TableRow>
             </TableHeader>
 
-            {/* Body */}
             <TableBody>
               {loading ? (
                 <TableRow>
@@ -192,7 +186,6 @@ const TableComponent: React.FC<Props> = ({
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725]">
           <div>
             {dataList.length === 0

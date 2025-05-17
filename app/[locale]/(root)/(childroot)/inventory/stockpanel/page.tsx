@@ -100,7 +100,7 @@ const StockPanel = () => {
       setDataList([...allData]);
     } else {
       const filteredData = allData.filter((elem) =>
-        elem.products.product_name.toLowerCase().includes(val.toLowerCase())
+        elem.product_name.toLowerCase().includes(val.toLowerCase())
       );
       setDataList([...filteredData]);
     }
@@ -165,7 +165,7 @@ const StockPanel = () => {
           tableHeader={tableHeader}
           loading={loading}
           dataList={dataList}
-          searchInputplaceholder="SP_k8"
+          searchInputplaceholder="Search by name"
           searchHandle={onChangeHandle}
           RightSideComponent={() => RightSideComponent}
         />

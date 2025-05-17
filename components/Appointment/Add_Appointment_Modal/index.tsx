@@ -7,7 +7,6 @@ import { supabase } from "@/services/supabase";
 import moment from "moment";
 import { toast } from "sonner";
 import { usStates } from "@/us-states";
-import { validateFormData } from "@/utils/validationCheck";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { CirclePlus } from "lucide-react";
@@ -581,7 +580,7 @@ export const Add_Appointment_Modal = ({
               className={`bg-[#0066ff] ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
                 } px-4 py-2 rounded-md text-white transition-colors`}
             >
-              {loading ? "Submitting..." : "Save Changes"}
+              {loading ? "Submitting..." : "Add appointment"}
             </button>
           </div>
         </Modal.Footer>

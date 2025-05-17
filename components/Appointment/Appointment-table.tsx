@@ -39,6 +39,7 @@ interface AppointmentsTableProps {
   onDelete?: (id: string) => void;
   selectedAppointments: string[];
   setSelectedAppointments: React.Dispatch<React.SetStateAction<string[]>>;
+  onApprove?: any;
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -54,11 +55,11 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   onDelete,
   selectedAppointments,
   setSelectedAppointments,
+  onApprove,
 }) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
   const [currentPage, setCurrentPage] = React.useState(1);
 
-  // Reset pagination when appointments change or when switching tabs
   React.useEffect(() => {
     setCurrentPage(1);
   }, [appointments, isUnapproved]);
@@ -139,6 +140,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                       isUnapproved={isUnapproved}
                       onDelete={onDelete}
                       onEdit={onEdit}
+                      onApprove={onApprove}
                     />
                   ))}
                 </TableBody>
@@ -192,6 +194,7 @@ interface MemoizedTableRowProps {
   isUnapproved?: boolean;
   onDelete?: (id: string) => void;
   onEdit?: (appointment: Appointment) => void;
+  onApprove?: (appointment: Appointment) => void;
 }
 
 const MemoizedTableRow = memo(
@@ -201,22 +204,28 @@ const MemoizedTableRow = memo(
     isUnapproved,
     onDelete,
     onEdit,
+    onApprove,
   }: MemoizedTableRowProps) => {
-    const handleApprove = (event: React.MouseEvent) => {
+    const handleApprove = async (event: React.MouseEvent) => {
       event.stopPropagation();
-      // @ts-ignore
-      ApproveAppointment(appointment.id);
-      toast.success(
-        <div className="flex justify-between dark:text-white">
-          <p>Appointment has been approved successfully.</p>
-          <button
-            onClick={() => toast.dismiss()}
-            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <span className="text-sm">&#x2715;</span>
-          </button>
-        </div>
-      );
+      try {
+        // @ts-ignore
+        await ApproveAppointment(appointment.id);
+        toast.success(
+          <div className="flex justify-between dark:text-white">
+            <p>Appointment has been approved successfully.</p>
+            <button
+              onClick={() => toast.dismiss()}
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>
+        );
+        onApprove?.(appointment);
+      } catch (error) {
+        toast.error("Failed to approve appointment");
+      }
     };
 
     const date = renderFormattedDate(

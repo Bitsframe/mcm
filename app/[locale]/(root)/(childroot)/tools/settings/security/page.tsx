@@ -3,23 +3,51 @@
 import { Button } from '@/components/ui/button';
 import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import axios from 'axios'
+import axios from 'axios';
 import { toast } from 'sonner';
 import { signOut } from '@/actions/supabase_auth/action';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
+import { z } from 'zod';
 
+const passwordSchema = z.object({
+  newPassword: z.string()
+    .regex(/[A-Z]/, "Must include at least one uppercase letter")
+    .regex(/[0-9]/, "Must include at least one number")
+    .regex(/[^A-Za-z0-9]/, "Must include at least one special character"),
+  retypePassword: z.string()
+});
+
+const passwordRules = [
+  {
+    label: "Password must contain capital letter",
+    test: (val: string) => /[A-Z]/.test(val)
+  },
+  {
+    label: "Password must contain number",
+    test: (val: string) => /[0-9]/.test(val)
+  },
+  {
+    label: "Password must contain special character",
+    test: (val: string) => /[^A-Za-z0-9]/.test(val)
+  }
+];
 
 const Security = () => {
   const [passwords, setPasswords] = useState({
     newPassword: '',
     retypePassword: ''
   });
+
   const [showPassword, setShowPassword] = useState({
     newPassword: false,
     retypePassword: false
   });
 
+  const [errors, setErrors] = useState<{
+    newPassword?: string;
+    retypePassword?: string;
+  }>({});
 
   const router = useRouter();
   const { userProfile } = useContext(AuthContext);
@@ -41,20 +69,37 @@ const Security = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    const result = passwordSchema.safeParse(passwords);
+
+    if (!result.success) {
+      const formatted = result.error.format();
+      setErrors({
+        newPassword: formatted.newPassword?._errors?.[0],
+      });
+      toast.error(formatted.newPassword?._errors?.[0] || "Invalid input");
+      return;
+    }
 
     if (passwords.newPassword !== passwords.retypePassword) {
+      setErrors({ retypePassword: "Passwords do not match" });
       toast.error("Passwords do not match");
       return;
     }
 
     try {
-      await axios.post('/api/admin/users/change-password', { id: userProfile.id, password: passwords.newPassword }, { withCredentials: true });
+      await axios.post('/api/admin/users/change-password', {
+        id: userProfile.id,
+        password: passwords.newPassword
+      }, { withCredentials: true });
+
       await signOut();
       router.push('/login');
       toast.success("Password has been changed! Please login again.");
     } catch (error: any) {
       console.log("Error:", error);
-      // toast.error(`Error: ${error?.response?.data?.message || error.message}`);
+      // toast.error("Something went wrong while changing the password");
     }
   };
 
@@ -67,7 +112,8 @@ const Security = () => {
       newPassword: false,
       retypePassword: false
     });
-  }
+    setErrors({});
+  };
 
   return (
     <div className="h-[80dvh] bg-background dark:bg-gray-900">
@@ -105,6 +151,21 @@ const Security = () => {
                       {showPassword.newPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  <ul className="text-xs mt-2 space-y-1">
+                    {passwordRules.map((rule, idx) => {
+                      const isValid = rule.test(passwords.newPassword);
+                      return (
+                        <li
+                          key={idx}
+                          className={`flex items-center gap-2 ${
+                            isValid ? "text-green-600" : "text-red-500"
+                          }`}
+                        >
+                          {rule.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
 
                 <div className="space-y-2">
@@ -126,6 +187,9 @@ const Security = () => {
                       {showPassword.retypePassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {errors.retypePassword && (
+                    <p className="text-xs text-red-500">{errors.retypePassword}</p>
+                  )}
                 </div>
               </div>
             </div>
