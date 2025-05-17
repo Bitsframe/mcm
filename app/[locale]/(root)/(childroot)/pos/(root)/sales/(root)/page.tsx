@@ -315,6 +315,7 @@ const Orders = () => {
     setCartArray([...cartArray]);
   };
 
+
   const placeOrderHandle = async () => {
     try {
       setPlaceOrderLoading(true);
@@ -380,7 +381,7 @@ const Orders = () => {
 
           await sendOrderEmail(
             orderDetails,
-            selectedPatient,
+            {...selectedPatient, location: selectedLocation.title},
             cartArray,
             GrossTotalAmount,
             Number(discountAmount),
@@ -613,17 +614,15 @@ const Orders = () => {
                   {t("POS-Sales_k13")}
                 </h1>
                 <p
-                  className={`text-xs ${
-                    appliedDiscount
+                  className={`text-xs ${appliedDiscount
                       ? "text-red-500 dark:text-red-400"
                       : "text-gray-700 dark:text-gray-300"
-                  }`}
+                    }`}
                 >
                   {appliedDiscount
-                    ? `-${
-                        grandTotalHandle(cartArray, appliedDiscount)
-                          .discountAmount
-                      }`
+                    ? `-${grandTotalHandle(cartArray, appliedDiscount)
+                      .discountAmount
+                    }`
                     : "NILL"}
                 </p>
               </div>
@@ -722,12 +721,14 @@ const sendOrderEmail = async (
                 
                 <h3>Billing Information:</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
+
                     <li><strong>Patient Name:</strong> ${
                       patientInfo.firstname
                     } ${patientInfo.lastname}</li>
                     <li><strong>Location:</strong> Clinica San Miguel ${
                       patientInfo.location || "Pasadena"
                     }</li>
+
                 </ul>
                 
                 <h3>Invoice Summary:</h3>
