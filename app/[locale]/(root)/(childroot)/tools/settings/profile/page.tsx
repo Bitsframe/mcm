@@ -136,7 +136,6 @@ const Profile = () => {
       });
       
       toast.success('Profile updated successfully');
-      // Refresh user data in AuthContext
       const userResponse = await axios.get('/api/user');
       const { role, permissions, locations, profile } = userResponse.data.data;
       setAuthState({

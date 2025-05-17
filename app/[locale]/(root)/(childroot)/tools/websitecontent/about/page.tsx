@@ -88,7 +88,7 @@ const About = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-300 rounded-xl' >
+            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl' >
                 <div className='grid grid-cols-1 lg:flex-row pr-3 lg:gap-24 my-5'>
 
                     {/* <Select_Dropdown value={''} label='Section' options_arr={about_section_options} on_change_handle={select_section_handle} required={true} /> */}

@@ -94,8 +94,11 @@ const grandTotalHandle = (
   discount?: number
 ) => {
   const totalQty = ProductArray.reduce((a, b) => a + b.quantity, 0);
-  let GrossTotalAmount = ProductArray.reduce((a, b) => a + b.quantity * b.price, 0);
-  let totalAmount = GrossTotalAmount
+  let GrossTotalAmount = ProductArray.reduce(
+    (a, b) => a + b.quantity * b.price,
+    0
+  );
+  let totalAmount = GrossTotalAmount;
   let discountAmount = 0;
 
   if (discount && discount > 0) {
@@ -312,6 +315,7 @@ const Orders = () => {
     setCartArray([...cartArray]);
   };
 
+
   const placeOrderHandle = async () => {
     try {
       setPlaceOrderLoading(true);
@@ -354,19 +358,19 @@ const Orders = () => {
         if (order_created_data.length) {
           toast.success(`Order has been placed, order # ${order_id}`, {
             style: {
-              background: "var(--background)",
+              background: "white",
               color: "var(--foreground)",
               border: "1px solid var(--border)",
             },
           });
 
-
-
-          const { qty,
+          const {
+            qty,
             amount,
             discountPercentage,
             GrossTotalAmount,
-            discountAmount } = grandTotalHandle(cartArray, appliedDiscount);
+            discountAmount,
+          } = grandTotalHandle(cartArray, appliedDiscount);
           const totalAmount = GrossTotalAmount;
           // const discountAmount = grandTotal.discountAmount;
 
@@ -377,11 +381,11 @@ const Orders = () => {
 
           await sendOrderEmail(
             orderDetails,
-            selectedPatient,
+            {...selectedPatient, location: selectedLocation.title},
             cartArray,
             GrossTotalAmount,
             Number(discountAmount),
-            discountPercentage,
+            discountPercentage
           );
 
           setCartArray([]);
@@ -504,7 +508,7 @@ const Orders = () => {
                     <Searchable_Dropdown
                       disabled={!selectedPatient}
                       initialValue={0}
-                    //@ts-ignore
+                      //@ts-ignore
                       dark_bg_color="gray.700"
                       start_empty={true}
                       options_arr={products.map(
@@ -532,17 +536,19 @@ const Orders = () => {
                       quantityHandle={quantityHandle}
                     />
 
-                    {selectedProduct? (
+                    {selectedProduct ? (
                       <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
                         <div className="text-xs">
-                          {currencyFormatHandle(selectedProduct?.price || 0)}
+                          {currencyFormatHandle(
+                            (selectedProduct?.price || 0) * productQty
+                          )}
                           /unit
                         </div>
                         <div className="text-xs text-amber-600 dark:text-amber-400">
                           {selectedProduct.quantity_available - productQty} left
                         </div>
                       </div>
-                    ): null}
+                    ) : null}
                   </div>
                 </div>
 
@@ -608,17 +614,15 @@ const Orders = () => {
                   {t("POS-Sales_k13")}
                 </h1>
                 <p
-                  className={`text-xs ${
-                    appliedDiscount
+                  className={`text-xs ${appliedDiscount
                       ? "text-red-500 dark:text-red-400"
                       : "text-gray-700 dark:text-gray-300"
-                  }`}
+                    }`}
                 >
                   {appliedDiscount
-                    ? `-${
-                        grandTotalHandle(cartArray, appliedDiscount)
-                          .discountAmount
-                      }`
+                    ? `-${grandTotalHandle(cartArray, appliedDiscount)
+                      .discountAmount
+                    }`
                     : "NILL"}
                 </p>
               </div>
@@ -628,28 +632,27 @@ const Orders = () => {
                   {t("POS-Sales_k14")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  ${grandTotalHandle(cartArray).amount}
+                  {grandTotalHandle(cartArray).amount}
                 </p>
               </div>
 
               <div className="flex justify-end pt-0.5">
-              <button
-  onClick={placeOrderHandle}
-  disabled={!cartArray.length}
-  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
->
-  {placeOrderLoading ? (
-    <CircularProgress size={14} color="secondary" />
-  ) : (
-    <>
-      <span className="font-medium">
-        {grandTotalHandle(cartArray, appliedDiscount).amount}
-      </span>
-      <PiCaretCircleRightFill size={16} />
-    </>
-  )}
-</button>
-
+                <button
+                  onClick={placeOrderHandle}
+                  disabled={!cartArray.length}
+                  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
+                >
+                  {placeOrderLoading ? (
+                    <CircularProgress size={14} color="secondary" />
+                  ) : (
+                    <>
+                      <span className="font-medium">
+                        {grandTotalHandle(cartArray, appliedDiscount).amount}
+                      </span>
+                      <PiCaretCircleRightFill size={16} />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -669,8 +672,6 @@ const sendOrderEmail = async (
   discountAmount: number = 0,
   appliedDiscount: number = 0
 ) => {
-  
-
   try {
     const today = new Date();
     const months = [
@@ -687,13 +688,14 @@ const sendOrderEmail = async (
       "Nov",
       "Dec",
     ];
-    const formattedDate = `${today.getDate()}-${months[today.getMonth()]
-      }-${today.getFullYear()}`;
+    const formattedDate = `${today.getDate()}-${
+      months[today.getMonth()]
+    }-${today.getFullYear()}`;
 
     // Create a feedback URL with order ID and patient ID for tracking
     const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
 
-    const netAmount = +totalAmount - +discountAmount
+    const netAmount = +totalAmount - +discountAmount;
 
     const emailHtml = `
 
@@ -705,11 +707,13 @@ const sendOrderEmail = async (
                 
                 <h3 style="margin-top: 20px;">Invoice Details:</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Invoice Number:</strong> I-${orderDetails.order_id
-      }</li>
+                    <li><strong>Invoice Number:</strong> I-${
+                      orderDetails.order_id
+                    }</li>
                     <li><strong>Invoice Date:</strong> ${formattedDate}</li>
-                    <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? "Cash" : "Debit Card"
-      }</li>
+                    <li><strong>Payment Method:</strong> ${
+                      orderDetails.paymentcash ? "Cash" : "Debit Card"
+                    }</li>
                     <li><strong>Gross Amount:</strong> ${totalAmount}</li>
                     <li><strong>Discount(${appliedDiscount}%):</strong> -${discountAmount}</li>
                     <li><strong>Net Amount:</strong> ${netAmount}</li>
@@ -717,10 +721,14 @@ const sendOrderEmail = async (
                 
                 <h3>Billing Information:</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Patient Name:</strong> ${patientInfo.firstname
-      } ${patientInfo.lastname}</li>
-                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || "Pasadena"
-      }</li>
+
+                    <li><strong>Patient Name:</strong> ${
+                      patientInfo.firstname
+                    } ${patientInfo.lastname}</li>
+                    <li><strong>Location:</strong> Clinica San Miguel ${
+                      patientInfo.location || "Pasadena"
+                    }</li>
+
                 </ul>
                 
                 <h3>Invoice Summary:</h3>
@@ -735,31 +743,35 @@ const sendOrderEmail = async (
                     </thead>
                     <tbody>
                         ${orderItems
-        .map(
-          (item) => `
+                          .map(
+                            (item) => `
                             <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.category_name
-            }</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name
-            }</td>
-                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity
-            }</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                                  item.category_name
+                                }</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
+                                  item.product_name
+                                }</td>
+                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
+                                  item.quantity
+                                }</td>
                                 <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
-              item.price * item.quantity
-            )}</td>
+                                  item.price * item.quantity
+                                )}</td>
                             </tr>
                         `
-        )
-        .join("")}
+                          )
+                          .join("")}
                     </tbody>
-                    ${discountAmount > 0
-        ? `
+                    ${
+                      discountAmount > 0
+                        ? `
                         <tfoot>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
                                 <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
-          discountAmount
-        )}</td>
+                                  discountAmount
+                                )}</td>
                             </tr>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
@@ -767,7 +779,7 @@ const sendOrderEmail = async (
                             </tr>
                         </tfoot>
                     `
-        : `
+                        : `
                         <tfoot>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
@@ -775,7 +787,7 @@ const sendOrderEmail = async (
                             </tr>
                         </tfoot>
                     `
-      }
+                    }
                 </table>
                 
                 <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
@@ -790,10 +802,7 @@ const sendOrderEmail = async (
                     <p style="color: #666; font-size: 12px; margin-top: 10px;">Complete our quick survey and receive a promotional code for your next visit.</p>
                 </div>
             </div>
-        `
-
-
-
+        `;
 
     const fromEmail = "test@alerts.myclinicmd.com";
 

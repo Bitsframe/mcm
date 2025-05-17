@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { Spinner } from "flowbite-react";
 import { memo } from "react";
 import {
@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PiCaretUpDownBold } from "react-icons/pi";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { ApproveAppointment } from "@/utils/supabase/data_services/data_services";
 import { toast } from "sonner";
@@ -40,7 +39,10 @@ interface AppointmentsTableProps {
   onDelete?: (id: string) => void;
   selectedAppointments: string[];
   setSelectedAppointments: React.Dispatch<React.SetStateAction<string[]>>;
+  onApprove?: any;
 }
+
+const ITEMS_PER_PAGE = 4;
 
 const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   appointments,
@@ -53,27 +55,27 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   onDelete,
   selectedAppointments,
   setSelectedAppointments,
+  onApprove,
 }) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
+  const [currentPage, setCurrentPage] = React.useState(1);
 
-  const handleSelect = (id: string, isSelected: boolean) => {
-    setSelectedAppointments((prev) =>
-      isSelected ? [...prev, id] : prev.filter((appId) => appId !== id)
-    );
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [appointments, isUnapproved]);
+
+  const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentAppointments = appointments.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSelectAll = (isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedAppointments(appointments.map((app: Appointment) => app.id));
-    } else {
-      setSelectedAppointments([]);
-    }
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
-
-  const allSelected =
-    selectedAppointments.length === appointments.length &&
-    appointments.length > 0;
-  const someSelected = selectedAppointments.length > 0 && !allSelected;
 
   return (
     <div className="w-full bg-white rounded-lg shadow overflow-hidden dark:bg-gray-900">
@@ -89,13 +91,11 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
         </div>
       ) : (
         <>
-          <div className="relative overflow-hidden flex flex-col h-[calc(100vh-470px)]">
-            <div className="overflow-auto">
+          <div className="relative overflow-hidden flex flex-col h-64">
+            <div className="border-2 border-gray-200 dark:border-gray-700">
               <Table className="border-collapse w-full">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
                   <TableRow className="dark:border-gray-700">
-                    <TableHead className="w-12 dark:border-gray-700 sticky left-0 bg-gray-50 dark:bg-[#0E1725] z-20">
-                    </TableHead>
                     {[
                       { label: t("Appoinments_k26"), sort: "name" },
                       { label: t("Appoinments_k27"), sort: "gender" },
@@ -131,19 +131,16 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                   </TableRow>
                 </TableHeader>
 
-                <TableBody className="overflow-y-auto">
-                  {appointments.map((appointment: Appointment) => (
+                <TableBody>
+                  {currentAppointments.map((appointment: Appointment) => (
                     <MemoizedTableRow
                       key={appointment.id}
                       appointment={appointment}
-                      isSelected={selectedAppointments.includes(appointment.id)}
                       onSelect={onSelect}
-                      onCheckboxChange={(checked) =>
-                        handleSelect(appointment.id, checked)
-                      }
                       isUnapproved={isUnapproved}
                       onDelete={onDelete}
                       onEdit={onEdit}
+                      onApprove={onApprove}
                     />
                   ))}
                 </TableBody>
@@ -151,10 +148,39 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
             </div>
           </div>
 
-          <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-            {selectedAppointments.length > 0
-              ? `${selectedAppointments.length} of ${appointments.length} row(s) selected`
-              : `0 of ${appointments.length} row(s) in total`}
+          <div className="p-2 text-sm text-gray-500 dark:text-gray-400 justify-between flex items-center gap-4">
+            <span>
+              {appointments.length === 0
+                ? "Showing 0 to 0 of 0 results"
+                : `Showing ${startIndex + 1} to ${Math.min(
+                    endIndex,
+                    appointments.length
+                  )} of ${appointments.length} results`}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                }`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                }`}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -164,39 +190,42 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
 
 interface MemoizedTableRowProps {
   appointment: Appointment;
-  isSelected: boolean;
   onSelect: (appointment: Appointment) => void;
-  onCheckboxChange: (checked: boolean) => void;
   isUnapproved?: boolean;
   onDelete?: (id: string) => void;
   onEdit?: (appointment: Appointment) => void;
+  onApprove?: (appointment: Appointment) => void;
 }
 
 const MemoizedTableRow = memo(
   ({
     appointment,
-    isSelected,
     onSelect,
-    onCheckboxChange,
     isUnapproved,
     onDelete,
     onEdit,
+    onApprove,
   }: MemoizedTableRowProps) => {
-    const handleApprove = (event: React.MouseEvent) => {
+    const handleApprove = async (event: React.MouseEvent) => {
       event.stopPropagation();
-      // @ts-ignore
-      ApproveAppointment(appointment.id);
-      toast.success(
-        <div className="flex justify-between dark:text-white">
-          <p>Appointment has been approved successfully.</p>
-          <button
-            onClick={() => toast.dismiss()}
-            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <span className="text-sm">&#x2715;</span>
-          </button>
-        </div>
-      );
+      try {
+        // @ts-ignore
+        await ApproveAppointment(appointment.id);
+        toast.success(
+          <div className="flex justify-between dark:text-white">
+            <p>Appointment has been approved successfully.</p>
+            <button
+              onClick={() => toast.dismiss()}
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>
+        );
+        onApprove?.(appointment);
+      } catch (error) {
+        toast.error("Failed to approve appointment");
+      }
     };
 
     const date = renderFormattedDate(
@@ -207,22 +236,8 @@ const MemoizedTableRow = memo(
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
-        className={`hover:bg-gray-50 ${
-          isSelected ? "bg-gray-100" : ""
-        } dark:hover:bg-gray-800 dark:border-gray-700 ${
-          isSelected ? "dark:bg-gray-700" : ""
-        }`}
+        className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
       >
-        <TableCell
-          className="w-12 dark:border-gray-700"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* <Checkbox
-            checked={isSelected}
-            onCheckedChange={onCheckboxChange}
-            className="dark:border-gray-600"
-          /> */}
-        </TableCell>
         <TableCell className="font-medium dark:text-white">
           {appointment.first_name} {appointment.last_name}
         </TableCell>

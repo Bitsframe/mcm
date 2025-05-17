@@ -3,7 +3,7 @@ import {
   LatestEvent,
   RenderArrInterface,
 } from "./types/dashboard.interface";
-import { Group47, Group44, Group52, Globe, Group53, Ellipse, blueshade } from "@/assets/images";
+import { Group47, Group44, Group52, Globe, Group53, Ellipse, blueshade, octagon } from "@/assets/images";
 import { AlertOctagon } from "lucide-react";
 
 
@@ -34,7 +34,7 @@ export const render_arr: RenderArrInterface[] = [
   {
     label: "Dashboard_k5",
     key: "realert_interval",
-    icon: Group52.src,
+    icon: octagon.src,
     bgImage: Group53.src,
   },
 ];

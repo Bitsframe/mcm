@@ -1,7 +1,7 @@
 "use client";
 
 import { CircularProgress } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import {
   Table,
@@ -38,6 +38,7 @@ interface Props {
   searchInputplaceholder?: string;
   RightSideComponent?: () => React.ReactNode;
   pdf?: () => React.ReactNode;
+  resetPaginationTrigger?: any;
 }
 
 interface DataListInterface {
@@ -55,6 +56,7 @@ const TableComponent: React.FC<Props> = ({
   searchInputplaceholder,
   RightSideComponent,
   pdf,
+  resetPaginationTrigger,
 }) => {
   const { t } = useTranslation([
     translationConstant.STOCKPANEL,
@@ -64,6 +66,18 @@ const TableComponent: React.FC<Props> = ({
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
   const isAllSelected =
     dataList.length > 0 && selectedRows.length === dataList.length;
+
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
+  const currentData = dataList.slice(startIndex, endIndex);
+
+  // Reset pagination when dataList or resetPaginationTrigger changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dataList, resetPaginationTrigger]);
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -82,11 +96,18 @@ const TableComponent: React.FC<Props> = ({
     }
   };
 
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full overflow-hidden text-black dark:text-white">
-      {/* Search and header section - unchanged */}
-      <div className="py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155]">
+      <div className="pb-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10">
           <CiSearch size={18} color="gray" />
           <input
             onChange={searchHandle}
@@ -101,17 +122,13 @@ const TableComponent: React.FC<Props> = ({
         {RightSideComponent ? <RightSideComponent /> : null}
       </div>
 
-      {/* Table container - only changed the structure here */}
-      <div className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}>
-        {/* Single scrollable container for the entire table */}
+      <div
+        className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}
+      >
         <div className="flex-1 overflow-auto">
           <Table className="w-full rounded-lg border-collapse">
-            {/* Header - unchanged content */}
             <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
-                <TableHead className="w-12 py-3 text-sm font-medium text-gray-500 dark:text-gray-300 sticky left-0 bg-white dark:bg-[#1E293B] z-20">
-                  {/* Checkbox if needed */}
-                </TableHead>
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
                     key={index}
@@ -130,7 +147,6 @@ const TableComponent: React.FC<Props> = ({
               </TableRow>
             </TableHeader>
 
-            {/* Body - unchanged content */}
             <TableBody>
               {loading ? (
                 <TableRow>
@@ -141,14 +157,11 @@ const TableComponent: React.FC<Props> = ({
                   </TableCell>
                 </TableRow>
               ) : (
-                dataList.map((elem, index) => (
+                currentData.map((elem, index) => (
                   <TableRow
-                    key={index}
+                    key={startIndex + index}
                     className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700"
                   >
-                    <TableCell className="w-12 py-3 sticky left-0 bg-white dark:bg-[#0e1725] z-10">
-                      {/* Checkbox if needed */}
-                    </TableCell>
                     {tableHeader.map(
                       ({ id, render_value, align, flex }, ind) => {
                         const content = render_value
@@ -172,20 +185,37 @@ const TableComponent: React.FC<Props> = ({
             </TableBody>
           </Table>
         </div>
-      </div>
 
-      {/* Footer section - unchanged */}
-      <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300">
-        <div>
-          {selectedRows.length} of {dataList.length} row(s) selected.
-        </div>
-        <div className="flex space-x-2">
-          <button className="px-3 py-1 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#334155] rounded">
-            Previous
-          </button>
-          <button className="px-3 py-1 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#334155] rounded">
-            Next
-          </button>
+        <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725]">
+          <div>
+            {dataList.length === 0
+              ? "Showing 0 to 0 of 0 results"
+              : `Showing ${startIndex + 1} to ${endIndex} of ${
+                  dataList.length
+                } results`}
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || dataList.length === 0}
+              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+                currentPage === totalPages || dataList.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -101,7 +101,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 <select
                     value={selectedSlot}
                     onChange={(e) => selectSlotHandle(e.target.value)}
-                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-[#F1F4F7] dark:bg-[#374151] outline-none rounded-[10px]'
+                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-[#f9fafb] dark:bg-[#374151] outline-none rounded-[10px]'
                     disabled={isClosed}
                 >
                     {isClosed ? (
@@ -133,7 +133,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     onChange={dateTimeChangeHandle}
                     placeholderText={"Select Schedule date"}
                     dateFormat="MM-dd-yyyy"
-                    className="w-full h-[46px]  text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f1f4f7] placeholder:text-customGray placeholder:text-opacity-50 px-5 dark:bg-[#374151] outline-none "
+                    className="w-full h-[46px]  text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] placeholder:text-customGray placeholder:text-opacity-50 px-5 dark:bg-[#374151] outline-none "
                 />
             </div>
         </div>

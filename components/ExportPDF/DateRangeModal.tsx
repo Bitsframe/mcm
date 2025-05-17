@@ -6,6 +6,7 @@ import 'react-date-range/dist/theme/default.css'; // theme styles for react-date
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { FileClock } from 'lucide-react';
 
 const style = {
     position: 'absolute',
@@ -66,11 +67,12 @@ export default function DateRangeModal({
     return (
         <div>
             <button
-                onClick={handleOpen}
-                className="bg-[#0066FF] text-base px-3 py-2 text-white rounded-md"
-            >
-                {t("POS-Historyk1")}
-            </button>
+        onClick={handleOpen}
+        className="bg-[#0066FF] text-base px-3 py-2 text-white rounded-md flex items-center space-x-2"
+    >
+        <FileClock className="w-5 h-5" />
+        <span>{t("POS-Historyk1")}</span>
+    </button>
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -89,17 +91,17 @@ export default function DateRangeModal({
                             months={1}
                             direction="vertical"
                         />
-                        <div className='flex justify-between space-x-4'>
+                        <div className='flex justify-end space-x-4'>
                             <button
                                 onClick={handleClose}
-                                className="border-2 border-gray-600  text-gray-600 px-4 py-1 rounded-md"
+                                className=" text-black px-4 py-1 rounded-md bg-[#F1F4F9]"
                             >
                                 Close
                             </button>
                             <button
                                 onClick={applyHandle}
                                 disabled={loading}
-                                className="bg-black border-2 border-black text-white px-4 py-1 rounded-md disabled:bg-gray-400 disabled:border-gray-400"
+                                className="bg-[#0066ff] text-white px-4 py-1 rounded-md disabled:bg-gray-400 disabled:border-gray-400"
                             >
                                 Apply
                             </button>

@@ -107,7 +107,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           <CircularProgress />
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#080e16] rounded-xl shadow-2xl w-11/12 max-w-4xl p-6">
+        <div className="bg-white dark:bg-[#080e16] rounded-lg shadow-xl w-[85%] max-w-5xl mt-6 p-4 max-h-[80vh] overflow-y-auto">
           {/* Header Section */}
           <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -183,7 +183,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 onChange={searchProductHandle}
                 type="text"
                 placeholder="Search product..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                className=" pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
               />
             </div>
           </div>
@@ -191,7 +191,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           {/* Table Section */}
           <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
             {/* Table Header */}
-            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 grid grid-cols-12 gap-4">
+            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 grid grid-cols-12 gap-28">
               {tableHeader.map(({ label, align, flex }, index) => (
                 <div
                   key={index}
@@ -217,31 +217,36 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#080e16] px-3 py-1 rounded-md">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-2 justify-between dark:bg-[#080e16] px-3 py-2 rounded-md">
+              {/* <span className="text-sm text-gray-500 dark:text-gray-400">
                 Page
+              </span> */}
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Showing {page} out of {totalPages}
               </span>
+              <div className="flex justify-center gap-2 items-center">
               <button
                 onClick={() => changeHistoryHandle("prev")}
                 disabled={page === 1}
-                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                className={`p-1 rounded border-2 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 ${
                   page === 1 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                Previous
+                {/* <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
               </button>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {page}/{totalPages}
-              </span>
+              
               <button
                 onClick={() => changeHistoryHandle("next")}
                 disabled={page === totalPages}
-                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                className={`p-1 rounded border-2 border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 ${
                   page === totalPages ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                Next
+                {/* <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
               </button>
+              </div>
             </div>
           </div>
         </div>

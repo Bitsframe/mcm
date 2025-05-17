@@ -26,6 +26,9 @@ import {
   Clock,
   CirclePlus,
   UserPlus,
+  Hourglass,
+  CalendarPlus,
+  CheckCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +59,6 @@ const Appointments = () => {
     []
   );
 
-  // Add these refs to store original unsorted data
   const originalApprovedRef = useRef<Appointment[]>([]);
   const originalUnapprovedRef = useRef<Appointment[]>([]);
 
@@ -82,7 +84,6 @@ const Appointments = () => {
       setUnapprovedAppointments(unapprovedData as any);
       setFilteredUnapproved(unapprovedData as any);
       
-      // Store original unsorted data
       originalApprovedRef.current = approvedData as any;
       originalUnapprovedRef.current = unapprovedData as any;
     } catch (error) {
@@ -168,7 +169,6 @@ const Appointments = () => {
 
   const sortHandle = useCallback(
     (column: string) => {
-      // If clicking the same column that's already sorted, return to original order
       if (sortColumn === column) {
         setFilteredApproved([...originalApprovedRef.current]);
         setFilteredUnapproved([...originalUnapprovedRef.current]);
@@ -176,7 +176,6 @@ const Appointments = () => {
         return;
       }
 
-      // Store original data if this is the first sort
       if (!sortColumn) {
         originalApprovedRef.current = [...filteredApproved];
         originalUnapprovedRef.current = [...filteredUnapproved];
@@ -216,6 +215,18 @@ const Appointments = () => {
     }
   }, [selectedLocation, fetchDataHandler]);
 
+  const handleAppointmentApproval = useCallback((approvedAppointment: Appointment) => {
+    // Remove from unapproved list
+    setUnapprovedAppointments(prev => prev.filter(app => app.id !== approvedAppointment.id));
+    setFilteredUnapproved(prev => prev.filter(app => app.id !== approvedAppointment.id));
+    
+    // Add to approved list
+    setApprovedAppointments(prev => [...prev, approvedAppointment]);
+    setFilteredApproved(prev => [...prev, approvedAppointment]);
+    
+    setActiveTab("approved");
+  }, []);
+
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
   return (
@@ -244,7 +255,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <CheckCircle className="h-6 w-6" />
+              <CheckCheck className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -260,7 +271,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <Clock className="h-6 w-6" />
+              <Hourglass className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -276,7 +287,7 @@ const Appointments = () => {
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <UserPlus className="h-6 w-6" />
+              <CalendarPlus className="h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -290,7 +301,7 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg p-4 dark:bg-[#0E1725]">
+      <div className="bg-white rounded-lg px-4 pb-4 dark:bg-[#0E1725]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 ">
           <Tabs
             className="w-full"
@@ -363,6 +374,7 @@ const Appointments = () => {
           selectedAppointments={selectedAppointments}
           //@ts-ignore
           setSelectedAppointments={setSelectedAppointments}
+          onApprove={handleAppointmentApproval}
         />
       </div>
 

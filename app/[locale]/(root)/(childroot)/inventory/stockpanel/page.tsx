@@ -100,7 +100,7 @@ const StockPanel = () => {
       setDataList([...allData]);
     } else {
       const filteredData = allData.filter((elem) =>
-        elem.products.product_name.toLowerCase().includes(val.toLowerCase())
+        elem.product_name.toLowerCase().includes(val.toLowerCase())
       );
       setDataList([...filteredData]);
     }
@@ -160,12 +160,12 @@ const StockPanel = () => {
       <div className="w-full min-h-[81dvh] h-full overflow-auto py-2 px-2">
         <InventoryCards archived={getDataArchiveType} />
         <TableComponent
-          tableHeight="h-[71.5dvh]"
+          tableHeight="h-[45dvh]"
           tableBodyHeight="h-[35dvh]"
           tableHeader={tableHeader}
           loading={loading}
           dataList={dataList}
-          searchInputplaceholder="SP_k8"
+          searchInputplaceholder="Search by name"
           searchHandle={onChangeHandle}
           RightSideComponent={() => RightSideComponent}
         />
