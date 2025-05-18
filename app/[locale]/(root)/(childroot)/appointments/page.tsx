@@ -59,7 +59,6 @@ const Appointments = () => {
     []
   );
 
-  // Add these refs to store original unsorted data
   const originalApprovedRef = useRef<Appointment[]>([]);
   const originalUnapprovedRef = useRef<Appointment[]>([]);
 
@@ -85,7 +84,6 @@ const Appointments = () => {
       setUnapprovedAppointments(unapprovedData as any);
       setFilteredUnapproved(unapprovedData as any);
       
-      // Store original unsorted data
       originalApprovedRef.current = approvedData as any;
       originalUnapprovedRef.current = unapprovedData as any;
     } catch (error) {
@@ -171,7 +169,6 @@ const Appointments = () => {
 
   const sortHandle = useCallback(
     (column: string) => {
-      // If clicking the same column that's already sorted, return to original order
       if (sortColumn === column) {
         setFilteredApproved([...originalApprovedRef.current]);
         setFilteredUnapproved([...originalUnapprovedRef.current]);
@@ -179,7 +176,6 @@ const Appointments = () => {
         return;
       }
 
-      // Store original data if this is the first sort
       if (!sortColumn) {
         originalApprovedRef.current = [...filteredApproved];
         originalUnapprovedRef.current = [...filteredUnapproved];
@@ -218,6 +214,18 @@ const Appointments = () => {
       fetchDataHandler(Number(selectedLocation.id));
     }
   }, [selectedLocation, fetchDataHandler]);
+
+  const handleAppointmentApproval = useCallback((approvedAppointment: Appointment) => {
+    // Remove from unapproved list
+    setUnapprovedAppointments(prev => prev.filter(app => app.id !== approvedAppointment.id));
+    setFilteredUnapproved(prev => prev.filter(app => app.id !== approvedAppointment.id));
+    
+    // Add to approved list
+    setApprovedAppointments(prev => [...prev, approvedAppointment]);
+    setFilteredApproved(prev => [...prev, approvedAppointment]);
+    
+    setActiveTab("approved");
+  }, []);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
@@ -366,6 +374,7 @@ const Appointments = () => {
           selectedAppointments={selectedAppointments}
           //@ts-ignore
           setSelectedAppointments={setSelectedAppointments}
+          onApprove={handleAppointmentApproval}
         />
       </div>
 
