@@ -130,6 +130,7 @@ const SalesHistory = () => {
           key: "pos.locationid",
           value: location_id,
         },
+        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "pos.patientid", value: null }],
       });
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
       setDataList(filteredData);
