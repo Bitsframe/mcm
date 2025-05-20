@@ -32,6 +32,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.42.0",
+    "@tinymce/tinymce-react": "^6.1.0",
     "antd": "^5.18.0",
     "axios": "^1.7.2",
     "class-variance-authority": "^0.7.1",

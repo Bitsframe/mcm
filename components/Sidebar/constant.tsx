@@ -18,7 +18,8 @@ import {
   Layers, 
   Hammer,
   IdCard,
-  Calculator
+  Calculator,
+  Settings
 } from "lucide-react";
 import { ComponentType } from "react";
 
@@ -62,6 +63,7 @@ const ROUTES = {
     STOCK_PANEL: "/inventory/stockpanel",
     MANAGE: "/inventory/manage",
   },
+  CONTROLS: "/controls",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -139,6 +141,13 @@ export const routeList: Route[] = [
     label: "Sidebar_k12",
     icon: Layers,
     route: ROUTES.INVENTORY.STOCK_PANEL,
+  },
+  {
+    id: 'controls',
+    name: "controls",
+    label: "control",
+    icon: Settings,
+    route: ROUTES.CONTROLS
   },
   {
     id: 'tools',
