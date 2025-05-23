@@ -164,12 +164,16 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 </p>
               </div> */}
             </div>
-              <div className="space-y-1">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {t("POS-Historyk22")}: {calcTotalAmount(dataList)}
-                </p>
-              </div>
-            
+            <div className="space-y-1">
+              <p className="text-gray-500 dark:text-gray-400">
+                {t("Discount")}: {dataList?.promo_code_percentage ? `${dataList.promo_code_percentage}%` : "N/A"}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-gray-500 dark:text-gray-400">
+                {t("POS-Historyk22")}: {calcTotalAmount(dataList)}
+              </p>
+            </div>
           </div>
 
           {/* Search Bar */}

@@ -29,6 +29,7 @@ export const POST = async (req: Request) => {
     // Step 2: Fetch orders linked to the found `pos` records
     const orders = await fetch_content_service({
       table: 'orders',
+      selectParam: ', promocodes(*, promotype(*))',
       filterOptions: [{ column: 'patient_id', operator: 'in', value: posIds },
         // { column: 'order_id', operator: 'neq', value: currentOrderId }
       ]
@@ -103,11 +104,15 @@ export const POST = async (req: Request) => {
           };
         });
 
+        const percentage = order.promocodes?.promotype?.percentage;
+
         return {
           order_id: order.order_id,
           patient_id: order.patientid,
           order_date: order.order_date,
           promo_code_id: order.promo_code_id,
+          promo_code: order.promocodes,
+          promo_code_percentage: percentage,
           pos: {
             id: pos.id,
             email: pos.email,

@@ -9,6 +9,7 @@ const layout: React.FC<LayoutProps> = ({
 }) => {
     return (
         <div className='' >
+            <Location_Component />
             {children}
         </div>
     )
