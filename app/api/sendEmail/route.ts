@@ -32,6 +32,7 @@ export async function POST(req: any) {
     const {
       subject,
       template,
+      templateBody,
       buttonLink,
       buttonText,
       name,
@@ -46,6 +47,7 @@ export async function POST(req: any) {
     console.log("Received email request:", {
       subject,
       template,
+      templateBody: !!templateBody,
       recipientCount: email?.length,
       hasRequiredFields: !!subject && !!name && !!price
     });
@@ -58,19 +60,57 @@ export async function POST(req: any) {
       );
     }
 
-    // Find the matching template component
-    const selectedTemplate = templates.find((t) => t.value === template);
-    if (!selectedTemplate) {
-      return NextResponse.json(
-        { message: "Invalid template name provided." },
-        { status: 400 }
-      );
-    }
-
     // Validate email recipients
     if (!email || !Array.isArray(email) || email.length === 0) {
       return NextResponse.json(
         { message: "No valid email recipients provided" },
+        { status: 400 }
+      );
+    }
+
+    // If templateBody is provided, use it directly (DB template)
+    if (templateBody) {
+      const payload = {
+        from: process.env.SENDER_BROADCAST_EMAIL || "test@alerts.myclinicmd.com",
+        recipients: email.map((recipient: any) => recipient.email),
+        subject,
+        html: templateBody,
+      };
+
+      console.log("Sending email payload (DB template):", {
+        from: payload.from,
+        recipientCount: payload.recipients.length,
+        subject: payload.subject
+      });
+
+      const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email` || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log("Email service response (DB template):", {
+        status: response.status,
+        data: response.data
+      });
+
+      if (response.status !== 200) {
+        throw new Error(response.data?.message || 'Failed to send email');
+      }
+
+      return NextResponse.json(
+        { message: "Emails sent successfully", ok: true },
+        { status: 201 }
+      );
+    }
+
+    // Only validate template name for hardcoded templates
+    const selectedTemplate = templates.find((t) => t.value === template);
+    if (!selectedTemplate) {
+      return NextResponse.json(
+        { message: "Invalid template name provided." },
         { status: 400 }
       );
     }
@@ -86,7 +126,7 @@ export async function POST(req: any) {
         startDate,
         price,
       })
-    )
+    );
 
     // Create a payload that includes all recipients
     const payload = {
@@ -96,7 +136,7 @@ export async function POST(req: any) {
       html: emailHtmls,
     };
 
-    console.log("Sending email payload:", {
+    console.log("Sending email payload (hardcoded):", {
       from: payload.from,
       recipientCount: payload.recipients.length,
       subject: payload.subject
@@ -110,7 +150,7 @@ export async function POST(req: any) {
       },
     });
 
-    console.log("Email service response:", {
+    console.log("Email service response (hardcoded):", {
       status: response.status,
       data: response.data
     });

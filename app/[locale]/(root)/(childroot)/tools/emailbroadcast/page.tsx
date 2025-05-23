@@ -48,6 +48,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
 import { toast } from "sonner";
+import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -58,19 +59,21 @@ const EmailBroadcast: React.FC = () => {
   const [filter, setFilter] = useState<any>(false);
   const [startDate, setStartDate] = React.useState<Date>();
   const [endDate, setEndDate] = React.useState<Date>();
-  const [subject, setSubject] = React.useState<any>();
-  const [reason, setReason] = React.useState<any>();
-  const [buttonText, setButtonText] = React.useState<any>();
-  const [buttonLink, setButtonLink] = React.useState<any>();
-  const [clinicName, setClinicName] = React.useState<any>();
-  const [price, setPrice] = React.useState<any>();
-  const [name, setName] = React.useState<any>();
+  const [subject, setSubject] = React.useState<string>("");
+  const [reason, setReason] = React.useState<string>("");
+  const [buttonText, setButtonText] = React.useState<string>("");
+  const [buttonLink, setButtonLink] = React.useState<string>("");
+  const [clinicName, setClinicName] = React.useState<string>("");
+  const [price, setPrice] = React.useState<string>("");
+  const [name, setName] = React.useState<string>("");
   const [checkedItems, setCheckedItems] = useState<any>([]);
   const [selectedGender, setSelectedGender] = useState<string[]>([]);
   const [onsite, setOnsite] = useState<boolean | undefined>();
   const [location, setLocation] = useState<any>(null);
   const [treatmentType, setTreatmentType] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dbTemplates, setDbTemplates] = useState<any[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState<boolean>(true);
 
   const templates = [
     { label: "Template 1", value: "template1", component: emailtemplate1 },
@@ -89,6 +92,19 @@ const EmailBroadcast: React.FC = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k14");
+
+    // Fetch email templates from Supabase
+    const fetchTemplates = async () => {
+      try {
+        const data = await fetch_content_service({ table: "email_templates" });
+        setDbTemplates(data || []);
+      } catch (err) {
+        setDbTemplates([]);
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+    fetchTemplates();
   }, []);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>("template1");
@@ -137,26 +153,61 @@ const EmailBroadcast: React.FC = () => {
     }
   };
 
+  const templateOptions = [
+    ...dbTemplates.map((t) => ({
+      label: t.name,
+      value: t.id,
+      subject: t.subject,
+      body: t.body,
+      type: "db",
+    })),
+    ...templates.map((t) => ({
+      label: t.label,
+      value: t.value,
+      subject: "",
+      body: "",
+      type: "hardcoded",
+    })),
+  ];
+
   const RenderTemplate = () => {
+    // Supabase template
+    if (dbTemplates.length > 0) {
+      const selected = dbTemplates.find((t) => t.id === selectedTemplate);
+      if (selected) {
+        // Insert name after 'Best,' if name is provided and not already present
+        let previewHtml = selected.body || "";
+        if (name && name.trim()) {
+          // Find 'Best,' and add <br/> + name after it, but only if not already present
+          previewHtml = previewHtml.replace(
+            /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
+            (match: string, p1: string, p2: string) => `${p1}<br/>${name}${p2}`
+          );
+        }
+        return (
+          <div className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+            <div style={{ whiteSpace: 'pre-line' }} dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          </div>
+        );
+      }
+    }
+    // Hardcoded template
     const SelectedTemplateComponent = templates.find(
       (template) => template.value === selectedTemplate
     )?.component;
-
     if (SelectedTemplateComponent) {
       return (
         <div
           className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
-          style={
-            {
-              "--text-color": "var(--foreground)",
-            } as React.CSSProperties
-          }
+          style={{
+            "--text-color": "var(--foreground)",
+          } as React.CSSProperties}
         >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
             reason={reason || "[Reason]"}
             clinicName={clinicName || "[ClinicName]"}
-            name={name || "[Name]"}
+            name={name || ""}
             buttonText={buttonText || "[Button Text]"}
             buttonLink={buttonLink || "[buttonLink]"}
             startDate={moment(startDate).format("MM/DD/YYYY") || "[Start Date]"}
@@ -250,6 +301,29 @@ const EmailBroadcast: React.FC = () => {
       //   theme: "dark",
       // });
 
+      const dbTemplate = dbTemplates.find((t) => t.id === selectedTemplate);
+      let templateBody: string | undefined = undefined;
+      if (dbTemplate) {
+        // Render the template body with logo and name
+        let previewHtml = dbTemplate.body || "";
+        // Insert name after 'Best,' if name is provided
+        if (name && name.trim()) {
+          previewHtml = previewHtml.replace(
+            /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
+            `$1<br/>${name}$2`
+          );
+        }
+        // Always add the logo at the top
+        const STATIC_LOGO_URL = 'https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/email-assets//clinca_logo.png';
+        previewHtml = `
+          <div style="text-align:center;margin-bottom:16px;">
+            <img src="${STATIC_LOGO_URL}" alt="Clinic Logo" style="width:120px;object-fit:contain;" />
+          </div>
+          ${previewHtml}
+        `;
+        templateBody = previewHtml;
+      }
+
       const res = await fetch("/api/sendEmail", {
         method: "POST",
         headers: {
@@ -257,7 +331,8 @@ const EmailBroadcast: React.FC = () => {
         },
         body: JSON.stringify({
           subject,
-          template: selectedTemplate,
+          template: dbTemplate ? dbTemplate.name : selectedTemplate,
+          templateBody,
           buttonLink,
           buttonText,
           name,
@@ -697,14 +772,16 @@ const EmailBroadcast: React.FC = () => {
                 className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm text-foreground dark:text-white rounded-md border-none dark:border-gray-600 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500"
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
+                disabled={loadingTemplates}
               >
-                {templates.map((template) => (
+                {templateOptions.map((template) => (
                   <option
                     key={template.value}
                     value={template.value}
                     className="bg-background dark:bg-gray-700 text-foreground dark:text-white"
                   >
                     {template.label}
+                    {template.type === "db" ? " (DB)" : " (Built-in)"}
                   </option>
                 ))}
               </select>
@@ -742,7 +819,7 @@ const EmailBroadcast: React.FC = () => {
               type="text"
               id="subject"
               name="subject"
-              value={subject}
+              value={subject || ""}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Subject"
               className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
@@ -760,10 +837,10 @@ const EmailBroadcast: React.FC = () => {
               type="text"
               id="name"
               name="name"
+              value={name || ""}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Name"
               className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
             />
           </div>
 
@@ -780,7 +857,7 @@ const EmailBroadcast: React.FC = () => {
               name="price"
               placeholder="Price"
               className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
-              value={price}
+              value={price || ""}
               onChange={(e) => setPrice(e.target.value)}
             />
           </div>

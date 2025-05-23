@@ -1,6 +1,6 @@
 import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 
 
@@ -14,6 +14,8 @@ export function useRolesAndPermissions() {
     const [editStateId, setEditStateId] = useState(0)
     const [permissionsList, setPermissionsList] = useState<any[]>([]);
     const [userPermissionsListRecord, setUserPermissionsListRecord] = useState<any[]>([])
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [roleToDelete, setRoleToDelete] = useState<number | null>(null);
 
 
     const setEditStateIndexActivate = (id: number) => {
@@ -221,16 +223,56 @@ export function useRolesAndPermissions() {
     }
 
     const deleteRoleHandle = async (id: number) => {
-        const { error } = await delete_content_service({ table: 'roles', keyByDelete: 'id', id: id })
-        if (!error) {
-            setData((elem) => elem.filter((data: any) => data.id !== id))
-            toast.success('Role has been discarded');
+        try {
+            // 1. Check if any profiles are using this role
+            const profilesWithRole = await fetch_content_service({
+                table: 'profiles',
+                matchCase: { key: 'role_id', value: id }
+            });
+
+            if (profilesWithRole && profilesWithRole.length > 0) {
+                toast.error('Cannot delete role: There are profiles assigned to this role. Please reassign or remove these profiles first.');
+                return;
+            }
+
+            // 2. Delete all permissions associated with this role
+            const { error: permError } = await delete_content_service({
+                table: 'user_permissions',
+                keyByDelete: 'roles',
+                id: id
+            });
+
+            if (permError) {
+                toast.error('Failed to delete role permissions');
+                return;
+            }
+
+            // 3. Delete the role itself
+            const { error: roleError } = await delete_content_service({
+                table: 'roles',
+                keyByDelete: 'id',
+                id: id
+            });
+
+            if (!roleError) {
+                setData((elem) => elem.filter((data: any) => data.id !== id));
+                if (selectedRole?.id === id) {
+                    setSelectedRole(0);
+                    setPermissionsList((perm: any) => perm.map((elem: any) => ({
+                        ...elem,
+                        allowed: false
+                    })));
+                    setUserPermissionsListRecord([]);
+                }
+                toast.success('Role has been deleted successfully');
+            } else {
+                toast.error(roleError.message || 'Failed to delete role');
+            }
+        } catch (error: any) {
+            console.error('Error deleting role:', error);
+            toast.error(error.message || 'An error occurred while deleting the role');
         }
-        else if (error) {
-            console.log(error.message)
-            toast.error(error.message);
-        }
-    }
+    };
 
 
     const updateRoleHandle = async (postData: any) => {
@@ -248,10 +290,22 @@ export function useRolesAndPermissions() {
 
     }
 
+    // Call this to open the confirmation modal
+    const confirmDeleteRole = (id: number) => {
+        setRoleToDelete(id);
+        setDeleteModalOpen(true);
+    };
+
+    // Call this after user confirms deletion in the modal
+    const handleConfirmedDelete = async () => {
+        if (roleToDelete === null) return;
+        await deleteRoleHandle(roleToDelete);
+        setDeleteModalOpen(false);
+        setRoleToDelete(null);
+    };
 
 
-
-    return { roles: data, loadingDataState, handleAddRole, activeForAddNewRoleInput, toggleActivateAddNewRoleHandle, selectRoleHandle, selectedRole, newAddLoading, deleteRoleHandle, updateRoleHandle, setEditStateIndexActivate, editStateId, permissions: permissionsList, handlePermissionToggle, toggleAllPermissions }
+    return { roles: data, loadingDataState, handleAddRole, activeForAddNewRoleInput, toggleActivateAddNewRoleHandle, selectRoleHandle, selectedRole, newAddLoading, deleteRoleHandle, updateRoleHandle, setEditStateIndexActivate, editStateId, permissions: permissionsList, handlePermissionToggle, toggleAllPermissions, deleteModalOpen, setDeleteModalOpen, confirmDeleteRole, handleConfirmedDelete, roleToDelete }
 
 
 
