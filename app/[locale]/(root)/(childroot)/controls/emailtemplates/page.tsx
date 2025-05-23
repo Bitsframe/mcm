@@ -1,13 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import { Search, X, Plus } from "lucide-react";
+import { create_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import {clinca_logo} from "@/assets/images";
 
 interface Template {
-  id: number;
+  id: string;
   name: string;
+  // subject: string;
   content: string;
+}
+
+function htmlToText(html: string): string {
+  if (typeof window !== "undefined") {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+  } else {
+    // SSR fallback
+    return html.replace(/<[^>]+>/g, "");
+  }
+}
+
+function getFullPreviewHtml(content: string) {
+  return `
+    <div style="text-align:center;margin-bottom:16px;">
+      <img src="${clinca_logo.src}" alt="Clinic Logo" style="width:120px;object-fit:contain;" />
+    </div>
+    <div style="margin-bottom:16px;">Dear Patient,</div>
+    <div style="margin-bottom:16px;">${content}</div>
+    <div style="margin-top:24px;">Best,<br/></div>
+  `;
+}
+
+function getFullPlainText(content: string) {
+  // Remove any existing "Dear Patient" and "Best" from the content
+  let cleanContent = htmlToText(content)
+    .replace(/^Dear Patient,\s*/i, '')
+    .replace(/\s*Best,\s*$/i, '')
+    .trim();
+
+  // Now add them back in the correct format
+  return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
 }
 
 const EmailTemplates = () => {
@@ -16,7 +52,33 @@ const EmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  // const [templateSubject, setTemplateSubject] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Load templates from Supabase using fetch_content_service
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const data = await fetch_content_service({ 
+          table: "email_templates",
+          sortOptions: {
+            column: 'created_at',
+            order: 'desc'
+          }
+        });
+
+        setTemplates(data.map(template => ({
+          id: template.id,
+          name: template.name,
+          content: template.body
+        })));
+      } catch (error) {
+        console.error("Error loading templates:", error);
+      }
+    };
+
+    loadTemplates();
+  }, []);
 
   const handleEditorChange = (content: string) => {
     setTemplateContent(content);
@@ -31,41 +93,127 @@ const EmailTemplates = () => {
       alert("Please enter a template name");
       return;
     }
+    // if (!templateSubject.trim()) {
+    //   alert("Please enter a subject");
+    //   return;
+    // }
     setShowCreateModal(false);
     setIsCreatingNew(true);
     setTemplateContent("");
     setActiveTemplate(null);
   };
 
-  const handleSaveTemplate = () => {
-    const newTemplate: Template = {
-      id: Date.now(),
-      name: templateName,
-      content: templateContent,
-    };
+  const handleSaveTemplate = async () => {
+    try {
+      if (!templateName.trim()) {
+        alert("Please enter a template name");
+        return;
+      }
+      // if (!templateSubject.trim()) {
+      //   alert("Please enter a subject");
+      //   return;
+      // }
+      if (!templateContent.trim()) {
+        alert("Please enter template content");
+        return;
+      }
 
-    if (activeTemplate) {
-      setTemplates(
-        templates.map((t) =>
-          t.id === activeTemplate.id
-            ? { ...t, name: templateName, content: templateContent }
-            : t
-        )
-      );
-    } else {
-      setTemplates([...templates, newTemplate]);
+      // Compose plain text for Supabase
+      const plainTextBody = getFullPlainText(templateContent);
+
+      const post_data = {
+        name: templateName,
+        // subject: templateSubject,
+        body: plainTextBody,
+        is_active: true,
+      };
+
+      const { data, error } = await create_content_service({
+        table: "email_templates",
+        post_data,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setTemplates([
+        ...templates,
+        {
+          id: data?.[0]?.id,
+          name: data?.[0]?.name,
+          // subject: data?.[0]?.subject,
+          content: data?.[0]?.body,
+        },
+      ]);
+      setIsCreatingNew(false);
+      setActiveTemplate(null);
+      setTemplateName("");
+      // setTemplateSubject("");
+      setTemplateContent("");
+      alert("Template saved to Supabase!");
+    } catch (error) {
+      console.error("Error saving template:", error);
+      alert("Failed to save template. Please try again.");
     }
-
-    setIsCreatingNew(false);
-    setActiveTemplate(null);
-    setTemplateName("");
   };
 
   const handleEditTemplate = (template: Template) => {
     setActiveTemplate(template);
     setTemplateContent(template.content);
     setTemplateName(template.name);
+    // setTemplateSubject(template.subject || "");
     setIsCreatingNew(true);
+  };
+
+  const handleUpdateTemplate = async () => {
+    try {
+      if (!activeTemplate?.id) {
+        alert("No template selected for update");
+        return;
+      }
+
+      if (!templateContent.trim()) {
+        alert("Please enter template content");
+        return;
+      }
+
+      // Get the content without the standard headers/footers, and strip HTML
+      let cleanContent = htmlToText(templateContent)
+        .replace(/^Dear Patient,\s*/i, '')
+        .replace(/\s*Best,\s*$/i, '')
+        .trim();
+
+      // Add the standard format
+      const plainTextBody = `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
+
+      const post_data = {
+        id: activeTemplate.id,
+        body: plainTextBody,
+        is_active: true,
+      };
+
+      const data = await update_content_service({
+        table: "email_templates",
+        post_data,
+        matchKey: "id"
+      });
+
+      // Update the templates list with the updated template content only
+      setTemplates(templates.map(t => 
+        t.id === activeTemplate.id 
+          ? { ...t, content: plainTextBody }
+          : t
+      ));
+
+      setIsCreatingNew(false);
+      setActiveTemplate(null);
+      setTemplateContent("");
+      alert("Template content updated successfully!");
+    } catch (error) {
+      console.error("Error updating template:", error);
+      alert("Failed to update template. Please try again.");
+    }
   };
 
   return (
@@ -78,6 +226,7 @@ const EmailTemplates = () => {
               onClick={() => {
                 setShowCreateModal(false);
                 setTemplateName("");
+                // setTemplateSubject("");
               }}
             >
               <X className="w-5 h-5" />
@@ -89,7 +238,6 @@ const EmailTemplates = () => {
             <p className="text-gray-500 text-sm mb-6">
               Please write a name below to add a template
             </p>
-            
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2 text-gray-600">
                 Template Name
@@ -100,16 +248,30 @@ const EmailTemplates = () => {
                 onChange={(e) => setTemplateName(e.target.value)}
                 className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800"
                 placeholder="Type here"
-                autoFocus
+                disabled={!!activeTemplate?.id}
+                autoFocus={!activeTemplate?.id}
               />
             </div>
-            
+            {/* <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-600">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={templateSubject}
+                onChange={(e) => setTemplateSubject(e.target.value)}
+                className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800"
+                placeholder="Subject"
+                required
+              />
+            </div> */}
             <div className="flex justify-end gap-3">
               <button
                 className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm"
                 onClick={() => {
                   setShowCreateModal(false);
                   setTemplateName("");
+                  // setTemplateSubject("");
                 }}
               >
                 Cancel
@@ -184,6 +346,18 @@ const EmailTemplates = () => {
           <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto flex flex-col">
             {isCreatingNew ? (
               <>
+                {/* <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    value={templateSubject}
+                    onChange={(e) => setTemplateSubject(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                    placeholder="Subject"
+                  />
+                </div> */}
                 <div className="flex-1">
                   <Editor
                     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
@@ -250,22 +424,32 @@ const EmailTemplates = () => {
                     Preview Template
                   </h2>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-4 border border-gray-200 dark:border-gray-700 min-h-[120px]">
-                    <div dangerouslySetInnerHTML={{ __html: templateContent }} />
+                    <div dangerouslySetInnerHTML={{ __html: getFullPreviewHtml(templateContent) }} />
                   </div>
                 </div>
 
                 <div className="mt-4 flex gap-3">
-                  <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
-                    onClick={handleSaveTemplate}
-                  >
-                    Save Template
-                  </button>
+                  {activeTemplate?.id ? (
+                    <button
+                      className="px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+                      onClick={handleUpdateTemplate}
+                    >
+                      Update Template
+                    </button>
+                  ) : (
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                      onClick={handleSaveTemplate}
+                    >
+                      Save Template
+                    </button>
+                  )}
                   <button
                     className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                     onClick={() => {
                       setIsCreatingNew(false);
                       setTemplateName("");
+                      setTemplateContent("");
                     }}
                   >
                     Cancel
