@@ -381,7 +381,7 @@ const Orders = () => {
 
           await sendOrderEmail(
             orderDetails,
-            {...selectedPatient, location: selectedLocation.title},
+            { ...selectedPatient, location: selectedLocation.title },
             cartArray,
             GrossTotalAmount,
             Number(discountAmount),
@@ -534,19 +534,35 @@ const Orders = () => {
                       }
                       quantity={productQty}
                       quantityHandle={quantityHandle}
+                      unlimited={selectedProduct?.unlimited}
                     />
 
                     {selectedProduct ? (
                       <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
-                        <div className="text-xs">
-                          {currencyFormatHandle(
-                            (selectedProduct?.price || 0) * productQty
-                          )}
-                          /unit
+                        <div className="text-xs flex items-center space-x-3">
+                          <p>
+                            {currencyFormatHandle(
+                              (selectedProduct?.price || 0) 
+                            )}
+                            /unit
+                          </p>
+
+                          <p>
+                           Total Cost {currencyFormatHandle(
+                              (selectedProduct?.price || 0) * productQty
+                            )}
+                            
+                          </p>
                         </div>
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty} left
-                        </div>
+                        {selectedProduct.unlimited ? (
+                          <div className="text-xs text-amber-600 dark:text-amber-400">
+                            Unlimited
+                          </div>
+                        ) : (
+                          <div className="text-xs text-amber-600 dark:text-amber-400">
+                            {selectedProduct.quantity_available - productQty} left
+                          </div>
+                        )}
                       </div>
                     ) : null}
                   </div>
@@ -615,8 +631,8 @@ const Orders = () => {
                 </h1>
                 <p
                   className={`text-xs ${appliedDiscount
-                      ? "text-red-500 dark:text-red-400"
-                      : "text-gray-700 dark:text-gray-300"
+                    ? "text-red-500 dark:text-red-400"
+                    : "text-gray-700 dark:text-gray-300"
                     }`}
                 >
                   {appliedDiscount
@@ -688,9 +704,8 @@ const sendOrderEmail = async (
       "Nov",
       "Dec",
     ];
-    const formattedDate = `${today.getDate()}-${
-      months[today.getMonth()]
-    }-${today.getFullYear()}`;
+    const formattedDate = `${today.getDate()}-${months[today.getMonth()]
+      }-${today.getFullYear()}`;
 
     // Create a feedback URL with order ID and patient ID for tracking
     const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
@@ -707,13 +722,11 @@ const sendOrderEmail = async (
                 
                 <h3 style="margin-top: 20px;">Invoice Details:</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Invoice Number:</strong> I-${
-                      orderDetails.order_id
-                    }</li>
+                    <li><strong>Invoice Number:</strong> I-${orderDetails.order_id
+      }</li>
                     <li><strong>Invoice Date:</strong> ${formattedDate}</li>
-                    <li><strong>Payment Method:</strong> ${
-                      orderDetails.paymentcash ? "Cash" : "Debit Card"
-                    }</li>
+                    <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? "Cash" : "Debit Card"
+      }</li>
                     <li><strong>Gross Amount:</strong> ${totalAmount}</li>
                     <li><strong>Discount(${appliedDiscount}%):</strong> -${discountAmount}</li>
                     <li><strong>Net Amount:</strong> ${netAmount}</li>
@@ -722,12 +735,10 @@ const sendOrderEmail = async (
                 <h3>Billing Information:</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
 
-                    <li><strong>Patient Name:</strong> ${
-                      patientInfo.firstname
-                    } ${patientInfo.lastname}</li>
-                    <li><strong>Location:</strong> Clinica San Miguel ${
-                      patientInfo.location || "Pasadena"
-                    }</li>
+                    <li><strong>Patient Name:</strong> ${patientInfo.firstname
+      } ${patientInfo.lastname}</li>
+                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || "Pasadena"
+      }</li>
 
                 </ul>
                 
@@ -743,35 +754,31 @@ const sendOrderEmail = async (
                     </thead>
                     <tbody>
                         ${orderItems
-                          .map(
-                            (item) => `
+        .map(
+          (item) => `
                             <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                                  item.category_name
-                                }</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${
-                                  item.product_name
-                                }</td>
-                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${
-                                  item.quantity
-                                }</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.category_name
+            }</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name
+            }</td>
+                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity
+            }</td>
                                 <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
-                                  item.price * item.quantity
-                                )}</td>
+              item.price * item.quantity
+            )}</td>
                             </tr>
                         `
-                          )
-                          .join("")}
+        )
+        .join("")}
                     </tbody>
-                    ${
-                      discountAmount > 0
-                        ? `
+                    ${discountAmount > 0
+        ? `
                         <tfoot>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
                                 <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
-                                  discountAmount
-                                )}</td>
+          discountAmount
+        )}</td>
                             </tr>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
@@ -779,7 +786,7 @@ const sendOrderEmail = async (
                             </tr>
                         </tfoot>
                     `
-                        : `
+        : `
                         <tfoot>
                             <tr>
                                 <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
@@ -787,7 +794,7 @@ const sendOrderEmail = async (
                             </tr>
                         </tfoot>
                     `
-                    }
+      }
                 </table>
                 
                 <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>

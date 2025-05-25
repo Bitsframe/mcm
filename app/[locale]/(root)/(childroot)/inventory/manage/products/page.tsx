@@ -54,6 +54,22 @@ const tableHeader = [
     can_sort: true,
   },
   {
+    id: "unlimited",
+    label: "Unlimited",
+    Render_Value: ({ unlimited }: { unlimited?: boolean }) => {
+      return (
+        <div className="text-center w-1/2">
+          <input
+          type="checkbox"
+          checked={unlimited}
+          readOnly
+          className="h-4 w-4 rounded  border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+        />
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     label: "Inventory_k9",
     align: "text-right",
@@ -182,7 +198,7 @@ const Products = () => {
     fetch_handle(getDataArchiveType);
   }, [getDataArchiveType]);
 
-  const modalInputChangeHandle = (key: string, value: string | number) => {
+  const modalInputChangeHandle = (key: string, value: string | number | boolean) => {
     setModalData((pre) => {
       return { ...pre, [key]: value };
     });
@@ -209,6 +225,7 @@ const Products = () => {
           product_id: +modalData.product_id,
           category_id: +modalData.category_id,
           product_name: modalData.product_name,
+          unlimited: modalData.unlimited || false,
         };
         const res_data = await update_content_service({
           table: "products",
@@ -441,6 +458,7 @@ const Products = () => {
                               clickHandle={(action: string) =>
                                 buttonClickActionHandle(action, elem)
                               }
+                              unlimited={elem.unlimited}
                             />
                           ) : (
                             elem[id]
@@ -527,6 +545,18 @@ const Products = () => {
               </div>
             );
           })}
+          <div className="col-span-2 flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="unlimited"
+              checked={modalData.unlimited}
+              onChange={(e) => modalInputChangeHandle('unlimited', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+            />
+            <label htmlFor="unlimited" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Unlimited Quantity
+            </label>
+          </div>
         </div>
       </Custom_Modal>
 
