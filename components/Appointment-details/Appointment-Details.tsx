@@ -1,8 +1,8 @@
+"use client";
+
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import moment from "moment";
 import { memo } from "react";
-import { GoDotFill } from "react-icons/go";
-import { AppointmentEditModal } from "../Appointment/Appointment_Edit/Appointment_Edit_Modal";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { renderFormattedDate } from "@/helper/common_functions";
@@ -47,16 +47,21 @@ const AppointmentDetails = memo(
     const { t } = useTranslation(translationConstant.APPOINMENTS);
 
     return (
-      <div className="flex flex-col h-full space-y-5 text-black dark:text-white">
-        <h1 className="text-lg font-semibold dark:text-white">New Patient</h1>
+      <div className="flex flex-col h-full space-y-2 sm:space-y-5 text-black dark:text-white p-2 sm:p-4">
+        <h1 className="text-base sm:text-lg font-semibold dark:text-white">
+          New Patient
+        </h1>
 
-        <div className="space-y-3 text-sm">
+        <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
           {render_detail_keys.map((elem, index) => (
-            <div key={index}>
-              <p className="text-gray-500 dark:text-gray-400">
+            <div
+              key={index}
+              className="border-b border-gray-100 dark:border-gray-700 pb-2 sm:border-none sm:pb-0"
+            >
+              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">
                 {t(elem.label)}
               </p>
-              <p className="font-medium dark:text-gray-200">
+              <p className="font-medium dark:text-gray-200 text-xs sm:text-base break-words">
                 {elem.date_format
                   ? moment(appointment_details["created_at"]).format("LLL")
                   : elem.type === "date_slot" &&

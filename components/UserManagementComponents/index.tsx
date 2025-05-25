@@ -185,11 +185,11 @@ const UserManagementComponent = () => {
   const { t } = useTranslation(translationConstant.USERMANAGEMENT);
 
   return (
-    <div className="flex justify-center px-4 py-3 dark:bg-gray-900">
+    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 py-3 dark:bg-gray-900">
       <div className="w-full bg-white rounded-lg dark:bg-gray-900">
         {/* Header with search and add button */}
-        <div className="p-6 flex justify-between items-center">
-          <div className="relative w-60">
+        <div className="p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+          <div className="relative w-full sm:w-60 mb-2 sm:mb-0">
             <input
               onChange={onChangeHandle}
               className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
@@ -198,7 +198,6 @@ const UserManagementComponent = () => {
             />
             <IoSearchOutline
               className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300"
-              size={18}
             />
           </div>
 

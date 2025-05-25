@@ -5,7 +5,7 @@ import PermissionToggle from "./PermissionToggle";
 import { Switch } from "antd";
 import { useRolesAndPermissions } from "@/hooks/useRolesAndPermissions";
 import { CircularProgress } from "@mui/material";
-import { Pencil, Trash2 } from "lucide-react";
+import { CirclePlus, Pencil, Search, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -92,7 +92,6 @@ const SingleRoleHandle = ({
               </span>
             </div>
 
-            {/* Changed condition from index > 0 to data.id !== 1 */}
             {data.id !== 1 && (
               <div className="flex gap-1 justify-center">
                 <Button
@@ -146,11 +145,17 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
   const [showRoleDetails, setShowRoleDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const rowsPerPage = 4;
 
-  // Calculate pagination
-  const totalPages = Math.ceil(roles.length / rowsPerPage);
-  const paginatedRoles = roles.slice(
+  // Filter roles based on search query
+  const filteredRoles = roles.filter((role: any) =>
+    role.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Calculate pagination with filtered roles
+  const totalPages = Math.ceil(filteredRoles.length / rowsPerPage);
+  const paginatedRoles = filteredRoles.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
@@ -168,10 +173,10 @@ const RolesAndPermissionsComponent: React.FC = () => {
     }
   };
 
-  // Reset to first page when roles change
+  // Reset to first page when roles or search query changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [roles]);
+  }, [roles, searchQuery]);
 
   // Initialize permissions for new role
   useEffect(() => {
@@ -222,20 +227,32 @@ const RolesAndPermissionsComponent: React.FC = () => {
 
   return (
     <div className="p-6 w-full mx-auto max-h-[87dvh] dark:bg-gray-900">
-      <div className="w-full flex flex-col">
+      <div>
+        <h1 className="text-xl font-bold">Roles and Permissions</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          Tools / Roles and Permissions
+        </h1>
+      </div>
+      <div className="w-full flex flex-col mt-5">
         {/* User Roles Section */}
         <div className="w-full mb-6">
-          <div className="flex items-center justify-between px-2 mb-3">
-            <div>
-              <h2 className="text-lg font-bold dark:text-white">
-                {t("RP_k1")}
-              </h2>
+          <div className="flex items-center justify-between mb-3">
+            {/* Search Input with icon */}
+            <div className="relative">
+              <Input
+                placeholder="Search roles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
             </div>
             <div>
               <button
                 onClick={() => toggleActivateAddNewRoleHandle(true)}
-                className="bg-[#0066ff] hover:no py-2 px-3 rounded-lg text-white"
+                className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center gap-2"
               >
+                <CirclePlus className="h-4 w-4" />
                 {t("RP_k6")}
               </button>
             </div>
@@ -277,7 +294,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             {/* Pagination Controls */}
           </div>
 
-          {!loadingDataState && roles.length > rowsPerPage && (
+          {!loadingDataState && filteredRoles.length > rowsPerPage && (
             <div className="flex justify-between items-center py-2 border-t dark:border-gray-700 bg-white dark:bg-[#111827]">
               <span className="text-sm text-gray-800 dark:text-white">
                 Showing {currentPage} out of {totalPages}

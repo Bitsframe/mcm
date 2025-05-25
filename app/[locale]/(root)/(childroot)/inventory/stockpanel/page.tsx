@@ -157,18 +157,22 @@ const StockPanel = () => {
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:text-white">
       <h1 className="text-2xl font-bold p-3">Stock Panel</h1>
-      <div className="w-full min-h-[81dvh] h-full overflow-auto py-2 px-2">
-        <InventoryCards archived={getDataArchiveType} />
-        <TableComponent
-          tableHeight="h-[45dvh]"
-          tableBodyHeight="h-[35dvh]"
-          tableHeader={tableHeader}
-          loading={loading}
-          dataList={dataList}
-          searchInputplaceholder="Search by name"
-          searchHandle={onChangeHandle}
-          RightSideComponent={() => RightSideComponent}
-        />
+      <div className="w-full min-h-[81dvh] h-full overflow-auto py-2 px-2 flex flex-col gap-4">
+        <div className="w-full">
+          <InventoryCards archived={getDataArchiveType} />
+        </div>
+        <div className="w-full overflow-x-auto">
+          <TableComponent
+            tableHeight="h-[45dvh]"
+            tableBodyHeight="h-[35dvh]"
+            tableHeader={tableHeader}
+            loading={loading}
+            dataList={dataList}
+            searchInputplaceholder="Search by name"
+            searchHandle={onChangeHandle}
+            RightSideComponent={() => RightSideComponent}
+          />
+        </div>
       </div>
     </main>
   );

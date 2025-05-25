@@ -1,14 +1,28 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { type FC, useContext, useEffect, useState, useMemo, useCallback } from "react"
-import { Label, Spinner } from "flowbite-react"
-import moment from "moment"
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services"
-import { PiCaretUpDownBold } from "react-icons/pi"
-import { formatPhoneNumber } from "@/utils/getCountryName"
-import { LocationContext } from "@/context"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
+import type React from "react";
+import {
+  type FC,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+import { Label, Spinner } from "flowbite-react";
+import moment from "moment";
+import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { PiCaretUpDownBold } from "react-icons/pi";
+import { formatPhoneNumber } from "@/utils/getCountryName";
+import { LocationContext } from "@/context";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +30,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -27,63 +41,77 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog"
-import { Input } from "../ui/input"
-import { getServices } from "@/actions/send-email/action"
-import { ScrollArea } from "../ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
-import { Button } from "../ui/button"
-import { useTranslation } from "react-i18next"
-import { translationConstant } from "@/utils/translationConstants"
-import { Eye, SquarePen, Search, MoreHorizontal, CirclePlus, MapPin, X } from "lucide-react"
-import axios from "axios"
-import { toast } from "sonner"
-import { Sheet, SheetContent } from "../ui/sheet"
-import { TabContext } from "@/context"
+} from "@/components/ui/alert-dialog";
+import { Input } from "../ui/input";
+import { getServices } from "@/actions/send-email/action";
+import { ScrollArea } from "../ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Button } from "../ui/button";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
+import {
+  Eye,
+  SquarePen,
+  Search,
+  MoreHorizontal,
+  CirclePlus,
+  MapPin,
+  X,
+} from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import { Sheet, SheetContent } from "../ui/sheet";
+import { TabContext } from "@/context";
 
 interface EditPatientModalProps {
-  patientDetails: Patient
-  serviceList: { title: string }[]
-  callAfterUpdate: (data: any) => void
+  patientDetails: Patient;
+  serviceList: { title: string }[];
+  callAfterUpdate: (data: any) => void;
 }
 
 interface Patient {
-  id: number
-  onsite: boolean
-  firstname: string
-  locationid: number
-  lastname: string
-  phone: string
-  email: string
-  treatmenttype: string
-  gender: string
-  created_at: string
-  lastvisit: string
-  note: string
+  id: number;
+  onsite: boolean;
+  firstname: string;
+  locationid: number;
+  lastname: string;
+  phone: string;
+  email: string;
+  treatmenttype: string;
+  gender: string;
+  created_at: string;
+  lastvisit: string;
+  note: string;
 }
 
 interface Props {
-  renderType: "all" | "onsite" | "offsite"
+  renderType: "all" | "onsite" | "offsite";
 }
 
 const QUERIES = {
   all: null,
   onsite: { key: "onsite", value: true },
   offsite: { key: "onsite", value: false },
-} as const
+} as const;
 
 const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
-  const { selectedLocation } = useContext(LocationContext)
-  const [patients, setPatients] = useState<Patient[]>([])
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedPatients, setSelectedPatients] = useState<number[]>([])
-  const [isEditing, setIsEditing] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
+  const { selectedLocation } = useContext(LocationContext);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -95,133 +123,142 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     onsite: true,
     locationId: 0,
     note: "",
-  })
+  });
 
   const [sortConfig, setSortConfig] = useState({
     key: "",
     direction: -1,
-  })
-  const [serviceList, setServiceList] = useState<{ title: string }[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const { setActiveTitle, setParentTitle } = useContext(TabContext)
+  });
+  const [serviceList, setServiceList] = useState<{ title: string }[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { setActiveTitle, setParentTitle } = useContext(TabContext);
 
   useEffect(() => {
     const keys: { [key: string]: string } = {
       all: "Sidebar_k4",
       onsite: "Sidebar_k5",
       offsite: "Sidebar_k6",
-    }
-    setActiveTitle(keys[renderType])
-    setParentTitle("Patients")
-  }, [renderType])
+    };
+    setActiveTitle(keys[renderType]);
+    setParentTitle("Patients");
+  }, [renderType]);
 
   const fetchServiceList = async () => {
     try {
-      const services = await getServices()
-      setServiceList(services)
+      const services = await getServices();
+      setServiceList(services);
     } catch (error) {
-      console.error("Failed to fetch services:", error)
+      console.error("Failed to fetch services:", error);
     }
-  }
+  };
 
   const fetchPatients = useCallback(
     async (locationId: number) => {
-      setLoading(true)
+      setLoading(true);
       try {
         const fetchedData = await fetch_content_service({
           table: "allpatients",
           language: "",
           selectParam: ",note",
-          matchCase: [QUERIES[renderType] as any, { key: "locationid", value: locationId }],
-        })
-        console.log("Raw Supabase Data:", fetchedData)
-        setPatients(fetchedData)
+          matchCase: [
+            QUERIES[renderType] as any,
+            { key: "locationid", value: locationId },
+          ],
+        });
+        console.log("Raw Supabase Data:", fetchedData);
+        setPatients(fetchedData);
       } catch (error) {
-        console.error("Error fetching patients:", error)
+        console.error("Error fetching patients:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [renderType],
-  )
+    [renderType]
+  );
 
   useEffect(() => {
     if (selectedLocation?.id) {
-      fetchPatients(selectedLocation.id)
-      fetchServiceList()
+      fetchPatients(selectedLocation.id);
+      fetchServiceList();
     }
-  }, [selectedLocation?.id, fetchPatients])
+  }, [selectedLocation?.id, fetchPatients]);
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-  }, [])
+    setSearchTerm(e.target.value);
+  }, []);
 
   const handleSort = useCallback((column: string) => {
     setSortConfig((prevConfig) => ({
       key: column,
       direction: prevConfig.key === column ? -prevConfig.direction : -1,
-    }))
-  }, [])
+    }));
+  }, []);
 
   const filteredAndSortedPatients = useMemo(() => {
-    let result = [...patients]
+    let result = [...patients];
 
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
+      const searchLower = searchTerm.toLowerCase();
       result = result.filter((patient) =>
-        `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower),
-      )
+        `${patient.firstname} ${patient.lastname}`
+          .toLowerCase()
+          .includes(searchLower)
+      );
     }
 
     if (sortConfig.key) {
       result.sort((a, b) => {
         if (sortConfig.key === "name") {
-          const aName = `${a.firstname} ${a.lastname}`
-          const bName = `${b.firstname} ${b.lastname}`
-          return sortConfig.direction * aName.localeCompare(bName)
+          const aName = `${a.firstname} ${a.lastname}`;
+          const bName = `${b.firstname} ${b.lastname}`;
+          return sortConfig.direction * aName.localeCompare(bName);
         }
         if (sortConfig.key === "id") {
-          return sortConfig.direction * (a.id - b.id)
+          return sortConfig.direction * (a.id - b.id);
         }
         if (sortConfig.key === "date") {
-          return sortConfig.direction * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          return (
+            sortConfig.direction *
+            (new Date(a.created_at).getTime() -
+              new Date(b.created_at).getTime())
+          );
         }
-        return 0
-      })
+        return 0;
+      });
     }
 
-    return result
-  }, [patients, searchTerm, sortConfig])
+    return result;
+  }, [patients, searchTerm, sortConfig]);
 
-  const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentPatients = filteredAndSortedPatients.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPatients = filteredAndSortedPatients.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1))
-  }
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
 
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-  }
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm])
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const formatDate = useCallback((date: string) => {
-    return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY")
-  }, [])
+    return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!isFormValid) {
-      toast.error("Please fill in all required fields.")
-      return
+      toast.error("Please fill in all required fields.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const response = await axios.post("/api/user", {
         firstname: patientData.firstname,
@@ -234,39 +271,39 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         lastvisit: new Date(),
         onsite: patientData.onsite,
         note: patientData.note,
-      })
+      });
 
-      fetchPatients(selectedLocation.id)
-      setIsModalOpen(false)
+      fetchPatients(selectedLocation.id);
+      setIsModalOpen(false);
 
       if (response) {
-        toast.success("New patient added successfully")
+        toast.success("New patient added successfully");
       }
     } catch (error) {
-      toast.error("Failed to add patient. Please try again.")
+      toast.error("Failed to add patient. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const updateOnEdit = (data: any) => {
     setPatients((pre: any) => {
       return pre.map((elem: any) => {
         if (data.id === elem.id) {
-          return { ...data }
+          return { ...data };
         } else {
-          return elem
+          return elem;
         }
-      })
-    })
-    setSelectedPatient((pre: any) => ({ ...pre, ...data }))
-  }
+      });
+    });
+    setSelectedPatient((pre: any) => ({ ...pre, ...data }));
+  };
 
   useEffect(() => {
-    fetchServiceList()
-  }, [])
+    fetchServiceList();
+  }, []);
 
-  const { t } = useTranslation(translationConstant.PATIENTS)
+  const { t } = useTranslation(translationConstant.PATIENTS);
 
   const isFormValid = useMemo(() => {
     return (
@@ -277,35 +314,39 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       patientData.treatmenttype &&
       patientData.gender &&
       patientData.onsite !== undefined
-    )
-  }, [patientData])
+    );
+  }, [patientData]);
 
   const togglePatientSelection = (patientId: number) => {
     setSelectedPatients((prev) => {
       if (prev.includes(patientId)) {
-        return prev.filter((id) => id !== patientId)
+        return prev.filter((id) => id !== patientId);
       } else {
-        return [...prev, patientId]
+        return [...prev, patientId];
       }
-    })
-  }
+    });
+  };
 
   return (
     <main className="w-full dark:bg-gray-900">
       <div className="px-6 pt-5">
         <h1 className="text-2xl font-bold dark:text-white">
-          {renderType === "all" ? t("Patients_k1") : renderType === "onsite" ? "Onsite Patients" : "Offsite Patients"}
+          {renderType === "all"
+            ? t("Patients_k1")
+            : renderType === "onsite"
+            ? "Onsite Patients"
+            : "Offsite Patients"}
         </h1>
         <h1 className="mt-1 text-gray-500 dark:text-gray-400">
           {renderType === "all"
             ? "Patients  /  All"
             : renderType === "onsite"
-              ? "Patients  /  Onsite"
-              : "Patients  /  Offsite"}
+            ? "Patients  /  Onsite"
+            : "Patients  /  Offsite"}
         </h1>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 gap-3">
+      <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
         <div className="relative w-full sm:w-72 border rounded-lg dark:border-gray-700">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <input
@@ -318,7 +359,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         </div>
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800"
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800 whitespace-nowrap shrink-0"
         >
           <CirclePlus className="h-4 w-4" />
           Add a Patient
@@ -330,13 +371,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           <div className="p-6">
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
-                <AlertDialogTitle className="text-2xl font-semibold dark:text-white">Add New Patient</AlertDialogTitle>
+                <AlertDialogTitle className="text-2xl font-semibold dark:text-white">
+                  Add New Patient
+                </AlertDialogTitle>
                 <AlertDialogCancel className="h-8 w-8 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 absolute right-6 top-6 z-10 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                   <X className="h-5 w-5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
                 </AlertDialogCancel>
               </div>
               <AlertDialogDescription className="text-gray-500 dark:text-gray-400">
-                Enter the patient's information below. Click save when you're done.
+                Enter the patient's information below. Click save when you're
+                done.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -344,8 +388,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               <div className="mt-4 flex items-center gap-2 p-3 rounded-md">
                 <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Current Location</p>
-                  <p className="font-medium dark:text-white">{selectedLocation?.title}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Current Location
+                  </p>
+                  <p className="font-medium dark:text-white">
+                    {selectedLocation?.title}
+                  </p>
                 </div>
               </div>
             )}
@@ -354,7 +402,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               <div className="grid gap-4 mt-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstname" className="text-sm text-gray-500 dark:text-gray-400">
+                    <Label
+                      htmlFor="firstname"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
                       First Name
                     </Label>
                     <Input
@@ -371,7 +422,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="lastname" className="text-sm text-gray-500 dark:text-gray-400">
+                    <Label
+                      htmlFor="lastname"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
                       Last Name
                     </Label>
                     <Input
@@ -390,7 +444,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm text-gray-500 dark:text-gray-400">
+                    <Label
+                      htmlFor="phone"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
                       Phone
                     </Label>
                     <Input
@@ -408,7 +465,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm text-gray-500 dark:text-gray-400">
+                    <Label
+                      htmlFor="email"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
                       Email
                     </Label>
                     <Input
@@ -427,10 +487,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="treatmenttype" className="text-sm text-gray-500 dark:text-gray-400">
+                  <Label
+                    htmlFor="treatmenttype"
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                  >
                     Treatment Type
                   </Label>
-                  <Select onValueChange={(value) => setPatientData({ ...patientData, treatmenttype: value })}>
+                  <Select
+                    onValueChange={(value) =>
+                      setPatientData({ ...patientData, treatmenttype: value })
+                    }
+                  >
                     <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
                       <SelectValue placeholder="Select treatment type" />
                     </SelectTrigger>
@@ -451,10 +518,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-500 dark:text-gray-400">Gender</Label>
+                    <Label className="text-sm text-gray-500 dark:text-gray-400">
+                      Gender
+                    </Label>
                     <RadioGroup
                       className="flex gap-3"
-                      onValueChange={(value) => setPatientData({ ...patientData, gender: value })}
+                      onValueChange={(value) =>
+                        setPatientData({ ...patientData, gender: value })
+                      }
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="male" id="male" />
@@ -478,7 +549,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-500 dark:text-gray-400">Location</Label>
+                    <Label className="text-sm text-gray-500 dark:text-gray-400">
+                      Location
+                    </Label>
                     <RadioGroup
                       defaultValue="true"
                       className="flex gap-3"
@@ -506,7 +579,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="note" className="text-sm text-gray-500 dark:text-gray-400">
+                  <Label
+                    htmlFor="note"
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                  >
                     Note
                   </Label>
                   <Input
@@ -578,7 +654,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "id" ? "text-blue-600 dark:text-blue-400" : ""}`}
+                        className={`inline ${
+                          sortConfig.key === "id"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
                       />
                     </button>
                   </TableHead>
@@ -589,7 +669,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "name" ? "text-blue-600 dark:text-blue-400" : ""}`}
+                        className={`inline ${
+                          sortConfig.key === "name"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
                       />
                     </button>
                   </TableHead>
@@ -600,7 +684,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
                     >
                       <PiCaretUpDownBold
-                        className={`inline ${sortConfig.key === "date" ? "text-blue-600 dark:text-blue-400" : ""}`}
+                        className={`inline ${
+                          sortConfig.key === "date"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
                       />
                     </button>
                   </TableHead>
@@ -620,7 +708,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-40 dark:border-gray-800">
+                    <TableCell
+                      colSpan={6}
+                      className="h-40 dark:border-gray-800"
+                    >
                       <div className="flex justify-center items-center h-full">
                         <Spinner size="xl" className="dark:text-white" />
                       </div>
@@ -640,7 +731,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           }
                         /> */}
                       </TableCell>
-                      <TableCell className="font-medium w-72 text-gray-900 dark:text-white">{patient.id}</TableCell>
+                      <TableCell className="font-medium w-72 text-gray-900 dark:text-white">
+                        {patient.id}
+                      </TableCell>
                       <TableCell className="font-medium w-72 text-center text-gray-900 dark:text-white">
                         {patient.firstname} {patient.lastname}
                       </TableCell>
@@ -656,8 +749,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              setSelectedPatient(patient)
-                              setIsEditing(false)
+                              setSelectedPatient(patient);
+                              setIsEditing(false);
                             }}
                             className="h-10 w-10 sm:h-8 sm:w-8 text-gray-500 dark:text-gray-400"
                           >
@@ -683,10 +776,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-40 dark:border-gray-800">
+                    <TableCell
+                      colSpan={6}
+                      className="h-40 dark:border-gray-800"
+                    >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
                         <p className="text-lg font-medium">No patients found</p>
-                        <p className="text-sm">Try adjusting your search or add a new patient</p>
+                        <p className="text-sm">
+                          Try adjusting your search or add a new patient
+                        </p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -696,14 +794,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
 
           {!loading && filteredAndSortedPatients.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t dark:border-gray-700 gap-2">
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <div className="flex flex-row items-center justify-between px-4 py-3 border-t dark:border-gray-700 gap-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                 <p className="text-gray-700 dark:text-gray-300">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
                   {filteredAndSortedPatients.length} results
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
@@ -735,15 +834,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         open={!!selectedPatient}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedPatient(null)
-            setIsEditing(false)
+            setSelectedPatient(null);
+            setIsEditing(false);
           }
         }}
       >
         <SheetContent className="dark:bg-gray-900 m-0 sm:m-3 rounded-xl w-full sm:max-w-md">
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10 dark:border-gray-700">
-              <h3 className="text-xl font-semibold dark:text-white">Patient Detail</h3>
+              <h3 className="text-xl font-semibold dark:text-white">
+                Patient Detail
+              </h3>
             </div>
 
             {selectedPatient && (
@@ -753,8 +854,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     patient={selectedPatient}
                     editPatientData={selectedPatient}
                     setEditPatientData={(data) => {
-                      updateOnEdit(data)
-                      setIsEditing(false)
+                      updateOnEdit(data);
+                      setIsEditing(false);
                     }}
                     serviceList={serviceList}
                     onSave={() => setIsEditing(false)}
@@ -791,16 +892,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         </SheetContent>
       </Sheet>
     </main>
-  )
-}
+  );
+};
 
 interface EditPatientFormProps {
-  patient: Patient
-  editPatientData: Patient
-  setEditPatientData: (data: Patient) => void
-  serviceList: { title: string }[]
-  onSave: () => void
-  onCancel: () => void
+  patient: Patient;
+  editPatientData: Patient;
+  setEditPatientData: (data: Patient) => void;
+  serviceList: { title: string }[];
+  onSave: () => void;
+  onCancel: () => void;
 }
 
 const EditPatientForm: FC<EditPatientFormProps> = ({
@@ -811,15 +912,15 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   onSave,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<Patient>(editPatientData)
+  const [formData, setFormData] = useState<Patient>(editPatientData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
 
   const handleSave = async () => {
     try {
@@ -833,24 +934,26 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         gender: formData.gender,
         onsite: formData.onsite,
         note: formData.note,
-      })
+      });
 
       if (response.data.success) {
-        setEditPatientData(formData)
-        toast.success("Patient updated successfully")
-        onSave()
+        setEditPatientData(formData);
+        toast.success("Patient updated successfully");
+        onSave();
       }
     } catch (error) {
-      toast.error("Failed to update patient")
-      console.error("Error updating patient:", error)
+      toast.error("Failed to update patient");
+      console.error("Error updating patient:", error);
     }
-  }
+  };
 
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">First Name</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            First Name
+          </Label>
           <Input
             name="firstname"
             value={formData.firstname}
@@ -859,7 +962,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Last Name</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Last Name
+          </Label>
           <Input
             name="lastname"
             value={formData.lastname}
@@ -871,7 +976,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
       <div className="space-y-2">
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Phone</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Phone
+          </Label>
           <Input
             name="phone"
             value={formData.phone}
@@ -880,7 +987,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Email</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Email
+          </Label>
           <Input
             name="email"
             value={formData.email}
@@ -891,17 +1000,25 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">Treatment Type</Label>
+        <Label className="text-sm text-gray-500 dark:text-gray-400">
+          Treatment Type
+        </Label>
         <Select
           value={formData.treatmenttype}
-          onValueChange={(value) => setFormData({ ...formData, treatmenttype: value })}
+          onValueChange={(value) =>
+            setFormData({ ...formData, treatmenttype: value })
+          }
         >
           <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white">
             <SelectValue placeholder="Select treatment type" />
           </SelectTrigger>
           <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
             {serviceList.map((service) => (
-              <SelectItem key={service.title} value={service.title} className="dark:hover:bg-gray-700 dark:text-white">
+              <SelectItem
+                key={service.title}
+                value={service.title}
+                className="dark:hover:bg-gray-700 dark:text-white"
+              >
                 {service.title}
               </SelectItem>
             ))}
@@ -922,10 +1039,14 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
       <div className="grid grid-1 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Gender</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Gender
+          </Label>
           <RadioGroup
             value={formData.gender}
-            onValueChange={(value) => setFormData({ ...formData, gender: value })}
+            onValueChange={(value) =>
+              setFormData({ ...formData, gender: value })
+            }
             className="flex gap-3"
           >
             <div className="flex items-center space-x-2">
@@ -950,10 +1071,14 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Location</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Location
+          </Label>
           <RadioGroup
             value={formData.onsite ? "true" : "false"}
-            onValueChange={(value) => setFormData({ ...formData, onsite: value === "true" })}
+            onValueChange={(value) =>
+              setFormData({ ...formData, onsite: value === "true" })
+            }
             className="flex gap-3"
           >
             <div className="flex items-center space-x-2">
@@ -980,28 +1105,35 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         >
           Cancel
         </Button>
-        <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+        <Button
+          onClick={handleSave}
+          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+        >
           Save Changes
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const PatientDetails: FC<{
-  patient: Patient
-  serviceList: { title: string }[]
-  renderType: Props["renderType"]
-  formatDate: (date: string) => string
+  patient: Patient;
+  serviceList: { title: string }[];
+  renderType: Props["renderType"];
+  formatDate: (date: string) => string;
 }> = ({ patient, renderType, formatDate }) => {
-  const { t } = useTranslation(translationConstant.PATIENTS)
+  const { t } = useTranslation(translationConstant.PATIENTS);
 
   return (
     <div className="space-y-2 py-4">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k4")}</p>
-          <h2 className="text-base text-gray-900 dark:text-white">{patient.id}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k4")}
+          </p>
+          <h2 className="text-base text-gray-900 dark:text-white">
+            {patient.id}
+          </h2>
         </div>
         {renderType === "all" && (
           <div>
@@ -1019,7 +1151,9 @@ const PatientDetails: FC<{
       </div>
 
       <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k5")}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t("Patients_k5")}
+        </p>
         <h2 className="text-base text-gray-900 dark:text-white">
           {patient.firstname} {patient.lastname}
         </h2>
@@ -1027,38 +1161,64 @@ const PatientDetails: FC<{
 
       <div className="space-y-2">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k9")}</p>
-          <p className="text-base font-medium dark:text-gray-300">{formatPhoneNumber(patient.phone)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k9")}
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {formatPhoneNumber(patient.phone)}
+          </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k10")}</p>
-          <p className="text-base font-medium dark:text-gray-300">{patient.email}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k10")}
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.email}
+          </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k11")}</p>
-          <p className="text-base font-medium dark:text-gray-300">{patient.treatmenttype}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k11")}
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.treatmenttype}
+          </p>
         </div>
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">Note</p>
-          <p className="text-base font-medium dark:text-gray-300">{patient.note || "No note available"}</p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.note || "No note available"}
+          </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k12")}</p>
-          <p className="text-base font-medium capitalize dark:text-gray-300">{patient.gender}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k12")}
+          </p>
+          <p className="text-base font-medium capitalize dark:text-gray-300">
+            {patient.gender}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k13")}</p>
-            <p className="text-base font-medium dark:text-gray-300">{formatDate(patient.created_at)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("Patients_k13")}
+            </p>
+            <p className="text-base font-medium dark:text-gray-300">
+              {formatDate(patient.created_at)}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k14")}</p>
-            <p className="text-base font-medium dark:text-gray-300">{formatDate(patient.lastvisit)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("Patients_k14")}
+            </p>
+            <p className="text-base font-medium dark:text-gray-300">
+              {formatDate(patient.lastvisit)}
+            </p>
           </div>
         </div>
 
@@ -1068,10 +1228,14 @@ const PatientDetails: FC<{
         </dl>
       </div>
     </div>
-  )
-}
+  );
+};
 
-const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, serviceList, callAfterUpdate }) => {
+const EditPatientModal: React.FC<EditPatientModalProps> = ({
+  patientDetails,
+  serviceList,
+  callAfterUpdate,
+}) => {
   const [patientData, setPatientData] = useState({
     firstname: "",
     lastname: "",
@@ -1080,11 +1244,11 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
     treatmenttype: "",
 
     note: "",
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
-  const { selectedLocation } = useContext(LocationContext)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [loading, setLoading] = useState(false);
+  const { selectedLocation } = useContext(LocationContext);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (patientDetails) {
@@ -1095,18 +1259,20 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
         email: patientDetails.email || "",
         treatmenttype: patientDetails.treatmenttype || "",
         note: patientDetails.note || "",
-      })
+      });
     }
-  }, [patientDetails])
+  }, [patientDetails]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.preventDefault()
-    setPatientData({ ...patientData, [e.target.name]: e.target.value })
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    e.preventDefault();
+    setPatientData({ ...patientData, [e.target.name]: e.target.value });
+  };
 
   const handleSaveChanges = async () => {
-    setLoading(true)
-    setErrorMessage("")
+    setLoading(true);
+    setErrorMessage("");
 
     try {
       const data = await axios.put("/api/user", {
@@ -1117,44 +1283,54 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
         phone: patientData?.phone,
         treatmenttype: patientData?.treatmenttype,
         note: patientData?.note,
-      })
+      });
 
       if (data?.data?.success === true) {
-        callAfterUpdate(data?.data?.data?.[0])
-        toast.success("Patient details updated successfully")
+        callAfterUpdate(data?.data?.data?.[0]);
+        toast.success("Patient details updated successfully");
       }
     } catch (error: any) {
-      toast.error("Failed to update patient details")
-      console.log("Error updating patient details:", error.message)
+      toast.error("Failed to update patient details");
+      console.log("Error updating patient details:", error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const { t } = useTranslation(translationConstant.PATIENTS)
+  const { t } = useTranslation(translationConstant.PATIENTS);
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gray-500 dark:text-gray-400"
+        >
           <SquarePen className="h-4 w-4" color="#0066ff" />
           <span className="sr-only">Edit</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[500px] dark:bg-gray-900">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl dark:text-white">{t("Patients_k15")}</AlertDialogTitle>
+          <AlertDialogTitle className="text-xl dark:text-white">
+            {t("Patients_k15")}
+          </AlertDialogTitle>
           <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
             {t("Patients_k16")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4">
-          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+          {errorMessage && (
+            <p className="text-red-500 text-sm">{errorMessage}</p>
+          )}
 
           <div className="space-y-2">
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k17")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k17")}
+              </Label>
               <Input
                 type="text"
                 name="firstname"
@@ -1164,7 +1340,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k18")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k18")}
+              </Label>
               <Input
                 type="text"
                 name="lastname"
@@ -1177,7 +1355,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
 
           <div className="space-y-1">
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k19")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k19")}
+              </Label>
               <Input
                 type="text"
                 name="phone"
@@ -1187,7 +1367,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k20")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k20")}
+              </Label>
               <Input
                 type="email"
                 name="email"
@@ -1199,7 +1381,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium dark:text-gray-300">Note</Label>
+            <Label className="text-sm font-medium dark:text-gray-300">
+              Note
+            </Label>
             <Input
               type="text"
               name="note"
@@ -1211,7 +1395,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k11")}</Label>
+            <Label className="text-sm font-medium dark:text-gray-300">
+              {t("Patients_k11")}
+            </Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1223,7 +1409,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full min-w-[200px] dark:bg-gray-800 dark:border-gray-700">
-                <DropdownMenuLabel className="dark:text-gray-300">{t("Patients_k11")}</DropdownMenuLabel>
+                <DropdownMenuLabel className="dark:text-gray-300">
+                  {t("Patients_k11")}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator className="dark:bg-gray-700" />
                 <ScrollArea className="h-72 w-full">
                   {serviceList.map((service) => (
@@ -1260,7 +1448,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ patientDetails, ser
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
-}
+  );
+};
 
-export default PatientTableComponent
+export default PatientTableComponent;

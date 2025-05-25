@@ -26,21 +26,32 @@ export const Navbar = ({ width }: { width: string }) => {
 
   // Sidebar drawer state
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <header
-      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px] z-50`}
-      style={{ width: `calc(100% - ${width})` }}
+      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px] z-50${isMobile ? ' w-full' : ''}`}
+      style={isMobile ? { width: '100vw', left: 0, right: 0 } : { width: `calc(100% - ${width})` }}
     >
       {/* Hamburger for small screens */}
-      <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-2${isMobile ? ' flex-1 min-w-0 justify-start pl-0' : ''}`}>
         <button
-          className="md:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`md:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500${isMobile ? ' ml-0' : ''}`}
           onClick={() => setSidebarOpen(true)}
         >
           <Menu size={28} />
         </button>
-        <div className="text-[16px] font-[700]">
+        {!isMobile && (
+          <div className="text-[16px] font-[700] ml-2">
           <div>
             <span className="text-[#79808B] dark:text-gray-400">
               Welcome Back,
@@ -48,10 +59,11 @@ export const Navbar = ({ width }: { width: string }) => {
             {userProfile?.full_name}
           </div>
         </div>
+        )}
       </div>
-      <div className="flex gap-4 items-center pr-4">
-        <LanguageChanger locale={locale} />
-        <ThemeToggleButton />
+      <div className={`flex gap-4 items-center${isMobile ? ' flex-1 justify-end pr-0' : ' pr-4'}`}>
+        {!isMobile && <LanguageChanger locale={locale} />}
+        {!isMobile && <ThemeToggleButton />}
         <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#1A1F27] p-4 rounded-full border border-[#E0E0E0] dark:border-[#2F3640] cursor-not-allowed">
           <HiOutlineBell size={25} />
         </div>

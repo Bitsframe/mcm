@@ -5,9 +5,7 @@ import WebsiteContentLayout from '../Layout';
 const Blogs = () => {
     return (
         <WebsiteContentLayout>
-            <div>
-                Blogs
-            </div>
+            <div className="px-2 sm:px-0">Blogs</div>
         </WebsiteContentLayout>
     );
 };

@@ -278,7 +278,7 @@ export const Add_Appointment_Modal = ({
               Add an Appointment
             </h1>
             <p className="text-base text-gray-600 dark:text-gray-300">
-              Make changes to the patient’s information and save them.
+              Make changes to the patient's information and save them.
             </p>
           </div>
         </Modal.Header>
@@ -430,7 +430,7 @@ export const Add_Appointment_Modal = ({
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   State
@@ -533,7 +533,7 @@ export const Add_Appointment_Modal = ({
         </Modal.Body>
 
         <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725]">
-          <div className="flex w-full justify-end gap-3">
+          <div className="flex flex-col sm:flex-row w-full justify-end gap-2 sm:gap-3">
             <button
               onClick={close_handle}
               className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-black dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
