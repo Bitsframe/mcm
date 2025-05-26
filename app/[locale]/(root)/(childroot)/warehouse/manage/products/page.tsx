@@ -26,23 +26,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
+import  LocationModal  from "@/components/UserManagementComponents/LocationModal";
+import { useLocationClinica } from "@/hooks/useLocationClinica";
+import axios from "axios";
 
 interface DataListInterface {
   [key: string]: any;
+  location_ids?: number[];
+  quantity?: number;
 }
 
 const modalStateEnum = {
   CREATE: "Create",
   UPDATE: "Update",
   DELETE: "delete",
+  ASSIGN: "Assign",
   EMPTY: "",
 };
 
 const tableHeader = [
-  {
-    id: "product_id",
-    label: "Inventory_k15",
-  },
+
   {
     id: "category",
     label: "Inventory_k1",
@@ -54,21 +57,38 @@ const tableHeader = [
     can_sort: true,
   },
   {
-    id: "unlimited",
-    label: "Unlimited",
-    Render_Value: ({ unlimited }: { unlimited?: boolean }) => {
-      return (
-        <div className="text-center w-1/2">
-          <input
-          type="checkbox"
-          checked={unlimited}
-          readOnly
-          className="h-4 w-4 rounded  border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
-        />
-        </div>
-      );
-    },
+    id: "price",
+    label: "Inventory_k18",
+    can_sort: true,
+    align: 'text-center ',
+    width: 1
   },
+  {
+    id: "stock",
+    label: "Inventory_k19",
+    can_sort: true,
+    align: 'text-center ',
+    width: 1,
+    render_value: (val: any, elem?: any) => {
+      return elem?.unlimited ? "Unlimited" : val;
+    }
+  },
+  // {
+  //   id: "stock",
+  //   label: "Inventory_k19",
+  //   Render_Value: ({ unlimited }: { unlimited?: boolean }) => {
+  //     return (
+  //       <div className="text-center w-1/2">
+  //         <input
+  //         type="checkbox"
+  //         checked={unlimited}
+  //         readOnly
+  //         className="h-4 w-4 rounded  border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+  //       />
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     id: "actions",
     label: "Inventory_k9",
@@ -114,6 +134,14 @@ const tableHeader = [
             }
             onClick={() => clickHandle(modalStateEnum.DELETE)}
           />
+          <Action_Button
+            icon={<CirclePlus size={18} />}
+            label="Assign"
+            text_color="text-[#0EA542] dark:text-green-400"
+            bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
+            border="border-[#72F39E] dark:border-green-800"
+            onClick={() => clickHandle(modalStateEnum.ASSIGN)}
+          />
         </div>
       );
     },
@@ -128,6 +156,18 @@ const requiredInputFields = [
   {
     id: "product_name",
     label: "Name",
+  },
+  {
+    id: "price",
+    label: "Price",
+    colSpan: "col-span-1",
+    type: "number",
+  },
+  {
+    id: "stock",
+    label: "Units",
+    colSpan: "col-span-1",
+    type: "number",
   },
 ];
 
@@ -145,6 +185,32 @@ const Products = () => {
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeDeleteId, setActiveDeleteId] = useState(0);
+  const { locations } = useLocationClinica();
+  const [assignModalData, setAssignModalData] = useState<DataListInterface>({
+    location_ids: [],
+    quantity: 0,
+  });
+
+  const calculateTotalAssigned = useCallback(() => {
+    if (!assignModalData.location_ids?.length || !assignModalData.quantity) return 0;
+    return assignModalData.location_ids.length * assignModalData.quantity;
+  }, [assignModalData.location_ids, assignModalData.quantity]);
+
+  const isAssignValid = useCallback(() => {
+    if (!assignModalData.location_ids?.length) return false;
+    if (!assignModalData.quantity || assignModalData.quantity <= 0) return false;
+    if (!modalData.unlimited) {
+      const totalAssigned = calculateTotalAssigned();
+      if (totalAssigned > modalData.stock) return false;
+    }
+    return true;
+  }, [assignModalData.location_ids, assignModalData.quantity, modalData.unlimited, modalData.stock, calculateTotalAssigned]);
+
+  const getRemainingStock = useCallback(() => {
+    if (modalData.unlimited) return 'Unlimited';
+    const remaining = modalData.stock - calculateTotalAssigned();
+    return remaining < 0 ? 0 : remaining;
+  }, [modalData.unlimited, modalData.stock, calculateTotalAssigned]);
 
   const openModalHandle = (state: string) => {
     setOpenModal(true);
@@ -199,9 +265,16 @@ const Products = () => {
   }, [getDataArchiveType]);
 
   const modalInputChangeHandle = (key: string, value: string | number | boolean) => {
+    if (key === 'unlimited') {
+      // If unlimited is checked, set stock to 0
+      setModalData((pre) => {
+        return { ...pre, [key]: value, stock: 0 };
+      });
+    } else {
     setModalData((pre) => {
       return { ...pre, [key]: value };
     });
+    }
   };
 
   const modalSubmitHandle = async () => {
@@ -211,7 +284,11 @@ const Products = () => {
         const { data: res_data, error } = await create_content_service({
           table: "products",
           language: "",
-          post_data: { ...modalData },
+          post_data: { 
+            ...modalData,
+            stock: modalData.unlimited ? 0 : modalData.stock,
+            price: parseFloat(modalData.price) || 0
+          },
         });
 
         if (error) throw new Error(error.message);
@@ -226,6 +303,8 @@ const Products = () => {
           category_id: +modalData.category_id,
           product_name: modalData.product_name,
           unlimited: modalData.unlimited || false,
+          stock: modalData.unlimited ? 0 : modalData.stock,
+          price: parseFloat(modalData.price) || 0
         };
         const res_data = await update_content_service({
           table: "products",
@@ -247,12 +326,83 @@ const Products = () => {
     }
   };
 
+  const handleLocationSelect = (locationId: number) => {
+    setAssignModalData(prev => {
+      const location_ids = prev.location_ids?.includes(locationId)
+        ? prev.location_ids.filter((id: number) => id !== locationId)
+        : [...(prev.location_ids || []), locationId];
+      return { ...prev, location_ids };
+    });
+  };
+
+  const handleSelectAll = () => {
+    setAssignModalData(prev => ({
+      ...prev,
+      location_ids: prev.location_ids?.length === locations.length ? [] : locations.map((loc: any) => loc.id)
+    }));
+  };
+
+  const handleQuantityChange = (value: string) => {
+    const newQuantity = parseInt(value) || 0;
+    const totalAssigned = newQuantity * (assignModalData.location_ids?.length || 0);
+    
+    if (!modalData.unlimited && totalAssigned > modalData.stock) {
+      toast.error(`Cannot assign more than available stock (${modalData.stock})`);
+      return;
+    }
+    
+    setAssignModalData(prev => ({ ...prev, quantity: newQuantity }));
+  };
+
+  const assignSubmitHandle = async () => {
+    if (!assignModalData.location_ids?.length) {
+      toast.error("Please select at least one location");
+      return;
+    }
+
+    if (!assignModalData.quantity || assignModalData.quantity <= 0) {
+      toast.error("Please enter a valid quantity");
+      return;
+    }
+
+    const totalAssigned = calculateTotalAssigned();
+    if (!modalData.unlimited && totalAssigned > modalData.stock) {
+      toast.error(`Cannot assign more than available stock (${modalData.stock})`);
+      return;
+    }
+
+    setModalEventLoading(true);
+    try {
+      const { data: result } = await axios.post("/api/inventory/assign", {
+        product_id: modalData.product_id,
+        location_id: assignModalData.location_ids,
+        quantity: assignModalData.quantity,
+      });
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to assign inventory");
+      }
+
+      toast.success("Assigned successfully");
+      closeModalHandle();
+      fetch_handle(getDataArchiveType);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Something went wrong!");
+    } finally {
+      setModalEventLoading(false);
+    }
+  };
+
   const buttonClickActionHandle = (action: string, elem: any) => {
     if (action === modalStateEnum.DELETE) {
       setActiveDeleteId(elem.product_id);
     } else if (action === modalStateEnum.UPDATE) {
       setModalData(elem);
       openModalHandle(modalStateEnum.UPDATE);
+    } else if (action === modalStateEnum.ASSIGN) {
+      setModalData(elem);
+      setAssignModalData({ location_ids: [], quantity: 0 });
+      openModalHandle(modalStateEnum.ASSIGN);
     }
   };
 
@@ -328,22 +478,20 @@ const Products = () => {
         <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
           <button
             onClick={handleActiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-              !getDataArchiveType
-                ? "bg-blue-600 text-white dark:bg-blue-700"
-                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
+            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${!getDataArchiveType
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
           >
             <ShieldCheck className="w-4 h-4" />
             Active
           </button>
           <button
             onClick={handleArchiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-              getDataArchiveType
-                ? "bg-blue-600 text-white dark:bg-blue-700"
-                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
+            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${getDataArchiveType
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
           >
             <Archive className="w-4 h-4" />
             Archived
@@ -373,10 +521,10 @@ const Products = () => {
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full sm:w-auto items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex  sm:w-auto items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
-                Add Product
+                <span>Add Product</span>
               </button>
             </div>
 
@@ -385,24 +533,22 @@ const Products = () => {
 
           <div className="pt-5">
             <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-auto">
-              <Table className="min-w-[600px]">
+              <Table className="min-w-[700px] w-full">
                 <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
                   <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
-                    <TableHead className="w-12 p-3">
-                      {/* <input
-                        type="checkbox"
-                        className="h-4 w-4 dark:bg-gray-700 dark:border-gray-600"
-                      /> */}
-                    </TableHead>
-                    {tableHeader.map(
-                      ({ label, align, can_sort, id }, index) => (
+                    <TableHead className="w-12 p-3"></TableHead>
+                    {tableHeader.map(({ label, align, can_sort, id }, index) => (
                         <TableHead
                           key={index}
-                          className={`flex-1 ${
-                            align || "text-start"
-                          } text-base text-[#71717A] font-normal p-3 dark:text-gray-400`}
-                        >
-                          <div className="flex items-center">
+                        className={`flex-1 ${
+                          id === "price" || id === "stock" || id === "actions"
+                            ? "text-center align-middle min-w-[260px]"
+                            : align || "text-start align-middle"
+                        } text-base text-[#71717A] font-normal p-3 dark:text-gray-400
+                          ${id === "price" || id === "stock" || id === "actions" ? "hidden md:table-cell" : ""}
+                          truncate`}
+                      >
+                        <div className="flex items-center justify-start">
                             {t(label)}
                             {can_sort && (
                               <button
@@ -410,18 +556,16 @@ const Products = () => {
                                 className="active:opacity-50 ml-1"
                               >
                                 <PiCaretUpDownBold
-                                  className={`inline ${
-                                    sortColumn === id
-                                      ? "text-blue-600 dark:text-blue-400"
-                                      : "text-gray-400 dark:text-gray-500"
-                                  } hover:text-gray-600 dark:hover:text-gray-300`}
+                                  className={`inline ${sortColumn === id
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-400 dark:text-gray-500"
+                                    } hover:text-gray-600 dark:hover:text-gray-300`}
                                 />
                               </button>
                             )}
                           </div>
                         </TableHead>
-                      )
-                    )}
+                    ))}
                   </TableRow>
                 </TableHeader>
 
@@ -442,34 +586,51 @@ const Products = () => {
                     dataList.map((elem: DataListInterface, index) => (
                       <TableRow
                         key={index}
-                        className="flex items-center hover:bg-gray-100 border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700"
+                        className="flex items-center border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
                       >
-                        <TableCell className="w-12 p-3">
-                          {/* <input
-                            type="checkbox"
-                            className="h-4 w-4 dark:bg-gray-700 dark:border-gray-600"
-                          /> */}
-                        </TableCell>
+                        <TableCell className="w-12 p-3"></TableCell>
                         {tableHeader.map((element, ind) => {
-                          const { id, Render_Value, align } = element;
+                          const { id, Render_Value, align, width, render_value } = element;
+                          // Responsive: hide price, stock, actions on mobile
+                          if ((id === "price" || id === "stock" || id === "actions") && typeof window !== 'undefined' && window.innerWidth < 768) {
+                            return null;
+                          }
                           const content = Render_Value ? (
                             <Render_Value
                               getDataArchiveType={getDataArchiveType}
                               clickHandle={(action: string) =>
                                 buttonClickActionHandle(action, elem)
-                              }
-                              unlimited={elem.unlimited}
-                            />
+                              } />
                           ) : (
-                            elem[id]
+                            <div className={width === 1 ? 'w-1/2 truncate' : 'truncate'} title={elem[id]}>
+                              {render_value ? render_value(elem[id], elem) : elem[id]}
+                            </div>
                           );
+
+                          // Special handling for actions column
+                          if (id === "actions") {
+                            return (
+                              <TableCell
+                                key={ind}
+                                className="flex-1 text-center align-middle min-w-[260px] p-3"
+                              >
+                                <div className="flex flex-row justify-center items-center gap-x-3 whitespace-nowrap">
+                                  <Action_Button icon={<RefreshCcw size={18} />} onClick={() => buttonClickActionHandle('Update', elem)} label="Update" text_color="text-[#0066ff] dark:text-blue-400" bg_color="bg-[#E5F0FF] dark:bg-blue-900/30" border="border-[#CCE0FF] dark:border-blue-800" />
+                                  <Action_Button icon={<Archive size={18} />} onClick={() => buttonClickActionHandle('Delete', elem)} label={getDataArchiveType ? "Unarchive" : "Archive"} text_color={getDataArchiveType ? "text-[#0EA542] dark:text-green-400" : "text-[#F71B1B] dark:text-red-400"} bg_color={getDataArchiveType ? "bg-[#E7FDEF] dark:bg-green-900/30" : "bg-[#FFE8E5] dark:bg-red-900/30"} border={getDataArchiveType ? "border-[#72F39E] dark:border-green-800" : "border-[#FFD2CC] dark:border-red-800"} />
+                                  <Action_Button icon={<CirclePlus size={18} />} onClick={() => buttonClickActionHandle('Assign', elem)} label="Assign" text_color="text-[#0EA542] dark:text-green-400" bg_color="bg-[#E7FDEF] dark:bg-green-900/30" border="border-[#72F39E] dark:border-green-800" />
+                                </div>
+                              </TableCell>
+                            );
+                          }
 
                           return (
                             <TableCell
                               key={ind}
                               className={`flex-1 ${
-                                align || "text-start"
-                              } text-base p-3 dark:text-gray-300`}
+                                id === "price" || id === "stock"
+                                  ? "text-center align-middle"
+                                  : align || "text-start align-middle"
+                              } text-base p-3 dark:text-gray-300 ${id === "price" || id === "stock" ? "hidden md:table-cell" : ""} truncate`}
                             >
                               {id === "category"
                                 ? elem?.categories?.category_name
@@ -483,15 +644,15 @@ const Products = () => {
                 </TableBody>
               </Table>
 
-              <div className="flex items-center justify-between p-4 border-t dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t dark:border-gray-700 gap-2">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   0 of {dataList.length} row(s) selected.
                 </div>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white">
+                <div className="flex gap-2 flex-col sm:flex-row w-full sm:w-auto">
+                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
                     Previous
                   </button>
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white">
+                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
                     Next
                   </button>
                 </div>
@@ -507,13 +668,103 @@ const Products = () => {
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
-        create_new_handle={modalSubmitHandle}
+        create_new_handle={modalState === modalStateEnum.ASSIGN ? assignSubmitHandle : modalSubmitHandle}
         buttonLabel={modalState}
         Trigger_Button={null}
+        disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
+        {modalState === modalStateEnum.ASSIGN ? (
+          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
+            <div className="col-span-2 space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Select Locations
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="select-all-locations"
+                    checked={assignModalData.location_ids?.length === locations.length}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+                  />
+                  <label htmlFor="select-all-locations" className="text-sm text-gray-700 dark:text-gray-300">
+                    Select All
+                  </label>
+                </div>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto border rounded-md dark:border-gray-700">
+                {locations.map((location: any) => (
+                  <div key={location.id} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 border-b last:border-b-0 dark:border-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`location-${location.id}`}
+                        checked={assignModalData.location_ids?.includes(location.id)}
+                        onChange={() => handleLocationSelect(location.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+                      />
+                      <label htmlFor={`location-${location.id}`} className="text-sm text-gray-700 dark:text-gray-300">
+                        {location.title}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {assignModalData.location_ids?.length || 0} location(s) selected
+              </div>
+            </div>
+            <div className="col-span-2 space-y-4">
+              <div>
+                <Input_Component
+                  type="number"
+                  value={assignModalData.quantity?.toString() || ''}
+                  onChange={handleQuantityChange}
+                  border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                  label="Quantity per Location"
+                  bg_color="bg-white dark:bg-[#0e1725]"
+                />
+              </div>
+              <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-gray-800">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Stock Type:</span>
+                  <span className="font-medium dark:text-white">
+                    {modalData.unlimited ? "Unlimited" : "Limited"}
+                  </span>
+                </div>
+                {!modalData.unlimited && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Available Stock:</span>
+                      <span className="font-medium dark:text-white">{modalData.stock}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Total to Assign:</span>
+                      <span className={`font-medium ${calculateTotalAssigned() > modalData.stock ? 'text-red-500' : 'dark:text-white'}`}>
+                        {calculateTotalAssigned()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Remaining After Assignment:</span>
+                      <span className={`font-medium ${getRemainingStock() === 0 ? 'text-red-500' : 'dark:text-white'}`}>
+                        {getRemainingStock()}
+                      </span>
+                    </div>
+                    {calculateTotalAssigned() > modalData.stock && (
+                      <div className="text-sm text-red-500 mt-2">
+                        Cannot assign more than available stock
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
           {requiredInputFields.map((elem, index) => {
-            const { id, label } = elem;
+              const { id, label, colSpan, type } = elem;
             return id === "category_id" ? (
               <div key={index} className="col-span-2 space-y-2">
                 <Searchable_Dropdown
@@ -534,13 +785,15 @@ const Products = () => {
                 />
               </div>
             ) : (
-              <div key={index} className={`col-span-2`}>
+                <div key={index} className={colSpan || "col-span-2"}>
                 <Input_Component
+                    type={type || "text"}
                   value={modalData[id]}
                   onChange={(e: string) => modalInputChangeHandle(id, e)}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
                   label={label}
                   bg_color="bg-white dark:bg-[#0e1725]"
+                    disabled={id === "stock" && modalData.unlimited}
                 />
               </div>
             );
@@ -558,6 +811,7 @@ const Products = () => {
             </label>
           </div>
         </div>
+        )}
       </Custom_Modal>
 
       {activeDeleteId && (

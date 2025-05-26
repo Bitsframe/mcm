@@ -31,6 +31,7 @@ interface DataListInterface {
   inventory: {
     price: number;
     products: {
+      price: number,
       product_name: string;
       categories: {
         category_name: string;
@@ -136,7 +137,7 @@ const Returns: FC<Props> = () => {
     setLoading(true);
     const fetched_data: any = await fetch_content_service({
       table: "returns",
-      selectParam: `,sales_history(order_id, orders(patient_id,  pos(firstname,lastname,phone,email,locationid ))),inventory(price, products(product_name, categories(category_name)))`,
+      selectParam: `,sales_history(order_id, orders(patient_id,  pos(firstname,lastname,phone,email,locationid ))),inventory(price, products(product_name,price, categories(category_name)))`,
       matchCase: [
         { key: "merge", value: false },
         { key: "sales_history.orders.pos.locationid", value: location_id },
@@ -147,8 +148,14 @@ const Returns: FC<Props> = () => {
         { operator: "not", column: "sales_history", value: null },
       ],
     });
-    setDataList(fetched_data);
-    setAllData(fetched_data);
+
+    const formatData = fetched_data.map((elem:DataListInterface)=>{
+      const returnData = elem
+      returnData.inventory.price = elem.inventory.products.price
+      return returnData
+    })
+    setDataList(formatData);
+    setAllData(formatData);
     setLoading(false);
   };
 

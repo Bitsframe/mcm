@@ -93,6 +93,7 @@ export const POST = async (req: Request) => {
             inventory: {
               inventory_id: sale.inventory_id,
               product_id: inventoryItem?.product_id,
+              price: product.price,
               products: product
                 ? {
                   product_name: product.product_name,
