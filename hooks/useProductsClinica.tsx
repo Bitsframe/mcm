@@ -40,14 +40,14 @@ export function useProductsClinica() {
         onChangeCategory(0)
 
     }, [selectedLocation])
-    
+
 
 
 
     useEffect(() => {
         setLoading(true)
 
-        if(selectedCategory){
+        if (selectedCategory) {
             !(async function fetch_data() {
                 let matchCase = null
                 if (selectedCategory) {
@@ -67,12 +67,13 @@ export function useProductsClinica() {
                         {
                             key: 'products.archived',
                             value: false
-                        },
-    
+                        }
                     ]
                 }
-                const data = await fetch_content_service({ table: 'inventory', matchCase: matchCase, selectParam: ',products(category_id, product_name,archived)', filterOptions: [{ operator: 'not', column: 'products', value: null }] })
-    
+                const data = await fetch_content_service({ table: 'inventory', matchCase: matchCase, selectParam: ',products(category_id, product_name,archived, unlimited)', filterOptions: [
+                    { operator: 'not', column: 'products', value: null }
+                    ] })
+
                 // {
                 //     "inventory_id": 4,
                 //     "product_id": 279,
@@ -87,8 +88,8 @@ export function useProductsClinica() {
                 //       "product_name": "Excuse Forms"
                 //     }
                 //   }
-    
-    
+
+
                 // {
                 //     "product_id": 140,
                 //     "category_id": 2,
@@ -97,17 +98,18 @@ export function useProductsClinica() {
                 //     "quantity_available": 94,
                 //     "archived": false
                 //   }
-    
-                const formattedData = data.map(({ quantity, inventory_id, price, products: { product_name, category_id } }: any) => {
+
+                const formattedData = data.filter((elem)=>elem.quantity > 0 || elem.products.unlimited).map(({ quantity, inventory_id, price, products: { product_name, category_id, unlimited } }: any) => {
                     return {
                         product_id: inventory_id,
                         category_id,
                         product_name: product_name,
                         price,
                         quantity_available: quantity,
+                        unlimited,
                     }
                 })
-    
+
                 setdata(formattedData);
                 setLoading(false)
             })()

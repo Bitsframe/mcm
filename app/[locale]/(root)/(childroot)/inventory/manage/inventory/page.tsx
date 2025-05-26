@@ -71,6 +71,7 @@ const tableHeader = [
     id: "quantity_available",
     label: "Inventory_k19",
     can_sort: true,
+
   },
   {
     id: "actions",
@@ -161,6 +162,8 @@ const Inventory = () => {
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState("");
 
+  
+
   const {
     products,
     onChangeCategory,
@@ -187,7 +190,7 @@ const Inventory = () => {
     const fetched_data = await fetch_content_service({
       table: "inventory",
       language: "",
-      selectParam: `,products(product_name,product_id,category_id, categories(category_name))`,
+      selectParam: `,products(product_name,product_id,category_id, unlimited, categories(category_name))`,
       matchCase: [
         {
           key: "location_id",
@@ -211,6 +214,7 @@ const Inventory = () => {
         master_product_id: products.product_id,
         category_id: products.category_id,
         product_name: products.product_name,
+        unlimited: products.unlimited,
         price: price,
         quantity_available: quantity,
         categories: products.categories,
@@ -490,6 +494,34 @@ const Inventory = () => {
                       >
                         <Spinner size="xl" className="dark:text-white" />
                       </TableCell>
+
+                      {tableHeader.map((element, ind) => {
+                        const { id, Render_Value, align } = element;
+                        const content = Render_Value ? (
+                          <Render_Value
+                            getDataArchiveType={getDataArchiveType}
+                            clickHandle={(action: string) =>
+                              buttonClickActionHandle(action, elem)
+                            }
+                          />
+                        ) : (
+                          elem[id]
+                        );
+
+                        return (
+                          <TableCell
+                            key={ind}
+                            className={`flex-1 ${
+                              align || "text-start"
+                            } text-sm py-4 dark:text-gray-300`}
+                          >
+                            {id === "category"
+                              ? elem.categories.category_name : id === 'quantity_available' ? (elem.unlimited ? 'Unlimited': <span className="ms-6">{elem[id]}</span>)
+                              : content}
+                          </TableCell>
+                        );
+                      })}
+
                     </TableRow>
                   ) : dataList.length === 0 ? (
                     <TableRow className="flex h-full">

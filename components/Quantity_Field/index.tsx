@@ -4,18 +4,20 @@ import React, { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiFillPlusCircle, AiFillMinusCircle } from "react-icons/ai";
 
-interface QuantityFieldInterface {
+export interface QuantityFieldInterface {
     quantity: number;
-    quantityHandle: (e: number) => void;
+    quantityHandle: (qty: number) => void;
     maxAvailability: number;
     disabled?: boolean;
+    unlimited?: boolean;
 }
 
 export const Quantity_Field: FC<QuantityFieldInterface> = ({ 
     quantity, 
     quantityHandle, 
     maxAvailability, 
-    disabled = false 
+    disabled = false,
+    unlimited = false
 }) => {
     const [canAddMore, setCanAddMore] = useState(true);
     const { t } = useTranslation(translationConstant.POSSALES);
@@ -24,8 +26,8 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({
     const handleMinusClick = () => quantity > 0 && quantityHandle(quantity - 1);
 
     useEffect(() => {
-        setCanAddMore(quantity !== maxAvailability);
-    }, [quantity, maxAvailability]);
+        setCanAddMore(unlimited || quantity !== maxAvailability);
+    }, [quantity, maxAvailability, unlimited]);
 
     return (
         <div className={`w-full ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}>
