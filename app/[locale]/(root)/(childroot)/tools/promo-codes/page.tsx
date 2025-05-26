@@ -448,17 +448,10 @@ const Page = () => {
   };
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] overflow-x-hidden dark:bg-gray-900 dark:text-white">
-      <div className="grid grid-cols-3 w-[150%]">
-        <div className="flex justify-between items-center px-4 py-2 space-x-2 col-span-2">
-          <h1 className="text-xl font-bold dark:text-white">
-            {t("Procode_k1")}
-          </h1>
-        </div>
-      </div>
-
-      <div className="w-full min-h-[84dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="h-[100%] col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%]">
+    <main className="w-full min-h-screen bg-[#f6f8fa] dark:bg-gray-900 flex flex-col items-center px-2 sm:px-0">
+      <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-lg shadow-md mt-4 p-2 sm:p-6">
+        <h1 className="text-xl sm:text-2xl font-semibold mb-4">Promo Codes</h1>
+        <div className="flex flex-col gap-4">
           <div className="space-y-6 pb-4 flex justify-between mt-3">
             <div className="flex justify-between items-center w-full">
               <div className="relative w-96">
@@ -668,81 +661,80 @@ const Page = () => {
             </div>
           </div>
         </div>
-
-        <Sheet
-          open={!!detailsView}
-          onOpenChange={(open) => !open && setDetailsView(null)}
-        >
-          <SheetContent className="p-0 pt-10 dark:bg-gray-800 dark:border-gray-700">
-            <div className="flex flex-col h-full">
-              <div className="px-4 pt-2 pb-3">
-                <SheetHeader className="sr-only">
-                  <SheetTitle className="dark:text-white">
-                    {t("Procode_k8")}
-                  </SheetTitle>
-                </SheetHeader>
-                <h1 className="text-xl font-bold dark:text-white">
-                  {t("Procode_k8")}
-                </h1>
-              </div>
-
-              {detailsView && (
-                <div className="flex-1 overflow-auto px-4">
-                  <div className="grid grid-cols-2 gap-y-6">
-                    {fields
-                      .filter(({ details_section }) => details_section)
-                      .sort((a, b) => a.details_order - b.details_order)
-                      .map((field, ind) => {
-                        // @ts-ignore - Temporary type handling
-                        const extract_val = field.render_value
-                          ? // @ts-ignore
-                            field.render_value(detailsView[field.id])
-                          : detailsView[field.id];
-
-                        return (
-                          <div
-                            key={ind}
-                            className={
-                              field.col_span_01 ? "col-span-1" : "col-span-2"
-                            }
-                          >
-                            <div>
-                              <h1 className="text-sm text-gray-600 dark:text-gray-300">
-                                {t(field.details_label || field.label)}
-                              </h1>
-                              <p className="font-medium text-base dark:text-white">
-                                {extract_val || "N/A"}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  <div className="flex gap-4 pt-8 pb-4">
-                    <Action_Button
-                      onClick={editHandle}
-                      width="w-full"
-                      height="h-12"
-                      label={t("Procode_k15")}
-                      bg_color="bg-[#0066ff] dark:bg-blue-700"
-                      border="#0066ff dark:border-blue-700"
-                    />
-                    <Action_Button
-                      onClick={deleteHandle}
-                      width="w-full"
-                      height="h-12"
-                      label={t("Procode_k16")}
-                      bg_color="bg-[#FFD2CC] dark:bg-red-900"
-                      border="#FFD2CC dark:border-red-900"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
+      <Sheet
+        open={!!detailsView}
+        onOpenChange={(open) => !open && setDetailsView(null)}
+      >
+        <SheetContent className="p-0 pt-10 dark:bg-gray-800 dark:border-gray-700">
+          <div className="flex flex-col h-full">
+            <div className="px-4 pt-2 pb-3">
+              <SheetHeader className="sr-only">
+                <SheetTitle className="dark:text-white">
+                  {t("Procode_k8")}
+                </SheetTitle>
+              </SheetHeader>
+              <h1 className="text-xl font-bold dark:text-white">
+                {t("Procode_k8")}
+              </h1>
+            </div>
+
+            {detailsView && (
+              <div className="flex-1 overflow-auto px-4">
+                <div className="grid grid-cols-2 gap-y-6">
+                  {fields
+                    .filter(({ details_section }) => details_section)
+                    .sort((a, b) => a.details_order - b.details_order)
+                    .map((field, ind) => {
+                      // @ts-ignore - Temporary type handling
+                      const extract_val = field.render_value
+                        ? // @ts-ignore
+                          field.render_value(detailsView[field.id])
+                        : detailsView[field.id];
+
+                      return (
+                        <div
+                          key={ind}
+                          className={
+                            field.col_span_01 ? "col-span-1" : "col-span-2"
+                          }
+                        >
+                          <div>
+                            <h1 className="text-sm text-gray-600 dark:text-gray-300">
+                              {t(field.details_label || field.label)}
+                            </h1>
+                            <p className="font-medium text-base dark:text-white">
+                              {extract_val || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <div className="flex gap-4 pt-8 pb-4">
+                  <Action_Button
+                    onClick={editHandle}
+                    width="w-full"
+                    height="h-12"
+                    label={t("Procode_k15")}
+                    bg_color="bg-[#0066ff] dark:bg-blue-700"
+                    border="#0066ff dark:border-blue-700"
+                  />
+                  <Action_Button
+                    onClick={deleteHandle}
+                    width="w-full"
+                    height="h-12"
+                    label={t("Procode_k16")}
+                    bg_color="bg-[#FFD2CC] dark:bg-red-900"
+                    border="#FFD2CC dark:border-red-900"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
       <Custom_Modal
         submit_button_color={modal_titles[activeModalMode]?.button?.color}
         loading={modalLoading}

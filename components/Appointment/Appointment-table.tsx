@@ -91,9 +91,9 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
         </div>
       ) : (
         <>
-          <div className="relative overflow-hidden flex flex-col h-64">
-            <div className="border-2 border-gray-200 dark:border-gray-700">
-              <Table className="border-collapse w-full">
+          <div className="relative flex flex-col h-64 overflow-x-auto">
+            <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full">
+              <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
                   <TableRow className="dark:border-gray-700">
                     {[
@@ -148,40 +148,40 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
             </div>
           </div>
 
-          <div className="p-2 text-sm text-gray-500 dark:text-gray-400 justify-between flex items-center gap-4">
-            <span>
-              {appointments.length === 0
-                ? "Showing 0 to 0 of 0 results"
-                : `Showing ${startIndex + 1} to ${Math.min(
-                    endIndex,
-                    appointments.length
-                  )} of ${appointments.length} results`}
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
-                  currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <div className="p-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-row justify-between items-center gap-2">
+  <span>
+    {appointments.length === 0
+      ? "Showing 0 to 0 of 0 results"
+      : `Showing ${startIndex + 1} to ${Math.min(
+          endIndex,
+          appointments.length
+        )} of ${appointments.length} results`}
+  </span>
+  <div className="flex items-center gap-2">
+    <button
+      onClick={handlePreviousPage}
+      disabled={currentPage === 1}
+      className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+        currentPage === 1
+          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
+          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+      }`}
+    >
+      Previous
+    </button>
+    <button
+      onClick={handleNextPage}
+      disabled={currentPage === totalPages}
+      className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+        currentPage === totalPages
+          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
+          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+      }`}
+    >
+      Next
+    </button>
+  </div>
+</div>
         </>
       )}
     </div>
@@ -236,20 +236,20 @@ const MemoizedTableRow = memo(
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
-        className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+        className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm"
       >
-        <TableCell className="font-medium dark:text-white">
+        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-4 sm:py-3">
           {appointment.first_name} {appointment.last_name}
         </TableCell>
-        <TableCell className="p-4 dark:text-gray-300">
+        <TableCell className="p-2 sm:p-4 dark:text-gray-300">
           {appointment.sex}
         </TableCell>
-        <TableCell className="dark:text-gray-300">
+        <TableCell className="p-2 sm:p-4 dark:text-gray-300">
           {appointment.service}
         </TableCell>
-        <TableCell className="dark:text-gray-300">{date}</TableCell>
-        <TableCell className="dark:text-gray-300">{time}</TableCell>
-        <TableCell className="dark:border-gray-700">
+        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{date}</TableCell>
+        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{time}</TableCell>
+        <TableCell className="p-2 sm:p-4 dark:border-gray-700">
           {isUnapproved ? (
             <button
               className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
@@ -263,7 +263,7 @@ const MemoizedTableRow = memo(
             </span>
           )}
         </TableCell>
-        <TableCell className="text-right dark:border-gray-700">
+        <TableCell className="text-right p-2 sm:p-4 dark:border-gray-700">
           <div className="flex justify-end space-x-2">
             <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
               <Eye className="h-4 w-4" />

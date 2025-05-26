@@ -1,6 +1,13 @@
 "use client";
 
-import { useContext, useEffect, useState, useCallback, memo, useRef } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  memo,
+  useRef,
+} from "react";
 import {
   delete_appointment_service,
   fetchApprovedAppointmentsByLocation,
@@ -28,11 +35,10 @@ import {
   UserPlus,
   Hourglass,
   CalendarPlus,
-  CheckCheck
+  CheckCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
 
 const Appointments = () => {
   const { locations } = useLocationClinica();
@@ -83,7 +89,7 @@ const Appointments = () => {
       setFilteredApproved(approvedData as any);
       setUnapprovedAppointments(unapprovedData as any);
       setFilteredUnapproved(unapprovedData as any);
-      
+
       originalApprovedRef.current = approvedData as any;
       originalUnapprovedRef.current = unapprovedData as any;
     } catch (error) {
@@ -101,8 +107,10 @@ const Appointments = () => {
 
   const findLocations = useCallback(
     (locationId: number) => {
-      const location = locations.find((location: any) => location.id === locationId);
-      return location as unknown as LocationInterface || null;
+      const location = locations.find(
+        (location: any) => location.id === locationId
+      );
+      return (location as unknown as LocationInterface) || null;
     },
     [locations]
   );
@@ -129,7 +137,9 @@ const Appointments = () => {
 
       // Update original refs as well
       originalApprovedRef.current = updateState(originalApprovedRef.current);
-      originalUnapprovedRef.current = updateState(originalUnapprovedRef.current);
+      originalUnapprovedRef.current = updateState(
+        originalUnapprovedRef.current
+      );
 
       toast.success("Deleted successfully");
       setAppointmentDetails(null);
@@ -215,37 +225,44 @@ const Appointments = () => {
     }
   }, [selectedLocation, fetchDataHandler]);
 
-  const handleAppointmentApproval = useCallback((approvedAppointment: Appointment) => {
-    // Remove from unapproved list
-    setUnapprovedAppointments(prev => prev.filter(app => app.id !== approvedAppointment.id));
-    setFilteredUnapproved(prev => prev.filter(app => app.id !== approvedAppointment.id));
-    
-    // Add to approved list
-    setApprovedAppointments(prev => [...prev, approvedAppointment]);
-    setFilteredApproved(prev => [...prev, approvedAppointment]);
-    
-    setActiveTab("approved");
-  }, []);
+  const handleAppointmentApproval = useCallback(
+    (approvedAppointment: Appointment) => {
+      // Remove from unapproved list
+      setUnapprovedAppointments((prev) =>
+        prev.filter((app) => app.id !== approvedAppointment.id)
+      );
+      setFilteredUnapproved((prev) =>
+        prev.filter((app) => app.id !== approvedAppointment.id)
+      );
+
+      // Add to approved list
+      setApprovedAppointments((prev) => [...prev, approvedAppointment]);
+      setFilteredApproved((prev) => [...prev, approvedAppointment]);
+
+      setActiveTab("approved");
+    },
+    []
+  );
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
   return (
-    <main className="w-full h-full text-gray-600 font-medium space-y-5 dark:bg-gray-900 dark:text-gray-300">
-      <h1 className="text-2xl font-bold text-black px-4 pt-4 dark:text-white">
+    <main className="w-full h-full text-gray-600 font-medium space-y-3 sm:space-y-5 dark:bg-gray-900 dark:text-gray-300">
+      <h1 className="text-xl sm:text-2xl font-bold text-black px-2 sm:px-4 pt-2 sm:pt-4 dark:text-white">
         Appointments
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 px-4 mb-6">
+      <div className="grid grid-cols-2 gap-3 px-4 mb-6 sm:grid-cols-4 sm:gap-2 sm:px-4 sm:mb-6">
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-4 flex items-center gap-4 ">
-            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <Calendar className="h-6 w-6" />
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
+            <div className="bg-white p-2 sm:p-3 rounded-lg dark:bg-gray-700 mb-2 sm:mb-0">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                 Total Appointments
               </p>
-              <h2 className="text-2xl font-bold dark:text-white">
+              <h2 className="text-xl font-bold dark:text-white sm:text-2xl">
                 {approvedAppointments.length + unapprovedAppointments.length}
               </h2>
             </div>
@@ -253,15 +270,15 @@ const Appointments = () => {
         </Card>
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <CheckCheck className="h-6 w-6" />
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
+            <div className="bg-white p-2 sm:p-3 rounded-lg dark:bg-gray-700 mb-2 sm:mb-0">
+              <CheckCheck className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                 Approved Appointments
               </p>
-              <h2 className="text-2xl font-bold dark:text-white">
+              <h2 className="text-xl font-bold dark:text-white sm:text-2xl">
                 {approvedAppointments.length}
               </h2>
             </div>
@@ -269,15 +286,15 @@ const Appointments = () => {
         </Card>
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <Hourglass className="h-6 w-6" />
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
+            <div className="bg-white p-2 sm:p-3 rounded-lg dark:bg-gray-700 mb-2 sm:mb-0">
+              <Hourglass className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                 Pending Appointments
               </p>
-              <h2 className="text-2xl font-bold dark:text-white">
+              <h2 className="text-xl font-bold dark:text-white sm:text-2xl">
                 {unapprovedAppointments.length}
               </h2>
             </div>
@@ -285,15 +302,15 @@ const Appointments = () => {
         </Card>
 
         <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-white p-3 rounded-lg dark:bg-gray-700">
-              <CalendarPlus className="h-6 w-6" />
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
+            <div className="bg-white p-2 sm:p-3 rounded-lg dark:bg-gray-700 mb-2 sm:mb-0">
+              <CalendarPlus className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                 New Appointments
               </p>
-              <h2 className="text-2xl font-bold dark:text-white">
+              <h2 className="text-xl font-bold dark:text-white sm:text-2xl">
                 {unapprovedAppointments.length}
               </h2>
             </div>
@@ -301,27 +318,29 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg px-4 pb-4 dark:bg-[#0E1725]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 ">
+      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 pb-2 sm:pb-4 dark:bg-[#0E1725]">
+        <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:justify-between md:items-center">
           <Tabs
             className="w-full"
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16]">
+            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16] w-full sm:w-auto">
               <TabsTrigger
                 value="approved"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2 dark:data-[state=active]:bg-blue-600"
+                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approved Appointments
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Approved Appointments</span>
+                <span className="sm:hidden">Approved</span>
               </TabsTrigger>
               <TabsTrigger
                 value="request"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-4 py-2 dark:data-[state=active]:bg-blue-600"
+                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
-                New Appointments
+                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">New Appointments</span>
+                <span className="sm:hidden">New</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -338,25 +357,21 @@ const Appointments = () => {
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <div className="w-full md:w-64">
-            <DatePicker
-              onChange={filterHandle}
-              className="w-full border border-gray-300 rounded-lg p-2 
-             text-black placeholder-gray-400
-             dark:border-gray-600 dark:bg-gray-700 
-             dark:text-white dark:placeholder-white"
-              placeholder="Filter by date"
-              suffixIcon={
-                <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              }
-            />
-          </div>
-
-          <div className="flex items-center ">
-            <Add_Appointment_Modal newAddedRow={newAddedRow} />
-          </div>
-        </div>
+        <div className="flex flex-row justify-between items-center gap-3 mb-4 sm:mb-6">
+  <div className="w-64">
+    <DatePicker
+      onChange={filterHandle}
+      className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
+      placeholder="Filter by date"
+      suffixIcon={
+        <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+      }
+    />
+  </div>
+  <div className="flex items-center justify-end">
+    <Add_Appointment_Modal newAddedRow={newAddedRow} />
+  </div>
+</div>
 
         <AppointmentsTable
           isUnapproved={activeTab === "request"}
@@ -403,39 +418,83 @@ const AppointmentDetailsPanel = ({
   updateReflectOnCloseModal: () => void;
 }) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
+  const [editAppointment, setEditAppointment] = useState<Appointment | null>(
+    null
+  );
+
+  const handleEdit = useCallback(() => {
+    if (appointmentDetails) {
+      setEditAppointment(appointmentDetails);
+    }
+  }, [appointmentDetails]);
 
   return (
-    <Sheet
-      open={!!appointmentDetails && isSheetopen}
-      onOpenChange={(open) => {
-        if (!open) {
-          updateReflectOnCloseModal();
-        }
-      }}
-  
-    >
-      <SheetContent className="p-0 dark:bg-gray-900 m-3 rounded-xl">
-        <SheetTitle className="sr-only">
-          {appointmentDetails
-            ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`
-            : "Appointment Details"}
-        </SheetTitle>
-        <div className="p-4">
-          {appointmentDetails ? (
-            <AppointmentDetails
-              onDelete={onDelete}
-              appointment_details={appointmentDetails}
-              find_locations={findLocations}
-              update_reflect_on_close_modal={updateReflectOnCloseModal}
-            />
-          ) : (
-            <div className="flex h-full justify-center items-center dark:text-gray-300">
-              <h1 className="text-lg">Select an appointment to view details</h1>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+    <>
+      <Sheet
+        open={!!appointmentDetails && isSheetopen}
+        onOpenChange={(open) => {
+          if (!open) {
+            updateReflectOnCloseModal();
+          }
+        }}
+      >
+        <SheetContent className="p-0 dark:bg-gray-900 m-1 sm:m-3 rounded-xl w-full sm:w-auto">
+          <SheetTitle className="sr-only">
+            {appointmentDetails
+              ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`
+              : "Appointment Details"}
+          </SheetTitle>
+          <div className="p-2 sm:p-4">
+            {appointmentDetails ? (
+              <>
+                <AppointmentDetails
+                  onDelete={onDelete}
+                  appointment_details={appointmentDetails}
+                  find_locations={findLocations}
+                  update_reflect_on_close_modal={updateReflectOnCloseModal}
+                />
+
+                {/* Add Edit and Delete buttons at the bottom */}
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={handleEdit}
+                    className="border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 w-full sm:w-auto"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => onDelete(appointmentDetails.id)}
+                    className="w-full sm:w-auto"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-full justify-center items-center dark:text-gray-300 p-4">
+                <h1 className="text-base sm:text-lg text-center">
+                  Select an appointment to view details
+                </h1>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Edit Modal */}
+      {editAppointment && (
+        <AppointmentEditModal
+          isOpen={!!editAppointment}
+          onClose={() => setEditAppointment(null)}
+          defaultDateTime={editAppointment.date_and_time}
+          appointmentDetails={editAppointment}
+          locationData={findLocations(editAppointment.location_id)}
+          updateAvailableData={updateReflectOnCloseModal}
+        />
+      )}
+    </>
   );
 };
 

@@ -357,23 +357,23 @@ const Products = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
-      <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
+      <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
           <h1 className="text-xl font-bold px-3 py-2 dark:text-white">
             Products
           </h1>
-          <div className="px-3 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-x-3">
+          <div className="px-3 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-4 py-2 w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
+                className="flex w-full sm:w-auto items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 Add Product
@@ -384,8 +384,8 @@ const Products = () => {
           </div>
 
           <div className="pt-5">
-            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
-              <Table>
+            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-auto">
+              <Table className="min-w-[600px]">
                 <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
                   <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                     <TableHead className="w-12 p-3">

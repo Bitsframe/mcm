@@ -427,8 +427,8 @@ const Orders = () => {
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
-      <div className="w-full h-[77dvh] p-1 grid grid-cols-3 gap-1">
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto col-span-2 rounded">
+      <div className="w-full h-[77dvh] p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
           <div className="space-y-3 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
               <div className="w-full flex flex-col justify-center h-full space-y-1">
@@ -443,7 +443,7 @@ const Orders = () => {
                   Patient Details
                 </h2>
                 {selectedPatient ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {render_details.map(({ label, key, render_value }, ind) => {
                       const extracted_val = render_value
                         ? render_value(selectedPatient)
@@ -583,7 +583,7 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1 w-full mt-2 md:mt-0">
           <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100">
             <div className="flex-1">
               <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -627,7 +627,7 @@ const Orders = () => {
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k13")}
+                  {t("POS-Sales_k13")}%
                 </h1>
                 <p
                   className={`text-xs ${appliedDiscount

@@ -114,7 +114,7 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
       buttonLabel="Update"
       loading={loadingUpdate}
     >
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-2 sm:gap-4">
         <ScheduleDateTime
           default_data_time={defaultDateTime}
           selectDateTimeSlotHandle={handleSelectDateTimeSlot}

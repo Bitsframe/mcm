@@ -278,9 +278,9 @@ const Returns: FC<Props> = () => {
         </div>
       </div>
 
-      <div className="w-full min-h-[80.5dvh] h-[100%] py-1 px-4 grid grid-cols-3 gap-2">
-        <div className="bg-gray-100 dark:bg-[#080e16] h-[100%] col-span-2 rounded-md">
-          <div className="px-4 py-4">
+      <div className="w-full min-h-[80.5dvh] h-[100%] py-1 px-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="bg-gray-100 dark:bg-[#080e16] h-[100%] md:col-span-2 rounded-md w-full">
+          <div className="px-2 py-4">
             <input
               onChange={onChangeHandle}
               type="text"
@@ -289,8 +289,8 @@ const Returns: FC<Props> = () => {
             />
           </div>
 
-          <div className="px-4 pb-4">
-            <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+          <div className="px-2 pb-4 overflow-x-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg min-w-[600px]">
               <div className="flex-1 overflow-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
@@ -475,8 +475,8 @@ const Returns: FC<Props> = () => {
           </div>
         </div>
 
-        <div className="bg-gray-100 dark:bg-[#080e16] h-full rounded-lg overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-300 dark:border-gray-600">
+        <div className="bg-gray-100 dark:bg-[#080e16] h-full rounded-lg overflow-hidden flex flex-col w-full mt-2 md:mt-0">
+          <div className="px-4 py-5 border-b border-gray-300 dark:border-gray-600">
             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
               {t("POS-Returnk9")}
             </h1>
@@ -484,7 +484,7 @@ const Returns: FC<Props> = () => {
 
           {dataDetails && (
             <div className="p-3 overflow-auto">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {detailsArray(dataDetails).map((detail, index) => (
                   <dl
                     className={`${
@@ -502,7 +502,7 @@ const Returns: FC<Props> = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-6">
                 <button
                   onClick={mergeHandle}
                   className="w-full px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
