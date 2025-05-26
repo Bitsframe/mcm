@@ -105,7 +105,7 @@ const TableComponent: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#0e1725] w-full overflow-hidden text-black dark:text-white">
+    <div className="bg-white dark:bg-[#0e1725] w-full overflow-x-auto text-black dark:text-white">
       <div className="pb-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10">
           <CiSearch size={18} color="gray" />
@@ -125,8 +125,8 @@ const TableComponent: React.FC<Props> = ({
       <div
         className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}
       >
-        <div className="flex-1 overflow-auto">
-          <Table className="w-full rounded-lg border-collapse">
+        <div className="flex-1 overflow-x-auto">
+          <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
             <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
                 {tableHeader.map(({ label, align, flex }, index) => (
@@ -186,7 +186,7 @@ const TableComponent: React.FC<Props> = ({
           </Table>
         </div>
 
-        <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725]">
           <div>
             {dataList.length === 0
               ? "Showing 0 to 0 of 0 results"

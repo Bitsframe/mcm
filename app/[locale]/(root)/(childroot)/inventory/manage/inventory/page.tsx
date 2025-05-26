@@ -417,166 +417,162 @@ const Inventory = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
-      <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
+      <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <h1 className="text-xl font-bold dark:text-white">Inventory</h1>
-          <div className="px-3 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-x-2">
+          <h1 className="text-xl font-bold px-3 py-2 dark:text-white">
+            Inventory
+          </h1>
+          <div className="px-3 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
-              <button
-                onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-base px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
-              >
-                <CirclePlus className="w-6 h-6" />
-                Create Product
-              </button>
             </div>
-
             {RightSideComponent}
           </div>
 
-          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
-            <Table>
-              <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
-                <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
-                  <TableHead className="w-10 p-4">
-                    {/* <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#0e1725]"
-                    /> */}
-                  </TableHead>
-                  {tableHeader.map(({ label, align, can_sort, id }, index) => (
-                    <TableHead
-                      key={index}
-                      className={`
-                        flex-1 
-                        ${align || "text-start"}
-                        text-sm 
-                        text-gray-500
-                        font-medium
-                        py-3
-                        dark:text-gray-400
-                      `}
-                    >
-                      <div className="flex items-center">
-                        {t(label)}
-                        {can_sort && (
-                          <button
-                            onClick={() => sortHandle(id)}
-                            className="active:opacity-50 ml-1"
-                          >
-                            <PiCaretUpDownBold
-                              className={`inline ${
-                                sortColumn === id
-                                  ? "text-blue-600 dark:text-blue-400"
-                                  : "text-gray-400 dark:text-gray-500"
-                              } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
-                            />
-                          </button>
-                        )}
-                      </div>
+          <div className="pt-5">
+            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
+                  <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
+                    <TableHead className="w-10 p-4">
+                      {/* <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#0e1725]"
+                      /> */}
                     </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
+                    {tableHeader.map(({ label, align, can_sort, id }, index) => (
+                      <TableHead
+                        key={index}
+                        className={`
+                          flex-1 
+                          ${align || "text-start"}
+                          text-sm 
+                          text-gray-500
+                          font-medium
+                          py-3
+                          dark:text-gray-400
+                        `}
+                      >
+                        <div className="flex items-center">
+                          {t(label)}
+                          {can_sort && (
+                            <button
+                              onClick={() => sortHandle(id)}
+                              className="active:opacity-50 ml-1"
+                            >
+                              <PiCaretUpDownBold
+                                className={`inline ${
+                                  sortColumn === id
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-400 dark:text-gray-500"
+                                } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                              />
+                            </button>
+                          )}
+                        </div>
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
 
-              <TableBody className="divide-y divide-gray-200 mb-4 h-[28dvh] overflow-y-auto block dark:bg-[#0e1725]">
-                
-                {loading ? (
-                  <TableRow className="flex h-full">
-                    <TableCell
-                      colSpan={tableHeader.length}
-                      className="h-[60dvh] text-center"
-                    >
-                      <Spinner size="xl" className="dark:text-white" />
-                    </TableCell>
-                  </TableRow>
-                ) : dataList.length === 0 ? (
-                  <TableRow className="flex h-full">
-                    <TableCell
-                      colSpan={tableHeader.length}
-                      className="h-[30dvh] text-center dark:text-gray-300"
-                    >
-                      <h1>No Product is available</h1>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  dataList.map((elem: DataListInterface, index) => (
-                    <TableRow
-                      key={index}
-                      className={`
-                        flex 
-                        items-center 
-                        hover:bg-gray-100 
-                        border-b
-                        border-gray-200
-                        ${
-                          index % 2 === 0
-                            ? "bg-white dark:bg-[#0e1725]"
-                            : "bg-gray-50 dark:bg-[#0e1725]"
-                        }
-                        dark:hover:bg-gray-700
-                        dark:border-gray-700
-                      `}
-                    >
-                      <TableCell className="w-10 p-4">
-                        {/* <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                        /> */}
+                <TableBody className="divide-y divide-gray-200 mb-4 h-[28dvh] overflow-y-auto block dark:bg-[#0e1725]">
+                  
+                  {loading ? (
+                    <TableRow className="flex h-full">
+                      <TableCell
+                        colSpan={tableHeader.length}
+                        className="h-[60dvh] text-center"
+                      >
+                        <Spinner size="xl" className="dark:text-white" />
                       </TableCell>
-                      {tableHeader.map((element, ind) => {
-                        const { id, Render_Value, align } = element;
-                        const content = Render_Value ? (
-                          <Render_Value
-                            getDataArchiveType={getDataArchiveType}
-                            clickHandle={(action: string) =>
-                              buttonClickActionHandle(action, elem)
-                            }
-                          />
-                        ) : (
-                          elem[id]
-                        );
-
-                        return (
-                          <TableCell
-                            key={ind}
-                            className={`flex-1 ${
-                              align || "text-start"
-                            } text-sm py-4 dark:text-gray-300`}
-                          >
-                            {id === "category"
-                              ? elem.categories.category_name
-                              : content}
-                          </TableCell>
-                        );
-                      })}
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : dataList.length === 0 ? (
+                    <TableRow className="flex h-full">
+                      <TableCell
+                        colSpan={tableHeader.length}
+                        className="h-[30dvh] text-center dark:text-gray-300"
+                      >
+                        <h1>No Product is available</h1>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    dataList.map((elem: DataListInterface, index) => (
+                      <TableRow
+                        key={index}
+                        className={`
+                          flex 
+                          items-center 
+                          hover:bg-gray-100 
+                          border-b
+                          border-gray-200
+                          ${
+                            index % 2 === 0
+                              ? "bg-white dark:bg-[#0e1725]"
+                              : "bg-gray-50 dark:bg-[#0e1725]"
+                          }
+                          dark:hover:bg-gray-700
+                          dark:border-gray-700
+                        `}
+                      >
+                        <TableCell className="w-10 p-4">
+                          {/* <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                          /> */}
+                        </TableCell>
+                        {tableHeader.map((element, ind) => {
+                          const { id, Render_Value, align } = element;
+                          const content = Render_Value ? (
+                            <Render_Value
+                              getDataArchiveType={getDataArchiveType}
+                              clickHandle={(action: string) =>
+                                buttonClickActionHandle(action, elem)
+                              }
+                            />
+                          ) : (
+                            elem[id]
+                          );
 
-            {!loading && dataList.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  0 of {dataList.length} row(s) selected.
+                          return (
+                            <TableCell
+                              key={ind}
+                              className={`flex-1 ${
+                                align || "text-start"
+                              } text-sm py-4 dark:text-gray-300`}
+                            >
+                              {id === "category"
+                                ? elem.categories.category_name
+                                : content}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+
+              {!loading && dataList.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    0 of {dataList.length} row(s) selected.
+                  </div>
+                  <div className="flex space-x-2">
+                    <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                      Previous
+                    </button>
+                    <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                      Next
+                    </button>
+                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
-                    Previous
-                  </button>
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -3,9 +3,9 @@
 
 import { TabContext } from "@/context";
 import { useContext, useEffect } from "react";
-import TopTabs from "./settingstabs";
+import TopTabs from "./controltabs";
 
-export default function SettingsLayout({
+export default function ControlsLayout({
   children,
 }: {
   children: React.ReactNode

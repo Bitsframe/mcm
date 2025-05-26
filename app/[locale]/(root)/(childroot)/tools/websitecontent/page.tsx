@@ -54,8 +54,8 @@ const Home = () => {
 
   return (
     <WebsiteContentLayout>
-      <div className="mb-5 px-4 py-4 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white rounded-xl shadow-sm border border-gray-200 transition-colors duration-300">
-        <div className="flex gap-4 mb-6">
+      <div className="mb-5 px-2 sm:px-4 py-4 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white rounded-xl shadow-sm border border-gray-200 transition-colors duration-300">
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-4 mb-6">
           <Select_Dropdown
             value={selected_section}
             label={t("WebCont_k7")}

@@ -73,7 +73,7 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
   const { t } = useTranslation(translationConstant.STOCKPANEL);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
       {/* Products Count Card */}
       <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40">
         <h1 className="text-3xl text-center font-bold">{procucts_count}</h1>

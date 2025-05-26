@@ -432,8 +432,8 @@ const Patients = () => {
 
   return (
     <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2">
-      <div className="w-full flex justify-center gap-4">
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-[65%]">
+      <div className="w-full flex flex-col md:flex-row justify-center gap-4">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-[65%]">
           <div className="p-4 flex justify-between items-center">
             <div>
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
@@ -561,7 +561,7 @@ const Patients = () => {
           </div>
         </div>
 
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-[35%] p-4">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-[35%] p-4 mt-4 md:mt-0">
           <div className="mb-4">
             <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
               Add New Patient

@@ -14,15 +14,12 @@ const Career = () => {
     };
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl' >
-                <div className='flex  justify-between items-start p-0 my-5'>
-                    <div className='w-1/2' >
+            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl'>
+                <div className='flex flex-col gap-4 sm:flex-row justify-between items-start p-0 my-5'>
+                    <div className='w-full sm:w-1/2'>
                         <Select_Dropdown
-                            // value={selected_location}
                             label='Specials' start_empty={true} options_arr={[]}
-                            // on_change_handle={(e) => set_location_handle(e.target.value)}
                             required={true} />
-
                     </div>
                     {/* <button >
                         <Image
@@ -85,7 +82,7 @@ const Career = () => {
 
 
 
-                <div className='px-3 flex flex-col gap-5 w-2/5'>
+                <div className='px-3 flex flex-col gap-5 w-full sm:w-2/5'>
                     <h6 className='text-primary_color'>Content</h6>
 
 

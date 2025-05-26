@@ -261,19 +261,19 @@ const Categories = () => {
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
           <h1 className="text-lg font-semibold px-3 mb-3 text-white">Categories</h1>
-          <div className="px-3 flex justify-between w-full">
-            <div className="space-y-1">
-              <div className="flex items-center w-full justify-between gap-x-3">
-                <div className="relative w-72">
+          <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
+            <div className="space-y-1 w-full sm:w-auto">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full justify-between gap-x-3">
+                <div className="relative w-full sm:w-72">
                   <input
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("Inventory_k4")}
-                    className="block px-3 py-[10px] w-72 text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-gray-800 border-2 border-gray-600 focus:border-blue-600 text-white"
+                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-gray-800 border-2 border-gray-600 focus:border-blue-600 text-white"
                   />
                 </div>
                 <button
-                  className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition"
+                  className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition w-full sm:w-auto mt-2 sm:mt-0"
                   onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 >
                   <svg
@@ -295,93 +295,91 @@ const Categories = () => {
                 </button>
               </div>
             </div>
-
-            <div className="flex gap-2">{RightSideComponent}</div>
+            <div className="flex gap-2 w-full sm:w-auto">{RightSideComponent}</div>
           </div>
 
           <div className="px-3 pt-5">
-  <div className="border rounded-md border-gray-300 dark:border-gray-700">
-    <Table>
-      <TableHeader className="bg-gray-100 dark:bg-gray-800 border-b border-b-gray-300 dark:border-b-gray-700">
-        <TableRow className="flex hover:bg-transparent">
-          <TableHead className="w-12 p-3">
-            {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-          </TableHead>
-          {tableHeader.map(({ label, align }, index) => (
-            <TableHead
-              key={index}
-              className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
-            >
-              {t(label)}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
+            <div className="border rounded-md border-gray-300 dark:border-gray-700 overflow-x-auto">
+              <Table className="min-w-[600px]">
+                <TableHeader className="bg-gray-100 dark:bg-gray-800 border-b border-b-gray-300 dark:border-b-gray-700">
+                  <TableRow className="flex hover:bg-transparent">
+                    <TableHead className="w-12 p-3">
+                      {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+                    </TableHead>
+                    {tableHeader.map(({ label, align }, index) => (
+                      <TableHead
+                        key={index}
+                        className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+                      >
+                        {t(label)}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
 
-      <TableBody className="mb-4 h-[30dvh] overflow-y-auto block bg-white dark:bg-gray-900">
-        {loading ? (
-          <TableRow className="flex h-full">
-            <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-gray-900">
-              <Spinner size="xl" />
-            </TableCell>
-          </TableRow>
-        ) : dataList.length === 0 ? (
-          <TableRow className="flex h-full">
-            <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
-              <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
-            </TableCell>
-          </TableRow>
-        ) : (
-          dataList.map((elem, index) => (
-            <TableRow
-              key={index}
-              className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
-            >
-              <TableCell className="w-12 p-0">
-                {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-              </TableCell>
-              {tableHeader.map(({ id, Render_Value, align }, ind) => {
-                const content = Render_Value ? (
-                  <Render_Value
-                    getDataArchiveType={getDataArchiveType}
-                    isLoading={deleteLoading}
-                    onClickHandle={() => onClickHandle(elem.category_id)}
-                  />
-                ) : (
-                  <span className="text-gray-800 dark:text-white">{elem[id]}</span>
-                );
+                <TableBody className="mb-4 h-[30dvh] overflow-y-auto block bg-white dark:bg-gray-900">
+                  {loading ? (
+                    <TableRow className="flex h-full">
+                      <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-gray-900">
+                        <Spinner size="xl" />
+                      </TableCell>
+                    </TableRow>
+                  ) : dataList.length === 0 ? (
+                    <TableRow className="flex h-full">
+                      <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
+                        <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    dataList.map((elem, index) => (
+                      <TableRow
+                        key={index}
+                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
+                      >
+                        <TableCell className="w-12 p-0">
+                          {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+                        </TableCell>
+                        {tableHeader.map(({ id, Render_Value, align }, ind) => {
+                          const content = Render_Value ? (
+                            <Render_Value
+                              getDataArchiveType={getDataArchiveType}
+                              isLoading={deleteLoading}
+                              onClickHandle={() => onClickHandle(elem.category_id)}
+                            />
+                          ) : (
+                            <span className="text-gray-800 dark:text-white">{elem[id]}</span>
+                          );
 
-                return (
-                  <TableCell
-                    key={ind}
-                    className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
-                  >
-                    {content}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+                          return (
+                            <TableCell
+                              key={ind}
+                              className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
+                            >
+                              {content}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
 
-    <div className="flex items-center justify-between p-4 border-t border-t-gray-300 dark:border-t-gray-700">
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        0 of {dataList.length} row(s) selected.
-      </div>
-      <div className="flex gap-2">
-        <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
-          Previous
-        </button>
-        <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white">
-          Next
-        </button>
-      </div>
-    </div>
+              <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
+  <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+    {dataList.length === 0 ? "0" : "0"} of {dataList.length} row(s) selected.
+  </div>
+  <div className="flex gap-2">
+    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]">
+      Previous
+    </button>
+    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white min-w-[80px]">
+      Next
+    </button>
   </div>
 </div>
-
+            </div>
+          </div>
         </div>
       </div>
 

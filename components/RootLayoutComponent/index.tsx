@@ -40,7 +40,7 @@ ErrorState.displayName = 'ErrorState';
 
 const FixedSidebar = memo(() => (
   <section
-    className="fixed left-0 top-0 h-full"
+    className="hidden md:block fixed left-0 top-0 h-full"
     style={{ width: LAYOUT_CONFIG.sidebarWidth }}
   >
     <SidebarSection />
@@ -73,14 +73,14 @@ const MainContent = memo(({ children }: { children: ReactNode }) => {
 
   return (
     <section
-      className="flex flex-col flex-grow bg-[#F1F4F9] dark:bg-[#080E16] min-h-screen"
-      style={{ marginLeft: LAYOUT_CONFIG.sidebarWidth }}
+      className="flex flex-col flex-grow bg-[#F1F4F9] dark:bg-[#080E16] min-h-screen md:ml-[233px]"
     >
       <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
       <section
         className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725] relative"
         style={{
-          maxHeight: '90vh',
+          // maxHeight: '90vh',
+          minHeight: 'calc(170vh - 5rem)',
           overflowY: 'auto',
         }}
       >

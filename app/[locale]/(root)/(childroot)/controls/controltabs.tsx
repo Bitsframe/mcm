@@ -30,12 +30,16 @@ const TopTabs = () => {
 
   const WebsiteContentMenu = [
     {
-      title: "Profile",
+      title: "Reporting Time",
       url: "/",
     },
     {
-      title: "Security",
-      url: "security",
+      title: "Email Templates",
+      url: "emailtemplates",
+    },
+    {
+      title: "Inventory Settings",
+      url: "inventorysettings",
     },
   ];
 
@@ -48,13 +52,13 @@ const TopTabs = () => {
         <ul className="flex flex-col gap-1">
           {WebsiteContentMenu.map((menuItem, index) => {
             const isActive =
-              pathname === `/tools/settings/${menuItem.url}` ||
-              (pathname === "/tools/settings" && menuItem.url === "/");
+              pathname === `/controls/${menuItem.url}` ||
+              (pathname === "/controls" && menuItem.url === "/");
 
             return (
               <li key={index}>
                 <Link
-                  href={`/tools/settings/${menuItem.url}`}
+                  href={`/controls/${menuItem.url}`}
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all
               ${
                 isActive
@@ -87,12 +91,12 @@ const TopTabs = () => {
             <ul className="flex flex-col gap-1 py-2">
               {WebsiteContentMenu.map((menuItem, index) => {
                 const isActive =
-                  pathname === `/tools/settings/${menuItem.url}` ||
-                  (pathname === "/tools/settings" && menuItem.url === "/");
+                  pathname === `/controls/${menuItem.url}` ||
+                  (pathname === "/controls" && menuItem.url === "/");
                 return (
                   <li key={index}>
                     <Link
-                      href={`/tools/settings/${menuItem.url}`}
+                      href={`/controls/${menuItem.url}`}
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all w-full
                         ${
                           isActive
