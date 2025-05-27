@@ -129,7 +129,7 @@ export const routeList: Route[] = [
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
-    id: 'Warehouse',
+    id: 'warehouse',
     name: "warehouse",
     label: "Warehouse",
     icon: Warehouse,
