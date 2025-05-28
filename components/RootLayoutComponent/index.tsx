@@ -1,21 +1,28 @@
-'use client';
+"use client";
 
-import { ReactNode, useContext, useEffect, memo, useCallback, useState } from 'react';
-import { CircularProgress } from '@mui/material';
-import { AuthContext, TabContext } from '@/context';
-import { SidebarSection } from '../Sidebar';
-import { Navbar } from '../Navbar';
+import {
+  ReactNode,
+  useContext,
+  useEffect,
+  memo,
+  useCallback,
+  useState,
+} from "react";
+import { CircularProgress } from "@mui/material";
+import { AuthContext, TabContext } from "@/context";
+import { SidebarSection } from "../Sidebar";
+import { Navbar } from "../Navbar";
 import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
-import { translationConstant } from '@/utils/translationConstants';
+import { translationConstant } from "@/utils/translationConstants";
 import i18n from "@/i18n";
-import { usePathname } from 'next/navigation';
+import { usePathname } from "next/navigation";
 
 const LAYOUT_CONFIG = {
-  sidebarWidth: '233px',
-  contentPadding: '1rem',
-  backgroundColor: 'white',
-  backgroundColorDark: '#080E16',
+  sidebarWidth: "233px",
+  contentPadding: "1rem",
+  backgroundColor: "white",
+  backgroundColorDark: "#080E16",
 } as const;
 
 interface RootLayoutProps {
@@ -28,7 +35,7 @@ const LoadingState = memo(() => (
   </div>
 ));
 
-LoadingState.displayName = 'LoadingState';
+LoadingState.displayName = "LoadingState";
 
 const ErrorState = memo(({ message }: { message: string }) => (
   <div className="h-screen w-full grid place-items-center">
@@ -36,7 +43,7 @@ const ErrorState = memo(({ message }: { message: string }) => (
   </div>
 ));
 
-ErrorState.displayName = 'ErrorState';
+ErrorState.displayName = "ErrorState";
 
 const FixedSidebar = memo(() => (
   <section
@@ -47,7 +54,7 @@ const FixedSidebar = memo(() => (
   </section>
 ));
 
-FixedSidebar.displayName = 'FixedSidebar';
+FixedSidebar.displayName = "FixedSidebar";
 
 const MainContent = memo(({ children }: { children: ReactNode }) => {
   const { activeTitle, parentTitle } = useContext(TabContext);
@@ -69,20 +76,17 @@ const MainContent = memo(({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   const translatedTitle = t(activeTitle);
-  const formattedTitle = parentTitle ? `${parentTitle}/${translatedTitle}` : translatedTitle;
+  const formattedTitle = parentTitle
+    ? `${parentTitle}/${translatedTitle}`
+    : translatedTitle;
 
   return (
-    <section
-      className="flex flex-col flex-grow bg-[#F1F4F9] dark:bg-[#080E16] min-h-screen md:ml-[233px]"
-    >
+    <section className="flex flex-col flex-grow bg-[#F1F4F9] dark:bg-[#080E16] min-h-screen md:ml-[233px]">
       <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
       <section
-        className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725] relative"
-        style={{
-          // maxHeight: '90vh',
-          minHeight: 'calc(170vh - 5rem)',
-          overflowY: 'auto',
-        }}
+        className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725] relative 
+             h-screen md:h-[calc(100vh-5rem)]" // Mobile: 80vh, Desktop: 100vh - 5rem
+        style={{ overflowY: "auto" }}
       >
         {isLoading && (
           <div className="absolute inset-0 bg-white dark:bg-[#0E1725] flex items-center justify-center z-50">
@@ -95,7 +99,7 @@ const MainContent = memo(({ children }: { children: ReactNode }) => {
   );
 });
 
-MainContent.displayName = 'MainContent';
+MainContent.displayName = "MainContent";
 
 const RootLayoutComponent = memo(({ children }: RootLayoutProps) => {
   const authState = useContext(AuthContext);
@@ -117,6 +121,6 @@ const RootLayoutComponent = memo(({ children }: RootLayoutProps) => {
   );
 });
 
-RootLayoutComponent.displayName = 'RootLayoutComponent';
+RootLayoutComponent.displayName = "RootLayoutComponent";
 
 export default RootLayoutComponent;

@@ -1,14 +1,32 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, X, Plus, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from "lucide-react";
-import { create_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import {
+  Search,
+  X,
+  Plus,
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link as LinkIcon,
+  PlusCircle,
+} from "lucide-react";
+import {
+  create_content_service,
+  fetch_content_service,
+  update_content_service,
+} from "@/utils/supabase/data_services/data_services";
 import { clinca_logo } from "@/assets/images";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Link from '@tiptap/extension-link';
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
 
 interface Template {
   id: string;
@@ -29,7 +47,6 @@ function htmlToText(html: string): string {
 function getFullPreviewHtml(content: string) {
   return `
     <div style="text-align:center;margin-bottom:16px;">
-      <img src="${clinca_logo.src}" alt="Clinic Logo" style="width:120px;object-fit:contain;" />
     </div>
     <div style="margin-bottom:16px;">Dear Patient,</div>
     <div style="margin-bottom:16px;">${content}</div>
@@ -39,8 +56,8 @@ function getFullPreviewHtml(content: string) {
 
 function getFullPlainText(content: string) {
   let cleanContent = htmlToText(content)
-    .replace(/^Dear Patient,\s*/i, '')
-    .replace(/\s*Best,\s*$/i, '')
+    .replace(/^Dear Patient,\s*/i, "")
+    .replace(/\s*Best,\s*$/i, "")
     .trim();
 
   return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
@@ -55,21 +72,27 @@ const MenuBar = ({ editor }: any) => {
     <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bold') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("bold") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Bold"
       >
         <Bold className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('italic') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("italic") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Italic"
       >
         <Italic className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('underline') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("underline") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Underline"
       >
         <UnderlineIcon className="w-4 h-4" />
@@ -77,36 +100,52 @@ const MenuBar = ({ editor }: any) => {
       <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bulletList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("bulletList") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Bullet List"
       >
         <List className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('orderedList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("orderedList") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Numbered List"
       >
         <ListOrdered className="w-4 h-4" />
       </button>
       <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
       <button
-        onClick={() => editor.chain().focus().setTextAlign('left').run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive({ textAlign: "left" })
+            ? "bg-gray-100 dark:bg-gray-800"
+            : ""
+        }`}
         title="Align Left"
       >
         <AlignLeft className="w-4 h-4" />
       </button>
       <button
-        onClick={() => editor.chain().focus().setTextAlign('center').run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive({ textAlign: "center" })
+            ? "bg-gray-100 dark:bg-gray-800"
+            : ""
+        }`}
         title="Align Center"
       >
         <AlignCenter className="w-4 h-4" />
       </button>
       <button
-        onClick={() => editor.chain().focus().setTextAlign('right').run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive({ textAlign: "right" })
+            ? "bg-gray-100 dark:bg-gray-800"
+            : ""
+        }`}
         title="Align Right"
       >
         <AlignRight className="w-4 h-4" />
@@ -114,12 +153,14 @@ const MenuBar = ({ editor }: any) => {
       <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
       <button
         onClick={() => {
-          const url = window.prompt('Enter URL');
+          const url = window.prompt("Enter URL");
           if (url) {
             editor.chain().focus().setLink({ href: url }).run();
           }
         }}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('link') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          editor.isActive("link") ? "bg-gray-100 dark:bg-gray-800" : ""
+        }`}
         title="Add Link"
       >
         <LinkIcon className="w-4 h-4" />
@@ -131,17 +172,19 @@ const MenuBar = ({ editor }: any) => {
 const EmailTemplates = () => {
   const [templateContent, setTemplateContent] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       Underline,
       TextAlign.configure({
-        types: ['heading', 'paragraph'],
+        types: ["heading", "paragraph"],
       }),
       Link.configure({
         openOnClick: false,
@@ -153,23 +196,25 @@ const EmailTemplates = () => {
     },
   });
 
-  // Load templates from Supabase using fetch_content_service
   useEffect(() => {
     const loadTemplates = async () => {
       try {
-        const data = await fetch_content_service({ 
+        const data = await fetch_content_service({
           table: "email_templates",
           sortOptions: {
-            column: 'created_at',
-            order: 'desc'
-          }
+            column: "created_at",
+            order: "desc",
+          },
         });
 
-        setTemplates(data.map(template => ({
+        const loadedTemplates = data.map((template) => ({
           id: template.id,
           name: template.name,
-          content: template.body
-        })));
+          content: template.body,
+        }));
+
+        setTemplates(loadedTemplates);
+        setFilteredTemplates(loadedTemplates);
       } catch (error) {
         console.error("Error loading templates:", error);
       }
@@ -178,7 +223,17 @@ const EmailTemplates = () => {
     loadTemplates();
   }, []);
 
-  // Update editor content when template changes
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredTemplates(templates);
+    } else {
+      const filtered = templates.filter((template) =>
+        template.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredTemplates(filtered);
+    }
+  }, [searchQuery, templates]);
+
   useEffect(() => {
     if (editor && templateContent !== editor.getHTML()) {
       editor.commands.setContent(templateContent);
@@ -228,14 +283,14 @@ const EmailTemplates = () => {
         throw error;
       }
 
-      setTemplates([
-        ...templates,
-        {
-          id: data?.[0]?.id,
-          name: data?.[0]?.name,
-          content: data?.[0]?.body,
-        },
-      ]);
+      const newTemplate = {
+        id: data?.[0]?.id,
+        name: data?.[0]?.name,
+        content: data?.[0]?.body,
+      };
+
+      setTemplates([newTemplate, ...templates]);
+      setFilteredTemplates([newTemplate, ...filteredTemplates]);
       setIsCreatingNew(false);
       setActiveTemplate(null);
       setTemplateName("");
@@ -267,8 +322,8 @@ const EmailTemplates = () => {
       }
 
       let cleanContent = htmlToText(templateContent)
-        .replace(/^Dear Patient,\s*/i, '')
-        .replace(/\s*Best,\s*$/i, '')
+        .replace(/^Dear Patient,\s*/i, "")
+        .replace(/\s*Best,\s*$/i, "")
         .trim();
 
       const plainTextBody = `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
@@ -282,14 +337,15 @@ const EmailTemplates = () => {
       const data = await update_content_service({
         table: "email_templates",
         post_data,
-        matchKey: "id"
+        matchKey: "id",
       });
 
-      setTemplates(templates.map(t => 
-        t.id === activeTemplate.id 
-          ? { ...t, content: plainTextBody }
-          : t
-      ));
+      const updatedTemplates = templates.map((t) =>
+        t.id === activeTemplate.id ? { ...t, content: plainTextBody } : t
+      );
+
+      setTemplates(updatedTemplates);
+      setFilteredTemplates(updatedTemplates);
 
       setIsCreatingNew(false);
       setActiveTemplate(null);
@@ -304,57 +360,57 @@ const EmailTemplates = () => {
   return (
     <div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900 p-4">
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+        <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
+          <button
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            onClick={() => {
+              setShowCreateModal(false);
+              setTemplateName("");
+            }}
+          >
+            <X className="w-5 h-5" />
+          </button>
+      
+          <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
+            Create New template
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            Please write a name below to add a template
+          </p>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+              Template Name
+            </label>
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
+              placeholder="Type here"
+              disabled={!!activeTemplate?.id}
+              autoFocus={!activeTemplate?.id}
+            />
+          </div>
+          <div className="flex justify-end gap-3">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
               onClick={() => {
                 setShowCreateModal(false);
                 setTemplateName("");
               }}
             >
-              <X className="w-5 h-5" />
+              Cancel
             </button>
-
-            <h2 className="text-xl font-semibold mb-1 text-gray-900">
-              Create New template
-            </h2>
-            <p className="text-gray-500 text-sm mb-6">
-              Please write a name below to add a template
-            </p>
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-600">
-                Template Name
-              </label>
-              <input
-                type="text"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800"
-                placeholder="Type here"
-                disabled={!!activeTemplate?.id}
-                autoFocus={!activeTemplate?.id}
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm"
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setTemplateName("");
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
-                onClick={handleCreateTemplateConfirm}
-              >
-                Create template
-              </button>
-            </div>
+            <button
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+              onClick={handleCreateTemplateConfirm}
+            >
+              Create template
+            </button>
           </div>
         </div>
+      </div>
       )}
 
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full flex flex-col">
@@ -363,42 +419,44 @@ const EmailTemplates = () => {
             Email Templates
           </h1>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1"
+            className="bg-[#0066ff] text-white px-4 py-2 rounded-md text-base transition-colors flex items-center gap-1"
             onClick={handleCreateNewTemplate}
           >
-            <Plus className="w-4 h-4" />
+            <PlusCircle className="w-5 h-5" />
             <span>Create New Template</span>
           </button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-1/3 border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700 flex flex-col">
+          <div className="w-1/3 border-r bg-[#F1F4F9] dark:bg-[#080E16] dark:border-gray-700 flex flex-col">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
-                Saved Templates
+                All Templates
               </h2>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search templates"
-                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="w-full pl-10 pr-4 py-3 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
               </div>
             </div>
             <div className="overflow-auto flex-1 p-4">
-              {templates.length === 0 ? (
+              {filteredTemplates.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No templates saved yet
+                  {searchQuery.trim() ? "No matching templates found" : "No templates saved yet"}
                 </p>
               ) : (
-                <ul className="space-y-2">
-                  {templates.map((template) => (
+                <ul className="space-y-2 text-base">
+                  {filteredTemplates.map((template) => (
                     <li
                       key={template.id}
-                      className={`p-3 rounded-md cursor-pointer ${
+                      className={`py-2 px-1 rounded-md cursor-pointer ${
                         activeTemplate?.id === template.id
-                          ? "bg-blue-100 dark:bg-blue-900"
+                          ? "bg-white dark:bg-blue-900"
                           : "hover:bg-gray-100 dark:hover:bg-gray-700"
                       }`}
                       onClick={() => handleEditTemplate(template)}
@@ -416,9 +474,18 @@ const EmailTemplates = () => {
           <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto flex flex-col">
             {isCreatingNew ? (
               <>
-                <div className="flex-1 flex flex-col" style={{ height: '400px' }}>
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    {activeTemplate?.id ? "Edit Template" : "Add Template"}
+                  </h2>
+                </div>
+
+                <div
+                  className="flex-1 flex flex-col"
+                  style={{ height: "400px" }}
+                >
                   <MenuBar editor={editor} />
-                  <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 rounded-b">
+                  <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b">
                     <EditorContent editor={editor} className="h-full p-4" />
                   </div>
                 </div>
@@ -427,15 +494,19 @@ const EmailTemplates = () => {
                   <h2 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">
                     Preview Template
                   </h2>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-4 border border-gray-200 dark:border-gray-700 min-h-[120px]">
-                    <div dangerouslySetInnerHTML={{ __html: getFullPreviewHtml(templateContent) }} />
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 min-h-[120px] text-base">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: getFullPreviewHtml(templateContent),
+                      }}
+                    />
                   </div>
                 </div>
 
                 <div className="mt-4 flex gap-3">
                   {activeTemplate?.id ? (
                     <button
-                      className="px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+                      className="px-4 py-2 bg-[#0066ff] text-white rounded-md text-sm font-medium transition-colors"
                       onClick={handleUpdateTemplate}
                     >
                       Update Template
@@ -464,7 +535,7 @@ const EmailTemplates = () => {
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    {templates.length > 0
+                    {filteredTemplates.length > 0
                       ? "Select a template to edit or create a new one"
                       : "No templates available. Create your first template"}
                   </p>
