@@ -9,8 +9,9 @@ const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
   return (
     <div className="">
       <div className="space-y-5 p-4 ">
-        <h1 className="text-2xl font-bold">Inventory</h1>
-        
+        <h1 className="text-2xl font-bold">Warehouse</h1>
+        <div className="h-[1px] w-full bg-gray-400 my-2"></div> 
+        <TopTabs />
       </div>
       <main
         style={{ zIndex: 9999999 }}

@@ -60,9 +60,8 @@ const SingleRoleHandle = ({
 
   return (
     <TableRow
-      className={`hover:bg-gray-200 dark:hover:bg-gray-700 ${
-        selectedRole.id === data.id ? "bg-gray-200 dark:bg-gray-700" : ""
-      }`}
+      className={`hover:bg-gray-200 dark:hover:bg-gray-700 ${selectedRole.id === data.id ? "bg-gray-200 dark:bg-gray-700" : ""
+        }`}
     >
       <TableCell className="font-medium p-2">
         {editStateId === data.id ? (
@@ -356,7 +355,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                           }
                           disabled={selectedRoleDetails?.id === 1}
                           onChange={(checked: boolean) =>
-                            handlePermissionToggle(perm.name, checked)
+                            handlePermissionToggle(perm.id, checked)
                           }
                           className="dark:bg-gray-600"
                         />

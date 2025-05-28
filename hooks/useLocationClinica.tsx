@@ -23,6 +23,7 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
         const fetchData = async () => {
             try {
                 const allLocations = await fetchLocations();
+                const locationRecord = localStorage.getItem(LOCAL_STORAGE_KEY);
 
                 // Check if user has full access
                 const hasFullAccess = FULL_ACCESS_ROLES.includes(userRole?.toLowerCase());
@@ -37,14 +38,25 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
                 setLocations(filteredLocations);
 
-                // If defaultSetFirst is true and we have locations, set the first one as selected
                 if (defaultSetFirst && filteredLocations.length > 0) {
-                    const firstLocation = filteredLocations[0];
-                    setSelected_location(firstLocation.id.toString());
-                    setSelected_location_data(firstLocation);
-                    setSelectedLocation(firstLocation);
-                    setChange_data(firstLocation);
-                    localStorage.setItem(LOCAL_STORAGE_KEY, firstLocation.id.toString());
+                    let selectedLocation = filteredLocations[0];
+
+                    // If we have a saved location in localStorage, try to find it
+                    if (locationRecord) {
+                        const savedLocation = filteredLocations.find(
+                            (location: any) => location.id.toString() === locationRecord
+                        );
+                        if (savedLocation) {
+                            selectedLocation = savedLocation;
+                        }
+                    }
+
+                    // Set the selected location
+                    setSelected_location(selectedLocation.id.toString());
+                    setSelected_location_data(selectedLocation);
+                    setSelectedLocation(selectedLocation);
+                    setChange_data(selectedLocation);
+                    localStorage.setItem(LOCAL_STORAGE_KEY, selectedLocation.id.toString());
                 }
             } catch (error) {
                 console.error('Error fetching locations:', error);
