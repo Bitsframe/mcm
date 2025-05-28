@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Editor } from "@tinymce/tinymce-react";
-import { Search, X, Plus } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Search, X, Plus, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from "lucide-react";
 import { create_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
-import {clinca_logo} from "@/assets/images";
+import { clinca_logo } from "@/assets/images";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link';
 
 interface Template {
   id: string;
   name: string;
-  // subject: string;
   content: string;
 }
 
@@ -19,7 +22,6 @@ function htmlToText(html: string): string {
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
   } else {
-    // SSR fallback
     return html.replace(/<[^>]+>/g, "");
   }
 }
@@ -36,15 +38,95 @@ function getFullPreviewHtml(content: string) {
 }
 
 function getFullPlainText(content: string) {
-  // Remove any existing "Dear Patient" and "Best" from the content
   let cleanContent = htmlToText(content)
     .replace(/^Dear Patient,\s*/i, '')
     .replace(/\s*Best,\s*$/i, '')
     .trim();
 
-  // Now add them back in the correct format
   return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
 }
+
+const MenuBar = ({ editor }: any) => {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2">
+      <button
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bold') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Bold"
+      >
+        <Bold className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('italic') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Italic"
+      >
+        <Italic className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('underline') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Underline"
+      >
+        <UnderlineIcon className="w-4 h-4" />
+      </button>
+      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bulletList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Bullet List"
+      >
+        <List className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('orderedList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Numbered List"
+      >
+        <ListOrdered className="w-4 h-4" />
+      </button>
+      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Align Left"
+      >
+        <AlignLeft className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Align Center"
+      >
+        <AlignCenter className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Align Right"
+      >
+        <AlignRight className="w-4 h-4" />
+      </button>
+      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <button
+        onClick={() => {
+          const url = window.prompt('Enter URL');
+          if (url) {
+            editor.chain().focus().setLink({ href: url }).run();
+          }
+        }}
+        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('link') ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        title="Add Link"
+      >
+        <LinkIcon className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
 
 const EmailTemplates = () => {
   const [templateContent, setTemplateContent] = useState("");
@@ -52,8 +134,24 @@ const EmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [templateName, setTemplateName] = useState("");
-  // const [templateSubject, setTemplateSubject] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: templateContent,
+    onUpdate: ({ editor }) => {
+      setTemplateContent(editor.getHTML());
+    },
+  });
 
   // Load templates from Supabase using fetch_content_service
   useEffect(() => {
@@ -80,9 +178,12 @@ const EmailTemplates = () => {
     loadTemplates();
   }, []);
 
-  const handleEditorChange = (content: string) => {
-    setTemplateContent(content);
-  };
+  // Update editor content when template changes
+  useEffect(() => {
+    if (editor && templateContent !== editor.getHTML()) {
+      editor.commands.setContent(templateContent);
+    }
+  }, [templateContent, editor]);
 
   const handleCreateNewTemplate = () => {
     setShowCreateModal(true);
@@ -93,10 +194,6 @@ const EmailTemplates = () => {
       alert("Please enter a template name");
       return;
     }
-    // if (!templateSubject.trim()) {
-    //   alert("Please enter a subject");
-    //   return;
-    // }
     setShowCreateModal(false);
     setIsCreatingNew(true);
     setTemplateContent("");
@@ -109,21 +206,15 @@ const EmailTemplates = () => {
         alert("Please enter a template name");
         return;
       }
-      // if (!templateSubject.trim()) {
-      //   alert("Please enter a subject");
-      //   return;
-      // }
       if (!templateContent.trim()) {
         alert("Please enter template content");
         return;
       }
 
-      // Compose plain text for Supabase
       const plainTextBody = getFullPlainText(templateContent);
 
       const post_data = {
         name: templateName,
-        // subject: templateSubject,
         body: plainTextBody,
         is_active: true,
       };
@@ -142,14 +233,12 @@ const EmailTemplates = () => {
         {
           id: data?.[0]?.id,
           name: data?.[0]?.name,
-          // subject: data?.[0]?.subject,
           content: data?.[0]?.body,
         },
       ]);
       setIsCreatingNew(false);
       setActiveTemplate(null);
       setTemplateName("");
-      // setTemplateSubject("");
       setTemplateContent("");
       alert("Template saved to Supabase!");
     } catch (error) {
@@ -162,7 +251,6 @@ const EmailTemplates = () => {
     setActiveTemplate(template);
     setTemplateContent(template.content);
     setTemplateName(template.name);
-    // setTemplateSubject(template.subject || "");
     setIsCreatingNew(true);
   };
 
@@ -178,13 +266,11 @@ const EmailTemplates = () => {
         return;
       }
 
-      // Get the content without the standard headers/footers, and strip HTML
       let cleanContent = htmlToText(templateContent)
         .replace(/^Dear Patient,\s*/i, '')
         .replace(/\s*Best,\s*$/i, '')
         .trim();
 
-      // Add the standard format
       const plainTextBody = `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
 
       const post_data = {
@@ -199,7 +285,6 @@ const EmailTemplates = () => {
         matchKey: "id"
       });
 
-      // Update the templates list with the updated template content only
       setTemplates(templates.map(t => 
         t.id === activeTemplate.id 
           ? { ...t, content: plainTextBody }
@@ -226,7 +311,6 @@ const EmailTemplates = () => {
               onClick={() => {
                 setShowCreateModal(false);
                 setTemplateName("");
-                // setTemplateSubject("");
               }}
             >
               <X className="w-5 h-5" />
@@ -252,26 +336,12 @@ const EmailTemplates = () => {
                 autoFocus={!activeTemplate?.id}
               />
             </div>
-            {/* <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-600">
-                Subject
-              </label>
-              <input
-                type="text"
-                value={templateSubject}
-                onChange={(e) => setTemplateSubject(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800"
-                placeholder="Subject"
-                required
-              />
-            </div> */}
             <div className="flex justify-end gap-3">
               <button
                 className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm"
                 onClick={() => {
                   setShowCreateModal(false);
                   setTemplateName("");
-                  // setTemplateSubject("");
                 }}
               >
                 Cancel
@@ -346,77 +416,11 @@ const EmailTemplates = () => {
           <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto flex flex-col">
             {isCreatingNew ? (
               <>
-                {/* <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    value={templateSubject}
-                    onChange={(e) => setTemplateSubject(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                    placeholder="Subject"
-                  />
-                </div> */}
-                <div className="flex-1">
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                    value={templateContent}
-                    onEditorChange={handleEditorChange}
-                    init={{
-                      height: "100%",
-                      menubar: true,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "charmap",
-                        "preview",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "table",
-                        "help",
-                        "wordcount",
-                        "emoticons",
-                        "codesample",
-                        "pagebreak",
-                        "nonbreaking",
-                        "visualchars",
-                        "quickbars",
-                        "directionality",
-                        "autosave",
-                        "autoresize",
-                      ],
-                      toolbar:
-                        "undo redo | blocks | bold italic forecolor backcolor | " +
-                        "alignleft aligncenter alignright alignjustify | " +
-                        "bullist numlist outdent indent | removeformat | help | " +
-                        "fontfamily fontsize | code codesample | " +
-                        "emoticons charmap | fullscreen preview | pagebreak nonbreaking | " +
-                        "visualchars visualblocks | quickbars | directionality | " +
-                        "searchreplace | autolink autoresize autosave",
-                      content_style:
-                        "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                      skin: "oxide-dark",
-                      content_css: "dark",
-                      contextmenu: "configurepermanentpen",
-                      quickbars_insert_toolbar: false,
-                      images_upload_url: false,
-                      images_upload_handler: false,
-                      file_picker_types: false,
-                      file_picker_callback: false,
-                      images_reuse_filename: false,
-                      automatic_uploads: false,
-                      images_upload_base_path: false,
-                      images_upload_credentials: false,
-                      menu: {
-                        insert: { title: 'Insert', items: 'link' }
-                      }
-                    }}
-                  />
+                <div className="flex-1 flex flex-col" style={{ height: '400px' }}>
+                  <MenuBar editor={editor} />
+                  <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 rounded-b">
+                    <EditorContent editor={editor} className="h-full p-4" />
+                  </div>
                 </div>
 
                 <div className="mt-6">
