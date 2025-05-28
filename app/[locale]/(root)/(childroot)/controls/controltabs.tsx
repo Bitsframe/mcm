@@ -37,10 +37,10 @@ const TopTabs = () => {
       title: "Email Templates",
       url: "emailtemplates",
     },
-    {
-      title: "Inventory Settings",
-      url: "inventorysettings",
-    },
+    // {
+    //   title: "Inventory Settings",
+    //   url: "inventorysettings",
+    // },
   ];
 
   const { t } = useTranslation(translationConstant.WEBCONT);

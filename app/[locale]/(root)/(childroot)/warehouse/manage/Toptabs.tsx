@@ -9,10 +9,14 @@ const TopTabs = () => {
   const pathname = usePathname();
 
   const PosTopMenu = [
-
     {
-      title: "Inventory_k3",
-      url: "",
+      title: "Inventory_k1",
+      url: "/",
+      icon: FolderClosed,
+    },
+    {
+      title: "Inventory_k2",
+      url: "products",
       icon: Warehouse,
     },
   ];
@@ -24,15 +28,15 @@ const TopTabs = () => {
       <ul className="flex gap-2">
         {PosTopMenu.map((menuItem, index) => {
           const isActive =
-            pathname === `/inventory/manage/${menuItem.url}` ||
-            (pathname === "/inventory/manage" && menuItem.url === "/");
+            pathname === `/warehouse/manage/${menuItem.url}` ||
+            (pathname === "/warehouse/manage" && menuItem.url === "/");
 
           const Icon = menuItem.icon;
 
           return (
             <li key={index}>
               <Link
-                href={`/inventory/manage/${menuItem.url}`}
+                href={`/warehouse/manage/${menuItem.url}`}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                   isActive
                     ? "bg-blue-600 text-white"

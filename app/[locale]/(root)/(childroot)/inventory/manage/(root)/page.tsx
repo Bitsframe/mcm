@@ -1,5 +1,4 @@
 "use client";
-
 import React, {
   useCallback,
   useContext,
@@ -7,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Button, Checkbox, Spinner } from "flowbite-react";
+import { Spinner } from "flowbite-react";
 import Image from "next/image";
 import PlusIcon from "@/assets/images/Logos/plus-icon.png";
 import { Action_Button } from "@/components/Action_Button";
@@ -16,10 +15,17 @@ import {
   fetch_content_service,
   update_content_service,
 } from "@/utils/supabase/data_services/data_services";
-import { toast } from "react-toastify";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input_Component } from "@/components/Input_Component";
+import { toast } from "react-toastify";
+import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
+import { PiCaretUpDownBold } from "react-icons/pi";
+import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
+import { useMasterProductsClinica } from "@/hooks/useMasterProductsClinica";
+import { Price_Input } from "@/components/Price_Input";
+import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 import {
   Table,
   TableBody,
@@ -28,55 +34,89 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TabContext } from "@/context";
-import { Archive, ShieldCheck } from "lucide-react";
-import { translationConstant } from "@/utils/translationConstants";
+import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
 }
 
+const modalStateEnum = {
+  CREATE: "Create",
+  UPDATE: "Update",
+  DELETE: "delete",
+  EMPTY: "",
+};
+
 const tableHeader = [
   {
-    id: "category_id",
-    label: "Inventory_k7",
-    align: "text-start",
+    id: "product_id",
+    label: "Inventory_k15",
   },
   {
-    id: "category_name",
+    id: "category",
+    label: "Inventory_k1",
+    can_sort: true,
+  },
+  {
+    id: "product_name",
     label: "Inventory_k8",
-    align: "text-center",
+    can_sort: true,
+  },
+  {
+    id: "price",
+    label: "Inventory_k18",
+    can_sort: true,
+  },
+  {
+    id: "quantity_available",
+    label: "Inventory_k19",
+    can_sort: true,
+
   },
   {
     id: "actions",
     label: "Inventory_k9",
-    align: "text-end",
-    component: true,
+    align: "text-centet",
     Render_Value: ({
-      val,
-      onClickHandle,
-      isLoading,
+      clickHandle,
       getDataArchiveType,
     }: {
-      val?: string;
-      onClickHandle?: () => void;
-      isLoading?: boolean;
+      clickHandle: (state: string) => void;
       getDataArchiveType: boolean;
     }) => {
       return (
-        <div className="space-x-4 flex justify-end">
+        <div className="flex items-end justify-start">
+          {/* <Action_Button
+            onClick={() => clickHandle(modalStateEnum.UPDATE)}
+            label="Update"
+            text_color="text-[#0066ff] dark:text-blue-400"
+            bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
+            border={
+              getDataArchiveType
+                ? "border-[#CCE0FF] dark:border-blue-800"
+                : "border-[#CCE0FF] dark:border-blue-800"
+            }
+            icon={<RefreshCcw size={18} />}
+          /> */}
           <Action_Button
-            isLoading={isLoading}
-            onClick={onClickHandle}
             label={getDataArchiveType ? "Unarchive" : "Archive"}
-            bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
             text_color={
-              getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
+              getDataArchiveType
+                ? "text-[#0EA542] dark:text-green-400"
+                : "text-[#F71B1B] dark:text-red-400"
+            }
+            icon={<Archive size={18} />}
+            bg_color={
+              getDataArchiveType
+                ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                : "bg-[#FFE8E5] dark:bg-red-900/30"
             }
             border={
-              getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
+              getDataArchiveType
+                ? "border-[#72F39E] dark:border-green-800"
+                : "border-[#FFD2CC] dark:border-red-800"
             }
-            icon = {<Archive size={18}/>}
+            onClick={() => clickHandle(modalStateEnum.DELETE)}
           />
         </div>
       );
@@ -84,45 +124,105 @@ const tableHeader = [
   },
 ];
 
-const modalStateEnum = {
-  CREATE: "Create",
-  UPDATE: "Update",
-  EMPTY: "",
-};
+const requiredInputFields = [
+  {
+    id: "category_id",
+    label: "Category",
+    type: "select",
+  },
+  {
+    id: "master_product_id",
+    label: "Product",
+    type: "select",
+  },
+  {
+    id: "price",
+    label: "Price",
+    colSpan: "col-span-1",
+    type: "number",
+  },
+  {
+    id: "quantity_available",
+    label: "Units",
+    colSpan: "col-span-1",
+    type: "number",
+  },
+];
 
-const Categories = () => {
+const Inventory = () => {
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [modalEventLoading, setModalEventLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [modalData, setModalData] = useState<DataListInterface>({});
   const [modalState, setModalState] = useState("");
-  const [activeDeleteId, setActiveDeleteId] = useState(0);
+  const { categories } = useCategoriesClinica();
+  const [sortOrder, setSortOrder] = useState(-1);
+  const [sortColumn, setSortColumn] = useState("");
+
+  
+
+  const {
+    products,
+    onChangeCategory,
+    loadingProducts,
+    selectedCategory,
+    selectedProduct,
+    selectProductHandle,
+  } = useMasterProductsClinica();
+  const { selectedLocation } = useContext(LocationContext);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
 
-  const fetch_handle = async (archive: boolean) => {
-    setLoading(true);
-    const fetched_data = await fetch_content_service({
-      table: "categories",
-      selectParam: ",products:products!inner()",
-      matchCase: { key: "archived", value: archive },
-      language: "",
-    });
-    setDataList(fetched_data);
-    setAllData(fetched_data);
-    setLoading(false);
-  };
   const openModalHandle = (state: string) => {
     setOpenModal(true);
     setModalState(state);
   };
-  
   const closeModalHandle = () => {
     setOpenModal(false);
     setModalState(modalStateEnum.EMPTY);
     setModalData({});
+  };
+
+  const fetch_handle = async (archived: boolean, location_id: number) => {
+    setLoading(true);
+    const fetched_data = await fetch_content_service({
+      table: "inventory",
+      language: "",
+      selectParam: `,products(price,product_name,product_id,category_id, unlimited, categories(category_name))`,
+      matchCase: [
+        {
+          key: "location_id",
+          value: location_id,
+        },
+        {
+          key: "archived",
+          value: archived,
+        },
+        {
+          key: "products.archived",
+          value: false,
+        },
+      ],
+      filterOptions: [{ operator: "not", column: "products", value: null }],
+    });
+
+    const inventoryData = fetched_data.map(
+      ({ products, price, quantity, inventory_id }: any) => ({
+        product_id: inventory_id,
+        master_product_id: products.product_id,
+        category_id: products.category_id,
+        product_name: products.product_name,
+        unlimited: products.unlimited,
+        price: products.price,
+        quantity_available: quantity,
+        categories: products.categories,
+      })
+    );
+    setDataList(inventoryData);
+    setAllData(inventoryData);
+    setLoading(false);
   };
 
   const onChangeHandle = (e: any) => {
@@ -131,53 +231,154 @@ const Categories = () => {
       setDataList([...allData]);
     } else {
       const filteredData = allData.filter((elem) =>
-        elem.category_name.toLocaleLowerCase().includes(val.toLocaleLowerCase())
+        elem.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase())
       );
       setDataList([...filteredData]);
     }
   };
 
   useEffect(() => {
-    fetch_handle(getDataArchiveType);
-  }, [getDataArchiveType]);
+    if (selectedLocation) {
+      fetch_handle(getDataArchiveType, selectedLocation.id);
+    }
+  }, [selectedLocation]);
+
+  const modalInputChangeHandle = (key: string, value: string | number) => {
+    if (key === "category_id") {
+      onChangeCategory(+value);
+    } else if (key === "master_product_id") {
+      selectProductHandle(+value);
+    }
+    setModalData((pre) => {
+      return { ...pre, [key]: value };
+    });
+  };
+
+  const modalSubmitHandle = async (e: any ) => {
+    e.preventDefault();
+    setModalEventLoading(true);
+    if (modalState === modalStateEnum.CREATE) {
+      const invenPostData = {
+        price: modalData.price,
+        quantity: modalData.quantity_available,
+        location_id: selectedLocation.id,
+        product_id: modalData.master_product_id,
+      };
+
+      const { data: res_data, error } = await create_content_service({
+        table: "inventory",
+        language: "",
+        post_data: invenPostData,
+      });
+
+      if (error) {
+        toast.error(error.message);
+      }
+      if (res_data?.length) {
+        toast.success("Created successfully");
+        closeModalHandle();
+        fetch_handle(getDataArchiveType, selectedLocation.id);
+      }
+    } else {
+      try {
+        const postData = {
+          inventory_id: +modalData.product_id,
+          price: +modalData.price,
+          quantity: +modalData.quantity_available,
+          location_id: +selectedLocation.id,
+          product_id: modalData.master_product_id,
+        };
+
+        const res_data = await update_content_service({
+          table: "inventory",
+          language: "",
+          post_data: postData,
+          matchKey: "inventory_id",
+        });
+        if (res_data?.length) {
+          toast.success("Updated successfully");
+          fetch_handle(getDataArchiveType, selectedLocation.id);
+          closeModalHandle();
+        }
+      } catch (error: any) {
+        if (error && error?.message) {
+          toast.error(error?.message);
+        } else {
+          toast.error("Something went wrong!");
+        }
+      }
+    }
+    setModalEventLoading(false);
+  };
 
   const onClickHandle = async (id: number) => {
-    setActiveDeleteId(id);
-  };
-
-  const deleteHandle = async () => {
-    setDeleteLoading(true);
-    try {
-      const res_data = await update_content_service({
-        table: "categories",
-        matchKey: "category_id",
-        post_data: {
-          category_id: activeDeleteId,
-          archived: !getDataArchiveType,
-        },
-      });
-      if (res_data?.length) {
-        setDataList((elem) =>
-          elem.filter((data: any) => data.category_id !== activeDeleteId)
-        );
-        setAllData((elem) =>
-          elem.filter((data: any) => data.category_id !== activeDeleteId)
-        );
-        setActiveDeleteId(0);
-        toast.success(
-          getDataArchiveType
-            ? "Category no longer archived"
-            : "Archived successfully"
-        );
-      }
-    } catch (error: any) {
-      console.log(error.message);
+    const { error }: any = await update_content_service({
+      table: "inventory",
+      matchKey: "inventory_id",
+      post_data: { archived: !getDataArchiveType, inventory_id: id },
+    });
+    if (!error) {
+      fetch_handle(getDataArchiveType, selectedLocation.id);
+      toast.success(
+        getDataArchiveType
+          ? "Inventory no longer archived"
+          : "Archived successfully"
+      );
+    } else if (error) {
       toast.error(error.message);
-      setDeleteLoading(false);
-    } finally {
-      setDeleteLoading(false);
     }
   };
+
+  const buttonClickActionHandle = (action: string, elem: any) => {
+    if (action === modalStateEnum.DELETE) {
+      onClickHandle(elem.product_id);
+    } else if (action === modalStateEnum.UPDATE) {
+      setModalData(elem);
+      onChangeCategory(elem.category_id);
+      openModalHandle(modalStateEnum.UPDATE);
+    }
+  };
+
+  const sortHandle = (column: string) => {
+    let sortedList: any = [];
+    if (column === "category") {
+      if (sortOrder === 1) {
+        sortedList = dataList.sort((a, b) =>
+          a.categories.category_name.localeCompare(b.categories.category_name)
+        );
+      } else {
+        sortedList = dataList.sort((a, b) =>
+          b.categories.category_name.localeCompare(a.categories.category_name)
+        );
+      }
+    } else if (column === "product_name") {
+      if (sortOrder === 1) {
+        sortedList = dataList.sort((a, b) =>
+          a.product_name.localeCompare(b.product_name)
+        );
+      } else {
+        sortedList = dataList.sort((a, b) =>
+          b.product_name.localeCompare(a.product_name)
+        );
+      }
+    } else {
+      if (sortOrder === 1) {
+        sortedList = dataList.sort((a, b) => a[column] - b[column]);
+      } else {
+        sortedList = dataList.sort((a, b) => b[column] - a[column]);
+      }
+    }
+
+    setSortOrder((order) => (order === -1 ? 1 : -1));
+    setDataList([...sortedList]);
+    setSortColumn(column);
+  };
+
+  useEffect(() => {
+    if (selectedLocation?.id) {
+      fetch_handle(getDataArchiveType, selectedLocation.id);
+    }
+  }, [getDataArchiveType, selectedLocation]);
 
   const handleActiveClick = useCallback(() => {
     setGetDataArchiveType(false);
@@ -189,261 +390,284 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm p-1 space-x-1 flex items-center justify-end w-full rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
-  <button
-    onClick={handleActiveClick}
-    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-      !getDataArchiveType
-        ? "bg-blue-700 text-white"
-        : "text-gray-700 dark:text-gray-300"
-    }`}
-  >
-    <ShieldCheck size={16} />
-    <span>Active</span>
-  </button>
-  <button
-    onClick={handleArchiveClick}
-    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-      getDataArchiveType
-        ? "bg-blue-700 text-white"
-        : "text-gray-700 dark:text-gray-300"
-    }`}
-  >
-    <Archive size={16} />
-    <span>Archived</span>
-  </button>
-</div>
-
+      <div className="text-sm text-gray-500 flex items-center justify-end space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
+        <button
+          onClick={handleActiveClick}
+          className={`flex items-center gap-x-1 px-4 py-2 ${
+            !getDataArchiveType
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-500 dark:text-gray-300"
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Active
+        </button>
+        <button
+          onClick={handleArchiveClick}
+          className={`flex items-center gap-x-1 px-4 py-2 ${
+            getDataArchiveType
+              ? "bg-blue-600 text-white dark:bg-blue-700"
+              : "bg-transparent text-gray-500 dark:text-gray-300"
+          }`}
+        >
+          <Archive className="w-4 h-4" />
+          Archived
+        </button>
+      </div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
 
-  const createNewHandle = async () => {
-    setModalEventLoading(true);
-    const { data: res_data, error } = await create_content_service({
-      table: "categories",
-      language: "",
-      post_data: modalData,
-    });
-    if (error) {
-      console.log(error.message);
-      toast.error(error.message);
-    }
-
-    if (res_data?.length) {
-      toast.success("Created successfully");
-      closeModalHandle();
-      dataList.push(res_data[0]);
-      allData.push(res_data[0]);
-      setAllData([...allData]);
-      setDataList([...dataList]);
-    }
-
-    setModalEventLoading(false);
-  };
-
-  const modalInputChangeHandle = (key: string, value: string) => {
-    setModalData((pre) => {
-      return { ...pre, [key]: value };
-    });
-  };
-
-  const { setActiveTitle } = useContext(TabContext);
-
-  useEffect(() => {
-    setActiveTitle("Sidebar_k11");
-  }, []);
-
   const { t } = useTranslation(translationConstant.INVENTORY);
-
   return (
-    <main className="w-full h-full font-medium text-base dark:bg-gray-900 text-white">
-      <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
-        <div className="h-full rounded-md py-2">
-          <h1 className="text-lg font-semibold px-3 mb-3 text-white">Categories</h1>
-          <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
-            <div className="space-y-1 w-full sm:w-auto">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full justify-between gap-x-3">
-                <div className="relative w-full sm:w-72">
-                  <input
-                    onChange={onChangeHandle}
-                    type="text"
-                    placeholder={t("Inventory_k4")}
-                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-gray-800 border-2 border-gray-600 focus:border-blue-600 text-white"
-                  />
-                </div>
-                <button
-                  className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition w-full sm:w-auto mt-2 sm:mt-0"
-                  onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 12h8" />
-                    <path d="M12 8v8" />
-                  </svg>
-                  Create Category
-                </button>
-              </div>
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+      <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
+        <div className="h-[100%] col-span-2 rounded-md py-2">
+          <div className="px-3 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-x-2">
+              <input
+                onChange={onChangeHandle}
+                type="text"
+                placeholder={t("Inventory_k20")}
+                className="px-3 py-2 w-64 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              />
+              {/* <button
+                onClick={() => openModalHandle(modalStateEnum.CREATE)}
+                className="flex w-full items-center gap-x-1 bg-blue-600 hover:bg-blue-700 text-white text-base px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800"
+              >
+                <CirclePlus className="w-6 h-6" />
+                Create Product
+              </button> */}
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">{RightSideComponent}</div>
+
+            {RightSideComponent}
           </div>
 
-          <div className="px-3 pt-5">
-            <div className="border rounded-md border-gray-300 dark:border-gray-700 overflow-x-auto">
-              <Table className="min-w-[600px]">
-                <TableHeader className="bg-gray-100 dark:bg-gray-800 border-b border-b-gray-300 dark:border-b-gray-700">
-                  <TableRow className="flex hover:bg-transparent">
-                    <TableHead className="w-12 p-3">
-                      {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-                    </TableHead>
-                    {tableHeader.map(({ label, align }, index) => (
-                      <TableHead
-                        key={index}
-                        className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
-                      >
+          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
+            <Table>
+              <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
+                <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
+                  <TableHead className="w-10 p-4">
+                    {/* <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#0e1725]"
+                    /> */}
+                  </TableHead>
+                  {tableHeader.map(({ label, align, can_sort, id }, index) => (
+                    <TableHead
+                      key={index}
+                      className={`
+                        flex-1 
+                        ${align || "text-start"}
+                        text-sm 
+                        text-gray-500
+                        font-medium
+                        py-3
+                        dark:text-gray-400
+                      `}
+                    >
+                      <div className="flex items-center">
                         {t(label)}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className="mb-4 h-[30dvh] overflow-y-auto block bg-white dark:bg-gray-900">
-                  {loading ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-gray-900">
-                        <Spinner size="xl" />
-                      </TableCell>
-                    </TableRow>
-                  ) : dataList.length === 0 ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
-                        <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    dataList.map((elem, index) => (
-                      <TableRow
-                        key={index}
-                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
-                      >
-                        <TableCell className="w-12 p-0">
-                          {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-                        </TableCell>
-                        {tableHeader.map(({ id, Render_Value, align }, ind) => {
-                          const content = Render_Value ? (
-                            <Render_Value
-                              getDataArchiveType={getDataArchiveType}
-                              isLoading={deleteLoading}
-                              onClickHandle={() => onClickHandle(elem.category_id)}
+                        {can_sort && (
+                          <button
+                            onClick={() => sortHandle(id)}
+                            className="active:opacity-50 ml-1"
+                          >
+                            <PiCaretUpDownBold
+                              className={`inline ${
+                                sortColumn === id
+                                  ? "text-blue-600 dark:text-blue-400"
+                                  : "text-gray-400 dark:text-gray-500"
+                              } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
                             />
-                          ) : (
-                            <span className="text-gray-800 dark:text-white">{elem[id]}</span>
-                          );
+                          </button>
+                        )}
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
 
-                          return (
-                            <TableCell
-                              key={ind}
-                              className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
-                            >
-                              {content}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              <TableBody className="divide-y divide-gray-200 mb-4 h-[28dvh] overflow-y-auto block dark:bg-[#0e1725]">
+                
+                {loading ? (
+                  <TableRow className="flex h-full">
+                    <TableCell
+                      colSpan={tableHeader.length}
+                      className="h-[60dvh] text-center"
+                    >
+                      <Spinner size="xl" className="dark:text-white" />
+                    </TableCell>
+                  </TableRow>
+                ) : dataList.length === 0 ? (
+                  <TableRow className="flex h-full">
+                    <TableCell
+                      colSpan={tableHeader.length}
+                      className="h-[30dvh] text-center dark:text-gray-300"
+                    >
+                      <h1>No Product is available</h1>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  dataList.map((elem: DataListInterface, index) => (
+                    <TableRow
+                      key={index}
+                      className={`
+                        flex 
+                        items-center 
+                        hover:bg-gray-100 
+                        border-b
+                        border-gray-200
+                        ${
+                          index % 2 === 0
+                            ? "bg-white dark:bg-[#0e1725]"
+                            : "bg-gray-50 dark:bg-[#0e1725]"
+                        }
+                        dark:hover:bg-gray-700
+                        dark:border-gray-700
+                      `}
+                    >
+                      <TableCell className="w-10 p-4">
+                        {/* <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                        /> */}
+                      </TableCell>
+                      {tableHeader.map((element, ind) => {
+                        const { id, Render_Value, align } = element;
+                        const content = Render_Value ? (
+                          <Render_Value
+                            getDataArchiveType={getDataArchiveType}
+                            clickHandle={(action: string) =>
+                              buttonClickActionHandle(action, elem)
+                            }
+                          />
+                        ) : (
+                          elem[id]
+                        );
 
-              <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
-  <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-    {dataList.length === 0 ? "0" : "0"} of {dataList.length} row(s) selected.
-  </div>
-  <div className="flex gap-2">
-    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]">
-      Previous
-    </button>
-    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white min-w-[80px]">
-      Next
-    </button>
-  </div>
-</div>
-            </div>
+                        return (
+                          <TableCell
+                            key={ind}
+                            className={`flex-1 ${
+                              align || "text-start"
+                            } text-sm py-4 dark:text-gray-300`}
+                          >
+                            {id === "category"
+                              ? elem.categories.category_name : id === 'quantity_available' ? (elem.unlimited ? 'Unlimited': <span className="ms-6">{elem[id]}</span>)
+                              : content}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+
+            {!loading && dataList.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  0 of {dataList.length} row(s) selected.
+                </div>
+                <div className="flex space-x-2">
+                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                    Previous
+                  </button>
+                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* @ts-ignore */}
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
-        Title={`${modalState} Category`}
+        Title={`${modalState} Product`}
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
-        create_new_handle={createNewHandle}
+        //@ts-ignore
+        create_new_handle={modalSubmitHandle}
         buttonLabel={modalState}
+        //@ts-ignore
         Trigger_Button={null}
       >
-        <Input_Component
-          value={modalData["category_name"]}
-          onChange={(e) => modalInputChangeHandle("category_name", e)}
-          py="py-3"
-          // border="border-[1px] border-gray-600 rounded-md"
-          label="Category"
-          darkMode={true}
-          bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"
-        />
-      </Custom_Modal>
-
-      {activeDeleteId ? (
-        <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
-          <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-              <h1 className="font-bold text-xl text-white mb-5">
-                Confirmation
-              </h1>
-              <p className="text-lg text-gray-300">
-                Do you really want to{" "}
-                {getDataArchiveType ? "Unarchive" : "Archive"} this category
-              </p>
-              <p className="text-sm text-gray-400">
-                Remember All of the associated products will also be{" "}
-                {getDataArchiveType ? "Unarchive" : "Archive"} with the category
-              </p>
-
-              <div className="mt-4 flex items-center space-x-3 justify-end">
-                <Button
-                  disabled={deleteLoading}
-                  onClick={() => setActiveDeleteId(0)}
-                  color="gray"
-                  className="bg-gray-700 text-white hover:bg-gray-600"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  isProcessing={deleteLoading}
-                  color={"failure"}
-                  onClick={deleteHandle}
-                  className="bg-red-700 hover:bg-red-800"
-                >
-                  {getDataArchiveType ? "Unarchive" : "Archive"}
-                </Button>
+        <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
+          {requiredInputFields.map((elem) => {
+            const { id, label, colSpan, type } = elem;
+            return id === "category_id" ? (
+              <div className="col-span-2 space-y-2">
+                <Searchable_Dropdown
+                  initialValue={0}
+                  value={modalData[id]}
+                  start_empty={true}
+                  options_arr={categories.map(
+                    ({ category_id, category_name }: any) => ({
+                      value: category_id,
+                      label: category_name,
+                    })
+                  )}
+                  required={true}
+                  on_change_handle={(e: any) =>
+                    modalInputChangeHandle(id, e.target.value)
+                  }
+                  label="Category"
+                />
               </div>
-            </div>
-          </div>
+            ) : id === "master_product_id" ? (
+              <div className="col-span-2 space-y-2">
+                <Searchable_Dropdown
+                  initialValue={0}
+                  value={modalData[id]}
+                  start_empty={true}
+                  options_arr={products.map(
+                    ({ product_id, product_name }: any) => ({
+                      value: product_id,
+                      label: product_name,
+                    })
+                  )}
+                  required={true}
+                  on_change_handle={(e: any) =>
+                    modalInputChangeHandle(id, e.target.value)
+                  }
+                  label="Product"
+                />
+              </div>
+            ) : (
+              <div className={`${colSpan || "col-span-2"}`}>
+                {id === "price" ? (
+                  <Price_Input
+                    type={type}
+                    value={modalData[id]}
+                    onChange={(e: string) => modalInputChangeHandle(id, e)}
+                    py="py-3"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                    label={label}
+                    bg_color="bg-white dark:bg-[#0e1725]"
+                  />
+                ) : (
+                  <Input_Component
+                    type={type}
+                    value={modalData[id]}
+                    onChange={(e: string) => modalInputChangeHandle(id, e)}
+                    py="py-3"
+                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                    label={label}
+                    bg_color="bg-white dark:bg-[#0e1725]"
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
-      ) : null}
+      </Custom_Modal>
     </main>
   );
 };
 
-export default Categories;
+export default Inventory;

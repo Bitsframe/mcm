@@ -1,21 +1,11 @@
-import {
-  home,
-  appointment,
-  inventory,
-  patients,
-  pos,
-  reputation,
-  tools,
-} from "@/assets/SVGs";
 
-import { 
-  Home, 
-  Circle, 
-  Users, 
-  CalendarCheck2, 
-  BadgeCheck, 
-  Warehouse, 
-  Layers, 
+import {
+  Home,
+  Users,
+  CalendarCheck2,
+  Warehouse,
+  Grid,
+  Layers,
   Hammer,
   IdCard,
   Calculator,
@@ -62,6 +52,9 @@ const ROUTES = {
   INVENTORY: {
     STOCK_PANEL: "/inventory/stockpanel",
     MANAGE: "/inventory/manage",
+  },
+  WAREHOUSE: {
+    MANAGE: "/warehouse/manage",
   },
   CONTROLS: "/controls",
   TOOLS: {
@@ -132,8 +125,15 @@ export const routeList: Route[] = [
     id: 'inventory',
     name: "inventory",
     label: "Sidebar_k11",
-    icon: Warehouse,
+    icon: Grid,
     route: ROUTES.INVENTORY.MANAGE,
+  },
+  {
+    id: 'warehouse',
+    name: "warehouse",
+    label: "Warehouse",
+    icon: Warehouse,
+    route: ROUTES.WAREHOUSE.MANAGE,
   },
   {
     id: 'inventory-stock',
@@ -144,8 +144,8 @@ export const routeList: Route[] = [
   },
   {
     id: 'controls',
-    name: "controls",
-    label: "control",
+    name: "control",
+    label: "Controls",
     icon: Settings,
     route: ROUTES.CONTROLS
   },

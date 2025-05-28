@@ -23,9 +23,9 @@ const withAuthorization = (Component: any) => {
 
         const findRouteByPath = (path: string, routes: any[]): any => {
           for (const route of routes) {
-            if (route.route === path || 
-                (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
-                (path.startsWith('/pos/') && route.route === '/pos/sales')) { // POS ke liye
+            if (route.route === path ||
+              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') || (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
+              (path.startsWith('/pos/') && route.route === '/pos/sales')) { // POS ke liye
               return route;
             }
             if (route.children) {
@@ -60,7 +60,7 @@ const withAuthorization = (Component: any) => {
           }
 
           if ((pathname.startsWith('/inventory/') && permLower === 'inventory') ||
-          (pathname.startsWith('/pos/') && permLower === 'pos')) {
+            (pathname.startsWith('/pos/') && permLower === 'pos')) {
             return true;
           }
 
@@ -70,10 +70,10 @@ const withAuthorization = (Component: any) => {
         if (!hasPermission) {
           const findFirstAllowedRoute = (routes: any[]): string | null => {
             for (const route of routes) {
-              const hasRoutePermission = permissions.some(perm => 
+              const hasRoutePermission = permissions.some(perm =>
                 route.name.toLowerCase() === perm.toLowerCase()
               );
-              
+
               if (hasRoutePermission) {
                 if (route.children && route.children.length > 0) {
                   return route.children[0].route;
@@ -82,7 +82,7 @@ const withAuthorization = (Component: any) => {
                   return route.route;
                 }
               }
-              
+
               if (route.children) {
                 const childRoute = findFirstAllowedRoute(route.children);
                 if (childRoute) return childRoute;
