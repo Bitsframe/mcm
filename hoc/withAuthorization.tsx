@@ -15,6 +15,9 @@ const withAuthorization = (Component: any) => {
 
     useEffect(() => {
       (() => {
+        console.log('withAuthorization HOC: pathname:', pathname);
+        console.log('withAuthorization HOC: permissions:', permissions);
+        console.log('withAuthorization HOC: userRole:', userRole);
         if (userRole === "super admin") {
           setIsAuthorized(true);
           setLoading(false);
@@ -25,7 +28,9 @@ const withAuthorization = (Component: any) => {
           for (const route of routes) {
             if (route.route === path || 
                 (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
-                (path.startsWith('/pos/') && route.route === '/pos/sales')) { // POS ke liye
+                (path.startsWith('/pos/') && route.route === '/pos/sales') ||
+                (path.startsWith('/controls/') && route.route === '/controls/emailtemplates')
+                ) { // POS ke liye
               return route;
             }
             if (route.children) {
@@ -36,7 +41,13 @@ const withAuthorization = (Component: any) => {
           return null;
         };
 
-        const currentRoute = findRouteByPath(pathname, routeList);
+        let currentRoute = findRouteByPath(pathname, routeList);
+
+        // If not found, try to match parent route (e.g. /controls for /controls/emailtemplates)
+        if (!currentRoute) {
+          const parentPath = pathname.split('/').slice(0, 2).join('/');
+          currentRoute = findRouteByPath(parentPath, routeList);
+        }
 
         if (!currentRoute) {
           setIsAuthorized(false);
@@ -46,26 +57,28 @@ const withAuthorization = (Component: any) => {
 
         const hasPermission = permissions.some((perm) => {
           const permLower = perm.toLowerCase();
-          const routeNameLower = currentRoute.name.toLowerCase();
-
+          const routeNameLower = currentRoute?.name?.toLowerCase();
+          console.log('Checking perm:', permLower, '| routeNameLower:', routeNameLower, '| pathname:', pathname);
           if (routeNameLower === permLower) {
+            console.log('Matched by routeNameLower === permLower');
             return true;
           }
-
           const parentRoute = routeList.find((r) =>
-            r.children?.some((child) => child.route === currentRoute.route)
+            r.children?.some((child) => child.route === currentRoute?.route)
           );
           if (parentRoute && parentRoute.name.toLowerCase() === permLower) {
+            console.log('Matched by parentRoute');
             return true;
           }
-
           if ((pathname.startsWith('/inventory/') && permLower === 'inventory') ||
-          (pathname.startsWith('/pos/') && permLower === 'pos')) {
+              (pathname.startsWith('/pos/') && permLower === 'pos') ||
+              (pathname.startsWith('/controls/') && permLower === 'controls')) {
+            console.log('Matched by pathname special case');
             return true;
           }
-
           return false;
         });
+        console.log('withAuthorization HOC: hasPermission:', hasPermission);
 
         if (!hasPermission) {
           const findFirstAllowedRoute = (routes: any[]): string | null => {
