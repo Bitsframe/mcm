@@ -12,14 +12,14 @@ import TableComponent from "@/components/TableComponent";
 import { LocationContext, TabContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { Archive, ShieldCheck } from "lucide-react";
+import { Archive, ShieldCheck, Filter } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
 }
 
 const tableHeader = [
-  { id: "product_id", label: "SP_k7" },
+  // { id: "product_id", label: "SP_k7" },
   {
     id: "category",
     label: "SP_k6",
@@ -41,7 +41,7 @@ const tableHeader = [
   {
     id: "quantity_in_stock",
     label: "SP_k1",
-    render_value: (val: any, elem?: any) => elem?.quantity_available,
+    render_value: (val: any, elem?: any) => elem?.unlimited ? "Unlimited" : elem?.quantity_available,
     align: "text-center",
   },
 ];
@@ -51,6 +51,7 @@ const StockPanel = () => {
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
+  const [excludeZeroQuantity, setExcludeZeroQuantity] = useState(false);
 
   const { selectedLocation } = useContext(LocationContext);
   const { setActiveTitle } = useContext(TabContext);
@@ -62,7 +63,7 @@ const StockPanel = () => {
       table: "inventory",
       language: "",
       selectParam:
-        ",products(category_id, categories(category_name),  product_name,archived)",
+        ",products(category_id, categories(category_name),  product_name,archived, price, unlimited)",
       filterOptions: [{ operator: "not", column: "products", value: null }],
       matchCase: [
         { key: "location_id", value: location_id },
@@ -75,8 +76,8 @@ const StockPanel = () => {
       ({
         quantity,
         inventory_id,
-        price,
-        products: { product_name, category_id, categories },
+        
+        products: { product_name, category_id, categories,price, unlimited },
       }: any) => {
         return {
           product_id: inventory_id,
@@ -85,6 +86,7 @@ const StockPanel = () => {
           price,
           quantity_available: quantity,
           categories: { category_name: categories?.category_name },
+          unlimited
         };
       }
     );
@@ -96,14 +98,19 @@ const StockPanel = () => {
 
   const onChangeHandle = (e: any) => {
     const val = e.target.value;
-    if (val === "") {
-      setDataList([...allData]);
-    } else {
-      const filteredData = allData.filter((elem) =>
+    let filteredData = allData;
+    
+    if (excludeZeroQuantity) {
+      filteredData = filteredData.filter((elem) => elem.quantity_available > 0 || elem.unlimited);
+    }
+    
+    if (val !== "") {
+      filteredData = filteredData.filter((elem) =>
         elem.product_name.toLowerCase().includes(val.toLowerCase())
       );
-      setDataList([...filteredData]);
     }
+    
+    setDataList([...filteredData]);
   };
 
   useEffect(() => {
@@ -111,6 +118,11 @@ const StockPanel = () => {
       fetch_handle(getDataArchiveType, selectedLocation.id);
     }
   }, [getDataArchiveType, selectedLocation]);
+
+  // Add effect to handle zero quantity filter changes
+  useEffect(() => {
+    onChangeHandle({ target: { value: "" } });
+  }, [excludeZeroQuantity]);
 
   const handleActiveClick = useCallback(() => {
     setGetDataArchiveType(false);
@@ -120,38 +132,56 @@ const StockPanel = () => {
     setGetDataArchiveType(true);
   }, []);
 
+  const handleZeroQuantityToggle = useCallback(() => {
+    setExcludeZeroQuantity((prev) => !prev);
+  }, []);
+
   useEffect(() => {
     setActiveTitle("Sidebar_k12");
   }, []);
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 dark:text-gray-300 flex items-center bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden">
+      <div className="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden">
+          <button
+            onClick={handleActiveClick}
+            className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+              !getDataArchiveType
+                ? "bg-blue-600 text-white"
+                : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            {t("SP_k4")}
+          </button>
+          <button
+            onClick={handleArchiveClick}
+            className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
+              getDataArchiveType
+                ? "bg-blue-600 text-white"
+                : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            {t("SP_k3")}
+          </button>
+        </div>
         <button
-          onClick={handleActiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
-            !getDataArchiveType
+          onClick={handleZeroQuantityToggle}
+          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 rounded-md ${
+            excludeZeroQuantity
               ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
           }`}
+          title="Exclude zero quantity products"
         >
-          <ShieldCheck className="w-4 h-4" />
-          {t("SP_k4")}
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
-            getDataArchiveType
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
-          }`}
-        >
-          <Archive className="w-4 h-4" />
-          {t("SP_k3")}
+          <Filter className="w-4 h-4" />
+          {t("SP_k1")} exluding 0
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
+    [getDataArchiveType, handleActiveClick, handleArchiveClick, excludeZeroQuantity, handleZeroQuantityToggle]
   );
 
   return (

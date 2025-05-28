@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
+import { Archive, CirclePlus, RefreshCcw, ShieldCheck, Filter } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
@@ -153,6 +153,7 @@ const Inventory = () => {
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
+  const [excludeZeroQuantity, setExcludeZeroQuantity] = useState(false);
 
   const [modalEventLoading, setModalEventLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -227,15 +228,27 @@ const Inventory = () => {
 
   const onChangeHandle = (e: any) => {
     const val = e.target.value;
-    if (val === "") {
-      setDataList([...allData]);
-    } else {
-      const filteredData = allData.filter((elem) =>
+    let filteredData = allData;
+    
+    // Apply zero quantity filter
+    if (excludeZeroQuantity) {
+      filteredData = filteredData.filter((elem) => elem.quantity_available > 0 || elem.unlimited);
+    }
+    
+    // Apply search filter
+    if (val !== "") {
+      filteredData = filteredData.filter((elem) =>
         elem.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase())
       );
-      setDataList([...filteredData]);
     }
+    
+    setDataList([...filteredData]);
   };
+
+  // Add effect to handle zero quantity filter changes
+  useEffect(() => {
+    onChangeHandle({ target: { value: "" } });
+  }, [excludeZeroQuantity]);
 
   useEffect(() => {
     if (selectedLocation) {
@@ -388,34 +401,53 @@ const Inventory = () => {
     setGetDataArchiveType(true);
   }, []);
 
+  const handleZeroQuantityToggle = useCallback(() => {
+    setExcludeZeroQuantity((prev) => !prev);
+  }, []);
+
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 flex items-center justify-end space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
-        <button
-          onClick={handleActiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 ${
-            !getDataArchiveType
+      <div className="text-sm text-gray-500 flex items-center justify-end space-x-2">
+        
+        <div className="flex items-center space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
+          <button
+            onClick={handleActiveClick}
+            className={`flex items-center gap-x-1 px-4 py-2 ${
+              !getDataArchiveType
+                ? "bg-blue-600 text-white dark:bg-blue-700"
+                : "bg-transparent text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Active
+          </button>
+          <button
+            onClick={handleArchiveClick}
+            className={`flex items-center gap-x-1 px-4 py-2 ${
+              getDataArchiveType
+                ? "bg-blue-600 text-white dark:bg-blue-700"
+                : "bg-transparent text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            Archived
+          </button>
+        </div>
+          <button
+          onClick={handleZeroQuantityToggle}
+          className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 rounded-md ${
+            excludeZeroQuantity
               ? "bg-blue-600 text-white dark:bg-blue-700"
-              : "bg-transparent text-gray-500 dark:text-gray-300"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300"
           }`}
+          title="Exclude zero quantity products"
         >
-          <ShieldCheck className="w-4 h-4" />
-          Active
-        </button>
-        <button
-          onClick={handleArchiveClick}
-          className={`flex items-center gap-x-1 px-4 py-2 ${
-            getDataArchiveType
-              ? "bg-blue-600 text-white dark:bg-blue-700"
-              : "bg-transparent text-gray-500 dark:text-gray-300"
-          }`}
-        >
-          <Archive className="w-4 h-4" />
-          Archived
+          <Filter className="w-4 h-4" />
+          Quantity Available exluding 0
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
+    [getDataArchiveType, handleActiveClick, handleArchiveClick, excludeZeroQuantity, handleZeroQuantityToggle]
   );
 
   const { t } = useTranslation(translationConstant.INVENTORY);
