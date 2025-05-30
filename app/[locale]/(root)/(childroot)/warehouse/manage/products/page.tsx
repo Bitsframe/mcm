@@ -105,7 +105,7 @@ const tableHeader = [
           <Action_Button
             icon={<RefreshCcw size={18} />}
             onClick={() => clickHandle(modalStateEnum.UPDATE)}
-            label="Update"
+            label=""
             text_color="text-[#0066ff] dark:text-blue-400"
             bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
             border={
@@ -116,7 +116,7 @@ const tableHeader = [
           />
           <Action_Button
             icon={<Archive size={18} />}
-            label={getDataArchiveType ? "Unarchive" : "Archive"}
+            label={getDataArchiveType ? "" : ""}
             text_color={
               getDataArchiveType
                 ? "text-[#0EA542] dark:text-green-400"
@@ -136,7 +136,7 @@ const tableHeader = [
           />
           <Action_Button
             icon={<CirclePlus size={18} />}
-            label="Assign"
+            label=""
             text_color="text-[#0EA542] dark:text-green-400"
             bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
             border="border-[#72F39E] dark:border-green-800"
