@@ -24,8 +24,9 @@ const withAuthorization = (Component: any) => {
         const findRouteByPath = (path: string, routes: any[]): any => {
           for (const route of routes) {
             if (route.route === path ||
-              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') ||  
+              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') ||
               (path.startsWith('/controls/') && route.route === '/controls') || 
+              (path.startsWith('/controls/') && route.route === '/controls/emailtemplates') ||
               (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
               (path.startsWith('/pos/') && route.route === '/pos/sales')) {
               return route;
@@ -63,57 +64,57 @@ const withAuthorization = (Component: any) => {
 
           if ((pathname.startsWith('/inventory/') && permLower === 'inventory') ||
             (pathname.startsWith('/controls/') && permLower === 'controls') ||
-              (pathname.startsWith('/pos/') && permLower === 'pos')) {
-                return true;
-      }
+            (pathname.startsWith('/pos/') && permLower === 'pos')) {
+            return true;
+          }
 
           return false;
-    });
+        });
 
-    if (!hasPermission) {
-      const findFirstAllowedRoute = (routes: any[]): string | null => {
-        for (const route of routes) {
-          const hasRoutePermission = permissions.some(perm =>
-            route.name.toLowerCase() === perm.toLowerCase()
-          );
+        if (!hasPermission) {
+          const findFirstAllowedRoute = (routes: any[]): string | null => {
+            for (const route of routes) {
+              const hasRoutePermission = permissions.some(perm =>
+                route.name.toLowerCase() === perm.toLowerCase()
+              );
 
-          if (hasRoutePermission) {
-            if (route.children && route.children.length > 0) {
-              return route.children[0].route;
+              if (hasRoutePermission) {
+                if (route.children && route.children.length > 0) {
+                  return route.children[0].route;
+                }
+                if (route.route) {
+                  return route.route;
+                }
+              }
+
+              if (route.children) {
+                const childRoute = findFirstAllowedRoute(route.children);
+                if (childRoute) return childRoute;
+              }
             }
-            if (route.route) {
-              return route.route;
-            }
-          }
+            return null;
+          };
 
-          if (route.children) {
-            const childRoute = findFirstAllowedRoute(route.children);
-            if (childRoute) return childRoute;
+          const allowedRoute = findFirstAllowedRoute(routeList);
+          if (allowedRoute) {
+            router.push(allowedRoute);
           }
         }
-        return null;
-      };
 
-      const allowedRoute = findFirstAllowedRoute(routeList);
-      if (allowedRoute) {
-        router.push(allowedRoute);
-      }
+        setIsAuthorized(hasPermission);
+        setLoading(false);
+      })();
+    }, [pathname, permissions, userRole, router]);
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <CircularProgress />
+        </div>
+      );
     }
 
-    setIsAuthorized(hasPermission);
-    setLoading(false);
-  }) ();
-}, [pathname, permissions, userRole, router]);
-
-if (loading) {
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <CircularProgress />
-    </div>
-  );
-}
-
-return <Component {...props} isAllowed={isAuthorized} />;
+    return <Component {...props} isAllowed={isAuthorized} />;
   };
 };
 
