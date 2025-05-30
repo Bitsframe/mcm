@@ -64,11 +64,17 @@ import {
   CirclePlus,
   MapPin,
   X,
+  Phone,
+  Mail,
+  Calendar,
+  User,
+  FileText,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { TabContext } from "@/context";
+import { Card, CardContent } from "../ui/card";
 
 interface EditPatientModalProps {
   patientDetails: Patient;
@@ -112,6 +118,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [isMobile, setIsMobile] = useState(false);
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -230,9 +237,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     return result;
   }, [patients, searchTerm, sortConfig]);
 
-  const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const currentItemsPerPage = isMobile ? 3 : itemsPerPage;
+  const totalPages = Math.ceil(
+    filteredAndSortedPatients.length / currentItemsPerPage
+  );
+  const startIndex = (currentPage - 1) * currentItemsPerPage;
+  const endIndex = startIndex + currentItemsPerPage;
   const currentPatients = filteredAndSortedPatients.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
@@ -327,6 +347,87 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     });
   };
 
+  // Patient Card Component for Mobile View
+  const PatientCard: FC<{ patient: Patient }> = ({ patient }) => (
+    <Card className="w-full mb-3 hover:shadow-md transition-shadow dark:bg-[#0E1725] dark:border-gray-800">
+      <CardContent className="p-3">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <User className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                {patient.firstname} {patient.lastname}
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              ID: {patient.id}
+            </p>
+          </div>
+          {renderType === "all" && (
+            <span
+              className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                patient.onsite
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                  : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+              }`}
+            >
+              {patient.onsite ? "On-site" : "Off-site"}
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-1 mb-3">
+          <div className="flex items-center gap-2 text-xs">
+            <Phone className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              {formatPhoneNumber(patient.phone)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Mail className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 truncate">
+              {patient.email}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Calendar className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              {formatDate(patient.created_at)}
+            </span>
+          </div>
+          {patient.note && (
+            <div className="flex items-start gap-2 text-xs">
+              <FileText className="h-3 w-3 text-gray-500 dark:text-gray-400 mt-0.5" />
+              <span className="text-gray-700 dark:text-gray-300 line-clamp-1">
+                {patient.note}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedPatient(patient);
+              setIsEditing(false);
+            }}
+            className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+          >
+            <Eye className="h-3 w-3" color="gray" />
+            <span className="sr-only">View</span>
+          </Button>
+          <EditPatientModal
+            callAfterUpdate={updateOnEdit}
+            patientDetails={patient}
+            serviceList={serviceList}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <main className="w-full dark:bg-gray-900">
       <div className="px-6 pt-5">
@@ -367,7 +468,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <AlertDialogContent className="sm:max-w-[600px] max-h-[95vh] p-0 overflow-y-auto dark:bg-gray-900 w-[95vw] mx-auto">
+        <AlertDialogContent className="sm:max-w-[600px] max-h-[95vh] p-0 overflow-y-auto rounded-lg dark:bg-gray-900 w-[95vw] mx-auto">
           <div className="p-6">
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
@@ -400,7 +501,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 mt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="firstname"
@@ -624,29 +725,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </AlertDialog>
 
       <div className="w-full px-6 dark:bg-[#0E1725]">
-        <div className="bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
+        {/* Desktop Table View - Hidden on small screens */}
+        <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
-                  <TableHead className="w-[50px] py-3 dark:border-gray-800 min-w-[40px]">
-                    {/* <Checkbox
-                    checked={
-                      selectedPatients.length ===
-                        filteredAndSortedPatients.length &&
-                      filteredAndSortedPatients.length > 0
-                    }
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedPatients(
-                          filteredAndSortedPatients.map((p) => p.id)
-                        );
-                      } else {
-                        setSelectedPatients([]);
-                      }
-                    }}
-                  /> */}
-                  </TableHead>
+                  <TableHead className="w-[50px] py-3 dark:border-gray-800 min-w-[40px]"></TableHead>
                   <TableHead className="py-3 font-medium w-72 text-gray-700 dark:text-gray-300">
                     {t("Patients_k4")}
                     <button
@@ -723,14 +808,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       key={patient.id}
                       className="hover:bg-gray-50 border-b border-gray-200 dark:hover:bg-gray-800 dark:border-gray-800"
                     >
-                      <TableCell className="w-[50px] dark:border-gray-800">
-                        {/* <Checkbox
-                          checked={selectedPatients.includes(patient.id)}
-                          onCheckedChange={() =>
-                            togglePatientSelection(patient.id)
-                          }
-                        /> */}
-                      </TableCell>
+                      <TableCell className="w-[50px] dark:border-gray-800"></TableCell>
                       <TableCell className="font-medium w-72 text-gray-900 dark:text-white">
                         {patient.id}
                       </TableCell>
@@ -762,14 +840,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             patientDetails={patient}
                             serviceList={serviceList}
                           />
-                          {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-500 dark:text-gray-400"
-                          >
-                            <Trash2 className="h-4 w-4" color="red" />
-                            <span className="sr-only">Delete</span>
-                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -825,9 +895,60 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </div>
           )}
         </div>
-        {/* <div className="text-sm text-gray-500 mt-5 dark:text-gray-400">
-          {selectedPatients.length} of {patients.length} row(s) selected.
-        </div> */}
+
+        {/* Mobile Card View - Visible only on small screens */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Spinner size="xl" className="dark:text-white" />
+            </div>
+          ) : currentPatients.length > 0 ? (
+            <div className="space-y-4">
+              {currentPatients.map((patient) => (
+                <PatientCard key={patient.id} patient={patient} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col justify-center items-center h-40 text-gray-500 dark:text-gray-400">
+              <p className="text-lg font-medium">No patients found</p>
+              <p className="text-sm text-center">
+                Try adjusting your search or add a new patient
+              </p>
+            </div>
+          )}
+
+          {!loading && filteredAndSortedPatients.length > 0 && (
+            <div className="flex sm:flex-row items-center justify-between px-4 py-3 gap-3 mt-4">
+              <div className="text-sm text-center">
+                <p className="text-gray-700 dark:text-gray-300">
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                  {filteredAndSortedPatients.length} results
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <Sheet
@@ -880,13 +1001,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               >
                 Edit
               </Button>
-              {/* <Button
-                variant="ghost"
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1"
-              >
-                Delete
-              </Button> */}
             </div>
           </div>
         </SheetContent>

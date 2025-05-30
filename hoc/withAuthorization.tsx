@@ -24,8 +24,10 @@ const withAuthorization = (Component: any) => {
         const findRouteByPath = (path: string, routes: any[]): any => {
           for (const route of routes) {
             if (route.route === path ||
-              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') ||  (path.startsWith('/controls/') && route.route === '/controls/emailtemplates') || (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
-              (path.startsWith('/pos/') && route.route === '/pos/sales')) { // POS ke liye
+              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') ||  
+              (path.startsWith('/controls/') && route.route === '/controls') || 
+              (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
+              (path.startsWith('/pos/') && route.route === '/pos/sales')) {
               return route;
             }
             if (route.children) {
