@@ -365,7 +365,7 @@ const Returns: FC<Props> = () => {
             </div>
 
             {/* Desktop View: Table Layout */}
-            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+            <div className=" md:block bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Table>
                   <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
