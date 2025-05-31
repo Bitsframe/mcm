@@ -31,7 +31,7 @@ interface DataListInterface {
   inventory: {
     price: number;
     products: {
-      price: number,
+      price: number;
       product_name: string;
       categories: {
         category_name: string;
@@ -149,11 +149,11 @@ const Returns: FC<Props> = () => {
       ],
     });
 
-    const formatData = fetched_data.map((elem:DataListInterface)=>{
-      const returnData = elem
-      returnData.inventory.price = elem.inventory.products.price
-      return returnData
-    })
+    const formatData = fetched_data.map((elem: DataListInterface) => {
+      const returnData = elem;
+      returnData.inventory.price = elem.inventory.products.price;
+      return returnData;
+    });
     setDataList(formatData);
     setAllData(formatData);
     setLoading(false);
@@ -296,9 +296,77 @@ const Returns: FC<Props> = () => {
             />
           </div>
 
-          <div className="px-2 pb-4 overflow-x-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg min-w-[600px]">
-              <div className="flex-1 overflow-auto">
+          <div className="px-2 pb-4 overflow-y-auto overflow-x-hidden">
+            {/* Mobile View: Card Layout */}
+            <div className="md:hidden flex flex-col gap-4">
+              {loading ? (
+                <div className="flex h-full flex-1 flex-col justify-center items-center">
+                  <Spinner size="xl" color="gray" />
+                </div>
+              ) : dataList.length > 0 ? (
+                dataList.map((elem) => {
+                  const {
+                    return_id,
+                    quantity,
+                    sales_history: { order_id },
+                    inventory: {
+                      products: {
+                        product_name,
+                        categories: { category_name },
+                      },
+                    },
+                  } = elem;
+                  return (
+                    <div
+                      key={return_id}
+                      onClick={() => detailsViewHandle(elem)}
+                      className="cursor-pointer bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                          {t("POS-Returnk3")}: {return_id}
+                        </h3>
+                        {/* <input
+                          type="checkbox"
+                          className="rounded border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600"
+                          checked={selectedRows.includes(return_id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleCheckboxChange(return_id, e.target.checked);
+                          }}
+                        /> */}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        <p>
+                          <span className="font-medium">{t("POS-Returnk4")}:</span>{" "}
+                          {order_id}
+                        </p>
+                        <p>
+                          <span className="font-medium">{t("POS-Returnk5")}:</span>{" "}
+                          {quantity}
+                        </p>
+                        <p>
+                          <span className="font-medium">{t("POS-Returnk6")}:</span>{" "}
+                          {product_name}
+                        </p>
+                        <p>
+                          <span className="font-medium">{t("POS-Returnk7")}:</span>{" "}
+                          {category_name}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex h-full flex-1 py-4 text-base flex-col justify-center items-center text-gray-500 dark:text-gray-400">
+                  <h1>{t("POS-Returnk8")}</h1>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop View: Table Layout */}
+            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Table>
                   <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                     <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
@@ -346,7 +414,7 @@ const Returns: FC<Props> = () => {
                         >
                           <PiCaretUpDownBold
                             className={`inline ${
-                              sortColumn === "order_id"
+                              sortColumn === "quantity"
                                 ? "text-blue-500 dark:text-blue-400"
                                 : "text-gray-500"
                             } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
@@ -463,20 +531,6 @@ const Returns: FC<Props> = () => {
                     )}
                   </TableBody>
                 </Table>
-              </div>
-
-              <div className="p-4 flex justify-between items-center border-t border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedRows.length} of {dataList.length} row(s) selected.{" "}
-                </div>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    Previous
-                  </button>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    Next
-                  </button>
-                </div>
               </div>
             </div>
           </div>

@@ -59,19 +59,82 @@ const SingleRoleHandle = ({
   };
 
   return (
-    <TableRow
-      className={`hover:bg-gray-200 dark:hover:bg-gray-700 ${selectedRole.id === data.id ? "bg-gray-200 dark:bg-gray-700" : ""
+    <>
+      {/* Desktop Table Row */}
+      <TableRow
+        className={`hidden md:table-row hover:bg-gray-200 dark:hover:bg-gray-700 ${
+          selectedRole.id === data.id ? "bg-gray-200 dark:bg-gray-700" : ""
         }`}
-    >
-      <TableCell className="font-medium p-2">
+      >
+        <TableCell className="font-medium p-2">
+          {editStateId === data.id ? (
+            <div className="flex items-center gap-3">
+              <Input
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="dark:bg-gray-800"
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleUpdate} size="sm">
+                  {t("RP_k8")}
+                </Button>
+                <Button onClick={handleCancel} variant="outline" size="sm">
+                  {t("RP_k4")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-4 flex-1">
+                <span
+                  className="dark:text-white cursor-pointer text-left"
+                  onClick={handleSelectRole}
+                >
+                  {data.name}
+                </span>
+              </div>
+
+              {data.id !== 1 && (
+                <div className="flex gap-1 justify-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                    onClick={() => deleteRoleHandle(data.id)}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                    onClick={() => editHandle(data.id)}
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </TableCell>
+      </TableRow>
+
+      {/* Mobile Card */}
+      <div
+        className={`md:hidden p-4 mb-2 rounded-lg border dark:border-gray-700 ${
+          selectedRole.id === data.id
+            ? "bg-gray-200 dark:bg-gray-700"
+            : "bg-white dark:bg-gray-800"
+        }`}
+      >
         {editStateId === data.id ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3">
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               className="dark:bg-gray-800"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end">
               <Button onClick={handleUpdate} size="sm">
                 {t("RP_k8")}
               </Button>
@@ -81,40 +144,39 @@ const SingleRoleHandle = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
               <span
-                className="dark:text-white cursor-pointer text-left"
+                className="dark:text-white cursor-pointer font-medium"
                 onClick={handleSelectRole}
               >
                 {data.name}
               </span>
+              {data.id !== 1 && (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                    onClick={() => deleteRoleHandle(data.id)}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                    onClick={() => editHandle(data.id)}
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                </div>
+              )}
             </div>
-
-            {data.id !== 1 && (
-              <div className="flex gap-1 justify-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
-                  onClick={() => deleteRoleHandle(data.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
-                  onClick={() => editHandle(data.id)}
-                >
-                  <Pencil size={16} />
-                </Button>
-              </div>
-            )}
           </div>
         )}
-      </TableCell>
-    </TableRow>
+      </div>
+    </>
   );
 };
 
@@ -258,7 +320,8 @@ const RolesAndPermissionsComponent: React.FC = () => {
           </div>
 
           <div className="border rounded-md overflow-hidden">
-            <Table className="w-full">
+            {/* Desktop Table */}
+            <Table className="w-full hidden md:table">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-full">Role</TableHead>
@@ -290,7 +353,29 @@ const RolesAndPermissionsComponent: React.FC = () => {
               </TableBody>
             </Table>
 
-            {/* Pagination Controls */}
+            {/* Mobile Cards */}
+            <div className="md:hidden p-2">
+              {loadingDataState ? (
+                <div className="text-center py-4">
+                  <CircularProgress />
+                </div>
+              ) : (
+                paginatedRoles.map((elem, index) => (
+                  <SingleRoleHandle
+                    selectedRole={selectedRole}
+                    selectRoleHandle={selectRoleHandle}
+                    editHandle={setEditStateIndexActivate}
+                    editStateId={editStateId}
+                    updateRoleHandle={updateRoleHandle}
+                    deleteRoleHandle={deleteRoleHandle}
+                    key={elem.id}
+                    data={elem}
+                    index={index}
+                    setSelectedRoleDetails={setSelectedRoleDetails}
+                  />
+                ))
+              )}
+            </div>
           </div>
 
           {!loadingDataState && filteredRoles.length > rowsPerPage && (

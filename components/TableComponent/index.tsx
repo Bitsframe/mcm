@@ -104,8 +104,33 @@ const TableComponent: React.FC<Props> = ({
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
+  // Function to render card content
+  const renderCardContent = (elem: any) => {
+    return tableHeader.map(({ id, render_value, label }, index) => {
+      if (id === "last_updated") return null; // Skip action column for card header
+      
+      const content = render_value
+        ? render_value(elem[id], elem, openModal)
+        : elem[id];
+      
+      return (
+        <div key={index} className="flex justify-between py-1">
+          <span className="text-gray-500 dark:text-gray-400 font-medium">
+            {t(label, {
+              ns: translationConstant.STOCKPANEL,
+              defaultValue: t(label, {
+                ns: translationConstant.POSHISTORY,
+              }),
+            })}:
+          </span>
+          <span className="text-gray-700 dark:text-gray-200">{content}</span>
+        </div>
+      );
+    });
+  };
+
   return (
-    <div className="bg-white dark:bg-[#0e1725] w-full overflow-x-auto text-black dark:text-white">
+    <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 px-3 w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10">
           <CiSearch size={18} color="gray" />
@@ -125,7 +150,39 @@ const TableComponent: React.FC<Props> = ({
       <div
         className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col`}
       >
-        <div className="flex-1 overflow-x-auto">
+        {/* Mobile Cards View */}
+        <div className="block md:hidden p-4 space-y-3">
+          {loading ? (
+            <div className="h-full w-full flex items-center justify-center py-4">
+              <CircularProgress />
+            </div>
+          ) : (
+            currentData.map((elem, index) => (
+              <div
+                key={startIndex + index}
+                className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
+              >
+                {renderCardContent(elem)}
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  {tableHeader.map(({ id, render_value }) => {
+                    if (id !== "last_updated") return null;
+                    const content = render_value
+                      ? render_value(elem[id], elem, openModal)
+                      : elem[id];
+                    return (
+                      <div key={id} className="flex justify-center">
+                        {content}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block flex-1 overflow-x-auto">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
             <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg">
@@ -186,6 +243,7 @@ const TableComponent: React.FC<Props> = ({
           </Table>
         </div>
 
+        {/* Pagination - Common for both views */}
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725]">
           <div>
             {dataList.length === 0
