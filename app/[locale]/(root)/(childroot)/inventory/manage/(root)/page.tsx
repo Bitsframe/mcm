@@ -115,6 +115,8 @@ const Inventory = () => {
   const [allData, setAllData] = useState<DataListInterface[]>([])
   const [loading, setLoading] = useState(true)
   const [excludeZeroQuantity, setExcludeZeroQuantity] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 3
 
   const [modalEventLoading, setModalEventLoading] = useState(false)
   const [openModal, setOpenModal] = useState(false)
@@ -433,11 +435,24 @@ const Inventory = () => {
   )
 
   const { t } = useTranslation(translationConstant.INVENTORY)
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return dataList.slice(startIndex, endIndex);
+  }, [dataList, currentPage]);
+
+  const totalPages = Math.ceil(dataList.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <div className="px-3 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+          <div className=" py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
             <div className="flex items-center gap-x-2 w-full sm:w-auto">
               <input
                 onChange={onChangeHandle}
@@ -453,7 +468,7 @@ const Inventory = () => {
 
           <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block">
               <Table>
                 <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
                   <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
@@ -491,7 +506,7 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
 
-                <TableBody className="divide-y divide-gray-200 mb-4 h-[28dvh] overflow-y-auto block dark:bg-[#0e1725]">
+                <TableBody className="dark:bg-[#0e1725]">
                   {loading ? (
                     <TableRow className="flex h-full">
                       <TableCell colSpan={tableHeader.length} className="h-[60dvh] text-center">
@@ -505,18 +520,15 @@ const Inventory = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    dataList.map((elem: DataListInterface, index) => (
+                    paginatedData.map((elem: DataListInterface, index) => (
                       <TableRow
                         key={index}
                         className={`
                           flex 
                           items-center 
                           hover:bg-gray-100 
-                          border-b
-                          border-gray-200
-                          ${index % 2 === 0 ? "bg-white dark:bg-[#0e1725]" : "bg-gray-50 dark:bg-[#0e1725]"}
                           dark:hover:bg-gray-700
-                          dark:border-gray-700
+                          dark:bg-[#0e1725]
                         `}
                       >
                         <TableCell className="w-10 p-4">
@@ -569,18 +581,11 @@ const Inventory = () => {
                   <h1 className="dark:text-gray-300">No Product is available</h1>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[28dvh] overflow-y-auto">
-                  {dataList.map((elem: DataListInterface, index) => (
+                <div className="space-y-4">
+                  {paginatedData.map((elem: DataListInterface, index) => (
                     <div
                       key={index}
-                      className={`
-                        p-4 
-                        rounded-lg 
-                        border 
-                        border-gray-200 
-                        ${index % 2 === 0 ? "bg-white dark:bg-[#0e1725]" : "bg-gray-50 dark:bg-[#0e1725]"}
-                        dark:border-gray-700
-                      `}
+                      className="p-4 rounded-lg border border-gray-200 dark:bg-[#0e1725] dark:border-gray-700"
                     >
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
@@ -648,12 +653,22 @@ const Inventory = () => {
 
             {!loading && dataList.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="text-sm text-gray-500 dark:text-gray-400">0 of {dataList.length} row(s) selected.</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, dataList.length)} of {dataList.length} row(s)
+                </div>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
+                  >
                     Previous
                   </button>
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300">
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
+                  >
                     Next
                   </button>
                 </div>

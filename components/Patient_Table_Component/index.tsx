@@ -870,7 +870,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               <p className="text-gray-700 dark:text-gray-300">
                 Showing {startIndex + 1} to{" "}
                 {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
-                {filteredAndSortedPatients.length} results
+                {filteredAndSortedPatients.length}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">

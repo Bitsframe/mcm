@@ -140,8 +140,8 @@ const SettingsComponent: React.FC = () => {
   };
 
   return (
-    <div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900">
-      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="relative z-0 h-[80dvh] md:h-[67dvh] bg-background dark:bg-[#0e1725]">
+      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
             Reporting Time
@@ -179,7 +179,7 @@ const SettingsComponent: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-auto h-[180px]">
+            <div className="overflow-auto h-[180px] md:h-[calc(69vh-180px)]">
               {locations
                 .filter((location) =>
                   location.title.toLowerCase().includes(search.toLowerCase())

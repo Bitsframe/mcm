@@ -33,6 +33,7 @@ import { Slidercomp } from "@/components/sliderComp";
 import { TabContext } from "@/context";
 import {
   EyeIcon,
+  PenBoxIcon,
   PencilIcon,
   PlusCircle,
   Search,
@@ -103,7 +104,7 @@ const fields = [
     render_value: (val: string) =>
       moment(val, "YYYY-MM-DD h:mm s").format("MM/DD/YYYY"),
     min: moment(new Date()).format("YYYY-MM-DD"),
-    align: "text-end",
+    align: "text-left",
     details_order: 5,
     col_span_01: true,
   },
@@ -155,7 +156,7 @@ const modal_titles: any = {
     modalLabel: "Edit Promocode",
     button: {
       label: "Update Promocode",
-      color: "info",
+      color: "blue",
     },
   },
   delete: {
@@ -170,12 +171,16 @@ const modal_titles: any = {
 const Page = () => {
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
-  const [detailsView, setDetailsView] = useState<DataListInterface | null>(null);
+  const [detailsView, setDetailsView] = useState<DataListInterface | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState("");
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const [activeModalMode, setActiveModalMode] = useState<"edit" | "delete" | "create" | "">("");
+  const [activeModalMode, setActiveModalMode] = useState<
+    "edit" | "delete" | "create" | ""
+  >("");
   const [newDetails, setNewDetails] = useState<any>({});
   const [modalLoading, setModalLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -411,14 +416,17 @@ const Page = () => {
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-2">
-          <h1 className="text-xl font-bold dark:text-white">{t("Procode_k1")}</h1>
-        </div>
+      <div className="mt-4">
+        <h1 className="text-xl font-bold">Promo Codes</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          Tools / Promo Codes
+        </h1>
+      </div>
 
         <div className="w-full min-h-[84dvh] py-2 flex flex-col gap-2">
-          <div className="space-y-6 pb-4 flex justify-between mt-3">
-            <div className="flex justify-between items-center w-full">
-              <div className="relative w-full max-w-xs">
+          <div className="space-y-6 pb-4 mt-3">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <input
                   onChange={onChangeHandle}
@@ -429,7 +437,7 @@ const Page = () => {
               </div>
               <button
                 onClick={addNewHandle}
-                className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800 flex items-center gap-2"
+                className="w-full sm:w-auto bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800 flex justify-center items-center gap-2"
               >
                 <PlusCircle className="w-4 h-4" />
                 {t("Procode_k2")} Promo Code
@@ -442,32 +450,36 @@ const Page = () => {
             <div className="hidden md:block rounded-lg border border-gray-200 dark:border-[#172945]">
               <Table className="w-full">
                 <TableHeader>
-                  <TableRow className="dark:border-gray-700">
-                    {fields
-                      .filter(({ table_column }) => table_column)
-                      .map(({ id, label, align, type }, ind) => (
-                        <TableHead
-                          key={ind}
-                          className={`${
-                            align || "text-left"
-                          } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700`}
-                        >
-                          {t(label)}
-                          <button
-                            onClick={() => sortHandle(id, type)}
-                            className="active:opacity-50 ml-1"
+                  <TableRow className="dark:border-[#172945] hover:bg-none">
+                    {["typename", "percentage", "expiry", "active"].map(
+                      (fieldId, ind) => {
+                        const field = fields.find((f) => f.id === fieldId);
+                        if (!field) return null;
+                        return (
+                          <TableHead
+                            key={ind}
+                            className={`${
+                              field.align || "text-left"
+                            } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]`}
                           >
-                            <PiCaretUpDownBold
-                              className={`inline ${
-                                sortColumn === id
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-gray-400/50 dark:text-gray-500"
-                              } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
-                            />
-                          </button>
-                        </TableHead>
-                      ))}
-                    <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700">
+                            {t(field.label)}
+                            <button
+                              onClick={() => sortHandle(field.id, field.type)}
+                              className="active:opacity-50 ml-1"
+                            >
+                              <PiCaretUpDownBold
+                                className={`inline ${
+                                  sortColumn === field.id
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-gray-400/50 dark:text-gray-500"
+                                } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                              />
+                            </button>
+                          </TableHead>
+                        );
+                      }
+                    )}
+                    <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -475,10 +487,7 @@ const Page = () => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={fields.filter((f) => f.table_column).length + 1}
-                        className="dark:bg-gray-800"
-                      >
+                      <TableCell colSpan={5} className="dark:bg-gray-800">
                         <div className="flex h-64 justify-center items-center">
                           <Spinner size="xl" />
                         </div>
@@ -488,24 +497,25 @@ const Page = () => {
                     currentData.map((elem) => (
                       <TableRow
                         key={elem.id}
-                        className="hover:bg-gray-50 cursor-pointer border-b border-gray-300 dark:border-gray-700"
+                        className="cursor-pointer border-b border-gray-300 dark:border-gray-700"
                         onClick={() => detailsViewHandle(elem)}
                       >
-                        {fields
-                          .filter(({ table_column }) => table_column)
-                          .map(({ id: fieldKey, align, render_value }) => {
-                            const extract_val = render_value
-                              //@ts-ignore
-                              ? render_value(elem[fieldKey])
-                              : elem[fieldKey];
+                        {["typename", "percentage", "expiry", "active"].map(
+                          (fieldId) => {
+                            const field = fields.find((f) => f.id === fieldId);
+                            if (!field) return null;
+                            const extract_val = field.render_value
+                              ? //@ts-ignore
+                                field.render_value(elem[field.id])
+                              : elem[field.id];
                             return (
                               <TableCell
-                                key={fieldKey}
+                                key={field.id}
                                 className={`${
-                                  align || "text-left"
+                                  field.align || "text-left"
                                 } font-normal text-base px-5 py-3 dark:text-white dark:bg-[#111827]`}
                               >
-                                {fieldKey === "active" ? (
+                                {field.id === "active" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
@@ -520,42 +530,43 @@ const Page = () => {
                                 )}
                               </TableCell>
                             );
-                          })}
+                          }
+                        )}
                         <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-[#111827]">
                           <EyeIcon
-                            className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 inline cursor-pointer"
+                            className="w-4 h-4 inline cursor-pointer text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               detailsViewHandle(elem);
                             }}
+                            color="grey"
                           />
-                          <PencilIcon
-                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 inline cursor-pointer ml-2"
+                          <PenBoxIcon
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-blue-500 hover:text-blue-700 dark:hover:text-blue-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
                               setActiveModalMode("edit");
                               setIsOpenModal(true);
                             }}
+                            color="blue"
                           />
                           <TrashIcon
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 inline cursor-pointer ml-2"
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-red-500 hover:text-red-700 dark:hover:text-red-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
                               setActiveModalMode("delete");
                               setIsOpenModal(true);
                             }}
+                            color="red"
                           />
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={fields.filter((f) => f.table_column).length + 1}
-                        className="dark:bg-[#111827]"
-                      >
+                      <TableCell colSpan={5} className="dark:bg-[#111827]">
                         <div className="flex h-64 justify-center items-center">
                           <h1 className="dark:text-white">No Data found!</h1>
                         </div>
@@ -580,18 +591,24 @@ const Page = () => {
                     onClick={() => detailsViewHandle(elem)}
                   >
                     <div className="space-y-3">
-                      {fields
-                        .filter(({ table_column }) => table_column)
-                        .map(({ id: fieldKey, label, render_value }) => {
-                          const extract_val = render_value
-                          //@ts-ignore
-                            ? render_value(elem[fieldKey])
-                            : elem[fieldKey];
+                      {["typename", "percentage", "expiry", "active"].map(
+                        (fieldId) => {
+                          const field = fields.find((f) => f.id === fieldId);
+                          if (!field) return null;
+                          const extract_val = field.render_value
+                            ? //@ts-ignore
+                              field.render_value(elem[field.id])
+                            : elem[field.id];
                           return (
-                            <div key={fieldKey} className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600 dark:text-gray-300">{t(label)}:</span>
+                            <div
+                              key={field.id}
+                              className="flex justify-between items-center"
+                            >
+                              <span className="text-sm text-gray-600 dark:text-gray-300">
+                                {t(field.label)}:
+                              </span>
                               <span className="text-sm font-medium dark:text-white max-w-[60%] text-right">
-                                {fieldKey === "active" ? (
+                                {field.id === "active" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
@@ -607,17 +624,20 @@ const Page = () => {
                               </span>
                             </div>
                           );
-                        })}
+                        }
+                      )}
                       <div className="flex justify-end gap-2 pt-2">
                         <EyeIcon
-                          className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 cursor-pointer"
+                          className=" w-4 h-4 cursor-pointer"
+                          color="grey"
                           onClick={(e) => {
                             e.stopPropagation();
                             detailsViewHandle(elem);
                           }}
                         />
-                        <PencilIcon
-                          className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 cursor-pointer"
+                        <PenBoxIcon
+                          className=" w-4 h-4 cursor-pointer"
+                          color="blue"
                           onClick={(e) => {
                             e.stopPropagation();
                             setNewDetails(elem);
@@ -626,7 +646,8 @@ const Page = () => {
                           }}
                         />
                         <TrashIcon
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 cursor-pointer"
+                          className="w-4 h-4 cursor-pointer"
+                          color="red"
                           onClick={(e) => {
                             e.stopPropagation();
                             setNewDetails(elem);
@@ -649,7 +670,9 @@ const Page = () => {
               <p className="text-sm text-muted-foreground dark:text-gray-300">
                 {dataList.length === 0
                   ? "Showing 0 to 0 of 0 results"
-                  : `Showing ${startIndex + 1} to ${endIndex} of ${dataList.length} results`}
+                  : `Showing ${startIndex + 1} to ${endIndex} of ${
+                      dataList.length
+                    } results`}
               </p>
               <div className="flex space-x-2">
                 <button
@@ -681,13 +704,17 @@ const Page = () => {
           open={!!detailsView}
           onOpenChange={(open) => !open && setDetailsView(null)}
         >
-          <SheetContent className="p-0 pt-10 dark:bg-gray-800 dark:border-gray-700">
+          <SheetContent className="p-0 pt-10 dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
             <div className="flex flex-col h-full">
               <div className="px-4 pt-2 pb-3">
                 <SheetHeader className="sr-only">
-                  <SheetTitle className="dark:text-white">{t("Procode_k8")}</SheetTitle>
+                  <SheetTitle className="dark:text-white">
+                    {t("Procode_k8")}
+                  </SheetTitle>
                 </SheetHeader>
-                <h1 className="text-xl font-bold dark:text-white">{t("Procode_k8")}</h1>
+                <h1 className="text-xl font-bold dark:text-white">
+                  {t("Procode_k8")}
+                </h1>
               </div>
 
               {detailsView && (
@@ -698,13 +725,15 @@ const Page = () => {
                       .sort((a, b) => a.details_order - b.details_order)
                       .map((field, ind) => {
                         const extract_val = field.render_value
-                          // @ts-ignore
-                          ? field.render_value(detailsView[field.id])
+                          ? //@ts-ignore
+                            field.render_value(detailsView[field.id])
                           : detailsView[field.id];
                         return (
                           <div
                             key={ind}
-                            className={field.col_span_01 ? "col-span-1" : "col-span-2"}
+                            className={
+                              field.col_span_01 ? "col-span-1" : "col-span-2"
+                            }
                           >
                             <div>
                               <h1 className="text-sm text-gray-600 dark:text-gray-300">
@@ -762,40 +791,107 @@ const Page = () => {
             <form className="grid grid-cols-2 gap-4">
               {fields
                 .filter(({ editable }) => editable)
-                .map(({ id, label, type, col_span_01, col_span_01_modal, min, max }) => (
-                  <div
-                    key={id}
-                    className={`col-span-${col_span_01 || col_span_01_modal ? "1" : "2"} flex flex-col gap-1`}
-                  >
-                    {id === "percentage" ? (
-                      <div className="flex flex-col w-full">
-                        <label className="text-base font-semibold mb-4 dark:text-white">
-                          Percentage
-                        </label>
-                        <Slidercomp
-                          className="w-full"
+                .map(
+                  ({
+                    id,
+                    label,
+                    type,
+                    col_span_01,
+                    col_span_01_modal,
+                    min,
+                    max,
+                  }) => {
+                    // Handle percentage and multiple in the same row
+                    if (id === "percentage" || id === "multiple") {
+                      return (
+                        <div
+                          key={id}
+                          className="col-span-1 flex flex-col gap-1"
+                        >
+                          {id === "percentage" ? (
+                            <div className="flex flex-col w-full">
+                              <label className="text-base font-semibold mb-4 dark:text-white">
+                                {t(label)}
+                              </label>
+                              <Slidercomp
+                                className="w-full"
+                                value={newDetails ? newDetails[id] : ""}
+                                //@ts-ignore
+                                onChange={(e: string) =>
+                                  modalInputChangeHandle(e, id)
+                                }
+                                darkMode={darkMode}
+                              />
+                            </div>
+                          ) : (
+                            <Input_Component
+                              value={newDetails ? newDetails[id] : ""}
+                              type={type}
+                              onChange={(e: string) =>
+                                modalInputChangeHandle(e, id)
+                              }
+                              label={t(label)}
+                              darkMode={darkMode}
+                              bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                            />
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // Handle expiry to take full width
+                    if (id === "expiry") {
+                      return (
+                        <div
+                          key={id}
+                          className="col-span-2 flex flex-col gap-1"
+                        >
+                          <Input_Component
+                            className="rounded-md"
+                            min={min || ""}
+                            //@ts-ignore
+                            max={max || ""}
+                            value={newDetails ? newDetails[id] : ""}
+                            type={type}
+                            onChange={(e: string) =>
+                              modalInputChangeHandle(e, id)
+                            }
+                            label={t(label)}
+                            isDate={type === "date"}
+                            darkMode={darkMode}
+                            bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                          />
+                        </div>
+                      );
+                    }
+
+                    // Handle other fields normally
+                    return (
+                      <div
+                        key={id}
+                        className={`col-span-${
+                          col_span_01 || col_span_01_modal ? "1" : "2"
+                        } flex flex-col gap-1`}
+                      >
+                        <Input_Component
+                          className="rounded-md"
+                          min={min || ""}
+                          //@ts-ignore
+                          max={max || ""}
                           value={newDetails ? newDetails[id] : ""}
-                          // @ts-ignore
-                          onChange={(e: string) => modalInputChangeHandle(e, id)}
+                          type={type}
+                          onChange={(e: string) =>
+                            modalInputChangeHandle(e, id)
+                          }
+                          label={t(label)}
+                          isDate={type === "date"}
                           darkMode={darkMode}
+                          bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
                         />
                       </div>
-                    ) : (
-                      <Input_Component
-                        min={min || ""}
-                        // @ts-ignore
-                        max={max || ""}
-                        value={newDetails ? newDetails[id] : ""}
-                        type={type}
-                        border="border-2 border-gray-300 dark:border-gray-600 rounded-md w-full"
-                        onChange={(e: string) => modalInputChangeHandle(e, id)}
-                        label={t(label)}
-                        isDate={type === "date"}
-                        darkMode={darkMode}
-                      />
-                    )}
-                  </div>
-                ))}
+                    );
+                  }
+                )}
             </form>
           )}
         </Custom_Modal>

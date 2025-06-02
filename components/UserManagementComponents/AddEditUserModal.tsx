@@ -107,15 +107,15 @@ export default function AddEditUserModal({
             />
 
             <Select_Dropdown
+            
               hideLabel
               label={t("UM_k8")}
               start_empty
-              bg_color="#f1f4f9 "
               value={formData.roleId}
               options_arr={roles.map((role) => ({ value: role.id, label: role.name }))}
               on_change_handle={(e) => handleInputChange("roleId", Number(e.target.value))}
               required
-              
+              bg_color=" dark:bg-[#122136]"
             />
           </div>
 
@@ -138,11 +138,14 @@ export default function AddEditUserModal({
             type="password"
             border="border border-gray-200 rounded-lg dark:border-none"
             onChange={(value) => handleInputChange("password", value)}
+            bg_color=" dark:bg-[#122136]"
+
           />
 
           <LocationModal
             selectionLocationIds={formData.locationIds}
             onChange={(value: number[]) => handleInputChange("locationIds", value)}
+            
           
           />
 

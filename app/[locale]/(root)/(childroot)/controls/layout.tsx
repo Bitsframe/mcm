@@ -18,11 +18,21 @@ export default function ControlsLayout({
 
   return (
     <div>
+      {/* Heading at top */}
+      <div className="py-3">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Controls</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          Controls
+        </h1>
+      </div>
+
       {/* Mobile menu above content */}
       <div className="block sm:hidden mb-4">
         <TopTabs />
       </div>
-      <div className="flex justify-center gap-5 mt-8 dark:bg-[#0E1725]">
+
+      {/* Main content area with sidebar */}
+      <div className="flex gap-5 dark:bg-[#0E1725]">
         {/* Desktop menu on the side */}
         <div className="hidden sm:block space-y-5">
           <TopTabs />

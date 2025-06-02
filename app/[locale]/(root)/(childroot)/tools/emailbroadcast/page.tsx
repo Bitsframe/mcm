@@ -374,7 +374,7 @@ const EmailBroadcast: React.FC = () => {
   const { t } = useTranslation(translationConstant.EMAILB);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 dark:bg-[#0e1725]">
       {/* Added Heading */}
       <div>
         <h1 className="text-xl font-bold">Email Broadcast</h1>
@@ -385,7 +385,7 @@ const EmailBroadcast: React.FC = () => {
 
       <div className="flex flex-col md:flex-row gap-4">
         {/* Left side - Email List & Filters */}
-        <div className="w-full md:w-1/3 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
+        <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm py-4">
           <div className="space-y-2">
             <label
               htmlFor="patients"
@@ -874,7 +874,7 @@ const EmailBroadcast: React.FC = () => {
         </div>
 
         {/* Right side - Email Preview & Template Selection */}
-        <div className="w-full md:w-2/3 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
+        <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
           <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
             Preview
           </h2>

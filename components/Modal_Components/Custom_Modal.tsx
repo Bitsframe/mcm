@@ -35,19 +35,19 @@ export const Custom_Modal: FC<PropsInterface> = ({
     return (
         <Modal show={is_open} onClose={close_handle}>
             <Modal.Header
-                className="bg-white dark:bg-[#080e16] dark:text-white text-black"
+                className="bg-white dark:bg-[#0e1725] dark:text-white text-black"
             >
                 {Title}
             </Modal.Header>
 
             <Modal.Body
-                className="bg-white dark:bg-[#080e16] text-black dark:text-white"
+                className="bg-white dark:bg-[#0e1725] text-black dark:text-white"
             >
                 <div className="space-y-6">{children}</div>
             </Modal.Body>
 
             <Modal.Footer
-                className="flex justify-end bg-white dark:bg-[#080e16]"
+                className="flex justify-end bg-white dark:bg-[#0e1725]"
             >
                 <button
                     className="bg-[#F1F4F9] dark:bg-gray-700 text-black dark:text-white px-4 py-[10px] rounded-lg"

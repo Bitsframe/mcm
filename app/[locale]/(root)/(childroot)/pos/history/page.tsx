@@ -184,7 +184,7 @@ const SalesHistory = () => {
   }, []);
 
   return (
-    <main className="w-full h-full font-[500] bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">
       <div className="flex justify-between items-center px-4 pt-4 space-x-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">

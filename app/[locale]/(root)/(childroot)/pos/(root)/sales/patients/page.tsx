@@ -444,9 +444,9 @@ const Patients = () => {
 
   return (
     <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2 md:p-4">
-      <div className="w-full flex flex-col">
+      <div className="w-full flex flex-col md:flex-row gap-4">
         {/* Patients List Section - Now at the top */}
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-1/2 mb-4 md:mb-0">
           <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
             <div className="w-full md:w-auto">
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-2 md:mb-4">
@@ -699,7 +699,7 @@ const Patients = () => {
         </div>
 
         {/* Add Patient Form Section - Moved to bottom */}
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full p-4">
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-1/2 p-4">
           <div className="mb-4">
             <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
               Add New Patient

@@ -273,7 +273,7 @@ const Returns: FC<Props> = () => {
 
   const { t } = useTranslation(translationConstant.POSRETURN);
   return (
-    <main className="w-full h-full font-[500] bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -292,12 +292,12 @@ const Returns: FC<Props> = () => {
               onChange={onChangeHandle}
               type="text"
               placeholder={t("POS-Returnk2")}
-              className="px-4 py-3 w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+              className="px-4 py-3 w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 bg-white dark:bg-[#0e1725] text-gray-800 dark:text-white"
             />
           </div>
 
           <div className="px-2 pb-4 overflow-y-auto overflow-x-hidden">
-            {/* Mobile View: Card Layout */}
+            {/* Mobile View: Card Layout ONLY on small screens */}
             <div className="md:hidden flex flex-col gap-4">
               {loading ? (
                 <div className="flex h-full flex-1 flex-col justify-center items-center">
@@ -326,15 +326,6 @@ const Returns: FC<Props> = () => {
                         <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                           {t("POS-Returnk3")}: {return_id}
                         </h3>
-                        {/* <input
-                          type="checkbox"
-                          className="rounded border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600"
-                          checked={selectedRows.includes(return_id)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleCheckboxChange(return_id, e.target.checked);
-                          }}
-                        /> */}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">
                         <p>
@@ -364,18 +355,13 @@ const Returns: FC<Props> = () => {
               )}
             </div>
 
-            {/* Desktop View: Table Layout */}
-            <div className=" md:block bg-white dark:bg-gray-800 rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
+            {/* Desktop View: Table Layout ONLY on md+ screens */}
+            <div className="hidden md:block bg-white dark:bg-[#0e1725] rounded-md shadow-sm flex flex-col h-[500px] rounded-b-lg">
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+                  <TableHeader className="sticky top-0 bg-white dark:bg-[#0e1725] z-10">
                     <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
-                      <TableHead className="p-4 w-10">
-                        {/* <input
-                          type="checkbox"
-                          className="rounded bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500"
-                        /> */}
-                      </TableHead>
+                      <TableHead className="p-4 w-10"></TableHead>
                       <TableHead className="text-left text-gray-600 dark:text-gray-300">
                         {t("POS-Returnk3")}
                         <button
@@ -459,7 +445,7 @@ const Returns: FC<Props> = () => {
                       <TableRow>
                         <TableCell
                           colSpan={6}
-                          className="bg-gray-50 dark:bg-gray-800"
+                          className="bg-gray-50 dark:bg-[#0e1725]"
                         >
                           <div className="flex h-full flex-1 flex-col justify-center items-center">
                             <Spinner size="xl" color="gray" />
@@ -483,22 +469,9 @@ const Returns: FC<Props> = () => {
                           <TableRow
                             key={return_id}
                             onClick={() => detailsViewHandle(elem)}
-                            className="cursor-pointer border-b border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 bg-white dark:bg-gray-800"
+                            className="cursor-pointer border-b border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 bg-white dark:bg-[#0e1725]"
                           >
-                            <TableCell className="p-4">
-                              {/* <input
-                                type="checkbox"
-                                className="rounded border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600"
-                                checked={selectedRows.includes(return_id)}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  handleCheckboxChange(
-                                    return_id,
-                                    e.target.checked
-                                  );
-                                }}
-                              /> */}
-                            </TableCell>
+                            <TableCell className="p-4"></TableCell>
                             <TableCell className="p-4 text-gray-800 dark:text-gray-200">
                               {return_id}
                             </TableCell>
@@ -550,7 +523,7 @@ const Returns: FC<Props> = () => {
                   <dl
                     className={`${
                       detail.col_span_02 ? "col-span-2" : ""
-                    } bg-white dark:bg-gray-700 rounded-lg p-4`}
+                    } bg-white dark:bg-[#0e1725] rounded-lg p-4`}
                     key={index}
                   >
                     <dt className="text-sm text-gray-500 dark:text-gray-400 mb-1">

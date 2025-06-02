@@ -262,44 +262,11 @@ const Appointments = () => {
       </div>
 
       <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 pb-2 sm:pb-4 dark:bg-[#0E1725]">
-        <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:justify-between md:items-center">
-          <Tabs className="w-full" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16] w-full overflow-x-auto flex-nowrap">
-              <TabsTrigger
-                value="approved"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
-              >
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Approved Appointments</span>
-                <span className="sm:hidden">Approved</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="request"
-                className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
-              >
-                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">New Appointments</span>
-                <span className="sm:hidden">New</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {editAppointment && (
-            <AppointmentEditModal
-              isOpen={!!editAppointment}
-              onClose={() => setEditAppointment(null)}
-              defaultDateTime={editAppointment.date_and_time}
-              appointmentDetails={editAppointment}
-              locationData={findLocations(editAppointment.location_id)}
-              updateAvailableData={newAddedRow}
-            />
-          )}
-        </div>
-
-        {/* Modified this section to show filter and add button side by side on small screens */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
-          <div className="w-full flex flex-row gap-2">
-            <div className="flex-1 min-w-0">
+        {/* Responsive filter/tabs row */}
+        <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:items-center md:gap-4 md:justify-between">
+          {/* Left: Date filter and Add button */}
+          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 md:gap-4 md:items-center">
+            <div className="w-full md:w-56 min-w-0">
               <DatePicker
                 onChange={filterHandle}
                 className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
@@ -311,25 +278,59 @@ const Appointments = () => {
               <Add_Appointment_Modal newAddedRow={newAddedRow} />
             </div>
           </div>
+          {/* Right: Tabs (Approved/New Appointment) */}
+          <div className="w-full md:w-auto md:ml-auto">
+            <Tabs className="w-full" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16] w-full flex-nowrap">
+                <TabsTrigger
+                  value="approved"
+                  className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
+                >
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Approved Appointments</span>
+                  <span className="sm:hidden">Approved</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="request"
+                  className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
+                >
+                  <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">New Appointments</span>
+                  <span className="sm:hidden">New</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
-        <AppointmentsTable
-          isUnapproved={activeTab === "request"}
-          appointments={activeTab === "approved" ? filteredApproved : filteredUnapproved}
-          appointLoading={appointLoading}
-          onSelect={selectForDetailsHandle}
-          onEdit={handleEditAppointment}
-          sortHandle={sortHandle}
-          sortColumn={sortColumn}
-          //@ts-ignore
-          onDelete={deleteAppointmentsHandle}
-          //@ts-ignore
-          selectedAppointments={selectedAppointments}
-          //@ts-ignore
-          setSelectedAppointments={setSelectedAppointments}
-          onApprove={handleAppointmentApproval}
-        />
+        {editAppointment && (
+          <AppointmentEditModal
+            isOpen={!!editAppointment}
+            onClose={() => setEditAppointment(null)}
+            defaultDateTime={editAppointment.date_and_time}
+            appointmentDetails={editAppointment}
+            locationData={findLocations(editAppointment.location_id)}
+            updateAvailableData={newAddedRow}
+          />
+        )}
       </div>
+
+      <AppointmentsTable
+        isUnapproved={activeTab === "request"}
+        appointments={activeTab === "approved" ? filteredApproved : filteredUnapproved}
+        appointLoading={appointLoading}
+        onSelect={selectForDetailsHandle}
+        onEdit={handleEditAppointment}
+        sortHandle={sortHandle}
+        sortColumn={sortColumn}
+        //@ts-ignore
+        onDelete={deleteAppointmentsHandle}
+        //@ts-ignore
+        selectedAppointments={selectedAppointments}
+        //@ts-ignore
+        setSelectedAppointments={setSelectedAppointments}
+        onApprove={handleAppointmentApproval}
+      />
 
       <AppointmentDetailsPanel
         isSheetopen={isSheetopen}

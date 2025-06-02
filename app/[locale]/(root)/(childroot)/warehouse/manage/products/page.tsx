@@ -173,6 +173,8 @@ const Products = () => {
     location_ids: [],
     quantity: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
 
   const calculateTotalAssigned = useCallback(() => {
     if (!assignModalData.location_ids?.length || !assignModalData.quantity)
@@ -234,7 +236,7 @@ const Products = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(true);
+      setLoading(false);
     }
   };
 
@@ -248,6 +250,19 @@ const Products = () => {
       );
       setDataList([...filteredData]);
     }
+    setCurrentPage(1);
+  };
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return dataList.slice(startIndex, endIndex);
+  }, [dataList, currentPage]);
+
+  const totalPages = Math.ceil(dataList.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   useEffect(() => {
@@ -469,47 +484,15 @@ const Products = () => {
     }
   };
 
-  const RightSideComponent = useMemo(
-    () => (
-      <div className="text-sm text-gray-500 flex items-center justify-end w-full mr-6">
-        <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
-          <button
-            onClick={handleActiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-              !getDataArchiveType
-                ? "bg-blue-600 text-white dark:bg-blue-700"
-                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            Active
-          </button>
-          <button
-            onClick={handleArchiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-              getDataArchiveType
-                ? "bg-blue-600 text-white dark:bg-blue-700"
-                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-          >
-            <Archive className="w-4 h-4" />
-            Archived
-          </button>
-        </div>
-      </div>
-    ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
-  );
-
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
           <h1 className="text-xl font-bold px-3 py-2 dark:text-white">
             Products
           </h1>
-          <div className="px-3 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+          <div className=" py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
               <input
                 onChange={onChangeHandle}
@@ -520,34 +503,64 @@ const Products = () => {
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex sm:w-auto items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>Add Product</span>
               </button>
             </div>
 
-            {RightSideComponent}
+            <div className="text-sm text-gray-500 flex items-center justify-end w-full sm:w-auto">
+              <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
+                <button
+                  onClick={handleActiveClick}
+                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    !getDataArchiveType
+                      ? "bg-blue-600 text-white dark:bg-blue-700"
+                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Active
+                </button>
+                <button
+                  onClick={handleArchiveClick}
+                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    getDataArchiveType
+                      ? "bg-blue-600 text-white dark:bg-blue-700"
+                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <Archive className="w-4 h-4" />
+                  Archived
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="pt-5">
             <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-hidden">
               {/* Table for larger screens */}
               <div className="hidden md:block">
-                <Table className="min-w-[700px] w-full">
+                <Table className="w-full">
                   <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
                     <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
-                      <TableHead className="w-12 p-3"></TableHead>
+                      <TableHead className="w-8 p-2"></TableHead>
                       {tableHeader.map(({ label, align, can_sort, id }, index) => (
                         <TableHead
                           key={index}
-                          className={`flex-1 ${
+                          className={`${
+                            id === "category" ? "w-[20%]" :
+                            id === "product_name" ? "w-[25%]" :
+                            id === "price" || id === "stock" ? "w-[12%]" :
+                            id === "actions" ? "w-[31%]" : "flex-1"
+                          } ${
                             id === "price" || id === "stock" || id === "actions"
-                              ? "text-center align-middle min-w-[260px]"
-                              : align || "text-start align-middle"
-                          } text-base text-[#71717A] font-normal p-3 dark:text-gray-400 truncate`}
+                              ? "text-center"
+                              : "text-start"
+                          } text-base text-[#71717A] font-normal p-2 dark:text-gray-400 truncate`}
                         >
-                          <div className="flex items-center justify-start">
+                          <div className="flex items-center justify-between">
                             {t(label)}
                             {can_sort && (
                               <button
@@ -569,7 +582,7 @@ const Products = () => {
                     </TableRow>
                   </TableHeader>
 
-                  <TableBody className="mb-4 h-[25dvh] overflow-y-auto block">
+                  <TableBody className="h-[120px] overflow-y-auto block">
                     {loading ? (
                       <TableRow className="flex h-full">
                         <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
@@ -583,12 +596,12 @@ const Products = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      dataList.map((elem: DataListInterface, index) => (
+                      paginatedData.map((elem: DataListInterface, index) => (
                         <TableRow
                           key={index}
                           className="flex items-center border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                          <TableCell className="w-12 p-3"></TableCell>
+                          <TableCell className="w-8 p-2"></TableCell>
                           {tableHeader.map((element, ind) => {
                             const { id, Render_Value, align, width, render_value } =
                               element;
@@ -614,11 +627,11 @@ const Products = () => {
                               return (
                                 <TableCell
                                   key={ind}
-                                  className="flex-1 text-center align-middle min-w-[260px] p-3"
+                                  className="w-[31%] text-center p-2"
                                 >
-                                  <div className="flex flex-row justify-center items-center gap-x-3 whitespace-nowrap">
+                                  <div className="flex flex-row justify-center items-center gap-x-2 whitespace-nowrap">
                                     <Action_Button
-                                      icon={<RefreshCcw size={18} />}
+                                      icon={<RefreshCcw size={16} />}
                                       onClick={() =>
                                         buttonClickActionHandle("Update", elem)
                                       }
@@ -628,7 +641,7 @@ const Products = () => {
                                       border="border-[#CCE0FF] dark:border-blue-800"
                                     />
                                     <Action_Button
-                                      icon={<Archive size={18} />}
+                                      icon={<Archive size={16} />}
                                       onClick={() =>
                                         buttonClickActionHandle("Delete", elem)
                                       }
@@ -650,7 +663,7 @@ const Products = () => {
                                       }
                                     />
                                     <Action_Button
-                                      icon={<CirclePlus size={18} />}
+                                      icon={<CirclePlus size={16} />}
                                       onClick={() =>
                                         buttonClickActionHandle("Assign", elem)
                                       }
@@ -667,11 +680,15 @@ const Products = () => {
                             return (
                               <TableCell
                                 key={ind}
-                                className={`flex-1 ${
+                                className={`${
+                                  id === "category" ? "w-[20%]" :
+                                  id === "product_name" ? "w-[25%]" :
+                                  id === "price" || id === "stock" ? "w-[12%]" : "flex-1"
+                                } ${
                                   id === "price" || id === "stock"
-                                    ? "text-center align-middle"
-                                    : align || "text-start align-middle"
-                                } text-base p-3 dark:text-gray-300 truncate`}
+                                    ? "text-center"
+                                    : "text-start"
+                                } text-base p-2 dark:text-gray-300 truncate`}
                               >
                                 {id === "category"
                                   ? elem?.categories?.category_name
@@ -686,10 +703,12 @@ const Products = () => {
                 </Table>
               </div>
 
+              {/* Remove the duplicate pagination controls */}
+
               {/* Card layout for mobile screens */}
-              <div className="md:hidden p-4 space-y-4">
+              <div className="md:hidden space-y-4">
                 {loading ? (
-                  <div className="h-[30dvh] w-full flex flex-col justify-center items-center">
+                  <div className="h-[60dvh] w-full flex flex-col justify-center items-center">
                     <Spinner size="xl" className="dark:text-white" />
                   </div>
                 ) : dataList.length === 0 ? (
@@ -697,97 +716,107 @@ const Products = () => {
                     <h1>No Product is available</h1>
                   </div>
                 ) : (
-                  dataList.map((elem: DataListInterface, index) => (
-                    <div
-                      key={index}
-                      className="border rounded-md p-4 bg-white dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            {t("Inventory_k1")}:
-                          </span>
-                          <span className="text-sm dark:text-gray-300 truncate">
-                            {elem?.categories?.category_name}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            {t("Inventory_k8")}:
-                          </span>
-                          <span className="text-sm dark:text-gray-300 truncate">
-                            {elem.product_name}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            {t("Inventory_k18")}:
-                          </span>
-                          <span className="text-sm dark:text-gray-300">
-                            {elem.price}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            {t("Inventory_k19")}:
-                          </span>
-                          <span className="text-sm dark:text-gray-300">
-                            {elem.unlimited ? "Unlimited" : elem.stock}
-                          </span>
-                        </div>
-                        <div className="flex justify-end space-x-2 pt-2">
-                          <Action_Button
-                            icon={<RefreshCcw size={18} />}
-                            onClick={() => buttonClickActionHandle("Update", elem)}
-                            label="Update"
-                            text_color="text-[#0066ff] dark:text-blue-400"
-                            bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
-                            border="border-[#CCE0FF] dark:border-blue-800"
-                          />
-                          <Action_Button
-                            icon={<Archive size={18} />}
-                            onClick={() => buttonClickActionHandle("Delete", elem)}
-                            label={getDataArchiveType ? "Unarchive" : "Archive"}
-                            text_color={
-                              getDataArchiveType
-                                ? "text-[#0EA542] dark:text-green-400"
-                                : "text-[#F71B1B] dark:text-red-400"
-                            }
-                            bg_color={
-                              getDataArchiveType
-                                ? "bg-[#E7FDEF] dark:bg-green-900/30"
-                                : "bg-[#FFE8E5] dark:bg-red-900/30"
-                            }
-                            border={
-                              getDataArchiveType
-                                ? "border-[#72F39E] dark:border-green-800"
-                                : "border-[#FFD2CC] dark:border-red-800"
-                            }
-                          />
-                          <Action_Button
-                            icon={<CirclePlus size={18} />}
-                            onClick={() => buttonClickActionHandle("Assign", elem)}
-                            label="Assign"
-                            text_color="text-[#0EA542] dark:text-green-400"
-                            bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
-                            border="border-[#72F39E] dark:border-green-800"
-                          />
+                  <>
+                    {paginatedData.map((elem: DataListInterface, index) => (
+                      <div
+                        key={index}
+                        className="bg-white dark:bg-[#0e1725] p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k1")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300 truncate">
+                              {elem?.categories?.category_name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k8")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300 truncate">
+                              {elem.product_name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k18")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300">
+                              {elem.price}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k19")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300">
+                              {elem.unlimited ? "Unlimited" : elem.stock}
+                            </span>
+                          </div>
+                          <div className="flex justify-end gap-2 mt-3">
+                            <Action_Button
+                              icon={<RefreshCcw size={16} />}
+                              onClick={() => buttonClickActionHandle("Update", elem)}
+                              label="Update"
+                              text_color="text-[#0066ff] dark:text-blue-400"
+                              bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
+                              border="border-[#CCE0FF] dark:border-blue-800"
+                            />
+                            <Action_Button
+                              icon={<Archive size={16} />}
+                              onClick={() => buttonClickActionHandle("Delete", elem)}
+                              label={getDataArchiveType ? "Unarchive" : "Archive"}
+                              text_color={
+                                getDataArchiveType
+                                  ? "text-[#0EA542] dark:text-green-400"
+                                  : "text-[#F71B1B] dark:text-red-400"
+                              }
+                              bg_color={
+                                getDataArchiveType
+                                  ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                                  : "bg-[#FFE8E5] dark:bg-red-900/30"
+                              }
+                              border={
+                                getDataArchiveType
+                                  ? "border-[#72F39E] dark:border-green-800"
+                                  : "border-[#FFD2CC] dark:border-red-800"
+                              }
+                            />
+                            <Action_Button
+                              icon={<CirclePlus size={16} />}
+                              onClick={() => buttonClickActionHandle("Assign", elem)}
+                              label="Assign"
+                              text_color="text-[#0EA542] dark:text-green-400"
+                              bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
+                              border="border-[#72F39E] dark:border-green-800"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </>
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t dark:border-gray-700 gap-2">
+              <div className="flex items-center justify-between p-4 border-t dark:border-gray-700">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  0 of {dataList.length} row(s) selected.
+                  {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, dataList.length)} of {dataList.length} row(s)
                 </div>
-                <div className="flex gap-2 flex-col sm:flex-row w-full sm:w-auto">
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                  >
                     Previous
                   </button>
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                  >
                     Next
                   </button>
                 </div>

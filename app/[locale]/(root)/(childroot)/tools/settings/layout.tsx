@@ -17,12 +17,19 @@ export default function SettingsLayout({
   }, []);
 
   return (
-    <div>
+    <div className="dark:bg-[#0E1725]">
+      <div className="p-1 sm:p-3">
+        <h1 className="text-xl font-bold dark:text-white">Settings</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          Tools / Settings
+        </h1>
+      </div>
+
       {/* Mobile menu above content */}
       <div className="block sm:hidden mb-4">
         <TopTabs />
       </div>
-      <div className="flex justify-center gap-5 mt-8 dark:bg-[#0E1725]">
+      <div className="flex justify-center gap-5 px-2 dark:bg-[#0E1725]">
         {/* Desktop menu on the side */}
         <div className="hidden sm:block space-y-5">
           <TopTabs />

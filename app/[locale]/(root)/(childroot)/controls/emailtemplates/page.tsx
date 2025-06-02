@@ -427,9 +427,9 @@ const EmailTemplates = () => {
           </button>
         </div>
 
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* All Templates Section */}
-          <div className="border-b bg-[#F1F4F9] dark:bg-[#080E16] dark:border-gray-700">
+          <div className="w-full md:w-[30%] border-b md:border-r bg-[#F1F4F9] dark:bg-[#0e1725] dark:border-gray-700 flex flex-col">
             <div className="p-4">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
                 All Templates
@@ -445,7 +445,7 @@ const EmailTemplates = () => {
                 <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
               </div>
             </div>
-            <div className="p-4 min-h-[200px]">
+            <div className="flex-1 overflow-auto p-4">
               {filteredTemplates.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {searchQuery.trim() ? "No matching templates found" : "No templates saved yet"}
@@ -482,10 +482,7 @@ const EmailTemplates = () => {
                   </h2>
                 </div>
 
-                <div
-                  className="flex-1 flex flex-col"
-                  style={{ height: "400px" }}
-                >
+                <div className="flex flex-col h-[calc(100%-200px)]">
                   <MenuBar editor={editor} />
                   <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b">
                     <EditorContent editor={editor} className="h-full p-4" />
@@ -496,7 +493,7 @@ const EmailTemplates = () => {
                   <h2 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">
                     Preview Template
                   </h2>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 min-h-[120px] text-base">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 min-h-[120px] text-base overflow-auto">
                     <div
                       dangerouslySetInnerHTML={{
                         __html: getFullPreviewHtml(templateContent),

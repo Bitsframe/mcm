@@ -98,7 +98,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className=" md:block relative flex flex-col h-64 overflow-x-auto">
+          {/* @ts-ignore */}
+          <div className="hidden md:block relative flex flex-col h-64 overflow-x-auto">
             <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full">
               <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
@@ -145,7 +146,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
 
           {/* Mobile Card View */}
-          <div className="md:hidden p-4">
+          <div className="block md:hidden p-4">
             {mobileCurrentAppointment && (
               <MemoizedAppointmentCard
                 appointment={mobileCurrentAppointment}
