@@ -61,7 +61,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
               setSelectedDate(date);
               onChange(date);
             }}
-            className="w-full p-3 rounded-lg border"
+            className={`w-full p-3 rounded-lg border ${bg_color} ${darkMode ? 'dark:bg-[#122136] dark:text-white dark:border-gray-600' : ''}`}
             placeholderText={placeholder}
           />
         ) : ["boolean", "radio"].includes(type) ? (
@@ -90,7 +90,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
             </label>
           </div>
         ) : (
-          <div className="flex w-full items-center bg-[#f1f4f9] dark:bg-[#f1f4f9]">
+          <div className="flex w-full items-center bg-[#f1f4f9] dark:bg-[#122136]">
             <input
               disabled={disabled}
               min={min}

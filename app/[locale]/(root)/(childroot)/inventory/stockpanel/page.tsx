@@ -41,7 +41,8 @@ const tableHeader = [
   {
     id: "quantity_in_stock",
     label: "SP_k1",
-    render_value: (val: any, elem?: any) => elem?.unlimited ? "Unlimited" : elem?.quantity_available,
+    render_value: (val: any, elem?: any) =>
+      elem?.unlimited ? "Unlimited" : elem?.quantity_available,
     align: "text-center",
   },
 ];
@@ -76,8 +77,8 @@ const StockPanel = () => {
       ({
         quantity,
         inventory_id,
-        
-        products: { product_name, category_id, categories,price, unlimited },
+
+        products: { product_name, category_id, categories, price, unlimited },
       }: any) => {
         return {
           product_id: inventory_id,
@@ -86,7 +87,7 @@ const StockPanel = () => {
           price,
           quantity_available: quantity,
           categories: { category_name: categories?.category_name },
-          unlimited
+          unlimited,
         };
       }
     );
@@ -99,17 +100,19 @@ const StockPanel = () => {
   const onChangeHandle = (e: any) => {
     const val = e.target.value;
     let filteredData = allData;
-    
+
     if (excludeZeroQuantity) {
-      filteredData = filteredData.filter((elem) => elem.quantity_available > 0 || elem.unlimited);
+      filteredData = filteredData.filter(
+        (elem) => elem.quantity_available > 0 || elem.unlimited
+      );
     }
-    
+
     if (val !== "") {
       filteredData = filteredData.filter((elem) =>
         elem.product_name.toLowerCase().includes(val.toLowerCase())
       );
     }
-    
+
     setDataList([...filteredData]);
   };
 
@@ -177,21 +180,41 @@ const StockPanel = () => {
           title="Exclude zero quantity products"
         >
           <Filter className="w-4 h-4" />
-          {t("SP_k1")} exluding 0
+          <span className="hidden sm:inline">{t("SP_k1")} exluding 0</span>
+          <span className="sm:hidden">Filter</span>
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick, excludeZeroQuantity, handleZeroQuantityToggle]
+    [
+      getDataArchiveType,
+      handleActiveClick,
+      handleArchiveClick,
+      excludeZeroQuantity,
+      handleZeroQuantityToggle,
+    ]
   );
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:text-white">
+    <main className="w-full h-full font-[500] text-[20px] dark:text-white max-w-full overflow-x-hidden">
       <h1 className="text-2xl font-bold p-3">Stock Panel</h1>
-      <div className="w-full min-h-[81dvh] h-full overflow-auto py-2 px-2 flex flex-col gap-4">
-        <div className="w-full">
+      <div className="w-full min-h-[81dvh] h-full overflow-y-auto overflow-x-hidden py-2 px-2 flex flex-col gap-4 max-w-full">
+        <div className="w-full max-w-full">
           <InventoryCards archived={getDataArchiveType} />
         </div>
-        <div className="w-full overflow-x-auto">
+        {/* <div className="w-full max-w-full">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full max-w-full">
+            <div className="flex-1 min-w-0">
+              <input
+                type="text"
+                className="w-full max-w-full px-3 py-2 border rounded-md text-base"
+                placeholder={t("SP_k8")}
+                onChange={onChangeHandle}
+              />
+            </div>
+            <div className="flex-shrink-0 w-full md:w-auto">{RightSideComponent}</div>
+          </div>
+        </div> */}
+        <div className="w-full max-w-full overflow-x-auto">
           <TableComponent
             tableHeight="h-[45dvh]"
             tableBodyHeight="h-[35dvh]"

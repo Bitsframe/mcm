@@ -347,7 +347,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     });
   };
 
-  // Patient Card Component for Mobile View
   const PatientCard: FC<{ patient: Patient }> = ({ patient }) => (
     <Card className="w-full mb-3 hover:shadow-md transition-shadow dark:bg-[#0E1725] dark:border-gray-800">
       <CardContent className="p-3">
@@ -862,39 +861,40 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </TableBody>
             </Table>
           </div>
-
-          {!loading && filteredAndSortedPatients.length > 0 && (
-            <div className="flex flex-row items-center justify-between px-4 py-3 border-t dark:border-gray-700 gap-2">
-              <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
-                <p className="text-gray-700 dark:text-gray-300">
-                  Showing {startIndex + 1} to{" "}
-                  {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
-                  {filteredAndSortedPatients.length} results
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Pagination controls moved outside the table */}
+        {!loading && filteredAndSortedPatients.length > 0 && (
+          <div className="hidden md:flex flex-row items-center justify-between mt-2 bg-white dark:bg-[#0E1725]">
+            <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <p className="text-gray-700 dark:text-gray-300">
+                Showing {startIndex + 1} to{" "}
+                {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                {filteredAndSortedPatients.length}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Card View - Visible only on small screens */}
         <div className="md:hidden">
@@ -918,7 +918,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           )}
 
           {!loading && filteredAndSortedPatients.length > 0 && (
-            <div className="flex sm:flex-row items-center justify-between px-4 py-3 gap-3 mt-4">
+            <div className="md:hidden flex sm:flex-row items-center justify-between px-4 py-3 gap-3 mt-4">
               <div className="text-sm text-center">
                 <p className="text-gray-700 dark:text-gray-300">
                   Showing {startIndex + 1} to{" "}
@@ -1356,7 +1356,6 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     phone: "",
     email: "",
     treatmenttype: "",
-
     note: "",
   });
 

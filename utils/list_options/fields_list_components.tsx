@@ -34,7 +34,7 @@ export const fields_list_components: fieldsListComponentsInterface = {
                 <input
                     value={data[key_id] || ''}
                     type="text"
-                    className='w-full  p-3 rounded-lg dark:bg-[#374151] dark:text-white bg-[#F1F4F9]'
+                    className='w-full  p-3 rounded-lg dark:bg-[#122136] dark:text-white bg-[#F1F4F9]'
                     onChange={(e) => on_change_handle(key_id, e.target.value)}
                 />
             </div>
@@ -47,7 +47,7 @@ export const fields_list_components: fieldsListComponentsInterface = {
             return <div>
                 <p className='font-bold dark:text-white text-primary_color'>{label} :</p>
                 <textarea
-                    className='rounded-lg w-full dark:bg-[#374151] dark:text-white bg-[#F1F4F9] resize-none outline-none border-none'
+                    className='rounded-lg w-full dark:bg-[#122136] dark:text-white bg-[#F1F4F9] resize-none outline-none border-none'
                     rows={6} cols={51}
                     value={data[key_id] || ''}
                     onChange={(e) => on_change_handle(key_id, e.target.value)}

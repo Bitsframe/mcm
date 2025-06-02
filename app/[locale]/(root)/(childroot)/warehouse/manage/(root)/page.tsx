@@ -76,7 +76,7 @@ const tableHeader = [
             border={
               getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
             }
-            icon = {<Archive size={18}/>}
+            icon={<Archive size={18} />}
           />
         </div>
       );
@@ -101,6 +101,12 @@ const Categories = () => {
   const [modalState, setModalState] = useState("");
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 3;
+  const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
+  const currentPageData = dataList.slice(startIndex, endIndex);
 
   const fetch_handle = async (archive: boolean) => {
     setLoading(true);
@@ -114,11 +120,12 @@ const Categories = () => {
     setAllData(fetched_data);
     setLoading(false);
   };
+
   const openModalHandle = (state: string) => {
     setOpenModal(true);
     setModalState(state);
   };
-  
+
   const closeModalHandle = () => {
     setOpenModal(false);
     setModalState(modalStateEnum.EMPTY);
@@ -140,6 +147,10 @@ const Categories = () => {
   useEffect(() => {
     fetch_handle(getDataArchiveType);
   }, [getDataArchiveType]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [dataList]);
 
   const onClickHandle = async (id: number) => {
     setActiveDeleteId(id);
@@ -190,30 +201,29 @@ const Categories = () => {
   const RightSideComponent = useMemo(
     () => (
       <div className="text-sm p-1 space-x-1 flex items-center justify-end w-full rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
-  <button
-    onClick={handleActiveClick}
-    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-      !getDataArchiveType
-        ? "bg-blue-700 text-white"
-        : "text-gray-700 dark:text-gray-300"
-    }`}
-  >
-    <ShieldCheck size={16} />
-    <span>Active</span>
-  </button>
-  <button
-    onClick={handleArchiveClick}
-    className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-      getDataArchiveType
-        ? "bg-blue-700 text-white"
-        : "text-gray-700 dark:text-gray-300"
-    }`}
-  >
-    <Archive size={16} />
-    <span>Archived</span>
-  </button>
-</div>
-
+        <button
+          onClick={handleActiveClick}
+          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
+            !getDataArchiveType
+              ? "bg-blue-700 text-white"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          <ShieldCheck size={16} />
+          <span>Active</span>
+        </button>
+        <button
+          onClick={handleArchiveClick}
+          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
+            getDataArchiveType
+              ? "bg-blue-700 text-white"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          <Archive size={16} />
+          <span>Archived</span>
+        </button>
+      </div>
     ),
     [getDataArchiveType, handleActiveClick, handleArchiveClick]
   );
@@ -257,7 +267,7 @@ const Categories = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
 
   return (
-    <main className="w-full h-full font-medium text-base dark:bg-gray-900 text-white">
+    <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
           <h1 className="text-lg font-semibold px-3 mb-3 text-white">Categories</h1>
@@ -299,85 +309,145 @@ const Categories = () => {
           </div>
 
           <div className="px-3 pt-5">
-            <div className="border rounded-md border-gray-300 dark:border-gray-700 overflow-x-auto">
-              <Table className="min-w-[600px]">
-                <TableHeader className="bg-gray-100 dark:bg-gray-800 border-b border-b-gray-300 dark:border-b-gray-700">
-                  <TableRow className="flex hover:bg-transparent">
-                    <TableHead className="w-12 p-3">
-                      {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-                    </TableHead>
-                    {tableHeader.map(({ label, align }, index) => (
-                      <TableHead
-                        key={index}
-                        className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
-                      >
-                        {t(label)}
+            <div className="border rounded-md border-gray-300 dark:border-gray-700">
+              {/* Table for medium and larger screens */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table className="min-w-full">
+                  <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700">
+                    <TableRow className="flex hover:bg-transparent">
+                      <TableHead className="w-12 p-3">
+                        {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
                       </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
+                      {tableHeader.map(({ label, align }, index) => (
+                        <TableHead
+                          key={index}
+                          className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+                        >
+                          {t(label)}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
 
-                <TableBody className="mb-4 h-[30dvh] overflow-y-auto block bg-white dark:bg-gray-900">
-                  {loading ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-gray-900">
-                        <Spinner size="xl" />
-                      </TableCell>
-                    </TableRow>
-                  ) : dataList.length === 0 ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-gray-900">
-                        <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    dataList.map((elem, index) => (
-                      <TableRow
-                        key={index}
-                        className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
-                      >
-                        <TableCell className="w-12 p-0">
-                          {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+                  <TableBody className="mb-4 bg-white dark:bg-[#0e1725]">
+                    {loading ? (
+                      <TableRow className="flex h-full">
+                        <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                          <Spinner size="xl" />
                         </TableCell>
-                        {tableHeader.map(({ id, Render_Value, align }, ind) => {
-                          const content = Render_Value ? (
-                            <Render_Value
-                              getDataArchiveType={getDataArchiveType}
-                              isLoading={deleteLoading}
-                              onClickHandle={() => onClickHandle(elem.category_id)}
-                            />
-                          ) : (
-                            <span className="text-gray-800 dark:text-white">{elem[id]}</span>
-                          );
-
-                          return (
-                            <TableCell
-                              key={ind}
-                              className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
-                            >
-                              {content}
-                            </TableCell>
-                          );
-                        })}
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : dataList.length === 0 ? (
+                      <TableRow className="flex h-full">
+                        <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
+                          <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      currentPageData.map((elem, index) => (
+                        <TableRow
+                          key={index}
+                          className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
+                        >
+                          <TableCell className="w-12 p-0">
+                            {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+                          </TableCell>
+                          {tableHeader.map(({ id, Render_Value, align }, ind) => {
+                            const content = Render_Value ? (
+                              <Render_Value
+                                getDataArchiveType={getDataArchiveType}
+                                isLoading={deleteLoading}
+                                onClickHandle={() => onClickHandle(elem.category_id)}
+                              />
+                            ) : (
+                              <span className="text-gray-800 dark:text-white">{elem[id]}</span>
+                            );
+
+                            return (
+                              <TableCell
+                                key={ind}
+                                className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
+                              >
+                                {content}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Card layout for small screens */}
+              <div className="md:hidden p-4 space-y-4">
+                {loading ? (
+                  <div className="h-[30dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                    <Spinner size="xl" />
+                  </div>
+                ) : dataList.length === 0 ? (
+                  <div className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
+                    <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+                  </div>
+                ) : (
+                  <>
+                    {currentPageData.map((elem, index) => (
+                      <div
+                        key={index}
+                        className="bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-700 rounded-md p-4 shadow-sm"
+                      >
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("Inventory_k7")}
+                            </span>
+                            <span className="text-sm text-gray-800 dark:text-white">
+                              {elem.category_id}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t("Inventory_k8")}
+                            </span>
+                            <span className="text-sm text-gray-800 dark:text-white">
+                              {elem.category_name}
+                            </span>
+                          </div>
+                          <div className="flex justify-end">
+                            {/* @ts-ignore */}
+                            {tableHeader[2].Render_Value({
+                              getDataArchiveType,
+                              isLoading: deleteLoading,
+                              onClickHandle: () => onClickHandle(elem.category_id),
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
 
               <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
-  <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-    {dataList.length === 0 ? "0" : "0"} of {dataList.length} row(s) selected.
-  </div>
-  <div className="flex gap-2">
-    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]">
-      Previous
-    </button>
-    <button className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white min-w-[80px]">
-      Next
-    </button>
-  </div>
-</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  Rows {dataList.length === 0 ? 0 : startIndex + 1}-{endIndex} of {dataList.length}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={page === totalPages}
+                    className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -397,7 +467,6 @@ const Categories = () => {
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          // border="border-[1px] border-gray-600 rounded-md"
           label="Category"
           darkMode={true}
           bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"

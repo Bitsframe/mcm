@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
-import  LocationModal  from "@/components/UserManagementComponents/LocationModal";
+import LocationModal from "@/components/UserManagementComponents/LocationModal";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import axios from "axios";
 
@@ -45,7 +45,6 @@ const modalStateEnum = {
 };
 
 const tableHeader = [
-
   {
     id: "category",
     label: "Inventory_k1",
@@ -60,35 +59,19 @@ const tableHeader = [
     id: "price",
     label: "Inventory_k18",
     can_sort: true,
-    align: 'text-center ',
-    width: 1
+    align: "text-center",
+    width: 1,
   },
   {
     id: "stock",
     label: "Inventory_k19",
     can_sort: true,
-    align: 'text-center ',
+    align: "text-center",
     width: 1,
     render_value: (val: any, elem?: any) => {
       return elem?.unlimited ? "Unlimited" : val;
-    }
+    },
   },
-  // {
-  //   id: "stock",
-  //   label: "Inventory_k19",
-  //   Render_Value: ({ unlimited }: { unlimited?: boolean }) => {
-  //     return (
-  //       <div className="text-center w-1/2">
-  //         <input
-  //         type="checkbox"
-  //         checked={unlimited}
-  //         readOnly
-  //         className="h-4 w-4 rounded  border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
-  //       />
-  //       </div>
-  //     );
-  //   },
-  // },
   {
     id: "actions",
     label: "Inventory_k9",
@@ -190,9 +173,12 @@ const Products = () => {
     location_ids: [],
     quantity: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
 
   const calculateTotalAssigned = useCallback(() => {
-    if (!assignModalData.location_ids?.length || !assignModalData.quantity) return 0;
+    if (!assignModalData.location_ids?.length || !assignModalData.quantity)
+      return 0;
     return assignModalData.location_ids.length * assignModalData.quantity;
   }, [assignModalData.location_ids, assignModalData.quantity]);
 
@@ -204,10 +190,16 @@ const Products = () => {
       if (totalAssigned > modalData.stock) return false;
     }
     return true;
-  }, [assignModalData.location_ids, assignModalData.quantity, modalData.unlimited, modalData.stock, calculateTotalAssigned]);
+  }, [
+    assignModalData.location_ids,
+    assignModalData.quantity,
+    modalData.unlimited,
+    modalData.stock,
+    calculateTotalAssigned,
+  ]);
 
   const getRemainingStock = useCallback(() => {
-    if (modalData.unlimited) return 'Unlimited';
+    if (modalData.unlimited) return "Unlimited";
     const remaining = modalData.stock - calculateTotalAssigned();
     return remaining < 0 ? 0 : remaining;
   }, [modalData.unlimited, modalData.stock, calculateTotalAssigned]);
@@ -258,22 +250,37 @@ const Products = () => {
       );
       setDataList([...filteredData]);
     }
+    setCurrentPage(1);
+  };
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return dataList.slice(startIndex, endIndex);
+  }, [dataList, currentPage]);
+
+  const totalPages = Math.ceil(dataList.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   useEffect(() => {
     fetch_handle(getDataArchiveType);
   }, [getDataArchiveType]);
 
-  const modalInputChangeHandle = (key: string, value: string | number | boolean) => {
-    if (key === 'unlimited') {
-      // If unlimited is checked, set stock to 0
+  const modalInputChangeHandle = (
+    key: string,
+    value: string | number | boolean
+  ) => {
+    if (key === "unlimited") {
       setModalData((pre) => {
         return { ...pre, [key]: value, stock: 0 };
       });
     } else {
-    setModalData((pre) => {
-      return { ...pre, [key]: value };
-    });
+      setModalData((pre) => {
+        return { ...pre, [key]: value };
+      });
     }
   };
 
@@ -284,10 +291,10 @@ const Products = () => {
         const { data: res_data, error } = await create_content_service({
           table: "products",
           language: "",
-          post_data: { 
+          post_data: {
             ...modalData,
             stock: modalData.unlimited ? 0 : modalData.stock,
-            price: parseFloat(modalData.price) || 0
+            price: parseFloat(modalData.price) || 0,
           },
         });
 
@@ -304,7 +311,7 @@ const Products = () => {
           product_name: modalData.product_name,
           unlimited: modalData.unlimited || false,
           stock: modalData.unlimited ? 0 : modalData.stock,
-          price: parseFloat(modalData.price) || 0
+          price: parseFloat(modalData.price) || 0,
         };
         const res_data = await update_content_service({
           table: "products",
@@ -327,7 +334,7 @@ const Products = () => {
   };
 
   const handleLocationSelect = (locationId: number) => {
-    setAssignModalData(prev => {
+    setAssignModalData((prev) => {
       const location_ids = prev.location_ids?.includes(locationId)
         ? prev.location_ids.filter((id: number) => id !== locationId)
         : [...(prev.location_ids || []), locationId];
@@ -336,22 +343,25 @@ const Products = () => {
   };
 
   const handleSelectAll = () => {
-    setAssignModalData(prev => ({
+    setAssignModalData((prev) => ({
       ...prev,
-      location_ids: prev.location_ids?.length === locations.length ? [] : locations.map((loc: any) => loc.id)
+      location_ids:
+        prev.location_ids?.length === locations.length
+          ? []
+          : locations.map((loc: any) => loc.id),
     }));
   };
 
   const handleQuantityChange = (value: string) => {
     const newQuantity = parseInt(value) || 0;
     const totalAssigned = newQuantity * (assignModalData.location_ids?.length || 0);
-    
+
     if (!modalData.unlimited && totalAssigned > modalData.stock) {
       toast.error(`Cannot assign more than available stock (${modalData.stock})`);
       return;
     }
-    
-    setAssignModalData(prev => ({ ...prev, quantity: newQuantity }));
+
+    setAssignModalData((prev) => ({ ...prev, quantity: newQuantity }));
   };
 
   const assignSubmitHandle = async () => {
@@ -387,7 +397,9 @@ const Products = () => {
       closeModalHandle();
       fetch_handle(getDataArchiveType);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error?.message || "Something went wrong!");
+      toast.error(
+        error?.response?.data?.message || error?.message || "Something went wrong!"
+      );
     } finally {
       setModalEventLoading(false);
     }
@@ -472,45 +484,15 @@ const Products = () => {
     }
   };
 
-  const RightSideComponent = useMemo(
-    () => (
-      <div className="text-sm text-gray-500 flex items-center justify-end w-full mr-6">
-        <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
-          <button
-            onClick={handleActiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${!getDataArchiveType
-              ? "bg-blue-600 text-white dark:bg-blue-700"
-              : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            Active
-          </button>
-          <button
-            onClick={handleArchiveClick}
-            className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${getDataArchiveType
-              ? "bg-blue-600 text-white dark:bg-blue-700"
-              : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-          >
-            <Archive className="w-4 h-4" />
-            Archived
-          </button>
-        </div>
-      </div>
-    ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
-  );
-
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
           <h1 className="text-xl font-bold px-3 py-2 dark:text-white">
             Products
           </h1>
-          <div className="px-3 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+          <div className=" py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
               <input
                 onChange={onChangeHandle}
@@ -521,34 +503,64 @@ const Products = () => {
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex  sm:w-auto items-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>Add Product</span>
               </button>
             </div>
 
-            {RightSideComponent}
+            <div className="text-sm text-gray-500 flex items-center justify-end w-full sm:w-auto">
+              <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
+                <button
+                  onClick={handleActiveClick}
+                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    !getDataArchiveType
+                      ? "bg-blue-600 text-white dark:bg-blue-700"
+                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Active
+                </button>
+                <button
+                  onClick={handleArchiveClick}
+                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                    getDataArchiveType
+                      ? "bg-blue-600 text-white dark:bg-blue-700"
+                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <Archive className="w-4 h-4" />
+                  Archived
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="pt-5">
-            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-auto">
-              <Table className="min-w-[700px] w-full">
-                <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
-                  <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
-                    <TableHead className="w-12 p-3"></TableHead>
-                    {tableHeader.map(({ label, align, can_sort, id }, index) => (
+            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-hidden">
+              {/* Table for larger screens */}
+              <div className="hidden md:block">
+                <Table className="w-full">
+                  <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
+                    <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
+                      <TableHead className="w-8 p-2"></TableHead>
+                      {tableHeader.map(({ label, align, can_sort, id }, index) => (
                         <TableHead
                           key={index}
-                        className={`flex-1 ${
-                          id === "price" || id === "stock" || id === "actions"
-                            ? "text-center align-middle min-w-[260px]"
-                            : align || "text-start align-middle"
-                        } text-base text-[#71717A] font-normal p-3 dark:text-gray-400
-                          ${id === "price" || id === "stock" || id === "actions" ? "hidden md:table-cell" : ""}
-                          truncate`}
-                      >
-                        <div className="flex items-center justify-start">
+                          className={`${
+                            id === "category" ? "w-[20%]" :
+                            id === "product_name" ? "w-[25%]" :
+                            id === "price" || id === "stock" ? "w-[12%]" :
+                            id === "actions" ? "w-[31%]" : "flex-1"
+                          } ${
+                            id === "price" || id === "stock" || id === "actions"
+                              ? "text-center"
+                              : "text-start"
+                          } text-base text-[#71717A] font-normal p-2 dark:text-gray-400 truncate`}
+                        >
+                          <div className="flex items-center justify-between">
                             {t(label)}
                             {can_sort && (
                               <button
@@ -556,103 +568,255 @@ const Products = () => {
                                 className="active:opacity-50 ml-1"
                               >
                                 <PiCaretUpDownBold
-                                  className={`inline ${sortColumn === id
-                                    ? "text-blue-600 dark:text-blue-400"
-                                    : "text-gray-400 dark:text-gray-500"
-                                    } hover:text-gray-600 dark:hover:text-gray-300`}
+                                  className={`inline ${
+                                    sortColumn === id
+                                      ? "text-blue-600 dark:text-blue-400"
+                                      : "text-gray-400 dark:text-gray-500"
+                                  } hover:text-gray-600 dark:hover:text-gray-300`}
                                 />
                               </button>
                             )}
                           </div>
                         </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className="mb-4 h-[25dvh] overflow-y-auto block">
-                  {loading ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
-                        <Spinner size="xl" className="dark:text-white" />
-                      </TableCell>
+                      ))}
                     </TableRow>
-                  ) : dataList.length === 0 ? (
-                    <TableRow className="flex h-full">
-                      <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
-                        <h1>No Product is available</h1>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    dataList.map((elem: DataListInterface, index) => (
-                      <TableRow
-                        key={index}
-                        className="flex items-center border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <TableCell className="w-12 p-3"></TableCell>
-                        {tableHeader.map((element, ind) => {
-                          const { id, Render_Value, align, width, render_value } = element;
-                          // Responsive: hide price, stock, actions on mobile
-                          if ((id === "price" || id === "stock" || id === "actions") && typeof window !== 'undefined' && window.innerWidth < 768) {
-                            return null;
-                          }
-                          const content = Render_Value ? (
-                            <Render_Value
-                              getDataArchiveType={getDataArchiveType}
-                              clickHandle={(action: string) =>
-                                buttonClickActionHandle(action, elem)
-                              } />
-                          ) : (
-                            <div className={width === 1 ? 'w-1/2 truncate' : 'truncate'} title={elem[id]}>
-                              {render_value ? render_value(elem[id], elem) : elem[id]}
-                            </div>
-                          );
+                  </TableHeader>
 
-                          // Special handling for actions column
-                          if (id === "actions") {
+                  <TableBody className="h-[120px] overflow-y-auto block">
+                    {loading ? (
+                      <TableRow className="flex h-full">
+                        <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
+                          <Spinner size="xl" className="dark:text-white" />
+                        </TableCell>
+                      </TableRow>
+                    ) : dataList.length === 0 ? (
+                      <TableRow className="flex h-full">
+                        <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                          <h1>No Product is available</h1>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedData.map((elem: DataListInterface, index) => (
+                        <TableRow
+                          key={index}
+                          className="flex items-center border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <TableCell className="w-8 p-2"></TableCell>
+                          {tableHeader.map((element, ind) => {
+                            const { id, Render_Value, align, width, render_value } =
+                              element;
+                            const content = Render_Value ? (
+                              <Render_Value
+                                getDataArchiveType={getDataArchiveType}
+                                clickHandle={(action: string) =>
+                                  buttonClickActionHandle(action, elem)
+                                }
+                              />
+                            ) : (
+                              <div
+                                className={width === 1 ? "w-1/2 truncate" : "truncate"}
+                                title={elem[id]}
+                              >
+                                {render_value
+                                  ? render_value(elem[id], elem)
+                                  : elem[id]}
+                              </div>
+                            );
+
+                            if (id === "actions") {
+                              return (
+                                <TableCell
+                                  key={ind}
+                                  className="w-[31%] text-center p-2"
+                                >
+                                  <div className="flex flex-row justify-center items-center gap-x-2 whitespace-nowrap">
+                                    <Action_Button
+                                      icon={<RefreshCcw size={16} />}
+                                      onClick={() =>
+                                        buttonClickActionHandle("Update", elem)
+                                      }
+                                      label="Update"
+                                      text_color="text-[#0066ff] dark:text-blue-400"
+                                      bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
+                                      border="border-[#CCE0FF] dark:border-blue-800"
+                                    />
+                                    <Action_Button
+                                      icon={<Archive size={16} />}
+                                      onClick={() =>
+                                        buttonClickActionHandle("Delete", elem)
+                                      }
+                                      label={getDataArchiveType ? "Unarchive" : "Archive"}
+                                      text_color={
+                                        getDataArchiveType
+                                          ? "text-[#0EA542] dark:text-green-400"
+                                          : "text-[#F71B1B] dark:text-red-400"
+                                      }
+                                      bg_color={
+                                        getDataArchiveType
+                                          ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                                          : "bg-[#FFE8E5] dark:bg-red-900/30"
+                                      }
+                                      border={
+                                        getDataArchiveType
+                                          ? "border-[#72F39E] dark:border-green-800"
+                                          : "border-[#FFD2CC] dark:border-red-800"
+                                      }
+                                    />
+                                    <Action_Button
+                                      icon={<CirclePlus size={16} />}
+                                      onClick={() =>
+                                        buttonClickActionHandle("Assign", elem)
+                                      }
+                                      label="Assign"
+                                      text_color="text-[#0EA542] dark:text-green-400"
+                                      bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
+                                      border="border-[#72F39E] dark:border-green-800"
+                                    />
+                                  </div>
+                                </TableCell>
+                              );
+                            }
+
                             return (
                               <TableCell
                                 key={ind}
-                                className="flex-1 text-center align-middle min-w-[260px] p-3"
+                                className={`${
+                                  id === "category" ? "w-[20%]" :
+                                  id === "product_name" ? "w-[25%]" :
+                                  id === "price" || id === "stock" ? "w-[12%]" : "flex-1"
+                                } ${
+                                  id === "price" || id === "stock"
+                                    ? "text-center"
+                                    : "text-start"
+                                } text-base p-2 dark:text-gray-300 truncate`}
                               >
-                                <div className="flex flex-row justify-center items-center gap-x-3 whitespace-nowrap">
-                                  <Action_Button icon={<RefreshCcw size={18} />} onClick={() => buttonClickActionHandle('Update', elem)} label="Update" text_color="text-[#0066ff] dark:text-blue-400" bg_color="bg-[#E5F0FF] dark:bg-blue-900/30" border="border-[#CCE0FF] dark:border-blue-800" />
-                                  <Action_Button icon={<Archive size={18} />} onClick={() => buttonClickActionHandle('Delete', elem)} label={getDataArchiveType ? "Unarchive" : "Archive"} text_color={getDataArchiveType ? "text-[#0EA542] dark:text-green-400" : "text-[#F71B1B] dark:text-red-400"} bg_color={getDataArchiveType ? "bg-[#E7FDEF] dark:bg-green-900/30" : "bg-[#FFE8E5] dark:bg-red-900/30"} border={getDataArchiveType ? "border-[#72F39E] dark:border-green-800" : "border-[#FFD2CC] dark:border-red-800"} />
-                                  <Action_Button icon={<CirclePlus size={18} />} onClick={() => buttonClickActionHandle('Assign', elem)} label="Assign" text_color="text-[#0EA542] dark:text-green-400" bg_color="bg-[#E7FDEF] dark:bg-green-900/30" border="border-[#72F39E] dark:border-green-800" />
-                                </div>
+                                {id === "category"
+                                  ? elem?.categories?.category_name
+                                  : content}
                               </TableCell>
                             );
-                          }
+                          })}
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-                          return (
-                            <TableCell
-                              key={ind}
-                              className={`flex-1 ${
-                                id === "price" || id === "stock"
-                                  ? "text-center align-middle"
-                                  : align || "text-start align-middle"
-                              } text-base p-3 dark:text-gray-300 ${id === "price" || id === "stock" ? "hidden md:table-cell" : ""} truncate`}
-                            >
-                              {id === "category"
-                                ? elem?.categories?.category_name
-                                : content}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              {/* Remove the duplicate pagination controls */}
 
-              <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t dark:border-gray-700 gap-2">
+              {/* Card layout for mobile screens */}
+              <div className="md:hidden space-y-4">
+                {loading ? (
+                  <div className="h-[60dvh] w-full flex flex-col justify-center items-center">
+                    <Spinner size="xl" className="dark:text-white" />
+                  </div>
+                ) : dataList.length === 0 ? (
+                  <div className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                    <h1>No Product is available</h1>
+                  </div>
+                ) : (
+                  <>
+                    {paginatedData.map((elem: DataListInterface, index) => (
+                      <div
+                        key={index}
+                        className="bg-white dark:bg-[#0e1725] p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k1")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300 truncate">
+                              {elem?.categories?.category_name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k8")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300 truncate">
+                              {elem.product_name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k18")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300">
+                              {elem.price}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              {t("Inventory_k19")}:
+                            </span>
+                            <span className="text-sm dark:text-gray-300">
+                              {elem.unlimited ? "Unlimited" : elem.stock}
+                            </span>
+                          </div>
+                          <div className="flex justify-end gap-2 mt-3">
+                            <Action_Button
+                              icon={<RefreshCcw size={16} />}
+                              onClick={() => buttonClickActionHandle("Update", elem)}
+                              label="Update"
+                              text_color="text-[#0066ff] dark:text-blue-400"
+                              bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
+                              border="border-[#CCE0FF] dark:border-blue-800"
+                            />
+                            <Action_Button
+                              icon={<Archive size={16} />}
+                              onClick={() => buttonClickActionHandle("Delete", elem)}
+                              label={getDataArchiveType ? "Unarchive" : "Archive"}
+                              text_color={
+                                getDataArchiveType
+                                  ? "text-[#0EA542] dark:text-green-400"
+                                  : "text-[#F71B1B] dark:text-red-400"
+                              }
+                              bg_color={
+                                getDataArchiveType
+                                  ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                                  : "bg-[#FFE8E5] dark:bg-red-900/30"
+                              }
+                              border={
+                                getDataArchiveType
+                                  ? "border-[#72F39E] dark:border-green-800"
+                                  : "border-[#FFD2CC] dark:border-red-800"
+                              }
+                            />
+                            <Action_Button
+                              icon={<CirclePlus size={16} />}
+                              onClick={() => buttonClickActionHandle("Assign", elem)}
+                              label="Assign"
+                              text_color="text-[#0EA542] dark:text-green-400"
+                              bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
+                              border="border-[#72F39E] dark:border-green-800"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 border-t dark:border-gray-700">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  0 of {dataList.length} row(s) selected.
+                  {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, dataList.length)} of {dataList.length} row(s)
                 </div>
-                <div className="flex gap-2 flex-col sm:flex-row w-full sm:w-auto">
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                  >
                     Previous
                   </button>
-                  <button className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white w-full sm:w-auto">
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                  >
                     Next
                   </button>
                 </div>
@@ -668,7 +832,9 @@ const Products = () => {
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
-        create_new_handle={modalState === modalStateEnum.ASSIGN ? assignSubmitHandle : modalSubmitHandle}
+        create_new_handle={
+          modalState === modalStateEnum.ASSIGN ? assignSubmitHandle : modalSubmitHandle
+        }
         buttonLabel={modalState}
         Trigger_Button={null}
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
@@ -688,14 +854,20 @@ const Products = () => {
                     onChange={handleSelectAll}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
                   />
-                  <label htmlFor="select-all-locations" className="text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="select-all-locations"
+                    className="text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Select All
                   </label>
                 </div>
               </div>
               <div className="max-h-[200px] overflow-y-auto border rounded-md dark:border-gray-700">
                 {locations.map((location: any) => (
-                  <div key={location.id} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 border-b last:border-b-0 dark:border-gray-700">
+                  <div
+                    key={location.id}
+                    className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 border-b last:border-b-0 dark:border-gray-700"
+                  >
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -704,7 +876,10 @@ const Products = () => {
                         onChange={() => handleLocationSelect(location.id)}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
                       />
-                      <label htmlFor={`location-${location.id}`} className="text-sm text-gray-700 dark:text-gray-300">
+                      <label
+                        htmlFor={`location-${location.id}`}
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
                         {location.title}
                       </label>
                     </div>
@@ -719,7 +894,7 @@ const Products = () => {
               <div>
                 <Input_Component
                   type="number"
-                  value={assignModalData.quantity?.toString() || ''}
+                  value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
                   label="Quantity per Location"
@@ -736,18 +911,36 @@ const Products = () => {
                 {!modalData.unlimited && (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Available Stock:</span>
-                      <span className="font-medium dark:text-white">{modalData.stock}</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Available Stock:
+                      </span>
+                      <span className="font-medium dark:text-white">
+                        {modalData.stock}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Total to Assign:</span>
-                      <span className={`font-medium ${calculateTotalAssigned() > modalData.stock ? 'text-red-500' : 'dark:text-white'}`}>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Total to Assign:
+                      </span>
+                      <span
+                        className={`font-medium ${
+                          calculateTotalAssigned() > modalData.stock
+                            ? "text-red-500"
+                            : "dark:text-white"
+                        }`}
+                      >
                         {calculateTotalAssigned()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Remaining After Assignment:</span>
-                      <span className={`font-medium ${getRemainingStock() === 0 ? 'text-red-500' : 'dark:text-white'}`}>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Remaining After Assignment:
+                      </span>
+                      <span
+                        className={`font-medium ${
+                          getRemainingStock() === 0 ? "text-red-500" : "dark:text-white"
+                        }`}
+                      >
                         {getRemainingStock()}
                       </span>
                     </div>
@@ -762,55 +955,58 @@ const Products = () => {
             </div>
           </div>
         ) : (
-        <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
-          {requiredInputFields.map((elem, index) => {
+          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
+            {requiredInputFields.map((elem, index) => {
               const { id, label, colSpan, type } = elem;
-            return id === "category_id" ? (
-              <div key={index} className="col-span-2 space-y-2">
-                <Searchable_Dropdown
-                  initialValue={0}
-                  value={modalData[id]}
-                  start_empty={true}
-                  options_arr={categories.map(
-                    ({ category_id, category_name }: any) => ({
-                      value: category_id,
-                      label: category_name,
-                    })
-                  )}
-                  required={true}
-                  on_change_handle={(e: any) =>
-                    modalInputChangeHandle(id, e.target.value)
-                  }
-                  label="Category"
-                />
-              </div>
-            ) : (
+              return id === "category_id" ? (
+                <div key={index} className="col-span-2 space-y-2">
+                  <Searchable_Dropdown
+                    initialValue={0}
+                    value={modalData[id]}
+                    start_empty={true}
+                    options_arr={categories.map(
+                      ({ category_id, category_name }: any) => ({
+                        value: category_id,
+                        label: category_name,
+                      })
+                    )}
+                    required={true}
+                    on_change_handle={(e: any) =>
+                      modalInputChangeHandle(id, e.target.value)
+                    }
+                    label="Category"
+                  />
+                </div>
+              ) : (
                 <div key={index} className={colSpan || "col-span-2"}>
-                <Input_Component
+                  <Input_Component
                     type={type || "text"}
-                  value={modalData[id]}
-                  onChange={(e: string) => modalInputChangeHandle(id, e)}
-                  border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                  label={label}
-                  bg_color="bg-white dark:bg-[#0e1725]"
+                    value={modalData[id]}
+                    onChange={(e: string) => modalInputChangeHandle(id, e)}
+                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                    label={label}
+                    bg_color="bg-white dark:bg-[#0e1725]"
                     disabled={id === "stock" && modalData.unlimited}
-                />
-              </div>
-            );
-          })}
-          <div className="col-span-2 flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="unlimited"
-              checked={modalData.unlimited}
-              onChange={(e) => modalInputChangeHandle('unlimited', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
-            />
-            <label htmlFor="unlimited" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Unlimited Quantity
-            </label>
+                  />
+                </div>
+              );
+            })}
+            <div className="col-span-2 flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="unlimited"
+                checked={modalData.unlimited}
+                onChange={(e) => modalInputChangeHandle("unlimited", e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+              />
+              <label
+                htmlFor="unlimited"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Unlimited Quantity
+              </label>
+            </div>
           </div>
-        </div>
         )}
       </Custom_Modal>
 

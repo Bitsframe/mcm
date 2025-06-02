@@ -62,7 +62,7 @@ const Home = () => {
             options_arr={home_section_options}
             on_change_handle={select_section_handle}
             required={true}
-            bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
+            bg_color="bg-[#F1F4F7] dark:bg-[#122139]"
           />
           <Select_Dropdown
             value={selected_language}

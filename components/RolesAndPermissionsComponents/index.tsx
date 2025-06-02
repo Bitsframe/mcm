@@ -5,7 +5,7 @@ import PermissionToggle from "./PermissionToggle";
 import { Switch } from "antd";
 import { useRolesAndPermissions } from "@/hooks/useRolesAndPermissions";
 import { CircularProgress } from "@mui/material";
-import { CirclePlus, Pencil, Search, Trash2 } from "lucide-react";
+import { CirclePlus, Pencil, Search, Trash2, Eye, PenBoxIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -59,19 +59,89 @@ const SingleRoleHandle = ({
   };
 
   return (
-    <TableRow
-      className={`hover:bg-gray-200 dark:hover:bg-gray-700 ${selectedRole.id === data.id ? "bg-gray-200 dark:bg-gray-700" : ""
+    <>
+      {/* Desktop Table Row */}
+      <TableRow
+        className={`hidden md:table-row hover:bg-gray-200 border dark:border-[#172945] dark:hover:bg-gray-700 ${
+          selectedRole.id === data.id ? "bg-gray-200 dark:bg-[#0E1725]" : ""
         }`}
-    >
-      <TableCell className="font-medium p-2">
+      >
+        <TableCell className="font-medium p-2">
+          {editStateId === data.id ? (
+            <div className="flex items-center gap-3">
+              <Input
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="dark:bg-gray-800"
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleUpdate} size="sm">
+                  {t("RP_k8")}
+                </Button>
+                <Button onClick={handleCancel} variant="outline" size="sm">
+                  {t("RP_k4")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-4 flex-1">
+                <span className="dark:text-white text-left">
+                  {data.name}
+                </span>
+              </div>
+
+              <div className="flex gap-1 justify-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                  onClick={handleSelectRole}
+                >
+                  <Eye size={16} color="gray" />
+                </Button>
+                {data.id !== 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                      onClick={() => deleteRoleHandle(data.id)}
+                    >
+                      <Trash2 size={16} color="red" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                      onClick={() => editHandle(data.id)}
+                    >
+                      <PenBoxIcon size={16} color="blue" />
+                      </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </TableCell>
+      </TableRow>
+
+      {/* Mobile Card */}
+      <div
+        className={`md:hidden p-4 mb-2 rounded-lg border dark:border-[#172945] ${
+          selectedRole.id === data.id
+            ? "bg-gray-200 dark:bg-[#0E1725]"
+            : "bg-white dark:bg-[#0E1725]"
+        }`}
+      >
         {editStateId === data.id ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3">
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               className="dark:bg-gray-800"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end">
               <Button onClick={handleUpdate} size="sm">
                 {t("RP_k8")}
               </Button>
@@ -81,40 +151,46 @@ const SingleRoleHandle = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-4 flex-1">
-              <span
-                className="dark:text-white cursor-pointer text-left"
-                onClick={handleSelectRole}
-              >
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="dark:text-white font-medium">
                 {data.name}
               </span>
-            </div>
-
-            {data.id !== 1 && (
-              <div className="flex gap-1 justify-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
-                  onClick={() => deleteRoleHandle(data.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
-                  onClick={() => editHandle(data.id)}
+                  onClick={handleSelectRole}
                 >
-                  <Pencil size={16} />
+                  <Eye size={16} color="gray" />
                 </Button>
+                {data.id !== 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                      onClick={() => deleteRoleHandle(data.id)}
+                    >
+                      <Trash2 size={16} color="red" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                      onClick={() => editHandle(data.id)}
+                    >
+                      <PenBoxIcon size={16} color="blue" />
+                    </Button>
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
         )}
-      </TableCell>
-    </TableRow>
+      </div>
+    </>
   );
 };
 
@@ -225,9 +301,9 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
   return (
-    <div className="p-6 w-full mx-auto max-h-[87dvh] dark:bg-gray-900">
+    <div className="p-6 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
-        <h1 className="text-xl font-bold">Roles and Permissions</h1>
+        <h1 className="text-xl font-bold dark:text-white">Roles and Permissions</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           Tools / Roles and Permissions
         </h1>
@@ -235,32 +311,33 @@ const RolesAndPermissionsComponent: React.FC = () => {
       <div className="w-full flex flex-col mt-5">
         {/* User Roles Section */}
         <div className="w-full mb-6">
-          <div className="flex items-center justify-between mb-3">
-            {/* Search Input with icon */}
-            <div className="relative">
-              <Input
-                placeholder="Search roles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-            </div>
-            <div>
-              <button
-                onClick={() => toggleActivateAddNewRoleHandle(true)}
-                className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center gap-2"
-              >
-                <CirclePlus className="h-4 w-4" />
-                {t("RP_k6")}
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
+    {/* Search Input with icon */}
+    <div className="relative w-full sm:w-auto">
+        <Input
+            placeholder="Search roles..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10 w-full sm:w-auto"
+        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+    </div>
+    <div className="w-full sm:w-auto">
+        <button
+            onClick={() => toggleActivateAddNewRoleHandle(true)}
+            className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
+        >
+            <CirclePlus className="h-4 w-4" />
+            {t("RP_k6")}
+        </button>
+    </div>
+</div>
 
-          <div className="border rounded-md overflow-hidden">
-            <Table className="w-full">
+          <div className="border rounded-md overflow-hidden dark:border-[#172945]">
+            {/* Desktop Table */}
+            <Table className="w-full hidden md:table border dark:border-[#172945]">
               <TableHeader>
-                <TableRow>
+                <TableRow className="border dark:border-[#172945]">
                   <TableHead className="w-full">Role</TableHead>
                 </TableRow>
               </TableHeader>
@@ -290,11 +367,33 @@ const RolesAndPermissionsComponent: React.FC = () => {
               </TableBody>
             </Table>
 
-            {/* Pagination Controls */}
+            {/* Mobile Cards */}
+            <div className="md:hidden p-2">
+              {loadingDataState ? (
+                <div className="text-center py-4">
+                  <CircularProgress />
+                </div>
+              ) : (
+                paginatedRoles.map((elem, index) => (
+                  <SingleRoleHandle
+                    selectedRole={selectedRole}
+                    selectRoleHandle={selectRoleHandle}
+                    editHandle={setEditStateIndexActivate}
+                    editStateId={editStateId}
+                    updateRoleHandle={updateRoleHandle}
+                    deleteRoleHandle={deleteRoleHandle}
+                    key={elem.id}
+                    data={elem}
+                    index={index}
+                    setSelectedRoleDetails={setSelectedRoleDetails}
+                  />
+                ))
+              )}
+            </div>
           </div>
 
           {!loadingDataState && filteredRoles.length > rowsPerPage && (
-            <div className="flex justify-between items-center py-2 border-t dark:border-gray-700 bg-white dark:bg-[#111827]">
+            <div className="flex justify-between items-center py-2 border-t dark:border-gray-700 bg-white dark:bg-[#0E1725]">
               <span className="text-sm text-gray-800 dark:text-white">
                 Showing {currentPage} out of {totalPages}
               </span>
@@ -357,7 +456,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                           onChange={(checked: boolean) =>
                             handlePermissionToggle(perm.id, checked)
                           }
-                          className="dark:bg-gray-600"
+                          className="dark:bg-gray-600 [&.ant-switch-checked]:bg-green-500"
                         />
                       </div>
                     ))}
@@ -367,7 +466,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 <div className="flex items-center gap-2 dark:text-white">
                   <span>Allow All Permissions</span>
                   <Switch
-                    className="disabled:opacity-65"
+                    className="disabled:opacity-65 [&.ant-switch-checked]:bg-green-500"
                     disabled={selectedRoleDetails?.id === 1}
                     onChange={handleAllowAll}
                     checked={
@@ -426,7 +525,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                       onChange={(checked: boolean) =>
                         handlePermissionChange(perm.name, checked)
                       }
-                      className="dark:bg-gray-600"
+                      className="dark:bg-gray-600 [&.ant-switch-checked]:bg-green-500"
                     />
                   </div>
                 ))}

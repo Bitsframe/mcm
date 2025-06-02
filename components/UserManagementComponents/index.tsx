@@ -10,7 +10,14 @@ import axios from "axios";
 import { CreateUserModalDataInterface } from "@/types/typesInterfaces";
 import { toast } from "react-toastify";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
-import { TrashIcon } from "lucide-react";
+import {
+  CirclePlus,
+  Eye,
+  PenBoxIcon,
+  Pencil,
+  Trash2,
+  TrashIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -52,6 +59,9 @@ const UserManagementComponent = () => {
   const [editData, setEditData] = useState<any>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPageLarge = 4; // For large screens (table)
+  const rowsPerPageSmall = 3; // For small screens (cards)
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -74,19 +84,17 @@ const UserManagementComponent = () => {
       );
       setDataList([...filteredData]);
     }
+    setCurrentPage(1); // Reset to first page on search
   };
 
   const fetchUsers = async () => {
     setTableLoading(true);
-    const resData = await axios.get("/api/admin/users");
-    console.log(resData);
     try {
       const fetchedData = await fetch_content_service({
         table: "profiles",
         selectParam: `, roles(name), email, user_locations(location_id, Locations(title))`,
       });
 
-      console.log(fetchedData);
       const users: any = fetchedData.map((user: any) => ({
         id: user.id,
         full_name: user.full_name,
@@ -147,6 +155,7 @@ const UserManagementComponent = () => {
       );
     }
   };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -156,6 +165,10 @@ const UserManagementComponent = () => {
       await axios.post("/api/admin/users/actions/delete", { id });
       toast.success("User deleted successfully!");
       fetchUsers();
+      // Adjust current page if necessary
+      if (dataList.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (error: any) {
       console.error("Error:", error);
       toast.error(`Error: ${error?.response?.data?.message || error.message}`);
@@ -184,67 +197,93 @@ const UserManagementComponent = () => {
 
   const { t } = useTranslation(translationConstant.USERMANAGEMENT);
 
+  // Pagination logic
+  const totalPagesLarge = Math.ceil(dataList.length / rowsPerPageLarge);
+  const totalPagesSmall = Math.ceil(dataList.length / rowsPerPageSmall);
+
+  const paginatedDataLarge = dataList.slice(
+    (currentPage - 1) * rowsPerPageLarge,
+    currentPage * rowsPerPageLarge
+  );
+
+  const paginatedDataSmall = dataList.slice(
+    (currentPage - 1) * rowsPerPageSmall,
+    currentPage * rowsPerPageSmall
+  );
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNext = () => {
+    const totalPages =
+      window.innerWidth < 640 ? totalPagesSmall : totalPagesLarge;
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 py-3 dark:bg-gray-900">
-      <div className="w-full bg-white rounded-lg dark:bg-gray-900">
+    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 py-3 dark:bg-[#0E1725]">
+      <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
+        {/* Heading Section */}
+        <div className="p-1 sm:p-3">
+          <h1 className="text-xl font-bold dark:text-white">{t("User Management")}</h1>
+          <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+            Tools / User Management
+          </h1>
+        </div>
+
         {/* Header with search and add button */}
-        <div className="p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-          <div className="relative w-full sm:w-60 mb-2 sm:mb-0">
+        <div className="p-1 sm:p-3 flex flex-row flex-wrap justify-between items-center gap-2 sm:gap-0">
+          <div className="relative w-full sm:w-60">
             <input
               onChange={onChangeHandle}
-              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
+              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
               type="text"
               placeholder={t("Search users by name")}
             />
-            <IoSearchOutline
-              className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300"
-            />
+            <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300" />
           </div>
 
           <button
             onClick={handleOpen}
-            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 flex items-center gap-2"
+            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 flex items-center gap-2 
+    sm:w-auto w-full justify-center sm:justify-start"
           >
-            <span className="text-lg">+</span> {t("Add New User")}
+            <CirclePlus className="text-lg" />
+            {t("Add New User")}
           </button>
         </div>
 
         {/* Table */}
-        <div className="px-6 pb-6">
-          <div
-            className="border rounded-md overflow-auto dark:border-gray-700 relative"
-            style={{ maxHeight: "400px" }}
-          >
+        <div className="px-3 pb-6">
+          {/* Desktop Table */}
+          <div className="hidden sm:block border rounded-md overflow-auto dark:border-[#172945] relative">
             <Table>
-            <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-                <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-gray-700">
-                  <TableHead className="w-10 dark:bg-gray-800">
-                    {/* <input
-                      type="checkbox"
-                      className="rounded dark:bg-gray-700 dark:border-gray-600"
-                    /> */}
-                  </TableHead>
+              <TableHeader className="sticky top-0 bg-white dark:bg-[#0E1725] z-10">
+                <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-[#172945]">
+                  <TableHead className="w-10 dark:bg-[#0E1725]"></TableHead>
                   {tableHeader.map(({ label, align, classNames }, index) => (
                     <TableHead
                       key={index}
                       className={`font-medium ${align || "text-left"} ${
                         classNames || ""
-                      } dark:text-white dark:bg-gray-800`}
+                      } dark:text-white dark:bg-[#0E1725]`}
                     >
                       {t(label)}
-                      {/* {index < tableHeader.length - 1 && (
-                        <span className="ml-1">↕</span>
-                      )} */}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
-              <TableBody className="divide-y dark:divide-gray-700">
+              <TableBody className="divide-y dark:bg-[#0E1725]">
                 {tableLoading ? (
                   <TableRow>
                     <TableCell
                       colSpan={tableHeader.length + 1}
-                      className="py-20 dark:bg-gray-800"
+                      className="py-20 dark:bg-[#0E1725]"
                     >
                       <div className="flex justify-center">
                         <CircularProgress />
@@ -252,17 +291,12 @@ const UserManagementComponent = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  dataList.map((elem, index) => (
+                  paginatedDataLarge.map((elem, index) => (
                     <TableRow
                       key={index}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
+                      className="hover:bg-gray-50 dark:bg-[#0E1725] dark:border-[#172945]"
                     >
-                      <TableCell className="py-4 pr-3 dark:bg-gray-800">
-                        {/* <input
-                          type="checkbox"
-                          className="rounded dark:bg-gray-700 dark:border-gray-600"
-                        /> */}
-                      </TableCell>
+                      <TableCell className="py-4 pr-3 dark:bg-[#0E1725]"></TableCell>
                       {tableHeader.map(({ id, classNames, align }, ind) => {
                         const content = elem[id];
                         return (
@@ -270,74 +304,35 @@ const UserManagementComponent = () => {
                             key={ind}
                             className={`py-4 ${align || "text-left"} ${
                               classNames || ""
-                            } dark:text-white dark:bg-gray-800`}
+                            } dark:text-white dark:bg-[#0E1725]`}
                           >
                             {id === "toggle" ? (
                               <Switch />
                             ) : id === "actions" ? (
                               <div className="flex items-center space-x-4 justify-end">
-                                {/* View Button */}
                                 <button
                                   className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                                   onClick={() => viewUserHandle(elem)}
                                 >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                    <circle cx="12" cy="12" r="3" />
-                                  </svg>
+                                  <Eye className="w-4 h-4" color="grey" />
                                 </button>
 
-                                {/* Edit Button */}
                                 <button
                                   className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                   onClick={() => editUserHandle(elem)}
                                 >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                  </svg>
+                                  <PenBoxIcon
+                                    className="w-4 h-4"
+                                    color="blue"
+                                  />
                                 </button>
 
-                                {/* Delete Button */}
                                 <button
                                   className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                   disabled={elem.role === "super admin"}
                                   onClick={() => deleteUserHandle(elem.id)}
                                 >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="M3 6h18" />
-                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                                  </svg>
+                                  <Trash2 className="w-4 h-4" color="red" />
                                 </button>
                               </div>
                             ) : (
@@ -369,16 +364,109 @@ const UserManagementComponent = () => {
             </Table>
           </div>
 
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-3 mt-4">
+            {tableLoading ? (
+              <div className="flex justify-center py-20">
+                <CircularProgress />
+              </div>
+            ) : (
+              paginatedDataSmall.map((elem, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 dark:border-[#172945] dark:bg-[#0E1725]"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-base dark:text-white">
+                        {elem.full_name}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                        {elem.role}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
+                        onClick={() => viewUserHandle(elem)}
+                      >
+                        <Eye className="w-4 h-4" color="grey" />{" "}
+                      </button>
+                      <button
+                        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        onClick={() => editUserHandle(elem)}
+                      >
+                        <PenBoxIcon className="w-4 h-4" color="blue" />
+                      </button>
+                      <button
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        disabled={elem.role === "super admin"}
+                        onClick={() => deleteUserHandle(elem.id)}
+                      >
+                        <Trash2 className="w-4 h-4" color="red" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                        Email
+                      </p>
+                      <p className="text-sm dark:text-white">{elem.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                        Locations
+                      </p>
+                      <p className="text-sm dark:text-white">
+                        {elem.locations.length > 0
+                          ? elem.locations.length > 1
+                            ? "Multiple Locations"
+                            : elem.locations[0].title
+                          : "No locations assigned"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
           {/* Pagination */}
           <div className="flex justify-between items-center py-4 text-sm dark:text-white">
             <div className="text-gray-500 dark:text-gray-300">
-              0 of {dataList.length} row(s) selected
+              {dataList.length > 0
+                ? `${
+                    (currentPage - 1) *
+                      (window.innerWidth < 640
+                        ? rowsPerPageSmall
+                        : rowsPerPageLarge) +
+                    1
+                  } - ${Math.min(
+                    currentPage *
+                      (window.innerWidth < 640
+                        ? rowsPerPageSmall
+                        : rowsPerPageLarge),
+                    dataList.length
+                  )} of ${dataList.length} row(s)`
+                : "0 of 0 row(s)"}
             </div>
             <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+              <button
+                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+              >
                 Previous
               </button>
-              <button className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+              <button
+                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                onClick={handleNext}
+                disabled={
+                  currentPage >=
+                  (window.innerWidth < 640 ? totalPagesSmall : totalPagesLarge)
+                }
+              >
                 Next
               </button>
             </div>
@@ -396,7 +484,7 @@ const UserManagementComponent = () => {
       />
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full max-w-md dark:bg-gray-800 dark:border-gray-700">
+        <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
           <SheetHeader>
             <SheetTitle className="text-xl font-semibold dark:text-white">
               User Details

@@ -297,7 +297,7 @@ export const Add_Appointment_Modal = ({
     <div>
       <button
         onClick={open_handle}
-        className="text-lg flex items-center gap-3 bg-[#0066ff] px-5 py-2 rounded-md text-white hover:bg-[#0052cc] transition-colors"
+        className="text-base flex items-center gap-3 bg-[#0066ff] px-5 py-2 rounded-md text-white hover:bg-[#0052cc] transition-colors"
       >
         <CirclePlus color="white" />
         {t("Appoinments_k15")}

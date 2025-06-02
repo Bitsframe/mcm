@@ -51,10 +51,9 @@ const TimeSelector = forwardRef<
     return { label: formattedTime, value };
   });
 
-  // Add 12:00 AM with value as 11:59 PM
   timeOptions.push({
     label: "12:00 AM",
-    value: "23:59:00", // 11:59 PM
+    value: "23:59:00",
   });
 
   return (
@@ -141,8 +140,8 @@ const SettingsComponent: React.FC = () => {
   };
 
   return (
-<div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900">
-      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="relative z-0 h-[80dvh] md:h-[67dvh] bg-background dark:bg-[#0e1725]">
+      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
             Reporting Time
@@ -151,7 +150,7 @@ const SettingsComponent: React.FC = () => {
 
         <div className="flex flex-col md:flex-row">
           {/* Left - Locations */}
-          <div className="w-[30%] border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
                 Locations
@@ -161,7 +160,7 @@ const SettingsComponent: React.FC = () => {
                   type="text"
                   placeholder="Search locations"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
                 <svg
@@ -180,9 +179,9 @@ const SettingsComponent: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-auto h-[calc(80dvh-200px)]">
+            <div className="overflow-auto h-[180px] md:h-[calc(69vh-180px)]">
               {locations
-                .filter(location =>
+                .filter((location) =>
                   location.title.toLowerCase().includes(search.toLowerCase())
                 )
                 .map((location) => (
@@ -202,7 +201,7 @@ const SettingsComponent: React.FC = () => {
           </div>
 
           {/* Right - Details */}
-          <div className="flex-1 p-6 w-[70%] text-gray-800 dark:text-gray-100">
+          <div className="flex-1 p-6 w-full md:w-[70%] text-gray-800 dark:text-gray-100">
             {selectedLocation ? (
               <>
                 <div className="mb-6">

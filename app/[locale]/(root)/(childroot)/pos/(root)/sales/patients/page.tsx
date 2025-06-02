@@ -211,6 +211,8 @@ const Patients = () => {
   const [canAddPatient, setCanAddPatient] = useState(false);
   const { selectedLocation, setSelectedLocation } = useContext(LocationContext);
   const [activeFilterBtn, setActiveFilterBtn] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 2;
 
   const category_change_handle = () => {};
 
@@ -236,6 +238,7 @@ const Patients = () => {
     setDataList(fetched_data);
     setAllData(fetched_data);
     setLoading(false);
+    setCurrentPage(1); // Reset to first page when data changes
   };
 
   useEffect(() => {
@@ -302,6 +305,7 @@ const Patients = () => {
       });
       setDataList([...filteredData]);
     }
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const deleteDataHandle = async () => {
@@ -430,31 +434,38 @@ const Patients = () => {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Pagination logic
+  const indexOfLastCard = currentPage * cardsPerPage;
+  const indexOfFirstCard = indexOfLastCard - cardsPerPage;
+  const currentCards = dataList.slice(indexOfFirstCard, indexOfLastCard);
+  const totalPages = Math.ceil(dataList.length / cardsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
-    <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2">
-      <div className="w-full flex flex-col md:flex-row justify-center gap-4">
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-[65%]">
-          <div className="p-4 flex justify-between items-center">
-            <div>
-              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
+    <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2 md:p-4">
+      <div className="w-full flex flex-col md:flex-row gap-4">
+        {/* Patients List Section - Now at the top */}
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-1/2 mb-4 md:mb-0">
+          <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
+            <div className="w-full md:w-auto">
+              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-2 md:mb-4">
                 All Patients
               </h1>
-              <div className="relative">
-  <Search 
-    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" 
-  />
-  <input
-    onChange={onChangeHandle}
-    type="text"
-    placeholder="Search by patient name"
-    className="pl-10 pr-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-  />
-</div>
+              <div className="relative w-full md:w-60">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <input
+                  onChange={onChangeHandle}
+                  type="text"
+                  placeholder="Search by patient name"
+                  className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                />
+              </div>
             </div>
-            <div className="space-x-3 flex items-center">
+            <div className="flex items-center gap-2 w-full md:w-auto">
               <button
                 onClick={() => setActiveFilterBtn(0)}
-                className={`px-4 py-2 rounded-md text-sm ${
+                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
                   activeFilterBtn === 0
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
@@ -464,7 +475,7 @@ const Patients = () => {
               </button>
               <button
                 onClick={() => setActiveFilterBtn(1)}
-                className={`px-4 py-2 rounded-md text-sm ${
+                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
                   activeFilterBtn === 1
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
@@ -475,7 +486,133 @@ const Patients = () => {
             </div>
           </div>
 
-          <div className="overflow-auto max-h-[500px]">
+          {/* Mobile Cards View - Showing only 2 cards per page */}
+          <div className="block md:hidden p-4 space-y-3">
+            {currentCards.map((elem, ind) => {
+              const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
+              const formattedDateTime = moment
+                .utc(updated_at, "YYYY-MM-DD h:mm s")
+                .local()
+                .format("DD/MM/YYYY h:mm A");
+
+              return (
+                <div
+                  key={ind}
+                  className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                        {`${firstname} ${lastname}`}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {treatmenttype}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {formattedDateTime}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {formatPhoneNumber(phone)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-gray-700 dark:text-gray-300 truncate">
+                        {email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Gender</p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {gender}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between gap-2">
+                    <button
+                      onClick={() => editHandle(elem)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => selectHandle(elem)}
+                      className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      </svg>
+                      Select
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Pagination Controls */}
+            {dataList.length > cardsPerPage && (
+              <div className="flex justify-center items-center gap-2 mt-4">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    currentPage === 1
+                      ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 text-white"
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    currentPage === totalPages
+                      ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 text-white"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table View - Unchanged */}
+          <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
               {dataList.map((elem, ind) => {
                 const { firstname, lastname, phone, updated_at } = elem;
@@ -561,7 +698,8 @@ const Patients = () => {
           </div>
         </div>
 
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-[35%] p-4 mt-4 md:mt-0">
+        {/* Add Patient Form Section - Moved to bottom */}
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-1/2 p-4">
           <div className="mb-4">
             <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
               Add New Patient
@@ -591,7 +729,6 @@ const Patients = () => {
                   label={t("POS-Sales_k20")}
                   bg_color="bg-white dark:bg-gray-700"
                   placeholder="Enter your last name"
-
                 />
               </div>
 
@@ -620,7 +757,6 @@ const Patients = () => {
                   label={t("POS-Sales_k22")}
                   bg_color="bg-white dark:bg-gray-700"
                   placeholder="Enter your email"
-
                 />
               </div>
 
@@ -668,101 +804,104 @@ const Patients = () => {
 
       {/* @ts-ignore */}
       <Custom_Modal
-  disabled={!canModalSubmit}
-  submit_button_color={modal_titles[activeModalMode]?.button?.color}
-  loading={modalLoading}
-  buttonLabel={modal_titles[activeModalMode]?.button?.label}
-  is_open={isOpenModal}
-  Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
-  close_handle={closeModalHandle}
-  open_handle={openModalHandle}
-  create_new_handle={modalSubmitHandle}
->
-  {activeModalMode === "delete" ? (
-    <div className="text-gray-800 dark:text-gray-200">
-      <h1>Are you sure you want to delete this POS?</h1>
-    </div>
-  ) : (
-    <div className="grid grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
-      <div className="col-span-1">
-        <Input_Component
-          value={actionData?.firstname || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
-          label="First Name"
-        />
-      </div>
+        disabled={!canModalSubmit}
+        submit_button_color={modal_titles[activeModalMode]?.button?.color}
+        loading={modalLoading}
+        buttonLabel={modal_titles[activeModalMode]?.button?.label}
+        is_open={isOpenModal}
+        Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+        close_handle={closeModalHandle}
+        open_handle={openModalHandle}
+        create_new_handle={modalSubmitHandle}
+      >
+        {activeModalMode === "delete" ? (
+          <div className="text-gray-800 dark:text-gray-200">
+            <h1>Are you sure you want to delete this POS?</h1>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
+            <div className="md:col-span-1">
+              <Input_Component
+                value={actionData?.firstname || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
+                label="First Name"
+              />
+            </div>
 
-      <div className="col-span-1">
-        <Input_Component
-          value={actionData?.lastname || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-          label="Last Name"
-        />
-      </div>
+            <div className="md:col-span-1">
+              <Input_Component
+                value={actionData?.lastname || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
+                label="Last Name"
+              />
+            </div>
 
-      <div className="col-span-2">
-        <Input_Component
-          value={actionData?.email || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "email")}
-          label="Email"
-        />
-      </div>
+            <div className="md:col-span-2">
+              <Input_Component
+                value={actionData?.email || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "email")}
+                label="Email"
+              />
+            </div>
 
-      <div className="col-span-2">
-        <PhoneNumberInput
-          value={actionData?.phone || ""}
-          onChange={(e: string) => modalInputChangeHandle(e, "phone")}
-          label="Phone Number"
-          placeholder=""
-          breakpoint={false}
-        />
-      </div>
+            <div className="md:col-span-2">
+              <PhoneNumberInput
+                value={actionData?.phone || ""}
+                onChange={(e: string) => modalInputChangeHandle(e, "phone")}
+                label="Phone Number"
+                placeholder=""
+                breakpoint={false}
+              />
+            </div>
 
-      <Select_Dropdown
-        value={actionData?.treatmenttype || ""}
-        bg_color="bg-white dark:bg-gray-700"
-        start_empty
-        //@ts-ignore
-        options_arr={services?.map((service) => ({
-          value: service,
-          label: service,
-        }))}
-        required
-        on_change_handle={(e: string) =>
-          //@ts-ignore
-          modalInputChangeHandle(e.target.value, "treatmenttype")
-        }
-        label="Treatment Type"
-      />
+            <div className="md:col-span-2">
+              <Select_Dropdown
+                value={actionData?.treatmenttype || ""}
+                bg_color="bg-white dark:bg-gray-700"
+                start_empty
+                //@ts-ignore
+                options_arr={services?.map((service) => ({
+                  value: service,
+                  label: service,
+                }))}
+                required
+                on_change_handle={(e: string) =>
+                  //@ts-ignore
+                  modalInputChangeHandle(e.target.value, "treatmenttype")
+                }
+                label="Treatment Type"
+              />
+            </div>
 
-      <Select_Dropdown
-        value={actionData?.gender || ""}
-        bg_color="bg-white dark:bg-gray-700"
-        start_empty
-        options_arr={["Male", "Female"].map((gender) => ({
-          value: gender,
-          label: gender,
-        }))}
-        required
-        on_change_handle={(e: string) =>
-          // @ts-ignore
-          modalInputChangeHandle(e.target.value, "gender")
-        }
-        label="Gender"
-      />
-    </div>
-  )}
-</Custom_Modal>
-
+            <div className="md:col-span-2">
+              <Select_Dropdown
+                value={actionData?.gender || ""}
+                bg_color="bg-white dark:bg-gray-700"
+                start_empty
+                options_arr={["Male", "Female"].map((gender) => ({
+                  value: gender,
+                  label: gender,
+                }))}
+                required
+                on_change_handle={(e: string) =>
+                  // @ts-ignore
+                  modalInputChangeHandle(e.target.value, "gender")
+                }
+                label="Gender"
+              />
+            </div>
+          </div>
+        )}
+      </Custom_Modal>
     </main>
   );
 };

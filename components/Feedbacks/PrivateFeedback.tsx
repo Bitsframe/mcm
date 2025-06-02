@@ -1,6 +1,7 @@
 "use client";
-import React, {
-  FC,
+import type React from "react";
+import {
+  type FC,
   useEffect,
   useState,
   useMemo,
@@ -58,6 +59,8 @@ const PrivateFeedbackComponent: FC = () => {
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState(-1);
   const [sortColumn, setSortColumn] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const cardsPerPage = 2;
 
   const { setActiveTitle } = useContext(TabContext);
 
@@ -136,7 +139,7 @@ const PrivateFeedbackComponent: FC = () => {
   const details = useMemo(
     () =>
       dataDetails && (
-        <div className="overflow-auto px-2 py-2 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+        <div className="px-2 py-2 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
           {detailsArray(dataDetails).map((detail, index) => (
             <div
               key={index}
@@ -145,7 +148,7 @@ const PrivateFeedbackComponent: FC = () => {
               <dt className="text-sm text-[#707070] dark:text-gray-400">
                 {detail.label}
               </dt>
-              <dd className="text-[17px] text-gray-800 dark:text-gray-200 font-medium">
+              <dd className="text-[17px] text-gray-800 dark:text-gray-200 font-medium break-words">
                 {detail.value}
               </dd>
             </div>
@@ -154,12 +157,15 @@ const PrivateFeedbackComponent: FC = () => {
       ),
     [dataDetails]
   );
-  
 
   const { t } = useTranslation(translationConstant.PRIVATEFEEDBACK);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [dataList]);
+
   return (
-    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-gray-900">
+    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-gray-900 overflow-y-auto">
       <div>
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
           Private Feedback
@@ -169,8 +175,8 @@ const PrivateFeedbackComponent: FC = () => {
         </h1>
       </div>
 
-      <div className="w-full max-h-[69dvh] h-full py-2 grid grid-cols-1 md:grid-cols-3 gap-2">
-        <div className="bg-[#F1F4F7] dark:bg-[#080e16] h-full md:col-span-2 rounded-md py-2 w-full">
+      <div className="w-full py-2 grid grid-cols-1 md:grid-cols-5 gap-2">
+        <div className="bg-[#F1F4F7] dark:bg-[#080e16] md:col-span-3 rounded-md py-2 w-full">
           <div className="space-y-6 px-3 pb-4 flex flex-col sm:flex-row sm:justify-between">
             <input
               onChange={onChangeHandle}
@@ -180,7 +186,102 @@ const PrivateFeedbackComponent: FC = () => {
             />
           </div>
 
-          <div className="px-3 pt-5 overflow-x-auto">
+          {/* Mobile View - Cards with Pagination */}
+          <div className="md:hidden px-3 pt-5">
+            <div className="space-y-3 mb-4">
+              {loading ? (
+                <div className="flex h-40 flex-1 flex-col justify-center items-center">
+                  <Spinner size="xl" />
+                </div>
+              ) : dataList.length > 0 ? (
+                dataList
+                  .slice(
+                    currentPage * cardsPerPage,
+                    (currentPage + 1) * cardsPerPage
+                  )
+                  .map((elem) => {
+                    const {
+                      order_id,
+                      pos: { firstname, lastname },
+                      rating,
+                      created_at,
+                      feedback_id,
+                    } = elem;
+                    return (
+                      <div
+                        key={feedback_id}
+                        onClick={() => setDataDetails(elem)}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                            {firstname} {lastname}
+                          </h3>
+                          <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+                            {rating}/5
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                          <div className="flex justify-between">
+                            <span>{t("Privatefeedback_k2")}:</span>
+                            <span className="text-gray-800 dark:text-gray-200">
+                              {order_id}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>{t("Privatefeedback_k3")}:</span>
+                            <span className="text-gray-800 dark:text-gray-200">
+                              {moment(created_at).format("MMM DD, YYYY")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="flex h-40 flex-1 py-2 text-base justify-center items-center text-gray-500 dark:text-gray-400">
+                  <h1>{t("Privatefeedback_k5")}</h1>
+                </div>
+              )}
+            </div>
+
+            {/* Pagination Controls for Mobile */}
+            {!loading && dataList.length > cardsPerPage && (
+              <div className="flex justify-between items-center py-3">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(0, prev - 1))
+                  }
+                  disabled={currentPage === 0}
+                  className="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Page {currentPage + 1} of{" "}
+                  {Math.ceil(dataList.length / cardsPerPage)}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(
+                        Math.ceil(dataList.length / cardsPerPage) - 1,
+                        prev + 1
+                      )
+                    )
+                  }
+                  disabled={
+                    currentPage >= Math.ceil(dataList.length / cardsPerPage) - 1
+                  }
+                  className="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="px-3 pt-5 overflow-x-auto hidden md:block">
             <Table className="min-w-[600px] text-xs sm:text-sm">
               <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                 <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
@@ -223,7 +324,7 @@ const PrivateFeedbackComponent: FC = () => {
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="overflow-y-scroll max-h-80">
+              <TableBody>
                 {loading ? (
                   <TableRow>
                     <TableCell
@@ -282,20 +383,22 @@ const PrivateFeedbackComponent: FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1f4f7] dark:bg-[#080e16] rounded-md overflow-hidden flex flex-col w-full mt-2 md:mt-0">
+        <div className="bg-[#F1f4f7] dark:bg-[#080e16] rounded-md w-full mt-2 md:mt-0 md:col-span-2">
           <div className="px-4 py-4 border-b-[1px] border-gray-300 dark:border-gray-700">
             <h1 className="text-2xl font-bold w-full text-gray-800 dark:text-gray-200">
               {t("Privatefeedback_k6")}
             </h1>
           </div>
 
-          {dataDetails ? (
-            details
-          ) : (
-            <div className="h-full flex items-center justify-center text-xl font-semibold text-gray-500 dark:text-gray-400">
-              <h1>{t("Privatefeedback_k7")}</h1>
-            </div>
-          )}
+          <div>
+            {dataDetails ? (
+              details
+            ) : (
+              <div className="h-40 flex items-center justify-center text-xl font-semibold text-gray-500 dark:text-gray-400">
+                <h1>{t("Privatefeedback_k7")}</h1>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </main>
