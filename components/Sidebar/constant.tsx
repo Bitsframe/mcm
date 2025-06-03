@@ -9,7 +9,8 @@ import {
   Hammer,
   IdCard,
   Calculator,
-  Settings
+  Settings,
+  CreditCard
 } from "lucide-react";
 import { ComponentType } from "react";
 
@@ -57,6 +58,7 @@ const ROUTES = {
     MANAGE: "/warehouse/manage",
   },
   CONTROLS: "/controls",
+  CREDITS: "/credits",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -127,6 +129,13 @@ export const routeList: Route[] = [
     label: "Sidebar_k11",
     icon: Grid,
     route: ROUTES.INVENTORY.MANAGE,
+  },
+  {
+    id: 'credits',
+    name: "credits",
+    label: "Credits",
+    icon: CreditCard,
+    route: ROUTES.CREDITS,
   },
   {
     id: 'warehouse',

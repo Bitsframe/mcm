@@ -21,6 +21,41 @@ import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
 import { sendInvoice } from "@/utils/smsServices/sendInvoice";
+import { Input_Component } from "@/components/Input_Component";
+import { Select_Dropdown } from "@/components/Select_Dropdown";
+import { Action_Button } from "@/components/Action_Button";
+import {
+  create_content_service as supabase_create_content_service,
+  delete_content_service,
+  fetch_content_service,
+  update_content_service,
+} from "@/utils/supabase/data_services/data_services";
+import moment from "moment";
+import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import { useLocationClinica } from "@/hooks/useLocationClinica";
+import { supabase } from "@/services/supabase";
+import { toast as react_toastify_toast } from "react-toastify";
+import { validateFormData } from "@/utils/validationCheck";
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+import { CiFilter } from "react-icons/ci";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -89,29 +124,13 @@ const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
   );
 };
 
-const grandTotalHandle = (
-  ProductArray: CartArrayInterface[],
-  discount?: number
-) => {
-  const totalQty = ProductArray.reduce((a, b) => a + b.quantity, 0);
-  let GrossTotalAmount = ProductArray.reduce(
-    (a, b) => a + b.quantity * b.price,
-    0
-  );
-  let totalAmount = GrossTotalAmount;
-  let discountAmount = 0;
-
-  if (discount && discount > 0) {
-    discountAmount = (totalAmount * discount) / 100;
-    totalAmount -= discountAmount;
-  }
-
+const grandTotalHandle = (cart: any[], discount = 0): { amount: number; discountAmount: number } => {
+  const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = (amount * discount) / 100;
+  const total = amount - discountAmount;
   return {
-    qty: totalQty,
-    amount: currencyFormatHandle(totalAmount),
-    discountPercentage: discount ? discount : 0,
-    GrossTotalAmount,
-    discountAmount: discountAmount ? discountAmount : 0,
+    amount: total,
+    discountAmount,
   };
 };
 
@@ -224,6 +243,8 @@ const Orders = () => {
   );
   const [selectedMethod, setSelectedMethod] = useState("Cash");
   const [lastLocationId, setLastLocationId] = useState(0);
+  const [creditAmount, setCreditAmount] = useState<number>(0);
+  const [receivedAmount, setReceivedAmount] = useState<number>(0);
 
   const router = useRouter();
 
@@ -270,6 +291,31 @@ const Orders = () => {
       setLastLocationId(selectedLocation.id);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchCreditBalance = async () => {
+      if (selectedPatient?.id) {
+        try {
+          const data: any = await fetch_content_service({
+            table: "credit_audit",
+            matchCase: [{ key: "patient_id", value: selectedPatient.patientid }],
+            selectParam: "balance"
+          });
+          // Assuming data contains at most one entry for a given patient_id
+          const totalCredit = data && data.length > 0 ? data[0]?.balance : 0;
+          setCreditAmount(totalCredit);
+
+        } catch (error) {
+          console.error("Error fetching credit balance:", error);
+          setCreditAmount(0); // Set to 0 on error
+        }
+      } else {
+        setCreditAmount(0); // Reset credit if no patient is selected
+      }
+    };
+
+    fetchCreditBalance();
+  }, [selectedPatient]); // Fetch credit when selectedPatient changes
 
   const quantityHandle = (qty: number) => {
     setProductQty(qty);
@@ -320,7 +366,7 @@ const Orders = () => {
     try {
       setPlaceOrderLoading(true);
 
-      if (!selectedPatient) return;
+      if (!selectedPatient || !cartArray.length) return; // Ensure patient and items are selected
 
       let orderCreatePostData: any = { patient_id: selectedPatient.id };
 
@@ -364,15 +410,33 @@ const Orders = () => {
             },
           });
 
-          const {
-            qty,
-            amount,
-            discountPercentage,
-            GrossTotalAmount,
-            discountAmount,
-          } = grandTotalHandle(cartArray, appliedDiscount);
-          const totalAmount = GrossTotalAmount;
-          // const discountAmount = grandTotal.discountAmount;
+          const { amount: subtotalAmount } = grandTotalHandle(cartArray, appliedDiscount);
+          const finalAmountDue = subtotalAmount - creditAmount;
+
+          // Calculate new credit balance
+          const newCreditBalance = finalAmountDue - receivedAmount;
+
+          // Update credit_audit table
+          try {
+            const updatedCreditData = await update_content_service({
+              table: "credit_audit",
+              matchKey: "patient_id",
+              post_data: { balance: newCreditBalance, patient_id: selectedPatient.id },
+            });
+            // If updatedCreditData is not null or empty, it means the update was successful
+            if (!updatedCreditData || updatedCreditData.length === 0) {
+              console.warn("Update to credit_audit did not affect any rows.");
+            }
+          } catch (credit_update_error) {
+            console.error("Error updating credit balance:", credit_update_error);
+            toast.error("Failed to update patient credit.", {
+              style: {
+                background: "var(--background)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
+              },
+            });
+          }
 
           const orderDetails = {
             order_id,
@@ -383,14 +447,16 @@ const Orders = () => {
             orderDetails,
             { ...selectedPatient, location: selectedLocation.title },
             cartArray,
-            GrossTotalAmount,
-            Number(discountAmount),
-            discountPercentage
+            subtotalAmount,
+            Number(grandTotalHandle(cartArray, appliedDiscount).discountAmount),
+            appliedDiscount
           );
 
           setCartArray([]);
           localStorage.removeItem("@pos-patient");
           setSelectedPatient(null);
+          setCreditAmount(0);
+          setReceivedAmount(0);
         }
       }
     } catch (err: any) {
@@ -423,6 +489,18 @@ const Orders = () => {
   useEffect(() => {
     setActiveTitle("Sidebar_k19");
   }, []);
+
+  // Calculate displayedBalanceLimit whenever relevant state changes
+  const displayedBalanceLimit = React.useMemo(() => {
+    // Ensure selectedLocation and its balance are available
+    if (!selectedLocation || selectedLocation.balance === undefined) {
+      return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
+    }
+    const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+    const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
+    const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
+    return displayedLimit;
+  }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
@@ -542,16 +620,16 @@ const Orders = () => {
                         <div className="text-xs flex items-center space-x-3">
                           <p>
                             {currencyFormatHandle(
-                              (selectedProduct?.price || 0) 
+                              (selectedProduct?.price || 0)
                             )}
                             /unit
                           </p>
 
                           <p>
-                           Total Cost {currencyFormatHandle(
+                            Total Cost {currencyFormatHandle(
                               (selectedProduct?.price || 0) * productQty
                             )}
-                            
+
                           </p>
                         </div>
                         {selectedProduct.unlimited ? (
@@ -584,7 +662,7 @@ const Orders = () => {
         </div>
 
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1 w-full mt-2 md:mt-0">
-          <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100">
+          <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100 flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {t("POS-Sales_k9")}
@@ -592,6 +670,16 @@ const Orders = () => {
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t("POS-Sales_k10")} # --
               </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                Balance Limit: <span className={`font-bold ${displayedBalanceLimit < 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
+                  {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
+                  {/* Display calculated adjusted Balance Limit */}
+                  {`$${displayedBalanceLimit.toFixed(2)}`}
+                </span>
+              </h1>
             </div>
           </div>
 
@@ -643,12 +731,62 @@ const Orders = () => {
                 </p>
               </div>
 
+              {/* Sub Total */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Sub total
+                </h1>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Display Fetched Credit */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Patient Credit
+                </h1>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
+                </p>
+              </div>
+
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k14")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  {grandTotalHandle(cartArray).amount}
+                  ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
+                </p>
+              </div>
+
+
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Amount Received
+                </h1>
+                <div className="border  border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white  text-black ">
+                  <input
+                    type="number"
+                    value={receivedAmount}
+                    onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
+                    className="w-40  border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+                    placeholder="0.00"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              {/* Display Calculated Final Credit */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Final Credit after checkout
+                </h1>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  {(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)) < 0 ? 
+                    `-$${Math.abs(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)).toFixed(2)}` : 
+                    `$${(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)).toFixed(2)}`
+                  }
                 </p>
               </div>
 
@@ -663,7 +801,7 @@ const Orders = () => {
                   ) : (
                     <>
                       <span className="font-medium">
-                        {grandTotalHandle(cartArray, appliedDiscount).amount}
+                        ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
                       </span>
                       <PiCaretCircleRightFill size={16} />
                     </>
