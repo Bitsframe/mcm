@@ -270,38 +270,37 @@ const TableComponent: React.FC<Props> = ({
             </TableBody>
           </Table>
         </div>
-
-        {/* Pagination - Common for both views */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
-          <div>
-            {dataList.length === 0
-              ? "Showing 0 to 0 of 0 results"
-              : `Showing ${startIndex + 1} to ${endIndex} of ${
-                  dataList.length
-                } results`}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
-                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+      </div>
+      {/* Pagination - moved outside the scrollable table area */}
+      <div className="flex flex-row justify-between items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
+        <div>
+          {dataList.length === 0
+            ? "Showing 0 to 0 of 0 results"
+            : `Showing ${startIndex + 1} to ${endIndex} of ${
+                dataList.length
               }`}
-            >
-              Previous
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || dataList.length === 0}
-              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
-                currentPage === totalPages || dataList.length === 0
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              Next
-            </button>
-          </div>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages || dataList.length === 0}
+            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+              currentPage === totalPages || dataList.length === 0
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

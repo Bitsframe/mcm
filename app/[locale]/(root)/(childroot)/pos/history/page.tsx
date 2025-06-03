@@ -208,7 +208,7 @@ const SalesHistory = () => {
           searchHandle={onChangeHandle}
           searchInputplaceholder={t("POS-Historyk3")}
           tableBodyHeight="h-[50dvh]"
-          tableHeight="h-[57dvh]"
+          tableHeight="h-[67dvh] md:h-[50dvh]"
         />
       </div>
 

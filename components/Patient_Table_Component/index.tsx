@@ -412,9 +412,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               setSelectedPatient(patient);
               setIsEditing(false);
             }}
-            className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+            className="h-8 w-8 flex items-center justify-center p-0 text-gray-500 dark:text-gray-400"
           >
-            <Eye className="h-3 w-3" color="gray" />
+            <Eye className="h-5 w-5" color="gray" />
             <span className="sr-only">View</span>
           </Button>
           <EditPatientModal
@@ -923,7 +923,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <p className="text-gray-700 dark:text-gray-300">
                   Showing {startIndex + 1} to{" "}
                   {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
-                  {filteredAndSortedPatients.length} results
+                  {filteredAndSortedPatients.length}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1424,7 +1424,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           <span className="sr-only">Edit</span>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[500px] dark:bg-gray-900">
+      <AlertDialogContent className="w-[95vw] sm:max-w-[500px] dark:bg-gray-900 mx-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl dark:text-white">
             {t("Patients_k15")}

@@ -270,7 +270,6 @@ const Categories = () => {
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
         <div className="h-full rounded-md py-2">
-          <h1 className="text-lg font-semibold px-3 mb-3 text-white">Categories</h1>
           <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
             <div className="space-y-1 w-full sm:w-auto">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full justify-between gap-x-3">

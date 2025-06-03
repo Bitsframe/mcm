@@ -261,7 +261,7 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 pb-2 sm:pb-4 dark:bg-[#0E1725]">
+      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725]">
         {/* Responsive filter/tabs row */}
         <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:items-center md:gap-4 md:justify-between">
           {/* Left: Date filter and Add button */}

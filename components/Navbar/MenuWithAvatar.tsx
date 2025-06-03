@@ -12,12 +12,14 @@ import { AuthContext } from "@/context";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import LanguageChanger from "@/components/LanguageChanger";
 import ThemeToggleButton from "@/components/Themetoggle";
+import { useTheme } from "next-themes";
 
 export default function MenuWithAvatar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { userProfile, userRole } = useContext(AuthContext);
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
+  const { theme } = useTheme();
 
   const open = Boolean(anchorEl);
 
@@ -99,6 +101,10 @@ export default function MenuWithAvatar() {
             borderRadius: "12px",
             zIndex: 9999,
             position: 'relative',
+            background: theme === "dark" ? "#0e1725" : "#fff",
+            color: theme === "dark" ? "#fff" : "#222",
+            boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
+            border: theme === "dark" ? "1px solid #232a36" : "1px solid #e0e0e0"
           },
         }}
       >

@@ -489,9 +489,6 @@ const Products = () => {
     <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <h1 className="text-xl font-bold px-3 py-2 dark:text-white">
-            Products
-          </h1>
           <div className=" py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
               <input

@@ -1,27 +1,50 @@
-"use client";
+"use client"
 
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
+import { Moon, Sun } from "lucide-react"
 
 const ThemeToggleButton = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  if (!mounted) return null;
+  if (!mounted) return null
+
+  const isDark = theme === "dark"
 
   return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-4 rounded-full bg-white text-black dark:bg-[#1a1f27] dark:border-gray-700 border-[1px] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-    >
-      {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-    </button>
-  );
-};
+    <div className="flex items-center justify-between bg-white dark:bg-[#0e1725] rounded-full px-1 py-7 w-24 h-10 relative">
+      {/* Light mode button */}
+      <button
+        onClick={() => setTheme("light")}
+        aria-label="Switch to light mode"
+        className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ease-in-out absolute ${
+          !isDark
+            ? "bg-blue-500 text-white shadow-md left-1"
+            : "bg-transparent text-gray-500 hover:text-gray-700 left-1"
+        }`}
+      >
+        <Sun size={25} strokeWidth={2} />
+      </button>
 
-export default ThemeToggleButton;
+      {/* Dark mode button */}
+      <button
+        onClick={() => setTheme("dark")}
+        aria-label="Switch to dark mode"
+        className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ease-in-out absolute ${
+          isDark
+            ? "bg-blue-500 text-white shadow-md right-1"
+            : "bg-transparent text-gray-500 hover:text-gray-700 right-1"
+        }`}
+      >
+        <Moon size={25} strokeWidth={2} />
+      </button>
+    </div>
+  )
+}
+
+export default ThemeToggleButton
