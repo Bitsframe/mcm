@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useContext, useEffect, useState } from "react";
+import React, { FC, useContext, useEffect, useState, useMemo } from "react";
 import { Quantity_Field } from "@/components/Quantity_Field";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
@@ -20,42 +20,11 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
-import { sendInvoice } from "@/utils/smsServices/sendInvoice";
-import { Input_Component } from "@/components/Input_Component";
-import { Select_Dropdown } from "@/components/Select_Dropdown";
-import { Action_Button } from "@/components/Action_Button";
 import {
-  create_content_service as supabase_create_content_service,
-  delete_content_service,
   fetch_content_service,
   update_content_service,
 } from "@/utils/supabase/data_services/data_services";
-import moment from "moment";
-import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
-import { useLocationClinica } from "@/hooks/useLocationClinica";
-import { supabase } from "@/services/supabase";
-import { toast as react_toastify_toast } from "react-toastify";
-import { validateFormData } from "@/utils/validationCheck";
-import PhoneNumberInput from "@/components/PhoneNumberInput";
-import { CiFilter } from "react-icons/ci";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import axios from 'axios';
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -366,101 +335,37 @@ const Orders = () => {
     try {
       setPlaceOrderLoading(true);
 
-      if (!selectedPatient || !cartArray.length) return; // Ensure patient and items are selected
+      if (!selectedPatient || !cartArray.length) return;
 
-      let orderCreatePostData: any = { patient_id: selectedPatient.id };
-
-      if (promoCodeData) {
-        orderCreatePostData.promo_code_id = promoCodeData.id;
-      }
-
-      const { data, error }: any = await create_content_service({
-        table: "orders",
-        post_data: orderCreatePostData,
+      const { data } = await axios.post('/api/orders', {
+        patient_id: selectedPatient.patientid,
+        cartArray,
+        appliedDiscount,
+        creditAmount,
+        receivedAmount,
+        selectedMethod,
+        promoCodeData,
+        selectedPatient,
+        selectedLocation,
+        posId: selectedPatient.id
       });
 
-      if (error) throw new Error(error.message);
+      toast.success(data.message, {
+        style: {
+          background: "white",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+        },
+      });
 
-      if (data?.length) {
-        const order_id = data[0].order_id;
+      setCartArray([]);
+      localStorage.removeItem("@pos-patient");
+      setSelectedPatient(null);
+      setCreditAmount(0);
+      setReceivedAmount(0);
 
-        const post_data = cartArray.map((elem) => ({
-          order_id,
-          inventory_id: elem.product_id,
-          quantity_sold: elem.quantity,
-          total_price: elem.price * elem.quantity,
-          paymentcash: selectedMethod === "Cash" ? true : false,
-        }));
-
-        const { data: order_created_data, error: order_created_error }: any =
-          await create_content_service({
-            table: "sales_history",
-            post_data,
-            multiple_rows: true,
-          });
-
-        if (order_created_error) throw new Error(order_created_error.message);
-
-        if (order_created_data.length) {
-          toast.success(`Order has been placed, order # ${order_id}`, {
-            style: {
-              background: "white",
-              color: "var(--foreground)",
-              border: "1px solid var(--border)",
-            },
-          });
-
-          const { amount: subtotalAmount } = grandTotalHandle(cartArray, appliedDiscount);
-          const finalAmountDue = subtotalAmount - creditAmount;
-
-          // Calculate new credit balance
-          const newCreditBalance = finalAmountDue - receivedAmount;
-
-          // Update credit_audit table
-          try {
-            const updatedCreditData = await update_content_service({
-              table: "credit_audit",
-              matchKey: "patient_id",
-              post_data: { balance: newCreditBalance, patient_id: selectedPatient.id },
-            });
-            // If updatedCreditData is not null or empty, it means the update was successful
-            if (!updatedCreditData || updatedCreditData.length === 0) {
-              console.warn("Update to credit_audit did not affect any rows.");
-            }
-          } catch (credit_update_error) {
-            console.error("Error updating credit balance:", credit_update_error);
-            toast.error("Failed to update patient credit.", {
-              style: {
-                background: "var(--background)",
-                color: "var(--foreground)",
-                border: "1px solid var(--border)",
-              },
-            });
-          }
-
-          const orderDetails = {
-            order_id,
-            paymentcash: selectedMethod === "Cash",
-          };
-
-          await sendOrderEmail(
-            orderDetails,
-            { ...selectedPatient, location: selectedLocation.title },
-            cartArray,
-            subtotalAmount,
-            Number(grandTotalHandle(cartArray, appliedDiscount).discountAmount),
-            appliedDiscount
-          );
-
-          setCartArray([]);
-          localStorage.removeItem("@pos-patient");
-          setSelectedPatient(null);
-          setCreditAmount(0);
-          setReceivedAmount(0);
-        }
-      }
     } catch (err: any) {
-      toast.error(err.message, {
+      toast.error(err.response?.data?.message || err.message, {
         style: {
           background: "var(--background)",
           color: "var(--foreground)",
@@ -501,6 +406,10 @@ const Orders = () => {
     const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
     return displayedLimit;
   }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
+
+  const finalCredit = useMemo(() => {
+    return receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount);
+  }, [receivedAmount, cartArray, appliedDiscount, creditAmount]);
 
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
@@ -672,14 +581,25 @@ const Orders = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-between">
-              <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                Balance Limit: <span className={`font-bold ${displayedBalanceLimit < 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
-                  {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
-                  {/* Display calculated adjusted Balance Limit */}
-                  {`$${displayedBalanceLimit.toFixed(2)}`}
-                </span>
-              </h1>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h1 className="text-[11px] text-gray-700 dark:text-gray-300 ">
+                  Credit Limit: <span className={`font-bold`}>
+                    {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
+                    {/* Display calculated adjusted Balance Limit */}
+                    {`$${selectedLocation?.credit_limit?.toFixed(2)}`}
+                  </span>
+                </h1>
+              </div>
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Balance Available: <span className={`font-bold ${displayedBalanceLimit < 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
+                    {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
+                    {/* Display calculated adjusted Balance Limit */}
+                    {`$${displayedBalanceLimit.toFixed(2)}`}
+                  </span>
+                </h1>
+              </div>
             </div>
           </div>
 
@@ -783,10 +703,7 @@ const Orders = () => {
                   Final Credit after checkout
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  {(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)) < 0 ? 
-                    `-$${Math.abs(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)).toFixed(2)}` : 
-                    `$${(receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount)).toFixed(2)}`
-                  }
+                  {finalCredit < 0 ? `-$${Math.abs(finalCredit).toFixed(2)}` : `$${finalCredit.toFixed(2)}`}
                 </p>
               </div>
 
@@ -801,7 +718,7 @@ const Orders = () => {
                   ) : (
                     <>
                       <span className="font-medium">
-                        ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
+                        ${receivedAmount}
                       </span>
                       <PiCaretCircleRightFill size={16} />
                     </>
@@ -817,168 +734,3 @@ const Orders = () => {
 };
 
 export default Orders;
-
-const sendOrderEmail = async (
-  orderDetails: any,
-  patientInfo: any,
-  orderItems: any[],
-  totalAmount: number = 0,
-  discountAmount: number = 0,
-  appliedDiscount: number = 0
-) => {
-  try {
-    const today = new Date();
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const formattedDate = `${today.getDate()}-${months[today.getMonth()]
-      }-${today.getFullYear()}`;
-
-    // Create a feedback URL with order ID and patient ID for tracking
-    const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
-
-    const netAmount = +totalAmount - +discountAmount;
-
-    const emailHtml = `
-
-
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-                <p>Dear ${patientInfo.firstname} ${patientInfo.lastname},</p>
-                
-                <p>Thank you for choosing Clinica San Miguel for your healthcare needs. Please find your invoice details below:</p>
-                
-                <h3 style="margin-top: 20px;">Invoice Details:</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-                    <li><strong>Invoice Number:</strong> I-${orderDetails.order_id
-      }</li>
-                    <li><strong>Invoice Date:</strong> ${formattedDate}</li>
-                    <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? "Cash" : "Debit Card"
-      }</li>
-                    <li><strong>Gross Amount:</strong> ${totalAmount}</li>
-                    <li><strong>Discount(${appliedDiscount}%):</strong> -${discountAmount}</li>
-                    <li><strong>Net Amount:</strong> ${netAmount}</li>
-                </ul>
-                
-                <h3>Billing Information:</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-
-                    <li><strong>Patient Name:</strong> ${patientInfo.firstname
-      } ${patientInfo.lastname}</li>
-                    <li><strong>Location:</strong> Clinica San Miguel ${patientInfo.location || "Pasadena"
-      }</li>
-
-                </ul>
-                
-                <h3>Invoice Summary:</h3>
-                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                    <thead>
-                        <tr style="background-color: #eee;">
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Product</th>
-                            <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
-                            <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orderItems
-        .map(
-          (item) => `
-                            <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.category_name
-            }</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name
-            }</td>
-                                <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity
-            }</td>
-                                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(
-              item.price * item.quantity
-            )}</td>
-                            </tr>
-                        `
-        )
-        .join("")}
-                    </tbody>
-                    ${discountAmount > 0
-        ? `
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
-                                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(
-          discountAmount
-        )}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                                <td style="padding: 10px; text-align: right; font-weight: bold;">${netAmount}</td>
-                            </tr>
-                        </tfoot>
-                    `
-        : `
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                                <td style="padding: 10px; text-align: right; font-weight: bold;">${netAmount}</td>
-                            </tr>
-                        </tfoot>
-                    `
-      }
-                </table>
-                
-                <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
-                
-                <p>Thank you for your trust in us.</p>
-                
-                <p>Best regards,<br>Clinica San Miguel Team</p>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center;">
-                    <p style="color: #666;">We value your feedback!</p>
-                    <a href="${feedbackUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Share Your Feedback & Get a Promo Code</a>
-                    <p style="color: #666; font-size: 12px; margin-top: 10px;">Complete our quick survey and receive a promotional code for your next visit.</p>
-                </div>
-            </div>
-        `;
-
-    const fromEmail = "test@alerts.myclinicmd.com";
-
-    const payload = {
-      from: fromEmail,
-      recipients: [patientInfo.email],
-      subject: `Invoice I-${orderDetails.order_id}`,
-      html: emailHtml,
-    };
-
-    const response = await fetch(
-      "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.message || "Failed to send order confirmation email"
-      );
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error("Error sending order email:", error);
-  }
-};
