@@ -358,7 +358,7 @@ const EmailTemplates = () => {
   };
 
   return (
-    <div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900 p-4">
+    <div className="relative z-0 h-[120dvh] md:h-[70dvh] bg-background dark:bg-gray-900 p-4">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
@@ -371,7 +371,7 @@ const EmailTemplates = () => {
             >
               <X className="w-5 h-5" />
             </button>
-      
+
             <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
               Create New template
             </h2>
@@ -428,7 +428,6 @@ const EmailTemplates = () => {
         </div>
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-          {/* All Templates Section */}
           <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700 flex flex-col">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
@@ -448,7 +447,9 @@ const EmailTemplates = () => {
             <div className="overflow-auto h-[180px] md:h-[calc(69vh-180px)] p-0">
               {filteredTemplates.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 p-4">
-                  {searchQuery.trim() ? "No matching templates found" : "No templates saved yet"}
+                  {searchQuery.trim()
+                    ? "No matching templates found"
+                    : "No templates saved yet"}
                 </p>
               ) : (
                 <ul className="text-base">
@@ -462,9 +463,7 @@ const EmailTemplates = () => {
                       }`}
                       onClick={() => handleEditTemplate(template)}
                     >
-                      <h3 className="font-medium">
-                        {template.name}
-                      </h3>
+                      <h3 className="font-medium">{template.name}</h3>
                     </li>
                   ))}
                 </ul>
@@ -472,7 +471,6 @@ const EmailTemplates = () => {
             </div>
           </div>
 
-          {/* Editor and Preview Section */}
           <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto">
             {isCreatingNew ? (
               <>

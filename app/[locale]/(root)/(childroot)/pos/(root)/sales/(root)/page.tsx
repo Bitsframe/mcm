@@ -427,9 +427,9 @@ const Orders = () => {
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
-      <div className="w-full h-[77dvh] p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-          <div className="space-y-3 dark:bg-[#080E16]">
+      <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
+      <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
+      <div className="space-y-3 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
               <div className="w-full flex flex-col justify-center h-full space-y-1">
                 <CircularProgress size={16} className="dark:text-white" />

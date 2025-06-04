@@ -171,14 +171,11 @@ const EmailBroadcast: React.FC = () => {
   ];
 
   const RenderTemplate = () => {
-    // Supabase template
     if (dbTemplates.length > 0) {
       const selected = dbTemplates.find((t) => t.id === selectedTemplate);
       if (selected) {
-        // Insert name after 'Best,' if name is provided and not already present
         let previewHtml = selected.body || "";
         if (name && name.trim()) {
-          // Find 'Best,' and add <br/> + name after it, but only if not already present
           previewHtml = previewHtml.replace(
             /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
             (match: string, p1: string, p2: string) => `${p1}<br/>${name}${p2}`
@@ -374,8 +371,7 @@ const EmailBroadcast: React.FC = () => {
   const { t } = useTranslation(translationConstant.EMAILB);
 
   return (
-    <div className="flex flex-col gap-4 p-4 dark:bg-[#0e1725]">
-      {/* Added Heading */}
+    <div className="flex flex-col gap-4 px-4 pt-4 dark:bg-[#0e1725]">
       <div>
         <h1 className="text-xl font-bold">Email Broadcast</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
@@ -384,7 +380,6 @@ const EmailBroadcast: React.FC = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Left side - Email List & Filters */}
         <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm py-4">
           <div className="space-y-2">
             <label
@@ -414,7 +409,6 @@ const EmailBroadcast: React.FC = () => {
                   {/* <h3 className="text-sm font-medium text-foreground mb-2">
                     {t("EmailB_k1") || "Selected Emails"}:
                   </h3> */}
-                  {/* New Selected Items Display Section */}
 
                   {!filter ? (
                     <>
@@ -873,7 +867,6 @@ const EmailBroadcast: React.FC = () => {
           </div>
         </div>
 
-        {/* Right side - Email Preview & Template Selection */}
         <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
           <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
             Preview

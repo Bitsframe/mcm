@@ -20,7 +20,7 @@ const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
       </div>
       <main
         style={{ zIndex: 9999999 }}
-        className="h-[80dvh] w-full bg-white dark:bg-[#0e1725] font-medium text-base space-y-3 p-1 rounded"
+        className=" w-full bg-white dark:bg-[#0e1725] font-medium text-base space-y-3 p-1 rounded"
       >
         {children}
       </main>

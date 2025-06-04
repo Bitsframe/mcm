@@ -174,7 +174,7 @@ const Products = () => {
     quantity: 0,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const itemsPerPage = 4;
 
   const calculateTotalAssigned = useCallback(() => {
     if (!assignModalData.location_ids?.length || !assignModalData.quantity)
@@ -487,10 +487,10 @@ const Products = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
-      <div className="w-full min-h-[81.5dvh] h-full overflow-auto py-2 px-2">
+      <div className="w-full h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <div className=" py-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto gap-x-3">
+          <div className="pb-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto">
               <input
                 onChange={onChangeHandle}
                 type="text"
@@ -500,7 +500,7 @@ const Products = () => {
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>Add Product</span>
@@ -536,7 +536,7 @@ const Products = () => {
           </div>
 
           <div className="pt-5">
-            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-x-hidden">
+            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-hidden">
               {/* Table for larger screens */}
               <div className="hidden md:block">
                 <Table className="w-full">
@@ -579,7 +579,7 @@ const Products = () => {
                     </TableRow>
                   </TableHeader>
 
-                  <TableBody className="h-[120px] overflow-y-auto block">
+                  <TableBody className="h-[255px] overflow-y-auto block">
                     {loading ? (
                       <TableRow className="flex h-full">
                         <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
@@ -700,10 +700,7 @@ const Products = () => {
                 </Table>
               </div>
 
-              {/* Remove the duplicate pagination controls */}
-
-              {/* Card layout for mobile screens */}
-              <div className="md:hidden space-y-4">
+              <div className="md:hidden space-y-4 p-4">
                 {loading ? (
                   <div className="h-[60dvh] w-full flex flex-col justify-center items-center">
                     <Spinner size="xl" className="dark:text-white" />
@@ -752,7 +749,7 @@ const Products = () => {
                               {elem.unlimited ? "Unlimited" : elem.stock}
                             </span>
                           </div>
-                          <div className="flex justify-end gap-2 mt-3">
+                          <div className="flex flex-wrap justify-end gap-2 mt-3">
                             <Action_Button
                               icon={<RefreshCcw size={16} />}
                               onClick={() => buttonClickActionHandle("Update", elem)}

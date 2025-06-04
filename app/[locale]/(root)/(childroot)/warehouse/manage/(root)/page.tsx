@@ -102,7 +102,7 @@ const Categories = () => {
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
   const [page, setPage] = useState(1);
-  const ITEMS_PER_PAGE = 3;
+  const ITEMS_PER_PAGE = 4;
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
@@ -268,8 +268,8 @@ const Categories = () => {
 
   return (
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
-      <div className="w-full min-h-[81.5dvh] h-full overflow-auto">
-        <div className="h-full rounded-md py-2">
+      <div className="w-full h-full overflow-auto">
+        <div className="h-full rounded-md pt-2">
           <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
             <div className="space-y-1 w-full sm:w-auto">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full justify-between gap-x-3">
@@ -309,7 +309,6 @@ const Categories = () => {
 
           <div className="px-3 pt-5">
             <div className="border rounded-md border-gray-300 dark:border-gray-700">
-              {/* Table for medium and larger screens */}
               <div className="hidden md:block overflow-x-auto">
                 <Table className="min-w-full">
                   <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700">
@@ -377,7 +376,6 @@ const Categories = () => {
                 </Table>
               </div>
 
-              {/* Card layout for small screens */}
               <div className="md:hidden p-4 space-y-4">
                 {loading ? (
                   <div className="h-[30dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">

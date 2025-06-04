@@ -60,8 +60,8 @@ const UserManagementComponent = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPageLarge = 4; // For large screens (table)
-  const rowsPerPageSmall = 3; // For small screens (cards)
+  const rowsPerPageLarge = 6; 
+  const rowsPerPageSmall = 3;
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {

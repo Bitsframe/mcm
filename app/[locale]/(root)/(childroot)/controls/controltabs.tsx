@@ -11,7 +11,6 @@ const TopTabs = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -47,7 +46,6 @@ const TopTabs = () => {
 
   return (
     <>
-      {/* Desktop sidebar */}
       <nav className="w-48 hidden sm:block">
         <ul className="flex flex-col gap-1">
           {WebsiteContentMenu.map((menuItem, index) => {
@@ -77,7 +75,6 @@ const TopTabs = () => {
         </ul>
       </nav>
 
-      {/* Mobile dropdown menu */}
       <div className="block sm:hidden relative" ref={dropdownRef}>
         <button
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg w-full text-left border border-gray-300 dark:border-gray-700"

@@ -221,7 +221,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const [showRoleDetails, setShowRoleDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const rowsPerPage = 4;
+  const rowsPerPage = 7;
 
   // Filter roles based on search query
   const filteredRoles = roles.filter((role: any) =>
@@ -309,10 +309,8 @@ const RolesAndPermissionsComponent: React.FC = () => {
         </h1>
       </div>
       <div className="w-full flex flex-col mt-5">
-        {/* User Roles Section */}
         <div className="w-full mb-6">
         <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
-    {/* Search Input with icon */}
     <div className="relative w-full sm:w-auto">
         <Input
             placeholder="Search roles..."
@@ -334,7 +332,6 @@ const RolesAndPermissionsComponent: React.FC = () => {
 </div>
 
           <div className="border rounded-md overflow-hidden dark:border-[#172945]">
-            {/* Desktop Table */}
             <Table className="w-full hidden md:table border dark:border-[#172945]">
               <TableHeader>
                 <TableRow className="border dark:border-[#172945]">
@@ -367,7 +364,6 @@ const RolesAndPermissionsComponent: React.FC = () => {
               </TableBody>
             </Table>
 
-            {/* Mobile Cards */}
             <div className="md:hidden p-2">
               {loadingDataState ? (
                 <div className="text-center py-4">

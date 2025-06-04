@@ -185,7 +185,7 @@ const Page = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 6;
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
@@ -414,7 +414,7 @@ const Page = () => {
   };
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mt-4">
         <h1 className="text-xl font-bold">Promo Codes</h1>
@@ -423,7 +423,7 @@ const Page = () => {
         </h1>
       </div>
 
-        <div className="w-full min-h-[84dvh] py-2 flex flex-col gap-2">
+        <div className="w-full py-2 flex flex-col gap-2">
           <div className="space-y-6 pb-4 mt-3">
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
               <div className="relative w-full sm:max-w-xs">
@@ -446,7 +446,6 @@ const Page = () => {
           </div>
 
           <div className="overflow-y-auto max-h-[calc(84dvh-150px)]">
-            {/* Table for medium and larger screens */}
             <div className="hidden md:block rounded-lg border border-gray-200 dark:border-[#172945]">
               <Table className="w-full">
                 <TableHeader>

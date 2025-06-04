@@ -74,7 +74,6 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
-      {/* Products Count Card */}
       <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">{procucts_count}</h1>
@@ -96,7 +95,6 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      {/* Categories Count Card */}
       <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">{categories_count}</h1>
@@ -118,7 +116,6 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      {/* Stock Value Card */}
       <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">
@@ -142,7 +139,6 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      {/* Percentage Card */}
       <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
         <h1 className="text-3xl text-center font-bold">20%</h1>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-2 text-sm">
