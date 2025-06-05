@@ -143,7 +143,7 @@ const PrivateFeedbackComponent: FC = () => {
           {detailsArray(dataDetails).map((detail, index) => (
             <div
               key={index}
-              className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+              className="rounded-xl bg-white dark:bg-[#0E1725] p-4 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <dt className="text-sm text-[#707070] dark:text-gray-400">
                 {detail.label}
@@ -165,7 +165,7 @@ const PrivateFeedbackComponent: FC = () => {
   }, [dataList]);
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-gray-900 overflow-y-auto">
+    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-[#0E1725] overflow-y-auto">
       <div>
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
           Private Feedback
@@ -182,7 +182,7 @@ const PrivateFeedbackComponent: FC = () => {
               onChange={onChangeHandle}
               type="text"
               placeholder={t("Privatefeedback_k1")}
-              className="px-2 py-3 w-full sm:w-72 text-sm rounded-md focus:outline-none mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+              className="px-2 py-3 w-full sm:w-72 text-sm rounded-md focus:outline-none mt-2 bg-white dark:bg-[#0E1725] border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
             />
           </div>
 
@@ -283,7 +283,7 @@ const PrivateFeedbackComponent: FC = () => {
 
           <div className="px-3 pt-5 overflow-x-auto hidden md:block">
             <Table className="min-w-[600px] text-xs sm:text-sm">
-              <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <TableHeader className="sticky top-0 bg-white dark:bg-[#0E1725] z-10">
                 <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
                   <TableHead className="text-left text-gray-600 dark:text-gray-300">
                     {t("Privatefeedback_k1")}

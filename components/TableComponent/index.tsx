@@ -39,6 +39,7 @@ interface Props {
   RightSideComponent?: () => React.ReactNode;
   pdf?: () => React.ReactNode;
   resetPaginationTrigger?: any;
+  itemPerPage?: number;
 }
 
 interface DataListInterface {
@@ -46,6 +47,7 @@ interface DataListInterface {
 }
 
 const TableComponent: React.FC<Props> = ({
+  itemPerPage,
   tableHeader,
   loading,
   dataList,
@@ -67,14 +69,13 @@ const TableComponent: React.FC<Props> = ({
   const isAllSelected =
     dataList.length > 0 && selectedRows.length === dataList.length;
 
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = itemPerPage || 5;
   const [currentPage, setCurrentPage] = React.useState(1);
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
   const currentData = dataList.slice(startIndex, endIndex);
 
-  // Reset pagination when dataList or resetPaginationTrigger changes
   useEffect(() => {
     setCurrentPage(1);
   }, [dataList, resetPaginationTrigger]);
@@ -104,11 +105,9 @@ const TableComponent: React.FC<Props> = ({
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  // Function to render card content
   const renderCardContent = (elem: any) => {
     return tableHeader.map(({ id, render_value, label }, index) => {
-      if (id === "last_updated") return null; // Skip action column for card header
-
+      if (id === "last_updated") return null; 
       const content = render_value
         ? render_value(elem[id], elem, openModal)
         : elem[id];
@@ -133,7 +132,6 @@ const TableComponent: React.FC<Props> = ({
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
-        {/* Search input container - takes full width on small screens */}
         <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10 min-w-0">
           <CiSearch size={18} color="gray" />
           <input
@@ -145,7 +143,6 @@ const TableComponent: React.FC<Props> = ({
           />
         </div>
 
-        {/* Right side components container - appears below on small screens, to the right on larger screens */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
           {pdf ? <ExportAsPDF /> : null}
           {RightSideComponent ? <RightSideComponent /> : null}
@@ -212,7 +209,7 @@ const TableComponent: React.FC<Props> = ({
         {/* Desktop Table View */}
         <div className="hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
-            <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10 min-w-0">
+            <TableHeader className="bg-white dark:bg-[#0E1725] sticky top-0 z-10 min-w-0">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead
@@ -270,38 +267,36 @@ const TableComponent: React.FC<Props> = ({
             </TableBody>
           </Table>
         </div>
-
-        {/* Pagination - Common for both views */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
-          <div>
-            {dataList.length === 0
-              ? "Showing 0 to 0 of 0 results"
-              : `Showing ${startIndex + 1} to ${endIndex} of ${
-                  dataList.length
-                } results`}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
-                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+      </div>
+      <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
+        <div>
+          {dataList.length === 0
+            ? "Showing 0 to 0 of 0 results"
+            : `Showing ${startIndex + 1} to ${endIndex} of ${
+                dataList.length
               }`}
-            >
-              Previous
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || dataList.length === 0}
-              className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
-                currentPage === totalPages || dataList.length === 0
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              Next
-            </button>
-          </div>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages || dataList.length === 0}
+            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+              currentPage === totalPages || dataList.length === 0
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

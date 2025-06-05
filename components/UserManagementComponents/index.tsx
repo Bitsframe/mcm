@@ -60,8 +60,8 @@ const UserManagementComponent = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPageLarge = 4; // For large screens (table)
-  const rowsPerPageSmall = 3; // For small screens (cards)
+  const rowsPerPageLarge = 6; 
+  const rowsPerPageSmall = 3;
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -229,7 +229,7 @@ const UserManagementComponent = () => {
     <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 py-3 dark:bg-[#0E1725]">
       <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
         {/* Heading Section */}
-        <div className="p-1 sm:p-3">
+        <div className="p-1 sm:px-3">
           <h1 className="text-xl font-bold dark:text-white">{t("User Management")}</h1>
           <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
             Tools / User Management
@@ -241,7 +241,7 @@ const UserManagementComponent = () => {
           <div className="relative w-full sm:w-60">
             <input
               onChange={onChangeHandle}
-              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
+              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
               type="text"
               placeholder={t("Search users by name")}
             />
@@ -259,7 +259,7 @@ const UserManagementComponent = () => {
         </div>
 
         {/* Table */}
-        <div className="px-3 pb-6">
+        <div className="px-3">
           {/* Desktop Table */}
           <div className="hidden sm:block border rounded-md overflow-auto dark:border-[#172945] relative">
             <Table>

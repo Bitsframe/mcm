@@ -117,7 +117,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 7;
   const [isMobile, setIsMobile] = useState(false);
 
   const [patientData, setPatientData] = useState({
@@ -412,9 +412,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               setSelectedPatient(patient);
               setIsEditing(false);
             }}
-            className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+            className="h-8 w-8 flex items-center justify-center p-0 text-gray-500 dark:text-gray-400"
           >
-            <Eye className="h-3 w-3" color="gray" />
+            <Eye className="h-5 w-5" color="gray" />
             <span className="sr-only">View</span>
           </Button>
           <EditPatientModal
@@ -428,7 +428,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   );
 
   return (
-    <main className="w-full dark:bg-gray-900">
+    <main className="w-full dark:bg-[#0E1725]">
       <div className="px-6 pt-5">
         <h1 className="text-2xl font-bold dark:text-white">
           {renderType === "all"
@@ -787,7 +787,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </Table>
           </div>
 
-          <div className="max-h-[calc(100vh-420px)] overflow-y-auto">
+          <div className="max-h-[calc(100vh-420px)] md:min-h-[341px] overflow-y-auto">
             <Table>
               <TableBody>
                 {loading ? (
@@ -896,7 +896,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
         )}
 
-        {/* Mobile Card View - Visible only on small screens */}
         <div className="md:hidden">
           {loading ? (
             <div className="flex justify-center items-center h-40">
@@ -918,12 +917,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           )}
 
           {!loading && filteredAndSortedPatients.length > 0 && (
-            <div className="md:hidden flex sm:flex-row items-center justify-between px-4 py-3 gap-3 mt-4">
+            <div className="md:hidden flex sm:flex-row items-center justify-between py-3 gap-3 mt-4">
               <div className="text-sm text-center">
                 <p className="text-gray-700 dark:text-gray-300">
                   Showing {startIndex + 1} to{" "}
                   {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
-                  {filteredAndSortedPatients.length} results
+                  {filteredAndSortedPatients.length}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1424,7 +1423,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           <span className="sr-only">Edit</span>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[500px] dark:bg-gray-900">
+      <AlertDialogContent className="w-[95vw] sm:max-w-[500px] dark:bg-gray-900 mx-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl dark:text-white">
             {t("Patients_k15")}

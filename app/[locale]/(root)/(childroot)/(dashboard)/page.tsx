@@ -212,8 +212,8 @@ const DNSSection = memo(({ dns }: { dns: DNS }) => {
   return (
     <div className="text-slate-800 dark:text-slate-200 text-sm">
       <h1 className="mb-2 text-base font-bold">{t("Dashboard_k21")}</h1>
-      <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2.5 rounded-md h-[200px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2.5 rounded-md h-[340px] md:h-[200px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <DataField
             icon={<Globe size={15} />}
             label={t("Dashboard_k19")}
@@ -404,6 +404,10 @@ const Page = () => {
       </div>
     );
   }
-  return <RenderData data={cronitorSampleData.monitors[0]} />;
+  return (
+    <div className="w-full h-full lg:overflow-hidden">
+      <RenderData data={cronitorSampleData.monitors[0]} />
+    </div>
+  );
 };
 export default Page;

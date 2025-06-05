@@ -11,13 +11,16 @@ import { signOut } from "@/actions/supabase_auth/action";
 import { AuthContext } from "@/context";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import LanguageChanger from "@/components/LanguageChanger";
+import LanguageChanger2 from "@/components/LanguageChanger2";
 import ThemeToggleButton from "@/components/Themetoggle";
+import { useTheme } from "next-themes";
 
 export default function MenuWithAvatar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { userProfile, userRole } = useContext(AuthContext);
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
+  const { theme } = useTheme();
 
   const open = Boolean(anchorEl);
 
@@ -99,6 +102,10 @@ export default function MenuWithAvatar() {
             borderRadius: "12px",
             zIndex: 9999,
             position: 'relative',
+            background: theme === "dark" ? "#0e1725" : "#fff",
+            color: theme === "dark" ? "#fff" : "#222",
+            boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
+            border: theme === "dark" ? "1px solid #232a36" : "1px solid #e0e0e0"
           },
         }}
       >
@@ -111,9 +118,9 @@ export default function MenuWithAvatar() {
             <MenuItem onClick={handleLogout} style={{ color: 'red', gap: '12px' }}>
               <LogOut size={18} color="red" /> Log Out
             </MenuItem>
-            <div className="px-4 pt-2 pb-1 text-xs text-gray-500 dark:text-gray-400">Language</div>
+            <div className="px-4 py-2 font-semibold text-gray-700 dark:text-white">Language</div>
             <div className="px-4 pb-2">
-              <LanguageChanger locale={userProfile?.locale || 'en'} />
+              <LanguageChanger2 locale={userProfile?.locale || 'en'} />
             </div>
             <div className="px-4 pt-2 pb-2 flex justify-center">
               <ThemeToggleButton />

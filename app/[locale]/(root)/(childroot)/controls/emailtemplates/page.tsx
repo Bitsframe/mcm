@@ -358,7 +358,7 @@ const EmailTemplates = () => {
   };
 
   return (
-    <div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900 p-4">
+    <div className="relative z-0 h-[120dvh] md:h-[70dvh] bg-background dark:bg-gray-900 p-4">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
@@ -371,7 +371,7 @@ const EmailTemplates = () => {
             >
               <X className="w-5 h-5" />
             </button>
-      
+
             <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
               Create New template
             </h2>
@@ -428,9 +428,8 @@ const EmailTemplates = () => {
         </div>
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-          {/* All Templates Section */}
-          <div className="w-full md:w-[30%] border-b md:border-r bg-[#F1F4F9] dark:bg-[#0e1725] dark:border-gray-700 flex flex-col">
-            <div className="p-4">
+          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700 flex flex-col">
+            <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
                 All Templates
               </h2>
@@ -438,33 +437,33 @@ const EmailTemplates = () => {
                 <input
                   type="text"
                   placeholder="Search templates"
-                  className="w-full pl-10 pr-4 py-3 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
               </div>
             </div>
-            <div className="flex-1 overflow-auto p-4">
+            <div className="overflow-auto h-[180px] md:h-[calc(69vh-180px)] p-0">
               {filteredTemplates.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {searchQuery.trim() ? "No matching templates found" : "No templates saved yet"}
+                <p className="text-sm text-gray-500 dark:text-gray-400 p-4">
+                  {searchQuery.trim()
+                    ? "No matching templates found"
+                    : "No templates saved yet"}
                 </p>
               ) : (
-                <ul className="space-y-2 text-base">
+                <ul className="text-base">
                   {filteredTemplates.map((template) => (
                     <li
                       key={template.id}
-                      className={`py-2 px-1 rounded-md cursor-pointer ${
+                      className={`px-4 py-3 cursor-pointer border-b text-sm dark:border-gray-700 ${
                         activeTemplate?.id === template.id
-                          ? "bg-white dark:bg-blue-900"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }`}
                       onClick={() => handleEditTemplate(template)}
                     >
-                      <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                        {template.name}
-                      </h3>
+                      <h3 className="font-medium">{template.name}</h3>
                     </li>
                   ))}
                 </ul>
@@ -472,7 +471,6 @@ const EmailTemplates = () => {
             </div>
           </div>
 
-          {/* Editor and Preview Section */}
           <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto">
             {isCreatingNew ? (
               <>

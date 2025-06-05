@@ -60,7 +60,6 @@ const TextBroadcast = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [darkMode, setDarkMode] = useState(false);
 
-  // Check for saved dark mode preference or system preference
   useEffect(() => {
     const savedMode = localStorage.getItem("darkMode");
     if (savedMode !== null) {
@@ -70,7 +69,6 @@ const TextBroadcast = () => {
     }
   }, []);
 
-  // Apply dark mode class to body
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");

@@ -136,7 +136,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">
-      <div className="flex flex-col items-start md:w-1/2 justify-center">
+      <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
         <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
           Select Schedule Date:
         </label>
@@ -150,8 +150,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
           />
         </span>
       </div>
-
-      <div className="flex flex-col items-start md:w-1/2 justify-center">
+      <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
         <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
           Select Schedule Time:
         </label>

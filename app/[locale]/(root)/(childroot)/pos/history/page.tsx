@@ -199,7 +199,7 @@ const SalesHistory = () => {
         </div>
       </div>
 
-      <div className="w-full min-h-[82dvh] h-[100%] overflow-auto px-4">
+      <div className="w-full overflow-auto px-4">
         <TableComponent
           tableHeader={tableHeader}
           loading={loading}
@@ -208,7 +208,8 @@ const SalesHistory = () => {
           searchHandle={onChangeHandle}
           searchInputplaceholder={t("POS-Historyk3")}
           tableBodyHeight="h-[50dvh]"
-          tableHeight="h-[57dvh]"
+          tableHeight="h-[67dvh] md:h-[58dvh]"
+          itemPerPage={6}
         />
       </div>
 

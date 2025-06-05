@@ -171,149 +171,151 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-background dark:bg-gray-900 min-h-[80dvh]">
-      <div className="sm:bg-white sm:dark:bg-[#0E1725] sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm sm:p-0 p-0 w-full sm:w-auto sm:mx-0 mx-0 flex sm:block justify-center items-start sm:justify-normal sm:items-stretch min-h-[80dvh]">
-        <div className="w-full max-w-md mx-2 sm:mx-0 sm:max-w-none sm:w-auto bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm">
-          <div className="p-4 border-b dark:border-gray-700">
-            <h1 className="text-lg sm:text-base font-semibold text-gray-900 dark:text-white">Profile</h1>
-          </div>
-          <div className="p-4">
-            <form onSubmit={handleSubmit}>
-              <div className="flex flex-row items-center gap-4 mb-6">
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Profile Image
-                  </span>
-                  <div
-                    className="relative w-20 h-20 cursor-pointer"
-                    onClick={handleImageClick}
-                  >
-                    <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-600">
-                      {profileImage ? (
-                        <>
-                          <img
-                            src={profileImage}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                          />
-                          {isUploading && (
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                              <span className="text-white text-xs">Uploading...</span>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-gray-500 dark:text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
+    <div className="bg-background dark:bg-gray-900">
+  <div className="sm:bg-white sm:dark:bg-[#0E1725] sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm sm:p-0 p-0 w-full sm:w-auto sm:mx-0 mx-0 flex sm:block justify-center items-start sm:justify-normal sm:items-stretch min-h-fit">
+    <div className="w-full max-w-md mx-2 sm:mx-0 sm:max-w-none sm:w-auto bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm">
+      <div className="p-4 border-b dark:border-gray-700">
+        <h1 className="text-lg sm:text-base font-semibold text-gray-900 dark:text-white">Profile</h1>
+      </div>
+      <div className="p-4">
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-row items-center gap-4 mb-6">
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Profile Image
+              </span>
+              <div
+                className="relative w-20 h-20 cursor-pointer"
+                onClick={handleImageClick}
+              >
+                <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-600">
+                  {profileImage ? (
+                    <>
+                      <img
+                        src={profileImage}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                      {isUploading && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                          <span className="text-white text-xs">Uploading...</span>
+                        </div>
                       )}
-                    </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      accept="image/*"
-                      className="hidden"
-                      disabled={isUploading}
-                    />
-                  </div>
-                  {uploadError && (
-                    <p className="text-red-500 text-xs mt-1">{uploadError}</p>
-                  )}
-                  {uploadSuccess && (
-                    <p className="text-green-500 text-xs mt-1">Image uploaded successfully!</p>
-                  )}
-                  {saveSuccess && (
-                    <p className="text-green-500 text-xs mt-1">Profile saved successfully!</p>
+                    </>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleImageClick}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
                   disabled={isUploading}
-                  className="px-2 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUploading ? 'Uploading...' : 'Change Image'}
-                </button>
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={userData.fullName}
-                    onChange={handleInputChange}
-                    className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={userData.email}
-                    onChange={handleInputChange}
-                    className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    name="role"
-                    value={userData.role}
-                    className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-300 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-start mt-36">
-                <div className="flex items-center gap-3">
-                  <button 
-                    type="button"
-                    onClick={handleReset}
-                    className="px-6 py-3 text-red-500 bg-red-100 hover:bg-red-200 rounded-lg text-sm transition-colors"
-                  >
-                    Reset
-                  </button>
-                  <Button 
-                    type="submit"
-                    className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg transition-colors"
-                    disabled={isUploading}
-                  >
-                    Save Profile
-                  </Button>
-                </div>
-              </div>
-            </form>
+              {uploadError && (
+                <p className="text-red-500 text-xs mt-1">{uploadError}</p>
+              )}
+              {uploadSuccess && (
+                <p className="text-green-500 text-xs mt-1">Image uploaded successfully!</p>
+              )}
+              {saveSuccess && (
+                <p className="text-green-500 text-xs mt-1">Profile saved successfully!</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleImageClick}
+              disabled={isUploading}
+              className="px-2 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUploading ? 'Uploading...' : 'Change Image'}
+            </button>
           </div>
-        </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                value={userData.fullName}
+                onChange={handleInputChange}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={userData.email}
+                onChange={handleInputChange}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500 dark:text-gray-400">
+                Role
+              </label>
+              <input
+                type="text"
+                name="role"
+                value={userData.role}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-300 cursor-not-allowed"
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-start mt-6">
+            <div className="flex items-center gap-3">
+              <button 
+                type="button"
+                onClick={handleReset}
+                className="px-6 py-3 text-red-500 bg-red-100 hover:bg-red-200 rounded-lg text-sm transition-colors"
+              >
+                Reset
+              </button>
+              <Button 
+                type="submit"
+                className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg transition-colors"
+                disabled={isUploading}
+              >
+                Save Profile
+              </Button>
+            </div>
+          </div>
+
+        </form>
       </div>
     </div>
+  </div>
+</div>
+
   );
 };
 

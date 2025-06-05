@@ -71,14 +71,14 @@ export const Form_Component = (props: any) => {
           >
             {t("WebCont_k11")}
           </button>
-          <Button
-            onClick={handle_update}
+          <button
+            //@ts-ignore
             isProcessing={update_loading}
             disabled={!is_edited || update_loading}
-            className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg"
+            className="bg-[#0066FF] hover:bg-blue-600 px-6 py-3 text-sm rounded-lg"
           >
             {t("WebCont_k12")}
-          </Button>
+          </button>
         </div>
       </div>
     </>

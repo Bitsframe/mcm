@@ -85,7 +85,7 @@ const MainContent = memo(({ children }: { children: ReactNode }) => {
       <Navbar width={LAYOUT_CONFIG.sidebarWidth} />
       <section
         className="flex-grow p-4 mt-20 rounded-3xl bg-white dark:bg-[#0E1725] relative 
-             h-screen md:h-[calc(100vh-5rem)]" // Mobile: 80vh, Desktop: 100vh - 5rem
+              md:h-[calc(100vh-5rem)]"
         style={{ overflowY: "auto" }}
       >
         {isLoading && (

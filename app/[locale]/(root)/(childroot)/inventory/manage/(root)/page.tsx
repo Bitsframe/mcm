@@ -1,27 +1,34 @@
-"use client"
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { Spinner } from "flowbite-react"
-import { Action_Button } from "@/components/Action_Button"
+"use client";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Spinner } from "flowbite-react";
+import { Action_Button } from "@/components/Action_Button";
 import {
   create_content_service,
   fetch_content_service,
   update_content_service,
-} from "@/utils/supabase/data_services/data_services"
-import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal"
-import { Input_Component } from "@/components/Input_Component"
-import { toast } from "react-toastify"
-import { useCategoriesClinica } from "@/hooks/useCategoriesClinica"
-import { PiCaretUpDownBold } from "react-icons/pi"
-import { Searchable_Dropdown } from "@/components/Searchable_Dropdown"
-import { useMasterProductsClinica } from "@/hooks/useMasterProductsClinica"
-import { LocationContext } from "@/context"
-import { useTranslation } from "react-i18next"
-import { translationConstant } from "@/utils/translationConstants"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Archive, ShieldCheck, Filter } from "lucide-react"
+} from "@/utils/supabase/data_services/data_services";
+import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import { Input_Component } from "@/components/Input_Component";
+import { toast } from "react-toastify";
+import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
+import { PiCaretUpDownBold } from "react-icons/pi";
+import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
+import { useMasterProductsClinica } from "@/hooks/useMasterProductsClinica";
+import { LocationContext } from "@/context";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Archive, ShieldCheck, Filter } from "lucide-react";
 
 interface DataListInterface {
-  [key: string]: any
+  [key: string]: any;
 }
 
 const modalStateEnum = {
@@ -29,7 +36,7 @@ const modalStateEnum = {
   UPDATE: "Update",
   DELETE: "delete",
   EMPTY: "",
-}
+};
 
 const tableHeader = [
   {
@@ -64,26 +71,36 @@ const tableHeader = [
       clickHandle,
       getDataArchiveType,
     }: {
-      clickHandle: (state: string) => void
-      getDataArchiveType: boolean
+      clickHandle: (state: string) => void;
+      getDataArchiveType: boolean;
     }) => {
       return (
         <div className="flex items-end justify-start">
           <Action_Button
             label={getDataArchiveType ? "Unarchive" : "Archive"}
-            text_color={getDataArchiveType ? "text-[#0EA542] dark:text-green-400" : "text-[#F71B1B] dark:text-red-400"}
+            text_color={
+              getDataArchiveType
+                ? "text-[#0EA542] dark:text-green-400"
+                : "text-[#F71B1B] dark:text-red-400"
+            }
             icon={<Archive size={18} />}
-            bg_color={getDataArchiveType ? "bg-[#E7FDEF] dark:bg-green-900/30" : "bg-[#FFE8E5] dark:bg-red-900/30"}
+            bg_color={
+              getDataArchiveType
+                ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                : "bg-[#FFE8E5] dark:bg-red-900/30"
+            }
             border={
-              getDataArchiveType ? "border-[#72F39E] dark:border-green-800" : "border-[#FFD2CC] dark:border-red-800"
+              getDataArchiveType
+                ? "border-[#72F39E] dark:border-green-800"
+                : "border-[#FFD2CC] dark:border-red-800"
             }
             onClick={() => clickHandle(modalStateEnum.DELETE)}
           />
         </div>
-      )
+      );
     },
   },
-]
+];
 
 const requiredInputFields = [
   {
@@ -108,41 +125,47 @@ const requiredInputFields = [
     colSpan: "col-span-1",
     type: "number",
   },
-]
+];
 
 const Inventory = () => {
-  const [dataList, setDataList] = useState<DataListInterface[]>([])
-  const [allData, setAllData] = useState<DataListInterface[]>([])
-  const [loading, setLoading] = useState(true)
-  const [excludeZeroQuantity, setExcludeZeroQuantity] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 3
+  const [dataList, setDataList] = useState<DataListInterface[]>([]);
+  const [allData, setAllData] = useState<DataListInterface[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [excludeZeroQuantity, setExcludeZeroQuantity] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  const [modalEventLoading, setModalEventLoading] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
-  const [modalData, setModalData] = useState<DataListInterface>({})
-  const [modalState, setModalState] = useState("")
-  const { categories } = useCategoriesClinica()
-  const [sortOrder, setSortOrder] = useState(-1)
-  const [sortColumn, setSortColumn] = useState("")
+  const [modalEventLoading, setModalEventLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [modalData, setModalData] = useState<DataListInterface>({});
+  const [modalState, setModalState] = useState("");
+  const { categories } = useCategoriesClinica();
+  const [sortOrder, setSortOrder] = useState(-1);
+  const [sortColumn, setSortColumn] = useState("");
 
-  const { products, onChangeCategory, loadingProducts, selectedCategory, selectedProduct, selectProductHandle } =
-    useMasterProductsClinica()
-  const { selectedLocation } = useContext(LocationContext)
-  const [getDataArchiveType, setGetDataArchiveType] = useState(false)
+  const {
+    products,
+    onChangeCategory,
+    loadingProducts,
+    selectedCategory,
+    selectedProduct,
+    selectProductHandle,
+  } = useMasterProductsClinica();
+  const { selectedLocation } = useContext(LocationContext);
+  const [getDataArchiveType, setGetDataArchiveType] = useState(false);
 
   const openModalHandle = (state: string) => {
-    setOpenModal(true)
-    setModalState(state)
-  }
+    setOpenModal(true);
+    setModalState(state);
+  };
   const closeModalHandle = () => {
-    setOpenModal(false)
-    setModalState(modalStateEnum.EMPTY)
-    setModalData({})
-  }
+    setOpenModal(false);
+    setModalState(modalStateEnum.EMPTY);
+    setModalData({});
+  };
 
   const fetch_handle = async (archived: boolean, location_id: number) => {
-    setLoading(true)
+    setLoading(true);
     const fetched_data = await fetch_content_service({
       table: "inventory",
       language: "",
@@ -162,88 +185,92 @@ const Inventory = () => {
         },
       ],
       filterOptions: [{ operator: "not", column: "products", value: null }],
-    })
+    });
 
-    const inventoryData = fetched_data.map(({ products, price, quantity, inventory_id }: any) => ({
-      product_id: inventory_id,
-      master_product_id: products.product_id,
-      category_id: products.category_id,
-      product_name: products.product_name,
-      unlimited: products.unlimited,
-      price: products.price,
-      quantity_available: quantity,
-      categories: products.categories,
-    }))
-    setDataList(inventoryData)
-    setAllData(inventoryData)
-    setLoading(false)
-  }
+    const inventoryData = fetched_data.map(
+      ({ products, price, quantity, inventory_id }: any) => ({
+        product_id: inventory_id,
+        master_product_id: products.product_id,
+        category_id: products.category_id,
+        product_name: products.product_name,
+        unlimited: products.unlimited,
+        price: products.price,
+        quantity_available: quantity,
+        categories: products.categories,
+      })
+    );
+    setDataList(inventoryData);
+    setAllData(inventoryData);
+    setLoading(false);
+  };
 
   const onChangeHandle = (e: any) => {
-    const val = e.target.value
-    let filteredData = allData
+    const val = e.target.value;
+    let filteredData = allData;
 
     // Apply zero quantity filter
     if (excludeZeroQuantity) {
-      filteredData = filteredData.filter((elem) => elem.quantity_available > 0 || elem.unlimited)
+      filteredData = filteredData.filter(
+        (elem) => elem.quantity_available > 0 || elem.unlimited
+      );
     }
 
     // Apply search filter
     if (val !== "") {
       filteredData = filteredData.filter((elem) =>
-        elem.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase()),
-      )
+        elem.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase())
+      );
     }
 
-    setDataList([...filteredData])
-  }
+    setDataList([...filteredData]);
+  };
 
   // Add effect to handle zero quantity filter changes
   useEffect(() => {
-    onChangeHandle({ target: { value: "" } })
-  }, [excludeZeroQuantity])
+    onChangeHandle({ target: { value: "" } });
+  }, [excludeZeroQuantity]);
 
   useEffect(() => {
     if (selectedLocation) {
-      fetch_handle(getDataArchiveType, selectedLocation.id)
+      fetch_handle(getDataArchiveType, selectedLocation.id);
     }
-  }, [selectedLocation])
+  }, [selectedLocation]);
 
   const modalInputChangeHandle = (key: string, value: string | number) => {
     if (key === "category_id") {
-      onChangeCategory(+value)
+      onChangeCategory(+value);
     } else if (key === "master_product_id") {
-      selectProductHandle(+value)
+      selectProductHandle(+value);
     }
     setModalData((pre) => {
-      return { ...pre, [key]: value }
-    })
-  }
+      return { ...pre, [key]: value };
+    });
+  };
 
   const modalSubmitHandle = async (e: any) => {
-    e.preventDefault()
-    setModalEventLoading(true)
+    e.preventDefault();
+    setModalEventLoading(true);
     if (modalState === modalStateEnum.CREATE) {
       const invenPostData = {
         price: modalData.price,
         quantity: modalData.quantity_available,
         location_id: selectedLocation.id,
         product_id: modalData.master_product_id,
-      }
+      };
 
       const { data: res_data, error } = await create_content_service({
         table: "inventory",
         language: "",
         post_data: invenPostData,
-      })
+      });
 
       if (error) {
-        toast.error(error.message)
+        toast.error(error.message);
       }
       if (res_data?.length) {
-        toast.success("Created successfully")
-        closeModalHandle()
-        fetch_handle(getDataArchiveType, selectedLocation.id)
+        toast.success("Created successfully");
+        closeModalHandle();
+        fetch_handle(getDataArchiveType, selectedLocation.id);
       }
     } else {
       try {
@@ -253,98 +280,110 @@ const Inventory = () => {
           quantity: +modalData.quantity_available,
           location_id: +selectedLocation.id,
           product_id: modalData.master_product_id,
-        }
+        };
 
         const res_data = await update_content_service({
           table: "inventory",
           language: "",
           post_data: postData,
           matchKey: "inventory_id",
-        })
+        });
         if (res_data?.length) {
-          toast.success("Updated successfully")
-          fetch_handle(getDataArchiveType, selectedLocation.id)
-          closeModalHandle()
+          toast.success("Updated successfully");
+          fetch_handle(getDataArchiveType, selectedLocation.id);
+          closeModalHandle();
         }
       } catch (error: any) {
         if (error && error?.message) {
-          toast.error(error?.message)
+          toast.error(error?.message);
         } else {
-          toast.error("Something went wrong!")
+          toast.error("Something went wrong!");
         }
       }
     }
-    setModalEventLoading(false)
-  }
+    setModalEventLoading(false);
+  };
 
   const onClickHandle = async (id: number) => {
     const { error }: any = await update_content_service({
       table: "inventory",
       matchKey: "inventory_id",
       post_data: { archived: !getDataArchiveType, inventory_id: id },
-    })
+    });
     if (!error) {
-      fetch_handle(getDataArchiveType, selectedLocation.id)
-      toast.success(getDataArchiveType ? "Inventory no longer archived" : "Archived successfully")
+      fetch_handle(getDataArchiveType, selectedLocation.id);
+      toast.success(
+        getDataArchiveType
+          ? "Inventory no longer archived"
+          : "Archived successfully"
+      );
     } else if (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   const buttonClickActionHandle = (action: string, elem: any) => {
     if (action === modalStateEnum.DELETE) {
-      onClickHandle(elem.product_id)
+      onClickHandle(elem.product_id);
     } else if (action === modalStateEnum.UPDATE) {
-      setModalData(elem)
-      onChangeCategory(elem.category_id)
-      openModalHandle(modalStateEnum.UPDATE)
+      setModalData(elem);
+      onChangeCategory(elem.category_id);
+      openModalHandle(modalStateEnum.UPDATE);
     }
-  }
+  };
 
   const sortHandle = (column: string) => {
-    let sortedList: any = []
+    let sortedList: any = [];
     if (column === "category") {
       if (sortOrder === 1) {
-        sortedList = dataList.sort((a, b) => a.categories.category_name.localeCompare(b.categories.category_name))
+        sortedList = dataList.sort((a, b) =>
+          a.categories.category_name.localeCompare(b.categories.category_name)
+        );
       } else {
-        sortedList = dataList.sort((a, b) => b.categories.category_name.localeCompare(a.categories.category_name))
+        sortedList = dataList.sort((a, b) =>
+          b.categories.category_name.localeCompare(a.categories.category_name)
+        );
       }
     } else if (column === "product_name") {
       if (sortOrder === 1) {
-        sortedList = dataList.sort((a, b) => a.product_name.localeCompare(b.product_name))
+        sortedList = dataList.sort((a, b) =>
+          a.product_name.localeCompare(b.product_name)
+        );
       } else {
-        sortedList = dataList.sort((a, b) => b.product_name.localeCompare(a.product_name))
+        sortedList = dataList.sort((a, b) =>
+          b.product_name.localeCompare(a.product_name)
+        );
       }
     } else {
       if (sortOrder === 1) {
-        sortedList = dataList.sort((a, b) => a[column] - b[column])
+        sortedList = dataList.sort((a, b) => a[column] - b[column]);
       } else {
-        sortedList = dataList.sort((a, b) => b[column] - a[column])
+        sortedList = dataList.sort((a, b) => b[column] - a[column]);
       }
     }
 
-    setSortOrder((order) => (order === -1 ? 1 : -1))
-    setDataList([...sortedList])
-    setSortColumn(column)
-  }
+    setSortOrder((order) => (order === -1 ? 1 : -1));
+    setDataList([...sortedList]);
+    setSortColumn(column);
+  };
 
   useEffect(() => {
     if (selectedLocation?.id) {
-      fetch_handle(getDataArchiveType, selectedLocation.id)
+      fetch_handle(getDataArchiveType, selectedLocation.id);
     }
-  }, [getDataArchiveType, selectedLocation])
+  }, [getDataArchiveType, selectedLocation]);
 
   const handleActiveClick = useCallback(() => {
-    setGetDataArchiveType(false)
-  }, [])
+    setGetDataArchiveType(false);
+  }, []);
 
   const handleArchiveClick = useCallback(() => {
-    setGetDataArchiveType(true)
-  }, [])
+    setGetDataArchiveType(true);
+  }, []);
 
   const handleZeroQuantityToggle = useCallback(() => {
-    setExcludeZeroQuantity((prev) => !prev)
-  }, [])
+    setExcludeZeroQuantity((prev) => !prev);
+  }, []);
 
   const RightSideComponent = useMemo(
     () => (
@@ -383,13 +422,21 @@ const Inventory = () => {
           title="Exclude zero quantity products"
         >
           <Filter className="w-4 h-4" />
-          <span className="hidden lg:inline">Quantity Available excluding 0</span>
+          <span className="hidden lg:inline">
+            Quantity Available excluding 0
+          </span>
           <span className="lg:hidden">Filter 0</span>
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick, excludeZeroQuantity, handleZeroQuantityToggle],
-  )
+    [
+      getDataArchiveType,
+      handleActiveClick,
+      handleArchiveClick,
+      excludeZeroQuantity,
+      handleZeroQuantityToggle,
+    ]
+  );
 
   const MobileRightSideComponent = useMemo(
     () => (
@@ -431,10 +478,16 @@ const Inventory = () => {
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick, excludeZeroQuantity, handleZeroQuantityToggle],
-  )
+    [
+      getDataArchiveType,
+      handleActiveClick,
+      handleArchiveClick,
+      excludeZeroQuantity,
+      handleZeroQuantityToggle,
+    ]
+  );
 
-  const { t } = useTranslation(translationConstant.INVENTORY)
+  const { t } = useTranslation(translationConstant.INVENTORY);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -450,9 +503,9 @@ const Inventory = () => {
 
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
-      <div className="w-full min-h-[81.5dvh] h-[100%] overflow-auto py-2 px-2">
+      <div className="w-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <div className=" py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+          <div className=" pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
             <div className="flex items-center gap-x-2 w-full sm:w-auto">
               <input
                 onChange={onChangeHandle}
@@ -462,60 +515,72 @@ const Inventory = () => {
               />
             </div>
 
-            <div className="w-full sm:w-auto hidden sm:block">{RightSideComponent}</div>
+            <div className="w-full sm:w-auto hidden sm:block">
+              {RightSideComponent}
+            </div>
             <div className="w-full sm:hidden">{MobileRightSideComponent}</div>
           </div>
 
-          <div className="px-3 pt-5 border rounded-md dark:border-gray-700 dark:bg-[#0e1725]">
+          <div className=" border rounded-md dark:border-gray-700 dark:bg-[#0e1725] min-h-[60dvh] flex flex-col">
             {/* Desktop Table View */}
-            <div className="hidden md:block">
-              <Table>
+            <div className="hidden md:block flex-1">
+              <Table className="h-full flex flex-col">
                 <TableHeader className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
                   <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
-                    <TableHead className="w-10 p-4">
-                    </TableHead>
-                    {tableHeader.map(({ label, align, can_sort, id }, index) => (
-                      <TableHead
-                        key={index}
-                        className={`
-                          flex-1 
-                          ${align || "text-start"}
-                          text-sm 
-                          text-gray-500
-                          font-medium
-                          py-3
-                          dark:text-gray-400
-                        `}
-                      >
-                        <div className="flex items-center">
-                          {t(label)}
-                          {can_sort && (
-                            <button onClick={() => sortHandle(id)} className="active:opacity-50 ml-1">
-                              <PiCaretUpDownBold
-                                className={`inline ${
-                                  sortColumn === id
-                                    ? "text-blue-600 dark:text-blue-400"
-                                    : "text-gray-400 dark:text-gray-500"
-                                } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
-                              />
-                            </button>
-                          )}
-                        </div>
-                      </TableHead>
-                    ))}
+                    <TableHead className="w-10 p-4"></TableHead>
+                    {tableHeader.map(
+                      ({ label, align, can_sort, id }, index) => (
+                        <TableHead
+                          key={index}
+                          className={`
+                flex-1 
+                ${align || "text-start"}
+                text-sm 
+                text-gray-500
+                font-medium
+                py-3
+                dark:text-gray-400
+              `}
+                        >
+                          <div className="flex items-center">
+                            {t(label)}
+                            {can_sort && (
+                              <button
+                                onClick={() => sortHandle(id)}
+                                className="active:opacity-50 ml-1"
+                              >
+                                <PiCaretUpDownBold
+                                  className={`inline ${
+                                    sortColumn === id
+                                      ? "text-blue-600 dark:text-blue-400"
+                                      : "text-gray-400 dark:text-gray-500"
+                                  } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                                />
+                              </button>
+                            )}
+                          </div>
+                        </TableHead>
+                      )
+                    )}
                   </TableRow>
                 </TableHeader>
 
-                <TableBody className="dark:bg-[#0e1725]">
+                <TableBody className="dark:bg-[#0e1725] flex-1">
                   {loading ? (
                     <TableRow className="flex h-full">
-                      <TableCell colSpan={tableHeader.length} className="h-[60dvh] text-center">
+                      <TableCell
+                        colSpan={tableHeader.length}
+                        className="h-full flex items-center justify-center"
+                      >
                         <Spinner size="xl" className="dark:text-white" />
                       </TableCell>
                     </TableRow>
                   ) : dataList.length === 0 ? (
                     <TableRow className="flex h-full">
-                      <TableCell colSpan={tableHeader.length} className="h-[30dvh] text-center dark:text-gray-300">
+                      <TableCell
+                        colSpan={tableHeader.length}
+                        className="h-full flex items-center justify-center dark:text-gray-300"
+                      >
                         <h1>No Product is available</h1>
                       </TableCell>
                     </TableRow>
@@ -524,30 +589,33 @@ const Inventory = () => {
                       <TableRow
                         key={index}
                         className={`
-                          flex 
-                          items-center 
-                          hover:bg-gray-100 
-                          dark:hover:bg-gray-700
-                          dark:bg-[#0e1725]
-                        `}
+                flex 
+                items-center 
+                hover:bg-gray-100 
+                dark:hover:bg-gray-700
+                dark:bg-[#0e1725]
+              `}
                       >
-                        <TableCell className="w-10 p-4">
-                        </TableCell>
+                        <TableCell className="w-10 p-4"></TableCell>
                         {tableHeader.map((element, ind) => {
-                          const { id, Render_Value, align } = element
+                          const { id, Render_Value, align } = element;
                           const content = Render_Value ? (
                             <Render_Value
                               getDataArchiveType={getDataArchiveType}
-                              clickHandle={(action: string) => buttonClickActionHandle(action, elem)}
+                              clickHandle={(action: string) =>
+                                buttonClickActionHandle(action, elem)
+                              }
                             />
                           ) : (
                             elem[id]
-                          )
+                          );
 
                           return (
                             <TableCell
                               key={ind}
-                              className={`flex-1 ${align || "text-start"} text-sm py-4 dark:text-gray-300`}
+                              className={`flex-1 ${
+                                align || "text-start"
+                              } text-sm py-4 dark:text-gray-300`}
                             >
                               {id === "category" ? (
                                 elem.categories.category_name
@@ -561,7 +629,7 @@ const Inventory = () => {
                                 content
                               )}
                             </TableCell>
-                          )
+                          );
                         })}
                       </TableRow>
                     ))
@@ -571,14 +639,16 @@ const Inventory = () => {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden">
+            <div className="md:hidden flex-1">
               {loading ? (
-                <div className="h-[60dvh] flex items-center justify-center">
+                <div className="h-full flex items-center justify-center">
                   <Spinner size="xl" className="dark:text-white" />
                 </div>
               ) : dataList.length === 0 ? (
-                <div className="h-[30dvh] flex items-center justify-center">
-                  <h1 className="dark:text-gray-300">No Product is available</h1>
+                <div className="h-full flex items-center justify-center">
+                  <h1 className="dark:text-gray-300">
+                    No Product is available
+                  </h1>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -590,12 +660,18 @@ const Inventory = () => {
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{t("Inventory_k15")}</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">{elem.product_id}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("Inventory_k15")}
+                            </div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {elem.product_id}
+                            </div>
                           </div>
                           <div className="flex-shrink-0">
                             <Action_Button
-                              label={getDataArchiveType ? "Unarchive" : "Archive"}
+                              label={
+                                getDataArchiveType ? "Unarchive" : "Archive"
+                              }
                               text_color={
                                 getDataArchiveType
                                   ? "text-[#0EA542] dark:text-green-400"
@@ -612,36 +688,55 @@ const Inventory = () => {
                                   ? "border-[#72F39E] dark:border-green-800"
                                   : "border-[#FFD2CC] dark:border-red-800"
                               }
-                              onClick={() => buttonClickActionHandle(modalStateEnum.DELETE, elem)}
+                              onClick={() =>
+                                buttonClickActionHandle(
+                                  modalStateEnum.DELETE,
+                                  elem
+                                )
+                              }
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{t("Inventory_k1")}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("Inventory_k1")}
+                            </div>
                             <div className="font-medium text-gray-900 dark:text-gray-100">
                               {elem.categories.category_name}
                             </div>
                           </div>
 
                           <div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{t("Inventory_k18")}</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">{elem.price}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("Inventory_k18")}
+                            </div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {elem.price}
+                            </div>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div className="col-span-2">
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{t("Inventory_k8")}</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">{elem.product_name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("Inventory_k8")}
+                            </div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {elem.product_name}
+                            </div>
                           </div>
                         </div>
 
                         <div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{t("Inventory_k19")}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {t("Inventory_k19")}
+                          </div>
                           <div className="font-medium text-gray-900 dark:text-gray-100">
-                            {elem.unlimited ? "Unlimited" : elem.quantity_available}
+                            {elem.unlimited
+                              ? "Unlimited"
+                              : elem.quantity_available}
                           </div>
                         </div>
                       </div>
@@ -654,17 +749,19 @@ const Inventory = () => {
             {!loading && dataList.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, dataList.length)} of {dataList.length} row(s)
+                  {(currentPage - 1) * itemsPerPage + 1}-
+                  {Math.min(currentPage * itemsPerPage, dataList.length)} of{" "}
+                  {dataList.length} row(s)
                 </div>
                 <div className="flex space-x-2">
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                   >
                     Previous
                   </button>
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
@@ -693,7 +790,7 @@ const Inventory = () => {
       >
         <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
           {requiredInputFields.map((elem, index) => {
-            const { id, label, colSpan, type } = elem
+            const { id, label, colSpan, type } = elem;
             return (
               <div key={index} className={`${colSpan || "col-span-2"}`}>
                 {id === "category_id" ? (
@@ -701,12 +798,16 @@ const Inventory = () => {
                     initialValue={0}
                     value={modalData[id]}
                     start_empty={true}
-                    options_arr={categories.map(({ category_id, category_name }: any) => ({
-                      value: category_id,
-                      label: category_name,
-                    }))}
+                    options_arr={categories.map(
+                      ({ category_id, category_name }: any) => ({
+                        value: category_id,
+                        label: category_name,
+                      })
+                    )}
                     required={true}
-                    on_change_handle={(e: any) => modalInputChangeHandle(id, e.target.value)}
+                    on_change_handle={(e: any) =>
+                      modalInputChangeHandle(id, e.target.value)
+                    }
                     label="Category"
                   />
                 ) : id === "master_product_id" ? (
@@ -714,12 +815,16 @@ const Inventory = () => {
                     initialValue={0}
                     value={modalData[id]}
                     start_empty={true}
-                    options_arr={products.map(({ product_id, product_name }: any) => ({
-                      value: product_id,
-                      label: product_name,
-                    }))}
+                    options_arr={products.map(
+                      ({ product_id, product_name }: any) => ({
+                        value: product_id,
+                        label: product_name,
+                      })
+                    )}
                     required={true}
-                    on_change_handle={(e: any) => modalInputChangeHandle(id, e.target.value)}
+                    on_change_handle={(e: any) =>
+                      modalInputChangeHandle(id, e.target.value)
+                    }
                     label="Product"
                   />
                 ) : (
@@ -734,12 +839,12 @@ const Inventory = () => {
                   />
                 )}
               </div>
-            )
+            );
           })}
         </div>
       </Custom_Modal>
     </main>
-  )
-}
+  );
+};
 
-export default Inventory
+export default Inventory;
