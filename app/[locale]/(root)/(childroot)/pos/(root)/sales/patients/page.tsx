@@ -443,7 +443,7 @@ const Patients = () => {
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
-    <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2 md:p-4">
+    <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
       <div className="w-full flex flex-col md:flex-row gap-4">
         {/* Patients List Section - Now at the top */}
         <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-1/2 mb-4 md:mb-0">

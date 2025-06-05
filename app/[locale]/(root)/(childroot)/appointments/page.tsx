@@ -204,13 +204,13 @@ const Appointments = () => {
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
   return (
-    <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
+    <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 dark:bg-[#0E1725] dark:text-gray-300 overflow-x-hidden">
       <h1 className="text-xl sm:text-2xl font-bold text-black px-2 sm:px-4 pt-2 sm:pt-4 dark:text-white">
         Appointments
       </h1>
 
-      <div className="grid grid-cols-2 gap-2 px-2 mb-4 sm:grid-cols-4 sm:gap-3 sm:px-4 sm:mb-6">
-        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
+      <div className="grid grid-cols-2 gap-2 px-0 sm:px-4 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-6">
+      <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
             <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
               <Calendar className="h-4 w-4 sm:h-6 sm:w-6" />
@@ -261,7 +261,7 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725]">
+      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725] ">
         <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:items-center md:gap-4 md:justify-between">
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 md:gap-4 md:items-center">
             <div className="w-full md:w-56 min-w-0">

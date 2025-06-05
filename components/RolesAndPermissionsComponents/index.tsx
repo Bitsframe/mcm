@@ -301,7 +301,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
   return (
-    <div className="p-6 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
+    <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
         <h1 className="text-xl font-bold dark:text-white">Roles and Permissions</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
@@ -309,7 +309,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
         </h1>
       </div>
       <div className="w-full flex flex-col mt-5">
-        <div className="w-full mb-6">
+        <div className="w-full">
         <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
     <div className="relative w-full sm:w-auto">
         <Input

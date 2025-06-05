@@ -209,7 +209,7 @@ const TableComponent: React.FC<Props> = ({
         {/* Desktop Table View */}
         <div className="hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
-            <TableHeader className="bg-white dark:bg-[#1E293B] sticky top-0 z-10 min-w-0">
+            <TableHeader className="bg-white dark:bg-[#0E1725] sticky top-0 z-10 min-w-0">
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <TableHead

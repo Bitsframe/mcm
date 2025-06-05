@@ -86,7 +86,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   }
 
   return (
-    <div className="w-full bg-white rounded-lg shadow overflow-hidden dark:bg-gray-900">
+    <div className="w-full bg-white rounded-lg shadow overflow-hidden dark:bg-[#0E1725] px-4">
       {appointLoading ? (
         <div className="flex h-40 flex-col justify-center items-center">
           <Spinner size="xl" className="dark:text-white" />
@@ -98,9 +98,9 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:flex relative flex-col h-64 overflow-x-auto">
-          <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full">
-              <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm">
+          <div className="hidden md:flex relative flex-col h-[258px] overflow-x-auto rounded-lg">
+          <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full rounded-lg">
+              <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm rounded-lg">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
                   <TableRow className="dark:border-gray-700">
                     {[

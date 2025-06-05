@@ -101,7 +101,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const { t } = useTranslation(translationConstant.POSHISTORY);
 
   return isOpen ? (
-    <div className="fixed inset-0 z-30 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
       {loading ? (
         <div className="h-full w-full flex justify-center items-center">
           <CircularProgress />

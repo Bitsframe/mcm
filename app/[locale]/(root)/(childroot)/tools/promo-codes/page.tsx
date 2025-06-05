@@ -414,7 +414,7 @@ const Page = () => {
   };
 
   return (
-    <main className="w-full font-[500] text-[20px] dark:bg-gray-900 dark:text-white">
+    <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mt-4">
         <h1 className="text-xl font-bold">Promo Codes</h1>
