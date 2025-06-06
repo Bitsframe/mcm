@@ -699,11 +699,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-6 items-center">
                 <AlertDialogCancel asChild>
                   <Button
                     variant="outline"
-                    className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
+                    className="border-gray-200 mt-0 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
                   >
                     Cancel
                   </Button>

@@ -19,10 +19,6 @@ interface RadioButtonOptionsInterface {
   value: string;
 }
 
-
-
-
-
 const RadioButton = ({ value, name, label, checked, onChange }: any) => {
   const { t } = useTranslation(translationConstant.APPOINMENTS);
   return (
@@ -132,11 +128,11 @@ export const Add_Appointment_Modal = ({
 
   const close_handle = () => {
     setOpen(false);
-   if(selectedLocation){
-     setFormData({
-      location_id: selectedLocation.id
-    });
-   }
+    if (selectedLocation) {
+      setFormData({
+        location_id: selectedLocation.id,
+      });
+    }
   };
   const open_handle = () => {
     setOpen(true);
@@ -254,19 +250,21 @@ export const Add_Appointment_Modal = ({
         </div>
       );
 
-      const emailType = EmailBodyTempEnum.APPOINTMENT_CONFIRMATION
+      const emailType = EmailBodyTempEnum.APPOINTMENT_CONFIRMATION;
 
-      const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails
+      const { email_address, first_name, last_name, service, date_and_time } =
+        appointmentDetails;
       const data: any = {
         email: email_address,
         name: `${first_name} ${last_name}`,
         location: selectedLocation,
         service: service,
-        date: date_and_time ? date_and_time?.split?.('|')?.[1]?.split?.(' - ')?.[0] : '-',
-        time: date_and_time ? date_and_time?.split?.(' - ')?.[1] : '-'
-
-      }
-      await sendEmail({ lang: 'en', emailType, data })
+        date: date_and_time
+          ? date_and_time?.split?.("|")?.[1]?.split?.(" - ")?.[0]
+          : "-",
+        time: date_and_time ? date_and_time?.split?.(" - ")?.[1] : "-",
+      };
+      await sendEmail({ lang: "en", emailType, data });
       console.log(data, "Appointment Submitted");
       close_handle();
     }
@@ -284,10 +282,10 @@ export const Add_Appointment_Modal = ({
     };
 
     fetchServices();
-    if(selectedLocation){
+    if (selectedLocation) {
       setFormData({
-      location_id: selectedLocation.id
-    });
+        location_id: selectedLocation.id,
+      });
     }
   }, []);
 
@@ -317,7 +315,6 @@ export const Add_Appointment_Modal = ({
         <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
-
               <p>Current Location: </p>
               <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
               {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
@@ -345,8 +342,8 @@ export const Add_Appointment_Modal = ({
               </Select> */}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 order-1 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   Type of visit
                 </Label>
@@ -359,7 +356,7 @@ export const Add_Appointment_Modal = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 order-2 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   Are you a New/Returning Patient?
                 </Label>
@@ -552,9 +549,6 @@ export const Add_Appointment_Modal = ({
 
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Time
-                </Label>
                 {locations.length > 0 && (
                   <ScheduleDateTime
                     data={locations[0]}
@@ -577,8 +571,9 @@ export const Add_Appointment_Modal = ({
             <button
               disabled={loading}
               onClick={submitHandle}
-              className={`bg-[#0066ff] ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
-                } px-4 py-2 rounded-md text-white transition-colors`}
+              className={`bg-[#0066ff] ${
+                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
+              } px-4 py-2 rounded-md text-white transition-colors`}
             >
               {loading ? "Submitting..." : "Add appointment"}
             </button>

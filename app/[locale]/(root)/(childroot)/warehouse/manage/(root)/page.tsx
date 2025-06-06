@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TabContext } from "@/context";
-import { Archive, ShieldCheck } from "lucide-react";
+import { Archive, PlusCircle, ShieldCheck } from "lucide-react";
 import { translationConstant } from "@/utils/translationConstants";
 
 interface DataListInterface {
@@ -200,7 +200,7 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm p-1 space-x-1 flex items-center justify-end w-full rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
+      <div className="text-sm p-1 space-x-1 flex items-center justify-start rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
         <button
           onClick={handleActiveClick}
           className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
@@ -282,29 +282,17 @@ const Categories = () => {
                   />
                 </div>
                 <button
-                  className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition w-full sm:w-auto mt-2 sm:mt-0"
+                  className="flex items-center justify-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition w-full sm:w-auto"
                   onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 12h8" />
-                    <path d="M12 8v8" />
-                  </svg>
+                  <PlusCircle className="w-5 h-5" />
                   Create Category
                 </button>
               </div>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">{RightSideComponent}</div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              {RightSideComponent}
+            </div>
           </div>
 
           <div className="px-3 pt-5">
@@ -319,7 +307,9 @@ const Categories = () => {
                       {tableHeader.map(({ label, align }, index) => (
                         <TableHead
                           key={index}
-                          className={`flex-1 ${align || "text-start"} text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+                          className={`flex-1 ${
+                            align || "text-start"
+                          } text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
                         >
                           {t(label)}
                         </TableHead>
@@ -337,7 +327,9 @@ const Categories = () => {
                     ) : dataList.length === 0 ? (
                       <TableRow className="flex h-full">
                         <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
-                          <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+                          <h1 className="text-gray-700 dark:text-white">
+                            No Category is available
+                          </h1>
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -349,26 +341,34 @@ const Categories = () => {
                           <TableCell className="w-12 p-0">
                             {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
                           </TableCell>
-                          {tableHeader.map(({ id, Render_Value, align }, ind) => {
-                            const content = Render_Value ? (
-                              <Render_Value
-                                getDataArchiveType={getDataArchiveType}
-                                isLoading={deleteLoading}
-                                onClickHandle={() => onClickHandle(elem.category_id)}
-                              />
-                            ) : (
-                              <span className="text-gray-800 dark:text-white">{elem[id]}</span>
-                            );
+                          {tableHeader.map(
+                            ({ id, Render_Value, align }, ind) => {
+                              const content = Render_Value ? (
+                                <Render_Value
+                                  getDataArchiveType={getDataArchiveType}
+                                  isLoading={deleteLoading}
+                                  onClickHandle={() =>
+                                    onClickHandle(elem.category_id)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-gray-800 dark:text-white">
+                                  {elem[id]}
+                                </span>
+                              );
 
-                            return (
-                              <TableCell
-                                key={ind}
-                                className={`flex-1 ${align || "text-start"} text-base p-0 text-gray-800 dark:text-white`}
-                              >
-                                {content}
-                              </TableCell>
-                            );
-                          })}
+                              return (
+                                <TableCell
+                                  key={ind}
+                                  className={`flex-1 ${
+                                    align || "text-start"
+                                  } text-base p-0 text-gray-800 dark:text-white`}
+                                >
+                                  {content}
+                                </TableCell>
+                              );
+                            }
+                          )}
                         </TableRow>
                       ))
                     )}
@@ -383,7 +383,9 @@ const Categories = () => {
                   </div>
                 ) : dataList.length === 0 ? (
                   <div className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
-                    <h1 className="text-gray-700 dark:text-white">No Category is available</h1>
+                    <h1 className="text-gray-700 dark:text-white">
+                      No Category is available
+                    </h1>
                   </div>
                 ) : (
                   <>
@@ -414,7 +416,8 @@ const Categories = () => {
                             {tableHeader[2].Render_Value({
                               getDataArchiveType,
                               isLoading: deleteLoading,
-                              onClickHandle: () => onClickHandle(elem.category_id),
+                              onClickHandle: () =>
+                                onClickHandle(elem.category_id),
                             })}
                           </div>
                         </div>
@@ -426,7 +429,8 @@ const Categories = () => {
 
               <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
                 <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                  Rows {dataList.length === 0 ? 0 : startIndex + 1}-{endIndex} of {dataList.length}
+                  Rows {dataList.length === 0 ? 0 : startIndex + 1}-{endIndex}{" "}
+                  of {dataList.length}
                 </div>
                 <div className="flex gap-2">
                   <button

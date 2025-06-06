@@ -88,7 +88,7 @@ const About = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
                 <div className='grid grid-cols-1 gap-4 sm:flex-row sm:pr-3 sm:gap-24 my-5'>
                     <Select_Dropdown bg_color='dark:bg-[#f1f4f7]' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                 </div>

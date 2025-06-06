@@ -89,7 +89,7 @@ const Testimonials = () => {
     const {t} = useTranslation(translationConstant.WEBCONT)
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
                 <div className='flex flex-col gap-4 sm:flex-row items-end'>
                     <div className='flex flex-col sm:flex-row gap-5 w-full'>
                         <Select_Dropdown

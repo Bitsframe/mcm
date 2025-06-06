@@ -15,11 +15,13 @@ import {
   AlignRight,
   Link as LinkIcon,
   PlusCircle,
+  Trash2,
 } from "lucide-react";
 import {
   create_content_service,
   fetch_content_service,
   update_content_service,
+  delete_content_service,
 } from "@/utils/supabase/data_services/data_services";
 import { clinca_logo } from "@/assets/images";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -241,6 +243,7 @@ const EmailTemplates = () => {
   }, [templateContent, editor]);
 
   const handleCreateNewTemplate = () => {
+    setTemplateName("");
     setShowCreateModal(true);
   };
 
@@ -357,8 +360,43 @@ const EmailTemplates = () => {
     }
   };
 
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm("Are you sure you want to delete this template?")) {
+      return;
+    }
+
+    try {
+      const { error } = await delete_content_service({
+        table: "email_templates",
+        id: templateId,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Remove the deleted template from the state
+      const updatedTemplates = templates.filter((t) => t.id !== templateId);
+      setTemplates(updatedTemplates);
+      setFilteredTemplates(updatedTemplates);
+
+      // If the deleted template was active, clear the active template
+      if (activeTemplate?.id === templateId) {
+        setActiveTemplate(null);
+        setTemplateContent("");
+        setTemplateName("");
+        setIsCreatingNew(false);
+      }
+
+      alert("Template deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      alert("Failed to delete template. Please try again.");
+    }
+  };
+
   return (
-    <div className="relative z-0 h-[120dvh] md:h-[70dvh] bg-background dark:bg-gray-900 p-4">
+    <div className="relative z-[51] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900 p-4">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
@@ -388,8 +426,7 @@ const EmailTemplates = () => {
                 onChange={(e) => setTemplateName(e.target.value)}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
                 placeholder="Type here"
-                disabled={!!activeTemplate?.id}
-                autoFocus={!activeTemplate?.id}
+                autoFocus={true}
               />
             </div>
             <div className="flex justify-end gap-3">
@@ -444,7 +481,7 @@ const EmailTemplates = () => {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
               </div>
             </div>
-            <div className="overflow-auto h-[180px] md:h-[calc(69vh-180px)] p-0">
+            <div className="overflow-auto h-[180px] md:h-[calc(69vh-130px)] p-0">
               {filteredTemplates.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 p-4">
                   {searchQuery.trim()
@@ -461,9 +498,25 @@ const EmailTemplates = () => {
                           ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
                           : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }`}
-                      onClick={() => handleEditTemplate(template)}
                     >
-                      <h3 className="font-medium">{template.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="font-medium flex-1"
+                          onClick={() => handleEditTemplate(template)}
+                        >
+                          {template.name}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTemplate(template.id);
+                          }}
+                          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                          title="Delete template"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>

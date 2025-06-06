@@ -64,7 +64,7 @@ const FAQs = () => {
     
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
                 <div className='flex flex-col gap-4 sm:flex-row items-end my-5'>
                     <div className='flex flex-1 w-full gap-5'>
                         <div className='flex flex-1'>
