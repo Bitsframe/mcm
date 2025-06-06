@@ -214,6 +214,7 @@ const Orders = () => {
   const [lastLocationId, setLastLocationId] = useState(0);
   const [creditAmount, setCreditAmount] = useState<number>(0);
   const [receivedAmount, setReceivedAmount] = useState<number>(0);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
 
   const router = useRouter();
 
@@ -334,6 +335,7 @@ const Orders = () => {
   const placeOrderHandle = async () => {
     try {
       setPlaceOrderLoading(true);
+      setIsBalanceLoading(true);
 
       if (!selectedPatient || !cartArray.length) return;
 
@@ -358,6 +360,24 @@ const Orders = () => {
         },
       });
 
+      // Wait for 2 seconds to allow trigger updates to complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Fetch updated location data
+      const response = await fetch_content_service({
+        table: "Locations",
+        matchCase: [{ key: "id", value: selectedLocation.id }],
+        selectParam: "balance,credit_limit"
+      });
+
+      const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
+
+      if (updatedLocation && updatedLocation.length > 0) {
+        // Update the selectedLocation context with new balance
+        selectedLocation.balance = updatedLocation[0].balance;
+        selectedLocation.credit_limit = updatedLocation[0].credit_limit;
+      }
+
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
@@ -374,6 +394,7 @@ const Orders = () => {
       });
     } finally {
       setPlaceOrderLoading(false);
+      setIsBalanceLoading(false);
     }
   };
 
@@ -594,9 +615,14 @@ const Orders = () => {
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   Balance Available: <span className={`font-bold ${displayedBalanceLimit < 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
-                    {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
-                    {/* Display calculated adjusted Balance Limit */}
-                    {`$${displayedBalanceLimit.toFixed(2)}`}
+                    {isBalanceLoading ? (
+                      <div className="inline-flex items-center">
+                        {/* <CircularProgress size={14} className="mr-1" /> */}
+                        <span className="text-xs opacity-35 font-light">Updating...</span>
+                      </div>
+                    ) : (
+                      `$${displayedBalanceLimit.toFixed(2)}`
+                    )}
                   </span>
                 </h1>
               </div>
@@ -710,7 +736,7 @@ const Orders = () => {
               <div className="flex justify-end pt-0.5">
                 <button
                   onClick={placeOrderHandle}
-                  disabled={!cartArray.length}
+                  disabled={!cartArray.length || displayedBalanceLimit < 0}
                   className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
                 >
                   {placeOrderLoading ? (

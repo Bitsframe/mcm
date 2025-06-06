@@ -6,7 +6,9 @@ export const sendOrderEmail = async (
   orderItems: any[],
   totalAmount: number = 0,
   discountAmount: number = 0,
-  appliedDiscount: number = 0
+  appliedDiscount: number = 0,
+  previousCreditAmount: number = 0,
+  newCreditBalance: number = 0
 ) => {
   try {
     const today = new Date();
@@ -34,7 +36,9 @@ export const sendOrderEmail = async (
           <li><strong>Payment Method:</strong> ${orderDetails.paymentcash ? "Cash" : "Debit Card"}</li>
           <li><strong>Gross Amount:</strong> ${totalAmount}</li>
           <li><strong>Discount(${appliedDiscount}%):</strong> -${discountAmount}</li>
+          <li><strong>Previous Credit Balance:</strong> ${previousCreditAmount < 0 ? `-$${Math.abs(previousCreditAmount).toFixed(2)}` : `$${previousCreditAmount.toFixed(2)}`}</li>
           <li><strong>Net Amount:</strong> ${netAmount}</li>
+          <li><strong>New Credit Balance:</strong> ${newCreditBalance < 0 ? `-$${Math.abs(newCreditBalance).toFixed(2)}` : `$${newCreditBalance.toFixed(2)}`}</li>
         </ul>
         
         <h3>Billing Information:</h3>
@@ -63,25 +67,24 @@ export const sendOrderEmail = async (
               </tr>
             `).join("")}
           </tbody>
-          ${discountAmount > 0 ? `
-            <tfoot>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
-                <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(discountAmount)}</td>
-              </tr>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                <td style="padding: 10px; text-align: right; font-weight: bold;">${netAmount}</td>
-              </tr>
-            </tfoot>
-          ` : `
-            <tfoot>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
-                <td style="padding: 10px; text-align: right; font-weight: bold;">${netAmount}</td>
-              </tr>
-            </tfoot>
-          `}
+          <tfoot>
+            <tr>
+              <td colspan="3" style="padding: 10px; text-align: right;"><strong>Discount:</strong></td>
+              <td style="padding: 10px; text-align: right;">-${currencyFormatHandle(discountAmount)}</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding: 10px; text-align: right;"><strong>Previous Credit:</strong></td>
+              <td style="padding: 10px; text-align: right;">${previousCreditAmount < 0 ? `-$${Math.abs(previousCreditAmount).toFixed(2)}` : `$${previousCreditAmount.toFixed(2)}`}</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding: 10px; text-align: right;"><strong>Grand Total:</strong></td>
+              <td style="padding: 10px; text-align: right; font-weight: bold;">${netAmount}</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding: 10px; text-align: right;"><strong>New Credit Balance:</strong></td>
+              <td style="padding: 10px; text-align: right; font-weight: bold;">${newCreditBalance < 0 ? `-$${Math.abs(newCreditBalance).toFixed(2)}` : `$${newCreditBalance.toFixed(2)}`}</td>
+            </tr>
+          </tfoot>
         </table>
         
         <p>If you have any questions or need further assistance, feel free to reach out at contact@clinicasanmiguel.com.</p>
@@ -99,6 +102,7 @@ export const sendOrderEmail = async (
     `;
 
     const fromEmail = "test@alerts.myclinicmd.com";
+
 
     const payload = {
       from: fromEmail,
