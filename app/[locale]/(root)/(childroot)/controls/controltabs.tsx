@@ -36,6 +36,10 @@ const TopTabs = () => {
       title: "Email Templates",
       url: "emailtemplates",
     },
+    {
+      title: "Location Limits",
+      url: "locationlimits",
+    },
     // {
     //   title: "Inventory Settings",
     //   url: "inventorysettings",

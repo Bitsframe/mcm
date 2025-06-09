@@ -59,14 +59,16 @@ export async function POST(request: Request) {
 
       if (salesError) throw new Error(salesError.message);
 
-      // Send order email
+      // Send order email with credit information
       await sendOrderEmail(
         { order_id, paymentcash: selectedMethod === "Cash" },
         { ...selectedPatient, location: selectedLocation.title },
         cartArray,
         subtotalAmount,
         discountAmount,
-        appliedDiscount
+        appliedDiscount,
+        Number(creditAmount.toFixed(2)), // Previous credit amount
+        newCreditBalance // New credit balance
       );
 
       return NextResponse.json({
