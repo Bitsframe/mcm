@@ -183,7 +183,10 @@ const EmailBroadcast: React.FC = () => {
         }
         return (
           <div className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
-            <div style={{ whiteSpace: 'pre-line' }} dangerouslySetInnerHTML={{ __html: previewHtml }} />
+            <div
+              style={{ whiteSpace: "pre-line" }}
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
           </div>
         );
       }
@@ -196,9 +199,11 @@ const EmailBroadcast: React.FC = () => {
       return (
         <div
           className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
-          style={{
-            "--text-color": "var(--foreground)",
-          } as React.CSSProperties}
+          style={
+            {
+              "--text-color": "var(--foreground)",
+            } as React.CSSProperties
+          }
         >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
@@ -311,7 +316,8 @@ const EmailBroadcast: React.FC = () => {
           );
         }
         // Always add the logo at the top
-        const STATIC_LOGO_URL = 'https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/email-assets//clinca_logo.png';
+        const STATIC_LOGO_URL =
+          "https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/email-assets//clinca_logo.png";
         previewHtml = `
           <div style="text-align:center;margin-bottom:16px;">
             <img src="${STATIC_LOGO_URL}" alt="Clinic Logo" style="width:120px;object-fit:contain;" />
@@ -404,74 +410,80 @@ const EmailBroadcast: React.FC = () => {
                 </button>
               </AlertDialogTrigger>
 
-              <AlertDialogContent className="w-[500px] h-[600px] overflow-auto flex-1 p-4 bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
-                <AlertDialogHeader>
-                  {/* <h3 className="text-sm font-medium text-foreground mb-2">
-                    {t("EmailB_k1") || "Selected Emails"}:
-                  </h3> */}
-
+              <AlertDialogContent
+                className="
+                  w-[90vw] sm:w-[500px]
+                  max-h-[90vh] sm:h-[600px]
+                  overflow-hidden flex flex-col
+                  p-4 sm:p-4
+                  bg-background dark:bg-[#080e16]
+                  border dark:border-[#0e1725]
+                  rounded-lg
+                "
+              >
+                <AlertDialogHeader className="flex-none">
                   {!filter ? (
                     <>
-                      <div className="flex flex-col cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <AlertDialogTitle className=" text-accent-foreground">
-                              {t("EmailB_k7")}
-                            </AlertDialogTitle>
-                          </div>
-                          <AlertDialogCancel className="bg-[#f1f4f9] text-accent-foreground border-input dark:border-[#0e1725]">
-                            <X className="text-muted-foreground" />
-                          </AlertDialogCancel>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <AlertDialogTitle className="text-accent-foreground text-base sm:text-lg">
+                            {t("EmailB_k7")}
+                          </AlertDialogTitle>
                         </div>
+                        <AlertDialogCancel className="bg-gray-200 dark:bg-gray-700 border border-gray-400 dark:border-gray-500 hover:bg-gray-300 dark:hover:bg-gray-600 h-8 w-8 flex items-center justify-center rounded-full shadow-md transition-colors">
+                          <button>
+                            <X className="w-4 h-4 text-black dark:text-white" />
+                          </button>
+                        </AlertDialogCancel>
+                      </div>
 
-                        <div className="mt-2 p-3 bg-[#f1f4f9] h-12 dark:bg-[#0e1725] rounded-xl border border-input dark:border-[#0e1725]">
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
-                            {checkedItems
-                              .slice(0, 2)
-                              .map((item: any, index: any) => (
-                                <span
-                                  key={index}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
-                                >
-                                  {item.email}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCheckboxChange(
-                                        {
-                                          //@ts-ignore
-                                          target: {
-                                            value: item.email,
-                                            checked: false,
-                                          },
+                      <div className="mt-2 p-3 bg-[#f1f4f9] h-12 dark:bg-[#0e1725] rounded-xl border border-input dark:border-[#0e1725]">
+                        <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
+                          {checkedItems
+                            .slice(0, 2)
+                            .map((item: any, index: any) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+                              >
+                                {item.email}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCheckboxChange(
+                                      {
+                                        //@ts-ignore
+                                        target: {
+                                          value: item.email,
+                                          checked: false,
                                         },
-                                        item
-                                      );
-                                    }}
-                                    className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 dark:hover:bg-blue-800"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </span>
-                              ))}
-                            {checkedItems.length > 2 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
-                                +{checkedItems.length - 2}
+                                      },
+                                      item
+                                    );
+                                  }}
+                                  className="ml-1.5 inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 dark:hover:bg-blue-800"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
                               </span>
-                            )}
-                          </div>
+                            ))}
+                          {checkedItems.length > 2 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                              +{checkedItems.length - 2}
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="relative border border-input dark:border-[#0e1725] rounded-lg">
+                      <div className="flex items-center justify-between mt-2 sm:mt-3">
+                        <div className="relative border border-input dark:border-[#0e1725] rounded-lg w-full sm:w-auto flex-1">
                           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                             <Search className="w-4 h-4" />
                           </span>
                           <input
                             placeholder={t("EmailB_k9")}
                             type="text"
-                            className="pl-10 pr-2 py-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground w-full"
+                            className="pl-10 pr-2 py-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground w-full text-sm sm:text-base"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                           />
@@ -480,18 +492,18 @@ const EmailBroadcast: React.FC = () => {
                         <Image
                           src={Filter}
                           alt=""
-                          height={25}
-                          width={25}
+                          height={20}
+                          width={20}
                           onClick={() => setFilter(true)}
-                          className="cursor-pointer dark:invert"
+                          className="cursor-pointer dark:invert ml-2 sm:ml-3"
                         />
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mt-2 sm:mt-3">
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
+                            className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
                             checked={
                               checkedItems.length === emailList.length &&
                               emailList.length > 0
@@ -500,251 +512,253 @@ const EmailBroadcast: React.FC = () => {
                               handleSelectAndDeselectAll(e.target.checked)
                             }
                           />
-                          <h2 className="ml-2 text-foreground">
+                          <h2 className="ml-2 text-foreground text-sm sm:text-base">
                             {t("EmailB_k10")}
                           </h2>
                         </div>
-                        <h2 className="text-foreground">{t("EmailB_k11")}</h2>
+                        <h2 className="text-foreground text-sm sm:text-base">
+                          {t("EmailB_k11")}
+                        </h2>
                       </div>
                     </>
                   ) : (
-                    <div className="flex items-center cursor-pointer justify-between">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <ChevronLeft
                           onClick={() => setFilter(false)}
-                          className="text-foreground"
+                          className="text-foreground w-5 h-5 sm:w-6 sm:h-6"
                         />
-                        <AlertDialogTitle className="text-foreground">
+                        <AlertDialogTitle className="text-foreground text-base sm:text-lg">
                           Filter Patients
                         </AlertDialogTitle>
                       </div>
-                      <AlertDialogCancel className="bg-accent dark:bg-[#0e1725] text-accent-foreground hover:bg-accent/90 dark:hover:bg-[#0e1725]/90 border-input dark:border-[#0e1725]">
-                        <X className="text-foreground" />
+                      <AlertDialogCancel className="bg-[#f1f4f9] dark:bg-[#122136] text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-[#1a2e4a] h-8 w-8 sm:h-10 sm:w-10">
+                        <X className="h-4 w-4" />
                       </AlertDialogCancel>
                     </div>
                   )}
-                  <hr className="border-border dark:border-[#0e1725]" />
+                  <hr className="border-border dark:border-[#0e1725] my-2" />
+                </AlertDialogHeader>
 
-                  <AlertDialogDescription>
-                    {!filter && (
-                      <>
-                        {loading ? (
-                          <div className="space-y-2">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <Skeleton
-                                key={index}
-                                className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          filteredEmails.map((email: any, index: any) => (
-                            <div
+                <AlertDialogDescription className="flex-1 overflow-y-auto">
+                  {!filter && (
+                    <>
+                      {loading ? (
+                        <div className="space-y-2">
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <Skeleton
                               key={index}
-                              className="flex justify-between items-center p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-[98%] my-2 rounded"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  className="border-2 border-black bg-slate-200 dark:bg-[#f1f4f9] rounded p-2"
-                                  id={`checkbox-${index}`}
-                                  value={email.email}
-                                  checked={checkedItems.some(
-                                    (item: any) => item.email === email.email
-                                  )}
-                                  onChange={(e) =>
-                                    handleCheckboxChange(e, email)
-                                  }
-                                />
-                                <div className="flex flex-col">
-                                  <Label className="mb-1 font-bold text-foreground">
-                                    {email.firstname}
-                                  </Label>
-                                  <Label className="text-muted-foreground">
-                                    {email.email}
-                                  </Label>
-                                </div>
-                              </div>
-                              <div>
-                                <Label className="text-foreground">
-                                  {email.gender === "Male"
-                                    ? "M"
-                                    : email.gender === "Female"
-                                    ? "F"
-                                    : "O"}
+                              className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        filteredEmails.map((email: any, index: any) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                                id={`checkbox-${index}`}
+                                value={email.email}
+                                checked={checkedItems.some(
+                                  (item: any) => item.email === email.email
+                                )}
+                                onChange={(e) => handleCheckboxChange(e, email)}
+                              />
+                              <div className="flex flex-col">
+                                <Label className="mb-1 font-bold text-foreground text-sm sm:text-base">
+                                  {email.firstname}
+                                </Label>
+                                <Label className="text-muted-foreground text-xs sm:text-sm">
+                                  {email.email}
                                 </Label>
                               </div>
                             </div>
-                          ))
-                        )}
-                      </>
-                    )}
-
-                    {filter && (
-                      <div>
-                        <br />
-                        <br />
-                        <RadioGroup defaultValue="comfortable">
-                          <div className="flex">
-                            <h1 className="mr-2 font-bold text-foreground">
-                              Gender
-                            </h1>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="Male"
-                                onChange={handleGenderChange}
-                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
-                                checked={selectedGender.includes("Male")}
-                              />
-                              <Label htmlFor="r2" className="text-foreground">
-                                Male
-                              </Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="Female"
-                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
-                                onChange={handleGenderChange}
-                                checked={selectedGender.includes("Female")}
-                              />
-                              <Label htmlFor="r3" className="text-foreground">
-                                Female
-                              </Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                value="other"
-                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
-                                onChange={handleGenderChange}
-                                checked={selectedGender.includes("other")}
-                              />
-                              <Label htmlFor="r3" className="text-foreground">
-                                Other
+                            <div>
+                              <Label className="text-foreground text-sm sm:text-base">
+                                {email.gender === "Male"
+                                  ? "M"
+                                  : email.gender === "Female"
+                                  ? "F"
+                                  : "O"}
                               </Label>
                             </div>
                           </div>
-                        </RadioGroup>
+                        ))
+                      )}
+                    </>
+                  )}
 
-                        <br />
-                        <div className="flex items-center">
-                          <h1 className="mr-2 font-bold text-foreground">
-                            Treatment Type
+                  {filter && (
+                    <div className="space-y-4">
+                      <RadioGroup defaultValue="comfortable">
+                        <div className="flex flex-wrap gap-2 sm:gap-4">
+                          <h1 className="font-bold text-foreground text-sm sm:text-base">
+                            Gender
                           </h1>
-                          <Select
-                            onValueChange={(value) => setTreatmentType(value)}
-                          >
-                            <SelectTrigger className="w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground">
-                              <SelectValue className="text-foreground">
-                                {treatmentType
-                                  ? treatmentType
-                                  : "All Treatments"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
-                              <SelectGroup>
-                                {serviceList.map((patient: any, index) => (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              value="Male"
+                              onChange={handleGenderChange}
+                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                              checked={selectedGender.includes("Male")}
+                            />
+                            <Label
+                              htmlFor="r2"
+                              className="text-foreground text-sm sm:text-base"
+                            >
+                              Male
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              value="Female"
+                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                              onChange={handleGenderChange}
+                              checked={selectedGender.includes("Female")}
+                            />
+                            <Label
+                              htmlFor="r3"
+                              className="text-foreground text-sm sm:text-base"
+                            >
+                              Female
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              value="other"
+                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                              onChange={handleGenderChange}
+                              checked={selectedGender.includes("other")}
+                            />
+                            <Label
+                              htmlFor="r3"
+                              className="text-foreground text-sm sm:text-base"
+                            >
+                              Other
+                            </Label>
+                          </div>
+                        </div>
+                      </RadioGroup>
+
+                      <div className="flex items-center gap-2">
+                        <h1 className="font-bold text-foreground text-sm sm:text-base">
+                          Treatment Type
+                        </h1>
+                        <Select
+                          onValueChange={(value) => setTreatmentType(value)}
+                        >
+                          <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
+                            <SelectValue className="text-foreground text-sm sm:text-base">
+                              {treatmentType ? treatmentType : "All Treatments"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
+                            <SelectGroup>
+                              {serviceList.map((patient: any, index) => (
+                                <SelectItem
+                                  value={patient.title}
+                                  key={index}
+                                  className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
+                                >
+                                  {patient.title}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <RadioGroup defaultValue="comfortable">
+                        <div className="flex flex-wrap gap-2 sm:gap-4">
+                          <h1 className="font-bold text-foreground text-sm sm:text-base">
+                            Visit Type
+                          </h1>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                              checked={onsite === true}
+                              onChange={() => handleVisitChange(true)}
+                            />
+                            <Label
+                              htmlFor="r2"
+                              className="text-foreground text-sm sm:text-base"
+                            >
+                              On-site
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                              checked={onsite === false}
+                              onChange={() => handleVisitChange(false)}
+                            />
+                            <Label
+                              htmlFor="r3"
+                              className="text-foreground text-sm sm:text-base"
+                            >
+                              Off-site
+                            </Label>
+                          </div>
+                        </div>
+                      </RadioGroup>
+
+                      <div className="flex items-center gap-2">
+                        <h1 className="font-bold text-foreground text-sm sm:text-base">
+                          Location
+                        </h1>
+                        <Select onValueChange={(value) => setLocation(value)}>
+                          <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
+                            <SelectValue className="text-foreground text-sm sm:text-base">
+                              {location ? location : "Select Location"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
+                            <SelectGroup>
+                              {locationList
+                                ?.filter(
+                                  (location, index, self) =>
+                                    index ===
+                                    self.findIndex(
+                                      (loc) => loc.title === location.title
+                                    )
+                                )
+                                .map((location, index) => (
                                   <SelectItem
-                                    value={patient.title}
                                     key={index}
-                                    className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground"
+                                    value={location.title}
+                                    className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
                                   >
-                                    {patient.title}
+                                    {location.title}
                                   </SelectItem>
                                 ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <br />
-                        <RadioGroup defaultValue="comfortable">
-                          <div className="flex">
-                            <h1 className="mr-2 font-bold text-foreground">
-                              Visit Type
-                            </h1>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
-                                checked={onsite === true}
-                                onChange={() => handleVisitChange(true)}
-                              />
-                              <Label htmlFor="r2" className="text-foreground">
-                                On-site
-                              </Label>
-                            </div>
-                            <div className="flex ml-2 items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                className="border bg-secondary dark:bg-[#0e1725] rounded p-2"
-                                checked={onsite === false}
-                                onChange={() => handleVisitChange(false)}
-                              />
-                              <Label htmlFor="r3" className="text-foreground">
-                                Off-site
-                              </Label>
-                            </div>
-                          </div>
-                        </RadioGroup>
-
-                        <br />
-                        <div className="flex items-center">
-                          <h1 className="mr-2 font-bold text-foreground">
-                            Location
-                          </h1>
-                          <Select onValueChange={(value) => setLocation(value)}>
-                            <SelectTrigger className="w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground">
-                              <SelectValue className="text-foreground">
-                                {location ? location : "Select Location"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725]">
-                              <SelectGroup>
-                                {locationList
-                                  ?.filter(
-                                    (location, index, self) =>
-                                      index ===
-                                      self.findIndex(
-                                        (loc) => loc.title === location.title
-                                      )
-                                  )
-                                  .map((location, index) => (
-                                    <SelectItem
-                                      key={index}
-                                      value={location.title}
-                                      className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground"
-                                    >
-                                      {location.title}
-                                    </SelectItem>
-                                  ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <br />
-                        <Button
-                          onClick={() => handleReset()}
-                          className="bg-secondary dark:bg-[#0e1725] text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-[#0e1725]/80"
-                        >
-                          Reset
-                        </Button>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="sticky bottom-0 w-full flex justify-end">
-                  {!filter && checkedItems.length > 0 && (
-                    <AlertDialogCancel className="bg-blue-600 h-12 hover:bg-blue-700">
+
                       <Button
-                        onClick={() => setFilter(false)}
-                        className="bg-blue-600 text-white hover:bg-blue-700"
+                        onClick={() => handleReset()}
+                        className="bg-secondary dark:bg-[#0e1725] text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-[#0e1725]/80 text-sm sm:text-base"
                       >
-                        Close
+                        Reset
                       </Button>
+                    </div>
+                  )}
+                </AlertDialogDescription>
+                <AlertDialogFooter className="flex-none sticky bottom-0 w-full flex justify-end bg-background dark:bg-[#080e16] pt-2">
+                  {!filter && checkedItems.length > 0 && (
+                    <AlertDialogCancel className="bg-blue-600 h-10 sm:h-12 hover:bg-blue-700 text-white border-none text-sm sm:text-base">
+                      Close
                     </AlertDialogCancel>
                   )}
                 </AlertDialogFooter>

@@ -324,7 +324,7 @@ const PrivateFeedbackComponent: FC = () => {
                 </TableRow>
               </TableHeader>
 
-              <TableBody>
+              <TableBody className="max-h-[500px]">
                 {loading ? (
                   <TableRow>
                     <TableCell
@@ -390,11 +390,11 @@ const PrivateFeedbackComponent: FC = () => {
             </h1>
           </div>
 
-          <div>
+          <div className="md:min-h-[410px] overflow-y-auto">
             {dataDetails ? (
               details
             ) : (
-              <div className="h-40 flex items-center justify-center text-xl font-semibold text-gray-500 dark:text-gray-400">
+              <div className="h-40 md:h-80 flex items-center justify-center text-xl font-semibold text-gray-500 dark:text-gray-400">
                 <h1>{t("Privatefeedback_k7")}</h1>
               </div>
             )}

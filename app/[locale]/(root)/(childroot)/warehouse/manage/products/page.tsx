@@ -495,19 +495,19 @@ const Products = () => {
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#F1F4F7] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#f1f4f9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
               />
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-2 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-1 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>Add Product</span>
               </button>
             </div>
 
-            <div className="text-sm text-gray-500 flex items-center justify-end w-full sm:w-auto">
+            <div className="text-sm text-gray-500 flex items-center justify-start w-full sm:w-auto">
               <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
                 <button
                   onClick={handleActiveClick}
@@ -834,7 +834,7 @@ const Products = () => {
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
         {modalState === modalStateEnum.ASSIGN ? (
-          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
+          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -846,7 +846,7 @@ const Products = () => {
                     id="select-all-locations"
                     checked={assignModalData.location_ids?.length === locations.length}
                     onChange={handleSelectAll}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+                    className="h-5 w-5 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
                   />
                   <label
                     htmlFor="select-all-locations"
@@ -868,7 +868,7 @@ const Products = () => {
                         id={`location-${location.id}`}
                         checked={assignModalData.location_ids?.includes(location.id)}
                         onChange={() => handleLocationSelect(location.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+                        className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
                       />
                       <label
                         htmlFor={`location-${location.id}`}
@@ -892,10 +892,10 @@ const Products = () => {
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
                   label="Quantity per Location"
-                  bg_color="bg-white dark:bg-[#0e1725]"
+                  bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                 />
               </div>
-              <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-gray-800">
+              <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-[#0e1725]">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Stock Type:</span>
                   <span className="font-medium dark:text-white">
@@ -949,7 +949,7 @@ const Products = () => {
             </div>
           </div>
         ) : (
-          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#080e16]">
+          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
             {requiredInputFields.map((elem, index) => {
               const { id, label, colSpan, type } = elem;
               return id === "category_id" ? (
@@ -979,7 +979,7 @@ const Products = () => {
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     border="border-[1px] border-gray-300 rounded-md dark:border-none"
                     label={label}
-                    bg_color="bg-white dark:bg-[#0e1725]"
+                    bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                     disabled={id === "stock" && modalData.unlimited}
                   />
                 </div>
@@ -991,7 +991,7 @@ const Products = () => {
                 id="unlimited"
                 checked={modalData.unlimited}
                 onChange={(e) => modalInputChangeHandle("unlimited", e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-[#0e1725]"
+                className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
               />
               <label
                 htmlFor="unlimited"

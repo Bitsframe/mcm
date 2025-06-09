@@ -84,7 +84,7 @@ const Locations = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-700 rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
                 <div className='flex flex-col gap-4 sm:flex-row w-full'>
                     <div className='w-full'>
                         <Select_Dropdown

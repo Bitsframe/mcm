@@ -44,7 +44,7 @@ export const Custom_Modal: FC<PropsInterface> = ({
                     </Modal.Body>
                     <Modal.Footer className="flex justify-end bg-white dark:bg-[#0e1725] rounded-b-lg">
                         <button
-                            className="bg-[#F1F4F9] dark:bg-gray-700 text-black dark:text-white px-4 py-[10px] rounded-lg"
+                            className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white px-4 py-[10px] rounded-lg"
                             onClick={close_handle}
                         >
                             Cancel
