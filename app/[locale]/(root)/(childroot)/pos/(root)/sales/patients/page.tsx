@@ -860,6 +860,7 @@ const Patients = () => {
                 label="Phone Number"
                 placeholder=""
                 breakpoint={false}
+                
               />
             </div>
 

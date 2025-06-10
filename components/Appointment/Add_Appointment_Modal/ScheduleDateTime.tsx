@@ -1,10 +1,12 @@
 import { translationConstant } from '@/utils/translationConstants';
-
 import { renderFormattedDate } from '@/helper/common_functions';
 import React, { FC, useState, useEffect } from 'react';
-import ReactDatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from 'react-i18next';
+import { Calendar } from "@/components/ui/calendar"; // shadcn calendar component
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
 type DayTimings = {
     mon_timing: string;
@@ -28,11 +30,9 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
     const [selectedSlot, setSelectedSlot] = useState('')
 
     const getTimingKey = (date: Date): keyof DayTimings => {
-        // const formatDate =  renderFormattedDate(date)
         const days = ['sunday_timing', 'mon_timing', 'tuesday_timing', 'wednesday_timing', 'thursday_timing', 'friday_timing', 'saturday_timing'] as const;
         return days[date.getDay()];
     };
-
 
     const generateTimeSlots = (timing: string) => {
         const [start, end] = timing.split('-').map(str => str.trim());
@@ -79,9 +79,9 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         selectDateTimeSlotHandle('')
     }, [date, data]);
 
-    const dateTimeChangeHandle = (date: Date | null) => {
-        if(date){
-            setDate(date);
+    const dateTimeChangeHandle = (selectedDate: Date | undefined) => {
+        if (selectedDate) {
+            setDate(selectedDate);
         }
     }
 
@@ -89,14 +89,14 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         setSelectedSlot(val)
         selectDateTimeSlotHandle(date, val)
     }
-    const {t} = useTranslation(translationConstant.APPOINMENTS)
+    
+    const { t } = useTranslation(translationConstant.APPOINMENTS)
+    
     return (
-        <div className="flex justify-between flex-row-reverse w-full gap-x-5 items-center ">
-            
-
-            <div className="flex gap-x-3 items-center md:w-1/2 justify-center">
+        <div className="flex flex-col md:flex-row-reverse justify-between w-full gap-5 md:gap-x-5 items-center">
+            <div className="flex gap-x-3 items-center w-full md:w-1/2 justify-center">
                 <label className="text-[16px] text-customGray font-poppins font-bold">
-                {t("Appoinments_k1")}<span className='text-red-700'>&nbsp;*</span>
+                    {t("Appoinments_k1")}<span className='text-red-700'>&nbsp;*</span>
                 </label>
                 <select
                     value={selectedSlot}
@@ -110,7 +110,6 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                         availableTimes.length > 0 ? <> <option value=''>
                             Select Slot
                         </option> {
-
                                 availableTimes.map((time, index) => (
                                     <option key={index} value={time}>
                                         {time}
@@ -123,18 +122,30 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 </select>
             </div>
 
-            <div className="flex gap-x-3 items-center md:w-1/2 justify-center">
+            <div className="flex gap-x-3 items-center w-full md:w-1/2 justify-center">
                 <label className="text-[16px] text-customGray font-poppins font-bold">
-                {t("Appoinments_k2")}<span className='text-red-700'>&nbsp;*</span>
+                    {t("Appoinments_k2")}<span className='text-red-700'>&nbsp;*</span>
                 </label>
-                <ReactDatePicker
-                    minDate={new Date()}
-                    selected={date}
-                    onChange={dateTimeChangeHandle}
-                    placeholderText={"Select Schedule date"}
-                    dateFormat="MM-dd-yyyy"
-                    className="w-full h-[46px]  text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] placeholder:text-customGray placeholder:text-opacity-50 px-5 dark:bg-[#374151] outline-none "
-                />
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant={"outline"}
+                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] dark:bg-[#374151] justify-start text-left font-normal"
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "MM-dd-yyyy") : <span>Pick a date</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={dateTimeChangeHandle}
+                            fromDate={new Date()}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
             </div>
         </div>
     )

@@ -63,7 +63,7 @@ const ROUTES = {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
     PROMO_CODES: '/tools/promo-codes',
-    ROLES_PERMISSIONS: '/tools/roles-permissions',
+    ROLES: '/tools/roles',
     USER_MANAGEMENT: '/tools/user-management',
     // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
@@ -184,9 +184,9 @@ export const routeList: Route[] = [
       },
       {
         id: 'tools-roles',
-        name: "roles and permissions",
-        label: "Sidebar_k17",
-        route: ROUTES.TOOLS.ROLES_PERMISSIONS
+        name: "roles",
+        label: "Roles",
+        route: ROUTES.TOOLS.ROLES
       },
       {
         id: 'tools-users',

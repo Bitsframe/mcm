@@ -59,12 +59,16 @@ const TimeSelector = forwardRef<
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       {/* @ts-ignore */}
-      <SelectTrigger ref={ref} className="w-full">
-        <SelectValue placeholder="Select time" />
+      <SelectTrigger ref={ref} className="w-full bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+        <SelectValue placeholder="Select time" className="text-gray-900 dark:text-white" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-white dark:bg-[#1f2937] dark:text-white border-gray-300 dark:border-gray-600">
         {timeOptions.map(({ label, value }) => (
-          <SelectItem key={value} value={value}>
+          <SelectItem 
+            key={value} 
+            value={value}
+            className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:bg-gray-100 dark:focus:bg-gray-600"
+          >
             {label}
           </SelectItem>
         ))}
