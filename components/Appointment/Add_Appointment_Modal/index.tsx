@@ -431,7 +431,8 @@ export const Add_Appointment_Modal = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Date of Birth */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   Date of Birth
@@ -444,6 +445,8 @@ export const Add_Appointment_Modal = ({
                   bg_color="dark:bg-[#374151] bg-[#f9fafb]"
                 />
               </div>
+
+              {/* Gender */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
                   Gender
@@ -454,7 +457,7 @@ export const Add_Appointment_Modal = ({
                   selectedValue={formData.sex}
                   required
                   onChange={(e) => select_change_handle("sex", e)}
-                  className="flex gap-2"
+                  className="flex gap-2 flex-wrap sm:flex-nowrap"
                 />
               </div>
             </div>

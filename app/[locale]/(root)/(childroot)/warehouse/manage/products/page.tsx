@@ -489,7 +489,7 @@ const Products = () => {
     <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full h-full overflow-auto py-2 px-2">
         <div className="h-[100%] col-span-2 rounded-md py-2">
-          <div className="pb-4 flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
+          <div className=" flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto">
               <input
                 onChange={onChangeHandle}

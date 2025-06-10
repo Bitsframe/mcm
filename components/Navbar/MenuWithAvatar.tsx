@@ -65,22 +65,23 @@ export default function MenuWithAvatar() {
         className="p-0"
       >
         <div className="flex items-center justify-between dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] min-w-[230px] px-3 py-1 border-[1px] border-[#E0E0E0]">
-          <div className="relative w-12 h-12 overflow-hidden">
-            {userProfile?.profile_pictures ? (
-              <img
-                src={userProfile.profile_pictures}
-                alt="User Avatar"
-                className="rounded-full object-cover "
-              />
-            ) : (
-              <Image
-                src={Avatar}
-                alt="Default Avatar"
-                fill
-                className="rounded-full object-cover"
-              />
-            )}
-          </div>
+        <div className="relative w-12 h-12 overflow-hidden rounded-full">
+  {userProfile?.profile_pictures ? (
+    <img
+      src={userProfile.profile_pictures}
+      alt="User Avatar"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <Image
+      src={Avatar}
+      alt="Default Avatar"
+      fill
+      className="object-cover"
+    />
+  )}
+</div>
+
           <div className="ml-2 flex flex-col items-start">
             <span className="text-[#121111] dark:text-white text-[16px] font-semibold">
               {userProfile?.full_name || 'User'}

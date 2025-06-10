@@ -291,17 +291,17 @@ const EmailBroadcast: React.FC = () => {
       return;
     }
     try {
-      if (!subject || !name || !price) {
+      const isDbTemplate = dbTemplates.find(t => t.id === selectedTemplate);
+      
+      if (!subject || !name) {
         toast.error("All fields are necessary.", { position: "top-center" });
         return;
       }
 
-      // const toastId = toast.loading("Sending emails...", {
-      //   position: "top-center",
-      //   autoClose: false,
-      //   closeButton: false,
-      //   theme: "dark",
-      // });
+      if (!isDbTemplate && !price) {
+        toast.error("All fields are necessary.", { position: "top-center" });
+        return;
+      }
 
       const dbTemplate = dbTemplates.find((t) => t.id === selectedTemplate);
       let templateBody: string | undefined = undefined;
@@ -853,23 +853,25 @@ const EmailBroadcast: React.FC = () => {
             />
           </div>
 
-          <div className="space-y-2 mt-2">
-            <label
-              htmlFor="price"
-              className="text-sm font-medium text-foreground dark:text-white"
-            >
-              Price
-            </label>
-            <input
-              type="text"
-              id="price"
-              name="price"
-              placeholder="Price"
-              className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
-              value={price || ""}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </div>
+          {!dbTemplates.find(t => t.id === selectedTemplate) && (
+            <div className="space-y-2 mt-2">
+              <label
+                htmlFor="price"
+                className="text-sm font-medium text-foreground dark:text-white"
+              >
+                Price
+              </label>
+              <input
+                type="text"
+                id="price"
+                name="price"
+                placeholder="Price"
+                className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
+                value={price || ""}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="mt-5">
             <button

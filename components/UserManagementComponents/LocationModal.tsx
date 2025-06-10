@@ -7,7 +7,7 @@ import { useLocationClinica } from "@/hooks/useLocationClinica"
 import { LuChevronDown, LuX } from "react-icons/lu"
 import { getUserAllowedLocations } from "@/utils/supabase/data_services/data_services"
 //@ts-ignore
-import { Location } from "@/types/location"
+import type { Location } from "@/types/location"
 
 interface LocationModalProps {
   onChange: (selectedLocations: number[]) => void
@@ -90,11 +90,11 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
         aria-labelledby="location-modal-title"
         aria-describedby="location-modal-description"
       >
-        <div className="w-full h-full flex justify-center items-center">
-          <div className="bg-white dark:bg-[#122136] rounded-lg w-[35%]">
+        <div className="w-full h-full flex justify-center items-center p-4">
+          <div className="bg-white dark:bg-[#122136] rounded-lg w-full sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[35%] max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-              <h2 id="location-modal-title" className="text-lg font-medium dark:text-white">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b dark:border-gray-700">
+              <h2 id="location-modal-title" className="text-base sm:text-lg font-medium dark:text-white">
                 Locations
               </h2>
               <button
@@ -106,7 +106,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
             </div>
 
             {/* Select All */}
-            <div className="p-4 flex items-center justify-between">
+            <div className="p-3 sm:p-4 flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -123,7 +123,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
             </div>
 
             {/* Locations List */}
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-[150px] max-h-[50vh] sm:max-h-[300px]">
               {allowedLocations.map(({ title, id }) => {
                 const isSelected = selectedLocationList.includes(id)
                 return (
@@ -136,7 +136,10 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
                         onChange={() => selectLocationHandle(id, !isSelected)}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#1a2c4a] dark:ring-offset-[#122136] dark:focus:ring-blue-500"
                       />
-                      <label htmlFor={`location-${id}`} className="ml-2 text-sm text-gray-700 dark:text-gray-200 flex-1">
+                      <label
+                        htmlFor={`location-${id}`}
+                        className="ml-2 text-sm text-gray-700 dark:text-gray-200 flex-1 break-words"
+                      >
                         {title}
                       </label>
                     </div>
@@ -146,16 +149,16 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
             </div>
 
             {/* Footer with buttons */}
-            <div className="p-4 border-t dark:border-gray-700 flex justify-end space-x-2">
+            <div className="p-3 sm:p-4 border-t dark:border-gray-700 flex justify-end space-x-2">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 dark:bg-[#1a2c4a] dark:text-gray-200 dark:hover:bg-[#233657]"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 dark:bg-[#1a2c4a] dark:text-gray-200 dark:hover:bg-[#233657]"
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleDone} 
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+              <button
+                onClick={handleDone}
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
               >
                 Done
               </button>

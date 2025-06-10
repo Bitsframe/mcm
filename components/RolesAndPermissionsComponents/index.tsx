@@ -5,7 +5,14 @@ import PermissionToggle from "./PermissionToggle";
 import { Switch } from "antd";
 import { useRolesAndPermissions } from "@/hooks/useRolesAndPermissions";
 import { CircularProgress } from "@mui/material";
-import { CirclePlus, Pencil, Search, Trash2, Eye, PenBoxIcon } from "lucide-react";
+import {
+  CirclePlus,
+  Pencil,
+  Search,
+  Trash2,
+  Eye,
+  PenBoxIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
@@ -86,9 +93,7 @@ const SingleRoleHandle = ({
           ) : (
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-4 flex-1">
-                <span className="dark:text-white text-left">
-                  {data.name}
-                </span>
+                <span className="dark:text-white text-left">{data.name}</span>
               </div>
 
               <div className="flex gap-1 justify-center">
@@ -117,7 +122,7 @@ const SingleRoleHandle = ({
                       onClick={() => editHandle(data.id)}
                     >
                       <PenBoxIcon size={16} color="blue" />
-                      </Button>
+                    </Button>
                   </>
                 )}
               </div>
@@ -153,9 +158,7 @@ const SingleRoleHandle = ({
         ) : (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="dark:text-white font-medium">
-                {data.name}
-              </span>
+              <span className="dark:text-white font-medium">{data.name}</span>
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
@@ -303,33 +306,35 @@ const RolesAndPermissionsComponent: React.FC = () => {
   return (
     <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
-        <h1 className="text-xl font-bold dark:text-white">Roles and Permissions</h1>
+        <h1 className="text-xl font-bold dark:text-white">
+          Roles and Permissions
+        </h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           Tools / Roles and Permissions
         </h1>
       </div>
       <div className="w-full flex flex-col mt-5">
         <div className="w-full">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
-    <div className="relative w-full sm:w-auto">
-        <Input
-            placeholder="Search roles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10 w-full sm:w-auto"
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-    </div>
-    <div className="w-full sm:w-auto">
-        <button
-            onClick={() => toggleActivateAddNewRoleHandle(true)}
-            className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
-        >
-            <CirclePlus className="h-4 w-4" />
-            {t("RP_k6")}
-        </button>
-    </div>
-</div>
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
+            <div className="relative w-full sm:w-auto">
+              <Input
+                placeholder="Search roles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10 w-full sm:w-auto"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            </div>
+            <div className="w-full sm:w-auto">
+              <button
+                onClick={() => toggleActivateAddNewRoleHandle(true)}
+                className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
+                <CirclePlus className="h-4 w-4" />
+                {t("RP_k6")}
+              </button>
+            </div>
+          </div>
 
           <div className="border rounded-md overflow-hidden dark:border-[#172945]">
             <Table className="w-full hidden md:table border dark:border-[#172945]">
@@ -496,8 +501,8 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 id="role-title"
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
-                placeholder={t("RP_k7")}
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="Enter user role"
+                className="bg-[#f1f4f9] dark:bg-[#1f2937] dark:border-gray-600 dark:text-white border border-gray-300"
               />
             </div>
 

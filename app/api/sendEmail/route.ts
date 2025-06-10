@@ -53,9 +53,17 @@ export async function POST(req: any) {
     });
 
     // Validate required fields
-    if (!subject || !name || !price) {
+    if (!subject || !name) {
       return NextResponse.json(
-        { message: "Missing required fields: subject, name, or price" },
+        { message: "Missing required fields: subject or name" },
+        { status: 400 }
+      );
+    }
+
+    // Only validate price for non-DB templates
+    if (!templateBody && !price) {
+      return NextResponse.json(
+        { message: "Missing required field: price" },
         { status: 400 }
       );
     }
