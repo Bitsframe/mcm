@@ -13,10 +13,12 @@ import ThemeToggleButton from "../Themetoggle";
 import { Menu } from "lucide-react";
 import { SidebarSection } from "@/components/Sidebar";
 import { Modal, Button } from "flowbite-react";
+import { usePathname } from "next/navigation";
 
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
   const { userProfile } = useContext(AuthContext);
+  const pathname = usePathname();
 
   const locale = useLocale();
   const { t } = useTranslation(translationConstant.SIDEBAR);
@@ -37,6 +39,11 @@ export const Navbar = ({ width }: { width: string }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Close sidebar when route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <header
