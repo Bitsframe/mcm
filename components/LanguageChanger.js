@@ -1,12 +1,9 @@
 "use client";
-
-
 import { useRouter, usePathname } from "@/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import { Eng, Esp } from "@/assets/images";
 import { FaChevronDown } from "react-icons/fa";
-
 
 const languages = [
   { code: "en", label: "English", flag: Eng.src },
@@ -28,17 +25,24 @@ export default function LanguageChanger({ locale }) {
   };
 
   return (
-    <div className="relative w-44 z-50">
+    <div className="relative w-36 sm:w-44 z-50">
       {/* Selected Language */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between  bg-white dark:bg-[#0e1725] dark:text-white p-4 border border-gray-300 dark:border-blue-950 rounded-full w-full cursor-pointer"
+        className="flex items-center justify-between bg-white dark:bg-[#0e1725] dark:text-white p-3 sm:p-4 border border-gray-300 dark:border-blue-950 rounded-full w-full cursor-pointer"
       >
         <div className="flex items-center gap-2">
-          <Image src={selectedLang.flag} alt={selectedLang.label} width={20} height={15} />
-          <span>{selectedLang.label}</span>
+          <Image
+            src={selectedLang.flag}
+            alt={selectedLang.label}
+            width={20}
+            height={15}
+          />
+          <span className="text-sm sm:text-base">{selectedLang.label}</span>
         </div>
-        <span><FaChevronDown/></span>
+        <span>
+          <FaChevronDown />
+        </span>
       </button>
 
       {/* Dropdown List */}
@@ -50,8 +54,13 @@ export default function LanguageChanger({ locale }) {
               onClick={() => handleChange(lang)}
               className="flex items-center gap-2 p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
             >
-              <Image src={lang.flag} alt={lang.label} width={20} height={15} />
-              <span>{lang.label}</span>
+              <Image
+                src={lang.flag}
+                alt={lang.label}
+                width={20}
+                height={15}
+              />
+              <span className="text-sm sm:text-base">{lang.label}</span>
             </div>
           ))}
         </div>
