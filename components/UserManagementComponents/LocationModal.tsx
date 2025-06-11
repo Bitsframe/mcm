@@ -113,7 +113,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
                   id="select-all"
                   checked={selectAll}
                   onChange={handleSelectAll}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#1a2c4a] dark:ring-offset-[#122136] dark:focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-gray-300 bg-gray-300 dark:bg-gray-700 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2 dark:focus:ring-blue-400 dark:ring-offset-gray-800"
                 />
                 <label htmlFor="select-all" className="ml-2 text-sm text-gray-700 dark:text-gray-200">
                   Select All
@@ -134,7 +134,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
                         id={`location-${id}`}
                         checked={isSelected}
                         onChange={() => selectLocationHandle(id, !isSelected)}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#1a2c4a] dark:ring-offset-[#122136] dark:focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-gray-400 bg-gray-300 dark:bg-gray-700 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2 dark:focus:ring-blue-400"
                       />
                       <label
                         htmlFor={`location-${id}`}
