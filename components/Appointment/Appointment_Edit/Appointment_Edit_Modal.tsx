@@ -110,7 +110,7 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
       create_new_handle={handleCreateContent}
       is_open={isOpen}
       close_handle={onClose}
-      Title="Update Appointment Time Slot"
+      Title={t("Appoinments_k49")}
       buttonLabel="Update"
       loading={loadingUpdate}
     >

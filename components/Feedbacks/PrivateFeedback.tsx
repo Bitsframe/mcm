@@ -37,16 +37,16 @@ interface DataListInterface {
 }
 
 const detailsArray = (dataDetails: DataListInterface) => [
-  { label: "Order ID", value: dataDetails?.order_id },
+  { label: "Privatefeedback_k2", value: dataDetails?.order_id },
   {
-    label: "Patient Name",
+    label: "Privatefeedback_k1",
     value: `${dataDetails?.pos.firstname} ${dataDetails?.pos.lastname}`,
   },
   {
-    label: "Feedback Date",
+    label: "Privatefeedback_k3",
     value: moment(dataDetails?.created_at).format("MMM DD, YYYY"),
   },
-  { label: "Rating", value: `${dataDetails?.rating}/5` },
+  { label: "Privatefeedback_k4", value: `${dataDetails?.rating}/5` },
   { label: "Feedback", value: dataDetails?.feedback_text },
 ];
 
@@ -130,12 +130,13 @@ const PrivateFeedbackComponent: FC = () => {
           sortColumn === column
             ? "text-blue-500 dark:text-blue-400"
             : "text-gray-500 dark:text-gray-400"
-        } hover:text-gray-700 dark:hover:text-gray-300`}
-      />
-    ),
-    [sortColumn]
-  );
-
+          } hover:text-gray-700 dark:hover:text-gray-300`}
+          />
+        ),
+        [sortColumn]
+      );
+      const { t } = useTranslation(translationConstant.PRIVATEFEEDBACK);
+      
   const details = useMemo(
     () =>
       dataDetails && (
@@ -146,7 +147,7 @@ const PrivateFeedbackComponent: FC = () => {
               className="rounded-xl bg-white dark:bg-[#0E1725] p-4 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <dt className="text-sm text-[#707070] dark:text-gray-400">
-                {detail.label}
+                {t(detail.label)}
               </dt>
               <dd className="text-[17px] text-gray-800 dark:text-gray-200 font-medium break-words">
                 {detail.value}
@@ -158,7 +159,6 @@ const PrivateFeedbackComponent: FC = () => {
     [dataDetails]
   );
 
-  const { t } = useTranslation(translationConstant.PRIVATEFEEDBACK);
 
   useEffect(() => {
     setCurrentPage(0);
@@ -168,10 +168,10 @@ const PrivateFeedbackComponent: FC = () => {
     <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-[#0E1725] overflow-y-auto">
       <div>
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-          Private Feedback
+          {t("Privatefeedback_k8")}
         </h1>
         <h1 className="mt-1 mb-2 text-gray-500 text-base dark:text-gray-400">
-          Reputation / Private Feedback
+          {t("Privatefeedback_k9")}
         </h1>
       </div>
 

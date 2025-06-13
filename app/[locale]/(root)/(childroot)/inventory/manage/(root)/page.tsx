@@ -128,6 +128,7 @@ const requiredInputFields = [
 ];
 
 const Inventory = () => {
+  const { t } = useTranslation(translationConstant.INVENTORY);
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
@@ -384,8 +385,10 @@ const Inventory = () => {
   const handleZeroQuantityToggle = useCallback(() => {
     setExcludeZeroQuantity((prev) => !prev);
   }, []);
+  
 
   const RightSideComponent = useMemo(
+    
     () => (
       <div className="text-sm text-gray-500 flex flex-col sm:flex-row items-start sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2">
         <div className="flex items-center space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
@@ -423,7 +426,7 @@ const Inventory = () => {
         >
           <Filter className="w-4 h-4" />
           <span className="hidden lg:inline">
-            Quantity Available excluding 0
+            {t("Inventory_k21")}
           </span>
           <span className="lg:hidden">Filter 0</span>
         </button>
@@ -486,8 +489,6 @@ const Inventory = () => {
       handleZeroQuantityToggle,
     ]
   );
-
-  const { t } = useTranslation(translationConstant.INVENTORY);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -759,14 +760,14 @@ const Inventory = () => {
                     disabled={currentPage === 1}
                     className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                   >
-                    Previous
+                    {t("Inventory_k23")}
                   </button>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                   >
-                    Next
+                    {t("Inventory_k22")}
                   </button>
                 </div>
               </div>

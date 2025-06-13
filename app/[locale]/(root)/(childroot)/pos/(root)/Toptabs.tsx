@@ -3,23 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingBasket, UsersIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const TopTabs = () => {
   const pathname = usePathname();
 
   const PosTopMenu = [
     {
-      title: "Orders",
+      title: "POS-Sales_k1",
       url: "/",
       icon: ShoppingBasket,
     },
     {
-      title: "Patients",
+      title: "POS-Sales_k2",
       url: "patients",
       icon: UsersIcon,
     },
   ];
 
+  const { t } = useTranslation(translationConstant.POSSALES);
   return (
     <nav className="mt-5">
       <div className="max-w-7xl mx-auto">
@@ -46,7 +49,7 @@ const TopTabs = () => {
                       isActive ? "text-white" : "text-gray-400"
                     }`}
                   />
-                  {menuItem.title}
+                  {t(menuItem.title)}
                 </Link>
               </li>
             );

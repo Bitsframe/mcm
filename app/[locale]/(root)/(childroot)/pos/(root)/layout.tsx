@@ -1,17 +1,22 @@
+"use client";
+
 import React, { ReactNode } from "react";
 import TopTabs from "./Toptabs";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 interface PosLayoutProps {
   children: ReactNode;
 }
 
 const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
+  const { t } = useTranslation(translationConstant.POSSALES);
   return (
     <div>
       <div className="space-y-3 p-2">
         <div>
-          <h1 className="text-xl font-bold">Sales</h1>
-          <p className="mt-0.5 mb-1 text-gray-500 text-sm">POS / Sales</p>
+          <h1 className="text-xl font-bold">{t("POS-Sales_k26")}</h1>
+          <p className="mt-0.5 mb-1 text-gray-500 text-sm">{t("POS-Sales_k27")}</p>
         </div>
         <div className="h-px w-full bg-gray-300"></div>
         <div className="flex justify-start">

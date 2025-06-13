@@ -45,7 +45,7 @@ interface DataListInterface {
 const tableHeader = [
   { id: "full_name", label: "UM_k4", align: "text-start", classNames: "w-72" },
   { id: "role", label: "UM_k5", classNames: "w-72" },
-  { id: "email", label: "Email" },
+  { id: "email", label: "UM_k9" },
   { id: "locations", label: "UM_k6" },
   { id: "actions", label: "", classNames: "w-28" },
 ];
@@ -230,9 +230,9 @@ const UserManagementComponent = () => {
       <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
         {/* Heading Section */}
         <div className="p-1 sm:px-3">
-          <h1 className="text-xl font-bold dark:text-white">{t("User Management")}</h1>
+          <h1 className="text-xl font-bold dark:text-white">{t("UM_k17")}</h1>
           <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-            Tools / User Management
+            {t("UM_k16")}
           </h1>
         </div>
 
@@ -243,7 +243,7 @@ const UserManagementComponent = () => {
               onChange={onChangeHandle}
               className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
               type="text"
-              placeholder={t("Search users by name")}
+              placeholder={t("UM_k3")}
             />
             <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300" />
           </div>
@@ -254,7 +254,7 @@ const UserManagementComponent = () => {
     sm:w-auto w-full justify-center sm:justify-start"
           >
             <CirclePlus className="text-lg" />
-            {t("Add New User")}
+            {t("UM_k2")}
           </button>
         </div>
 
@@ -410,13 +410,13 @@ const UserManagementComponent = () => {
                   <div className="mt-3 space-y-2">
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-300">
-                        Email
+                        {t("UM_k9")}
                       </p>
                       <p className="text-sm dark:text-white">{elem.email}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-300">
-                        Locations
+                        {t("UM_k6")}
                       </p>
                       <p className="text-sm dark:text-white">
                         {elem.locations.length > 0
@@ -457,7 +457,7 @@ const UserManagementComponent = () => {
                 onClick={handlePrevious}
                 disabled={currentPage === 1}
               >
-                Previous
+                {t("UM_k20")}
               </button>
               <button
                 className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
@@ -467,7 +467,7 @@ const UserManagementComponent = () => {
                   (window.innerWidth < 640 ? totalPagesSmall : totalPagesLarge)
                 }
               >
-                Next
+                {t("UM_k19")}
               </button>
             </div>
           </div>
@@ -487,14 +487,14 @@ const UserManagementComponent = () => {
         <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
           <SheetHeader>
             <SheetTitle className="text-xl font-semibold dark:text-white">
-              User Details
+              {t("UM_k23")}
             </SheetTitle>
           </SheetHeader>
           {selectedUser && (
             <div className="grid gap-5 py-6">
               <div className="space-y-0.5">
                 <div className="text-sm text-muted-foreground dark:text-gray-300">
-                  Name
+                  {t("UM_k4")}
                 </div>
                 <div className="font-medium text-base dark:text-white">
                   {selectedUser.full_name}
@@ -502,7 +502,7 @@ const UserManagementComponent = () => {
               </div>
               <div className="space-y-0.5">
                 <div className="text-sm text-muted-foreground dark:text-gray-300">
-                  Role
+                  {t("UM_k5")}
                 </div>
                 <div className="font-medium text-base dark:text-white">
                   {selectedUser.role}
@@ -510,7 +510,7 @@ const UserManagementComponent = () => {
               </div>
               <div className="space-y-0.5">
                 <div className="text-sm text-muted-foreground dark:text-gray-300">
-                  Email
+                  {t("UM_k9")}
                 </div>
                 <div className="font-medium text-base dark:text-white">
                   {selectedUser.email}
@@ -518,7 +518,7 @@ const UserManagementComponent = () => {
               </div>
               <div className="space-y-0.5">
                 <div className="text-sm text-muted-foreground dark:text-gray-300">
-                  Locations
+                  {t("UM_k6")}
                 </div>
                 <div className="font-medium text-base space-y-1 dark:text-white">
                   {selectedUser.locations.length > 0 ? (

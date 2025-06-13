@@ -448,7 +448,7 @@ const Orders = () => {
             ) : (
               <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
                 <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  Patient Details
+                  {t("POS-Sales_k3")}
                 </h2>
                 {selectedPatient ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -483,7 +483,7 @@ const Orders = () => {
 
             <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
               <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                Product Details
+                {t("POS-Sales_k5")}
               </h2>
 
               <div className="space-y-2">

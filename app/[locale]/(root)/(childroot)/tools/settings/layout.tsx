@@ -4,6 +4,8 @@
 import { TabContext } from "@/context";
 import { useContext, useEffect } from "react";
 import TopTabs from "./settingstabs";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 export default function SettingsLayout({
   children,
@@ -11,7 +13,7 @@ export default function SettingsLayout({
   children: React.ReactNode
 }) {
   const { setActiveTitle } = useContext(TabContext);
-
+  const { t } = useTranslation(translationConstant.SETTINGS);
   useEffect(() => {
     setActiveTitle("Sidebar_k22");
   }, []);
@@ -19,9 +21,9 @@ export default function SettingsLayout({
   return (
     <div className="dark:bg-[#0E1725]">
       <div className="p-1 sm:p-3">
-        <h1 className="text-xl font-bold dark:text-white">Settings</h1>
+        <h1 className="text-xl font-bold dark:text-white">{t("Settings_k3")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          Tools / Settings
+          {t("Settings_k2")}
         </h1>
       </div>
 

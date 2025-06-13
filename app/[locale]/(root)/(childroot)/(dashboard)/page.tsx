@@ -163,27 +163,27 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
 
   return (
     <div className="text-slate-800 dark:text-slate-200 text-sm">
-      <h1 className="mb-2 text-base font-bold">{t("SSL Certificate")}</h1>
+      <h1 className="mb-2 text-base font-bold">{t("Dashboard_k20")}</h1>
       <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2.5 rounded-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <DataField
             icon={<PanelsTopLeft size={15} />}
-            label={t("Issued to")}
+            label={t("Dashboard_k6")}
             value={ssl.issued_to}
           />
           <DataField
             icon={<ShieldCheck size={15} />}
-            label={t("Issued By")}
+            label={t("Dashboard_k18")}
             value={ssl.issued_by}
           />
           <DataField
             icon={<CalendarCheck2 size={15} />}
-            label={t("Issued at")}
+            label={t("Dashboard_k7")}
             value={issuedAt.format("DD/MM/YYYY, h:mm A")}
           />
           <DataField
             icon={<CalendarX2 size={15} />}
-            label={t("Expires at")}
+            label={t("Dashboard_k8")}
             value={expiresAt.format("DD/MM/YYYY, h:mm A")}
           />
         </div>
@@ -345,18 +345,19 @@ const RenderData = memo(({ data }: { data: Monitor }) => {
     platform,
     schedule,
   } = data;
+  const { t } = useTranslation();
   return (
     <div className="text-slate-700 dark:text-slate-200 p-2.5 pb-7">
       <div>
-        <h1 className="text-xl font-bold">Dashboard</h1>
+        <h1 className="text-xl font-bold">{t("Dashboard_k24")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          Home / Dashboard
+          {t("Dashboard_k23")}
         </h1>
       </div>
       <div className="space-y-3 mt-3">
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-6 gap-2.5">
           <div className="col-span-1 md:col-span-1 lg:col-span-3">
-            <h2 className="text-base font-bold">Quick Stats</h2>
+            <h2 className="text-base font-bold">{t("Dashboard_k22")}</h2>
             <div className="pt-2 rounded-md mt-1.5">
               <div className="grid grid-cols-2 gap-2.5">
                 {render_arr.map(

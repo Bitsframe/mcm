@@ -49,7 +49,7 @@ const AppointmentDetails = memo(
     return (
       <div className="flex flex-col h-full space-y-2 sm:space-y-5 text-black dark:text-white p-2 sm:p-4">
         <h1 className="text-base sm:text-lg font-semibold dark:text-white">
-          New Patient
+          {t("Appoinments_k52")}
         </h1>
 
         <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">

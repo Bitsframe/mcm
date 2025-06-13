@@ -434,15 +434,15 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           {renderType === "all"
             ? t("Patients_k1")
             : renderType === "onsite"
-            ? "Onsite Patients"
-            : "Offsite Patients"}
+            ? t("Patients_k31")
+            : t("Patients_k32")}
         </h1>
         <h1 className="mt-1 text-gray-500 dark:text-gray-400">
           {renderType === "all"
-            ? "Patients  /  All"
+            ? t("Patients_k22")
             : renderType === "onsite"
-            ? "Patients  /  Onsite"
-            : "Patients  /  Offsite"}
+            ? t("Patients_k33")
+            : t("Patients_k34")}
         </h1>
       </div>
 
@@ -462,7 +462,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800 whitespace-nowrap shrink-0"
         >
           <CirclePlus className="h-4 w-4" />
-          Add a Patient
+          {t("Patients_k2")}
         </Button>
       </div>
 
@@ -777,10 +777,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     </button>
                   </TableHead>
                   <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
-                    Note
+                    {t("Patients_k24")}
                   </TableHead>
                   <TableHead className=" text-right py-3 w-72 font-medium text-gray-700 dark:text-gray-300">
-                    Actions
+                    {t("Patients_k23")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -868,8 +868,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           <div className="hidden md:flex flex-row items-center justify-between mt-2 bg-white dark:bg-[#0E1725]">
             <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
               <p className="text-gray-700 dark:text-gray-300">
-                Showing {startIndex + 1} to{" "}
-                {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                {t("Patients_k27")} {startIndex + 1} {t("Patients_k28")}{" "}
+                {Math.min(endIndex, filteredAndSortedPatients.length)} {t("Patients_k29")}{" "}
                 {filteredAndSortedPatients.length}
               </p>
             </div>
@@ -881,7 +881,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 disabled={currentPage === 1}
                 className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                Previous
+                {t("Patients_k25")}
               </Button>
               <Button
                 variant="outline"
@@ -890,7 +890,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 disabled={currentPage === totalPages}
                 className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                Next
+                {t("Patients_k26")}
               </Button>
             </div>
           </div>
@@ -963,7 +963,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10 dark:border-gray-700">
               <h3 className="text-xl font-semibold dark:text-white">
-                Patient Detail
+                {t("Patients_k7")}
               </h3>
             </div>
 
@@ -998,7 +998,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 onClick={() => setIsEditing(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium w-20 px-3 py-1"
               >
-                Edit
+                {t("Patients_k8")}
               </Button>
             </div>
           </div>
@@ -1060,6 +1060,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
     }
   };
 
+  const { t } = useTranslation(translationConstant.PATIENTS);
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -1216,13 +1217,13 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           onClick={onCancel}
           className="border-gray-200 dark:bg-[#111827] text-gray-700 dark:border-gray-600 dark:text-gray-300"
         >
-          Cancel
+        {t("Patients_k21")}
         </Button>
         <Button
           onClick={handleSave}
           className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
         >
-          Save Changes
+          {t("Patients_k30")}
         </Button>
       </div>
     </div>
@@ -1301,7 +1302,7 @@ const PatientDetails: FC<{
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Note</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k24")}</p>
           <p className="text-base font-medium dark:text-gray-300">
             {patient.note || "No note available"}
           </p>
@@ -1335,10 +1336,10 @@ const PatientDetails: FC<{
           </div>
         </div>
 
-        <dl>
+        {/* <dl>
           <dd className="font-semibold text-lg">{patient?.note || "-"}</dd>
           <dt className="text-sm text-[#707070]">{t("Note")}</dt>
-        </dl>
+        </dl> */}
       </div>
     </div>
   );
@@ -1420,7 +1421,6 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           className="h-8 w-8 text-gray-500 dark:text-gray-400"
         >
           <SquarePen className="h-4 w-4" color="#0066ff" />
-          <span className="sr-only">Edit</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="w-[95vw] sm:max-w-[500px] dark:bg-gray-900 mx-auto">
@@ -1494,7 +1494,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium dark:text-gray-300">
-              Note
+              {t("Patients_k24")}
             </Label>
             <Input
               type="text"

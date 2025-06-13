@@ -144,31 +144,33 @@ function removeDuplicates(array: DataListInterface[]): DataListInterface[] {
   });
 }
 
-const modal_titles: any = {
-  create: {
-    modalLabel: "Create New Promocode",
-    button: {
-      label: "Create Promocode",
-      color: "blue",
-    },
-  },
-  edit: {
-    modalLabel: "Edit Promocode",
-    button: {
-      label: "Update Promocode",
-      color: "blue",
-    },
-  },
-  delete: {
-    modalLabel: "Delete Promocode Confirmation",
-    button: {
-      label: "Delete Promocode",
-      color: "failure",
-    },
-  },
-};
-
 const Page = () => {
+  const { t } = useTranslation(translationConstant.PROCODE);
+  
+  const modal_titles: any = {
+    create: {
+      modalLabel: t("Procode_k24"),
+      button: {
+        label: t("Procode_k24"),
+        color: "blue",
+      },
+    },
+    edit: {
+      modalLabel: t("Procode_k24"),
+      button: {
+        label: t("Procode_k24"),
+        color: "blue",
+      },
+    },
+    delete: {
+      modalLabel: t("Procode_k25"),
+      button: {
+        label: t("Procode_k25"),
+        color: "failure",
+      },
+    },
+  };
+
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [detailsView, setDetailsView] = useState<DataListInterface | null>(
@@ -403,8 +405,6 @@ const Page = () => {
     setActiveTitle("Sidebar_k16");
   }, []);
 
-  const { t } = useTranslation(translationConstant.PROCODE);
-
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
@@ -417,9 +417,9 @@ const Page = () => {
     <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mt-4">
-        <h1 className="text-xl font-bold">Promo Codes</h1>
+        <h1 className="text-xl font-bold">{t("Procode_k18")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          Tools / Promo Codes
+          {t("Procode_k17")}
         </h1>
       </div>
 
@@ -668,10 +668,8 @@ const Page = () => {
             <div className="flex items-center justify-between mt-4 px-2">
               <p className="text-sm text-muted-foreground dark:text-gray-300">
                 {dataList.length === 0
-                  ? "Showing 0 to 0 of 0 results"
-                  : `Showing ${startIndex + 1} to ${endIndex} of ${
-                      dataList.length
-                    } results`}
+                  ? `${t("Procode_k19")} 0 ${t("Procode_k22")} 0 ${t("Procode_k23")} 0 ${t("Procode_k24")}`
+                  : `${t("Procode_k19")} ${startIndex + 1} ${t("Procode_k22")} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
               </p>
               <div className="flex space-x-2">
                 <button
@@ -681,7 +679,7 @@ const Page = () => {
                     currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  Previous
+                  {t("Procode_k21")}
                 </button>
                 <button
                   onClick={handleNextPage}
@@ -692,7 +690,7 @@ const Page = () => {
                       : ""
                   }`}
                 >
-                  Next
+                  {t("Procode_k20")}
                 </button>
               </div>
             </div>
@@ -784,7 +782,7 @@ const Page = () => {
         >
           {activeModalMode === "delete" ? (
             <div className="dark:text-white">
-              <h1>Are you sure you want to delete this Promocode?</h1>
+              <h1>{t("Procode_k26")}</h1>
             </div>
           ) : (
             <form className="grid grid-cols-2 gap-4">
