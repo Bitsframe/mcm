@@ -9,6 +9,7 @@ import {
 import { Button } from "flowbite-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { toast } from "sonner";
 
 export const Form_Component = (props: any) => {
   const {
@@ -22,6 +23,15 @@ export const Form_Component = (props: any) => {
   } = props;
 
   const { t } = useTranslation(translationConstant.WEBCONT);
+
+  const handleUpdate = async () => {
+    try {
+      await handle_update();
+      toast.success("Location updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update location");
+    }
+  };
 
   return (
     <>
@@ -72,12 +82,15 @@ export const Form_Component = (props: any) => {
             {t("WebCont_k11")}
           </button>
           <button
-            //@ts-ignore
-            isProcessing={update_loading}
+            onClick={handleUpdate}
             disabled={!is_edited || update_loading}
-            className="bg-[#0066FF] hover:bg-blue-600 px-6 py-3 text-sm rounded-lg"
+            className={`px-6 py-3 text-sm rounded-lg ${
+              !is_edited || update_loading 
+                ? 'bg-[#0066FF] cursor-not-allowed' 
+                : 'bg-[#0066FF] hover:bg-blue-600'
+            }`}
           >
-            {t("WebCont_k12")}
+            {update_loading ? 'Updating...' : t("WebCont_k12")}
           </button>
         </div>
       </div>

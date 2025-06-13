@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import TopTabs from "./Toptabs";
+import { Toaster } from "sonner";
 
 interface WebsiteContentLayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ const WebsiteContentLayout: React.FC<WebsiteContentLayoutProps> = ({
 }) => {
   return (
     <div>
+      <Toaster richColors position="top-right" />
       <div className="dark:bg-[#0e1725] pl-2">
         <h1 className="text-xl font-bold">Website Content</h1>
         <h1 className="mt-1 pb-5 text-sm text-gray-500 dark:text-gray-400">
@@ -17,7 +19,6 @@ const WebsiteContentLayout: React.FC<WebsiteContentLayoutProps> = ({
         </h1>
       </div>
       
-      {/* Mobile layout - tabs above content */}
       <div className="block md:hidden dark:bg-[#0E1725] p-2">
         <div className="w-full mb-4">
           <TopTabs />
@@ -27,7 +28,6 @@ const WebsiteContentLayout: React.FC<WebsiteContentLayoutProps> = ({
         </main>
       </div>
       
-      {/* Desktop layout - tabs on the side */}
       <div className="hidden md:flex justify-center gap-5 dark:bg-[#0E1725] p-2">
         <div className="space-y-5">
           <TopTabs />
