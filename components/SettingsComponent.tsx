@@ -4,7 +4,8 @@ import React, { useState, useEffect, forwardRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 import moment from "moment";
-
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 import {
   Select,
   SelectContent,
@@ -95,7 +96,7 @@ const SettingsComponent: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
-
+  const { t } = useTranslation(translationConstant.CONTROLS);
   useEffect(() => {
     fetchLocations();
   }, []);
@@ -155,7 +156,7 @@ const SettingsComponent: React.FC = () => {
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
-            Reporting Time
+            {t("CT_k1")}
           </h1>
         </div>
 
@@ -164,7 +165,7 @@ const SettingsComponent: React.FC = () => {
           <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
-                Locations
+                {t("CT_k2")}
               </h2>
               <div className="relative">
                 <input
@@ -216,13 +217,13 @@ const SettingsComponent: React.FC = () => {
             {selectedLocation ? (
               <>
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-1">Address</h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k3")}</h3>
                   <p className="text-sm">{selectedLocation.address}</p>
                 </div>
 
                 <div className="mb-4">
                   <h3 className="text-sm font-medium mb-1">
-                    Current Selected Time
+                    {t("CT_k4")}
                   </h3>
                   <p className="text-sm">
                     {selectedLocation.report_time
@@ -232,7 +233,7 @@ const SettingsComponent: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-1">Report Time</h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k5")}</h3>
                   <div className="relative">
                     <TimeSelector
                       key={selectedLocation?.title! || "-"}
@@ -266,12 +267,12 @@ const SettingsComponent: React.FC = () => {
                         Updating...
                       </>
                     ) : (
-                      "Update Time"
+                      t("CT_k6")
                     )}
                   </button>
 
                   <button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    Reset
+                    {t("CT_k7")}
                   </button>
                 </div>
               </>

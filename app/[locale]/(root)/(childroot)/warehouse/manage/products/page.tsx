@@ -503,7 +503,7 @@ const Products = () => {
                 className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-1 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
-                <span>Add Product</span>
+                <span>{t("Inventory_k26")}</span>
               </button>
             </div>
 
@@ -518,7 +518,7 @@ const Products = () => {
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  Active
+                  <span>{t("Inventory_k5")}</span>
                 </button>
                 <button
                   onClick={handleArchiveClick}
@@ -529,7 +529,7 @@ const Products = () => {
                   }`}
                 >
                   <Archive className="w-4 h-4" />
-                  Archived
+                  <span>{t("Inventory_k6")}</span>
                 </button>
               </div>
             </div>
@@ -632,7 +632,7 @@ const Products = () => {
                                       onClick={() =>
                                         buttonClickActionHandle("Update", elem)
                                       }
-                                      label="Update"
+                                      label={t("Inventory_k17")}
                                       text_color="text-[#0066ff] dark:text-blue-400"
                                       bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
                                       border="border-[#CCE0FF] dark:border-blue-800"
@@ -642,7 +642,7 @@ const Products = () => {
                                       onClick={() =>
                                         buttonClickActionHandle("Delete", elem)
                                       }
-                                      label={getDataArchiveType ? "Unarchive" : "Archive"}
+                                      label={getDataArchiveType ? t("Inventory_k6") : t("Inventory_k5")}
                                       text_color={
                                         getDataArchiveType
                                           ? "text-[#0EA542] dark:text-green-400"
@@ -664,7 +664,7 @@ const Products = () => {
                                       onClick={() =>
                                         buttonClickActionHandle("Assign", elem)
                                       }
-                                      label="Assign"
+                                      label={t("Inventory_k27")}
                                       text_color="text-[#0EA542] dark:text-green-400"
                                       bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
                                       border="border-[#72F39E] dark:border-green-800"
@@ -804,14 +804,15 @@ const Products = () => {
                     disabled={currentPage === 1}
                     className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
                   >
-                    Previous
+                    
+                    {t("Inventory_k23")}
                   </button>
                   <button 
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
                   >
-                    Next
+                    {t("Inventory_k22")}
                   </button>
                 </div>
               </div>
@@ -838,7 +839,7 @@ const Products = () => {
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Select Locations
+                  {t("Inventory_k29")}
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -852,7 +853,7 @@ const Products = () => {
                     htmlFor="select-all-locations"
                     className="text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Select All
+                     {t("Inventory_k30")}
                   </label>
                 </div>
               </div>
@@ -881,7 +882,7 @@ const Products = () => {
                 ))}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {assignModalData.location_ids?.length || 0} location(s) selected
+                {assignModalData.location_ids?.length || 0} {t("Inventory_k32")}
               </div>
             </div>
             <div className="col-span-2 space-y-4">
@@ -891,13 +892,13 @@ const Products = () => {
                   value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                  label="Quantity per Location"
+                  label={t("Inventory_k31")}
                   bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                 />
               </div>
               <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-[#0e1725]">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Stock Type:</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t("Inventory_k33")}:</span>
                   <span className="font-medium dark:text-white">
                     {modalData.unlimited ? "Unlimited" : "Limited"}
                   </span>
@@ -906,7 +907,7 @@ const Products = () => {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        Available Stock:
+                        {t("Inventory_k34")}:
                       </span>
                       <span className="font-medium dark:text-white">
                         {modalData.stock}
@@ -914,7 +915,7 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        Total to Assign:
+                        {t("Inventory_k35")}:
                       </span>
                       <span
                         className={`font-medium ${
@@ -928,7 +929,7 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        Remaining After Assignment:
+                        {t("Inventory_k36")}:
                       </span>
                       <span
                         className={`font-medium ${
@@ -997,7 +998,7 @@ const Products = () => {
                 htmlFor="unlimited"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Unlimited Quantity
+                {t("Inventory_k28")}
               </label>
             </div>
           </div>

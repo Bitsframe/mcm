@@ -15,5 +15,7 @@ export const translationConstant = {
     PROCODE:"Procode",
     USERMANAGEMENT:"Usermanagement",
     WEBCONT:"WebCont",
-    SETTINGS:"Settings"
+    SETTINGS:"Settings",
+    CONTROLS:"Controls",
+    CREDITS:"Credits",
 }

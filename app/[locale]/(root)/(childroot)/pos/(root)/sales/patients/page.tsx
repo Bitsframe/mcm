@@ -450,7 +450,7 @@ const Patients = () => {
           <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
             <div className="w-full md:w-auto">
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-2 md:mb-4">
-                All Patients
+                {t("POS-Sales_k35")}
               </h1>
               <div className="relative w-full md:w-60">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -471,7 +471,7 @@ const Patients = () => {
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
                 }`}
               >
-                Today
+                {t("POS-Sales_k16")}
               </button>
               <button
                 onClick={() => setActiveFilterBtn(1)}
@@ -481,7 +481,7 @@ const Patients = () => {
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
                 }`}
               >
-                Past Records
+                {t("POS-Sales_k17")}
               </button>
             </div>
           </div>
@@ -628,14 +628,14 @@ const Patients = () => {
                   >
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Name
+                        {t("POS-Sales_k41")}
                       </p>
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{`${firstname} ${lastname}`}</p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Phone
+                        {t("POS-Sales_k37")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
@@ -644,7 +644,7 @@ const Patients = () => {
 
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Created at
+                        {t("POS-Sales_k38")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formattedDateTime}
@@ -669,7 +669,7 @@ const Patients = () => {
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
-                        Edit
+                        {t("POS-Sales_k39")}
                       </button>
                       <button
                         onClick={() => selectHandle(elem)}
@@ -688,7 +688,7 @@ const Patients = () => {
                           <polyline points="9 11 12 14 22 4"></polyline>
                           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
-                        Select
+                        {t("POS-Sales_k40")}
                       </button>
                     </div>
                   </div>
@@ -702,7 +702,7 @@ const Patients = () => {
         <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-1/2 p-4">
           <div className="mb-4">
             <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
-              Add New Patient
+              {t("POS-Sales_k18")}
             </h2>
           </div>
 
@@ -796,7 +796,7 @@ const Patients = () => {
               onClick={createNewDataHandle}
               className="bg-blue-600 py-3 w-full text-center text-white hover:bg-blue-700 transition-colors rounded-md font-medium"
             >
-              Add Patient
+              {t("POS-Sales_k25")}
             </button>
           </div>
         </div>

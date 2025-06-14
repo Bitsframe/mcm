@@ -102,6 +102,7 @@ const Categories = () => {
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
   const [page, setPage] = useState(1);
+  const { t } = useTranslation(translationConstant.INVENTORY);
   const ITEMS_PER_PAGE = 4;
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
@@ -210,7 +211,7 @@ const Categories = () => {
           }`}
         >
           <ShieldCheck size={16} />
-          <span>Active</span>
+          <span>{t("Inventory_k5")}</span>
         </button>
         <button
           onClick={handleArchiveClick}
@@ -221,7 +222,7 @@ const Categories = () => {
           }`}
         >
           <Archive size={16} />
-          <span>Archived</span>
+          <span>{t("Inventory_k6")}</span>
         </button>
       </div>
     ),
@@ -264,8 +265,6 @@ const Categories = () => {
     setActiveTitle("Sidebar_k11");
   }, []);
 
-  const { t } = useTranslation(translationConstant.INVENTORY);
-
   return (
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
       <div className="w-full h-full overflow-auto">
@@ -286,7 +285,7 @@ const Categories = () => {
                   onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 >
                   <PlusCircle className="w-5 h-5" />
-                  Create Category
+                  {t("Inventory_k25")}
                 </button>
               </div>
             </div>
@@ -438,19 +437,20 @@ const Categories = () => {
                     disabled={page === 1}
                     className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
                   >
-                    Previous
+                   
+                    {t("Inventory_k23")}
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page === totalPages}
                     className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
                   >
-                    Next
+                     {t("Inventory_k22")}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
+          </div>  
         </div>
       </div>
 

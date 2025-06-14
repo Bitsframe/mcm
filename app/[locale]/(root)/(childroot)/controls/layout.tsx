@@ -4,14 +4,15 @@
 import { TabContext } from "@/context";
 import { useContext, useEffect } from "react";
 import TopTabs from "./controltabs";
-
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 export default function ControlsLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const { setActiveTitle } = useContext(TabContext);
-
+  const { t } = useTranslation(translationConstant.CONTROLS);
   useEffect(() => {
     setActiveTitle("Sidebar_k22");
   }, []);
@@ -19,7 +20,7 @@ export default function ControlsLayout({
   return (
     <div>
       <div className="py-3">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white pl-4">Controls</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white pl-4">{t("CT_k27")}</h1>
       </div>
 
       <div className="block sm:hidden mb-4">

@@ -133,14 +133,14 @@ export const routeList: Route[] = [
   {
     id: 'credits',
     name: "credits",
-    label: "Credits",
+    label: "Sidebar_k24",
     icon: CreditCard,
     route: ROUTES.CREDITS,
   },
   {
     id: 'warehouse',
     name: "warehouse",
-    label: "Warehouse",
+    label: "Sidebar_k25",
     icon: Warehouse,
     route: ROUTES.WAREHOUSE.MANAGE,
   },
@@ -154,7 +154,7 @@ export const routeList: Route[] = [
   {
     id: 'controls',
     name: "control",
-    label: "Controls",
+    label: "Sidebar_k26",
     icon: Settings,
     route: ROUTES.CONTROLS
   },
