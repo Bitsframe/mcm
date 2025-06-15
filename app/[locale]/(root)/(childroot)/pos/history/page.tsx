@@ -188,10 +188,10 @@ const SalesHistory = () => {
       <div className="flex justify-between items-center px-4 pt-4 space-x-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            History
+            {t("POS-Historyk29")}
           </h1>
           <h1 className="mt-1 mb-2 text-gray-600 dark:text-gray-400">
-            POS / History
+            {t("POS-Historyk28")}
           </h1>
         </div>
         <div className="flex items-center space-x-3">

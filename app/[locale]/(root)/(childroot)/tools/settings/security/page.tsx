@@ -9,7 +9,8 @@ import { signOut } from '@/actions/supabase_auth/action';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
 import { z } from 'zod';
-
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 const passwordSchema = z.object({
   newPassword: z.string()
     .regex(/[A-Z]/, "Must include at least one uppercase letter")
@@ -51,7 +52,7 @@ const Security = () => {
 
   const router = useRouter();
   const { userProfile } = useContext(AuthContext);
-
+  const { t } = useTranslation(translationConstant.SETTINGS);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswords(prev => ({
@@ -120,7 +121,7 @@ const Security = () => {
   <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
     <div className="p-3 border-b dark:border-gray-700">
       <h1 className="text-base font-medium text-gray-900 dark:text-white">
-        Security
+        {t("Settings_k11")}
       </h1>
     </div>
 
@@ -128,12 +129,12 @@ const Security = () => {
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
-            Change Password
+            {t("Settings_k12")}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs text-gray-500 dark:text-gray-400">New Password</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">{t("Settings_k14")}</label>
               <div className="relative">
                 <input
                   type={showPassword.newPassword ? "text" : "password"}
@@ -169,7 +170,7 @@ const Security = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs text-gray-500 dark:text-gray-400">Retype New Password</label>
+              <label className="text-xs text-gray-500 dark:text-gray-400">{t("Settings_k15")}</label>
               <div className="relative">
                 <input
                   type={showPassword.retypePassword ? "text" : "password"}
@@ -201,7 +202,7 @@ const Security = () => {
               onClick={handleReset}
               className="px-6 py-2 text-red-500 bg-red-100 dark:bg-red-900/20 rounded-lg text-sm hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
             >
-              Reset
+              {t("Settings_k9")}
             </button>
             <Button
               type="submit"

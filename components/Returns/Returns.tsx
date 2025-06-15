@@ -55,40 +55,40 @@ interface DataListInterface {
 
 const detailsArray = (dataDetails: DataListInterface) => [
   {
-    label: "Order ID",
+    label: "POS-Returnk4",
     value: dataDetails?.sales_history?.order_id,
   },
   {
-    label: "Return ID",
+    label: "POS-Returnk3",
     value: dataDetails?.return_id,
   },
   {
-    label: "Patient Name",
+    label: "POS-Returnk2",
     value: `${dataDetails?.sales_history?.orders?.pos?.firstname} ${dataDetails?.sales_history?.orders?.pos?.lastname}`,
   },
   {
-    label: "Patient ID",
+    label: "POS-Returnk11",
     value: dataDetails?.sales_history?.orders.patient_id,
   },
   {
-    label: "Amount",
+    label: "POS-Returnk12",
     value: dataDetails.quantity * dataDetails.inventory.price,
   },
   {
-    label: "Quantity",
+    label: "POS-Returnk5",
     value: dataDetails.quantity,
   },
   {
-    label: "Patient Email",
+    label: "POS-Returnk13",
     value: dataDetails?.sales_history?.orders?.pos?.email,
     col_span_02: true,
   },
   {
-    label: "Patient Phone",
+    label: "POS-Returnk14",
     value: dataDetails?.sales_history?.orders?.pos?.phone,
   },
   {
-    label: "Reason",
+    label: "POS-Returnk15",
     value: dataDetails.reason,
   },
 ];
@@ -277,10 +277,10 @@ const Returns: FC<Props> = () => {
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Returns
+            {t("POS-Returnk1")}
           </h1>
           <h1 className="mt-1 mb-2 text-gray-600 dark:text-gray-400">
-            POS / Returns
+            {t("POS-Returnk10")}
           </h1>
         </div>
       </div>
@@ -527,7 +527,7 @@ const Returns: FC<Props> = () => {
                     key={index}
                   >
                     <dt className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                      {detail.label}{" "}
+                      {t(detail.label)}{" "}
                     </dt>
                     <dd className="text-base font-medium text-gray-800 dark:text-gray-200">
                       {detail.value}
@@ -541,14 +541,14 @@ const Returns: FC<Props> = () => {
                   onClick={mergeHandle}
                   className="w-full px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Merge
+                  {t("POS-Returnk16")}
                 </button>
                 <button
                   onClick={discardHandle}
                   disabled={deleteLoading}
                   className="w-full px-4 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600"
                 >
-                  {deleteLoading ? "Processing..." : "Discard"}
+                  {deleteLoading ? "Processing..." : t("POS-Returnk17")}
                 </button>
               </div>
             </div>

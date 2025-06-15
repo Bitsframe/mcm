@@ -448,7 +448,7 @@ const Orders = () => {
             ) : (
               <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
                 <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  Patient Details
+                  {t("POS-Sales_k3")}
                 </h2>
                 {selectedPatient ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -483,7 +483,7 @@ const Orders = () => {
 
             <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
               <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                Product Details
+                {t("POS-Sales_k5")}
               </h2>
 
               <div className="space-y-2">
@@ -690,7 +690,7 @@ const Orders = () => {
               {/* Display Fetched Credit */}
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Patient Credit
+                  {t("POS-Sales_k32")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
                   {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
@@ -709,7 +709,7 @@ const Orders = () => {
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Amount Received
+                  {t("POS-Sales_k33")}
                 </h1>
                 <div className="border  border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white  text-black ">
                   <input
@@ -726,7 +726,7 @@ const Orders = () => {
               {/* Display Calculated Final Credit */}
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Final Credit after checkout
+                  {t("POS-Sales_k34")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
                   {finalCredit < 0 ? `-$${Math.abs(finalCredit).toFixed(2)}` : `$${finalCredit.toFixed(2)}`}

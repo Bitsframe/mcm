@@ -206,7 +206,7 @@ const Appointments = () => {
   return (
     <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 dark:bg-[#0E1725] dark:text-gray-300 overflow-x-hidden">
       <h1 className="text-xl sm:text-2xl font-bold text-black px-2 sm:px-4 pt-2 sm:pt-4 dark:text-white">
-        Appointments
+        {t("Appoinments_k48")}
       </h1>
 
       <div className="grid grid-cols-2 gap-2 px-0 sm:px-4 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-6">
@@ -216,7 +216,7 @@ const Appointments = () => {
               <Calendar className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Total Appointments</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k39")}</p>
               <h2 className="text-lg font-bold dark:text-white sm:text-2xl">
                 {approvedAppointments.length + unapprovedAppointments.length}
               </h2>
@@ -230,9 +230,9 @@ const Appointments = () => {
               <CheckCheck className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Approved Appointments</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k24")}</p>
               <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{approvedAppointments.length}</h2>
-            </div>
+            </div> 
           </CardContent>
         </Card>
 
@@ -242,7 +242,7 @@ const Appointments = () => {
               <Hourglass className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Pending Appointments</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k38")}</p>
               <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{unapprovedAppointments.length}</h2>
             </div>
           </CardContent>
@@ -254,7 +254,7 @@ const Appointments = () => {
               <CalendarPlus className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">New Appointments</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k25")}</p>
               <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{unapprovedAppointments.length}</h2>
             </div>
           </CardContent>
@@ -284,7 +284,7 @@ const Appointments = () => {
                   className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
                 >
                   <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Approved Appointments</span>
+                  <span className="hidden sm:inline">{t("Appoinments_k24")}</span>
                   <span className="sm:hidden">Approved</span>
                 </TabsTrigger>
                 <TabsTrigger
@@ -292,7 +292,7 @@ const Appointments = () => {
                   className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
                 >
                   <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">New Appointments</span>
+                  <span className="hidden sm:inline">{t("Appoinments_k25")}</span>
                   <span className="sm:hidden">New</span>
                 </TabsTrigger>
               </TabsList>
@@ -394,14 +394,14 @@ const AppointmentDetailsPanel = ({
                     onClick={handleEdit}
                     className="border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 w-full sm:w-auto"
                   >
-                    Edit
+                   {t("Appoinments_k34")}
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => onDelete(appointmentDetails.id)}
                     className="w-full sm:w-auto"
                   >
-                    Delete
+                    {t("Appoinments_k33")} 
                   </Button>
                 </div>
               </>

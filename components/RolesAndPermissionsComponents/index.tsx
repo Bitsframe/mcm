@@ -307,10 +307,10 @@ const RolesAndPermissionsComponent: React.FC = () => {
     <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
         <h1 className="text-xl font-bold dark:text-white">
-          Roles and Permissions
+          {t("RP_k10")}
         </h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          Tools / Roles and Permissions
+          {t("RP_k9")}
         </h1>
       </div>
       <div className="w-full flex flex-col mt-5">
@@ -405,7 +405,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   disabled={currentPage === 1}
                   className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827]"
                 >
-                  Previous
+                  {t("RP_k12")}
                 </Button>
 
                 <Button
@@ -435,7 +435,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             {selectedRoleDetails && (
               <>
                 <div className="grid gap-2">
-                  <Label className="dark:text-white">Permissions</Label>
+                  <Label className="dark:text-white">{t("RP_k16")}</Label>
                   <div className="space-y-3 p-4 dark:bg-[#111827]">
                     {permissions.map((perm: any) => (
                       <div
@@ -465,7 +465,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2 dark:text-white">
-                  <span>Allow All Permissions</span>
+                  <span>{t("RP_k1")}</span>
                   <Switch
                     className="disabled:opacity-65 [&.ant-switch-checked]:bg-green-500"
                     disabled={selectedRoleDetails?.id === 1}

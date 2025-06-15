@@ -379,9 +379,9 @@ const EmailBroadcast: React.FC = () => {
   return (
     <div className="flex flex-col gap-4 px-4 pt-4 dark:bg-[#0e1725]">
       <div>
-        <h1 className="text-xl font-bold">Email Broadcast</h1>
+        <h1 className="text-xl font-bold">{t("EmailB_k13")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          Tools / Email Broadcast
+          {t("EmailB_k19")}
         </h1>
       </div>
 
@@ -392,7 +392,7 @@ const EmailBroadcast: React.FC = () => {
               htmlFor="patients"
               className="text-sm font-medium flex items-center text-foreground"
             >
-              Target Patients <span className="text-destructive ml-1">*</span>
+              {t("EmailB_k12")} <span className="text-destructive ml-1">*</span>
             </label>
 
             <AlertDialog>
@@ -771,7 +771,7 @@ const EmailBroadcast: React.FC = () => {
               htmlFor="template"
               className="text-sm font-medium flex items-center text-foreground dark:text-white"
             >
-              Email Template{" "}
+              {t("EmailB_k13")} {" "}
               <span className="text-destructive dark:text-red-500 ml-1">*</span>
             </label>
 
@@ -821,7 +821,7 @@ const EmailBroadcast: React.FC = () => {
               htmlFor="subject"
               className="text-sm font-medium flex items-center text-foreground dark:text-white"
             >
-              Subject{" "}
+              {t("EmailB_k14")} {" "}
               <span className="text-destructive dark:text-red-500 ml-1">*</span>
             </label>
             <input
@@ -830,7 +830,7 @@ const EmailBroadcast: React.FC = () => {
               name="subject"
               value={subject || ""}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Subject"
+              placeholder={t("EmailB_k14")}
               className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
           </div>
@@ -840,7 +840,7 @@ const EmailBroadcast: React.FC = () => {
               htmlFor="name"
               className="text-sm font-medium text-foreground dark:text-white"
             >
-              Name
+              {t("EmailB_k15")}
             </label>
             <input
               type="text"
@@ -848,7 +848,7 @@ const EmailBroadcast: React.FC = () => {
               name="name"
               value={name || ""}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
+              placeholder={t("EmailB_k15")}
               className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
           </div>
@@ -859,13 +859,13 @@ const EmailBroadcast: React.FC = () => {
                 htmlFor="price"
                 className="text-sm font-medium text-foreground dark:text-white"
               >
-                Price
+                {t("EmailB_k16")}
               </label>
               <input
                 type="text"
                 id="price"
                 name="price"
-                placeholder="Price"
+                placeholder={t("EmailB_k16")}
                 className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
                 value={price || ""}
                 onChange={(e) => setPrice(e.target.value)}
@@ -878,14 +878,14 @@ const EmailBroadcast: React.FC = () => {
               className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               onClick={sendEmail}
             >
-              Run Email Broadcast
+              {t("EmailB_k20")}
             </button>
           </div>
         </div>
 
         <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
           <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
-            Preview
+            {t("EmailB_k17")}
           </h2>
           <div className="border border-border bg-[#f1f4f7] dark:border-gray-600 rounded-md p-6 dark:bg-gray-800">
             <RenderTemplate />

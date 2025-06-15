@@ -29,6 +29,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 interface Template {
   id: string;
@@ -172,6 +174,7 @@ const MenuBar = ({ editor }: any) => {
 };
 
 const EmailTemplates = () => {
+  const { t } = useTranslation(translationConstant.CONTROLS);
   const [templateContent, setTemplateContent] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
@@ -411,14 +414,14 @@ const EmailTemplates = () => {
             </button>
 
             <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
-              Create New template
+              {t("CT_k18")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              Please write a name below to add a template
+              {t("CT_k19")}
             </p>
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                Template Name
+                {t("CT_k17")}
               </label>
               <input
                 type="text"
@@ -437,13 +440,13 @@ const EmailTemplates = () => {
                   setTemplateName("");
                 }}
               >
-                Cancel
+                {t("CT_k16")}
               </button>
               <button
                 className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
                 onClick={handleCreateTemplateConfirm}
               >
-                Create template
+                {t("CT_k9")}
               </button>
             </div>
           </div>
@@ -453,14 +456,14 @@ const EmailTemplates = () => {
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full flex flex-col">
         <div className="p-4 border-b flex justify-between items-center dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
-            Email Templates
+            {t("CT_k8")}
           </h1>
           <button
             className="bg-[#0066ff] text-white px-4 py-2 rounded-md text-base transition-colors flex items-center gap-1"
             onClick={handleCreateNewTemplate}
           >
             <PlusCircle className="w-5 h-5" />
-            <span>Create New Template</span>
+            <span>{t("CT_k9")}</span>
           </button>
         </div>
 
@@ -468,7 +471,7 @@ const EmailTemplates = () => {
           <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700 flex flex-col">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
-                All Templates
+                {t("CT_k11")}
               </h2>
               <div className="relative">
                 <input
@@ -542,7 +545,7 @@ const EmailTemplates = () => {
 
                 <div className="mt-6">
                   <h2 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">
-                    Preview Template
+                  {t("CT_k13")}
                   </h2>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 min-h-[120px] text-base overflow-auto">
                     <div
@@ -559,14 +562,14 @@ const EmailTemplates = () => {
                       className="px-4 py-2 bg-[#0066ff] text-white rounded-md text-sm font-medium transition-colors"
                       onClick={handleUpdateTemplate}
                     >
-                      Update Template
+                      {t("CT_k14")}
                     </button>
                   ) : (
                     <button
                       className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
                       onClick={handleSaveTemplate}
                     >
-                      Save Template
+                      {t("CT_k15")}
                     </button>
                   )}
                   <button
@@ -577,7 +580,7 @@ const EmailTemplates = () => {
                       setTemplateContent("");
                     }}
                   >
-                    Cancel
+                    {t("CT_k16")}
                   </button>
                 </div>
               </>
@@ -586,7 +589,7 @@ const EmailTemplates = () => {
                 <div className="text-center">
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     {filteredTemplates.length > 0
-                      ? "Select a template to edit or create a new one"
+                      ? t("CT_k10")
                       : "No templates available. Create your first template"}
                   </p>
                 </div>

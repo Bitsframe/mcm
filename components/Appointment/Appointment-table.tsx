@@ -122,8 +122,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                         </button>
                       </TableHead>
                     ))}
-                    <TableHead className="font-medium dark:border-gray-700">Status</TableHead>
-                    <TableHead className="font-medium text-right dark:border-gray-700">Actions</TableHead>
+                    <TableHead className="font-medium dark:border-gray-700">{t("Appoinments_k40")}</TableHead>
+                    <TableHead className="font-medium text-right dark:border-gray-700">{t("Appoinments_k41")}</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -164,10 +164,10 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
             <span>
               {appointments.length === 0
                 ? "Showing 0 to 0 of 0 results"
-                : `Showing ${desktopStartIndex + 1} to ${Math.min(
+                : `${t("Appoinments_k42")} ${desktopStartIndex + 1} ${t("Appoinments_k43")} ${Math.min(
                     desktopEndIndex,
                     appointments.length,
-                  )} of ${appointments.length} results`}
+                  )} ${t("Appoinments_k44")} ${appointments.length} ${t("Appoinments_k45")}`}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -179,7 +179,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
                 }`}
               >
-                Previous
+                {t("Appoinments_k46")}
               </button>
               <button
                 onClick={handleDesktopNextPage}
@@ -190,7 +190,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
                 }`}
               >
-                Next
+                {t("Appoinments_k47")}
               </button>
             </div>
           </div>
@@ -199,8 +199,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           <div className="md:hidden p-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-row justify-between items-center gap-2">
             <span>
               {appointments.length === 0
-                ? "Showing 0 of 0"
-                : `Showing ${mobileCurrentPage} of ${mobileTotalPages}`}
+                ? `${t("Appoinments_k48")} 0 ${t("Appoinments_k49")} 0`
+                : `${t("Appoinments_k48")} ${mobileCurrentPage} ${t("Appoinments_k49")} ${mobileTotalPages}`}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -212,7 +212,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
                 }`}
               >
-                Previous
+                {t("Appoinments_k46")}
               </button>
               <button
                 onClick={handleMobileNextPage}
@@ -223,7 +223,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
                 }`}
               >
-                Next
+                {t("Appoinments_k47")}
               </button>
             </div>
           </div>

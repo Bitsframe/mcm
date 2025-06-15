@@ -304,10 +304,10 @@ export const Add_Appointment_Modal = ({
         <Modal.Header className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
           <div>
             <h1 className="font-bold text-xl text-black dark:text-white">
-              Add an Appointment
+              {t("Appoinments_k15")}
             </h1>
             <p className="text-base text-gray-600 dark:text-gray-300">
-              Make changes to the patient's information and save them.
+              {t("Appoinments_k50")}
             </p>
           </div>
         </Modal.Header>
@@ -315,7 +315,7 @@ export const Add_Appointment_Modal = ({
         <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
-              <p>Current Location: </p>
+              <p>{t("Appoinments_k51")} </p>
               <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
               {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
                 Locations
@@ -345,7 +345,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 order-1 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Type of visit
+                  {t("Appoinments_k17")}
                 </Label>
                 <RadioButtons
                   name="in_office_patient"
@@ -358,7 +358,7 @@ export const Add_Appointment_Modal = ({
 
               <div className="space-y-2 order-2 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Are you a New/Returning Patient?
+                  {t("Appoinments_k20")}
                 </Label>
                 <RadioButtons
                   name="new_patient"
@@ -375,7 +375,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  First Name
+                  {t("Appoinments_k13")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -389,7 +389,7 @@ export const Add_Appointment_Modal = ({
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Last Name
+                  {t("Appoinments_k12")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -404,7 +404,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Email
+                  {t("Appoinments_k11")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -419,7 +419,7 @@ export const Add_Appointment_Modal = ({
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Phone
+                  {t("Appoinments_k10")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -435,7 +435,7 @@ export const Add_Appointment_Modal = ({
               {/* Date of Birth */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Date of Birth
+                  {t("Appoinments_k9")}
                 </Label>
                 <Input_Component_Appointment
                   type="date"
@@ -449,7 +449,7 @@ export const Add_Appointment_Modal = ({
               {/* Gender */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Gender
+                  {t("Appoinments_k8")}
                 </Label>
                 <RadioButtons
                   name="sex"
@@ -467,7 +467,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  State
+                  {t("Appoinments_k6")}
                 </Label>
                 <Select
                   value={formData.state}
@@ -494,7 +494,7 @@ export const Add_Appointment_Modal = ({
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Zipcode
+                  {t("Appoinments_k5")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -509,7 +509,7 @@ export const Add_Appointment_Modal = ({
 
             <div className="space-y-2">
               <Label className="font-medium text-gray-800 dark:text-gray-300">
-                Street Address
+                {t("Appoinments_k4")}
               </Label>
               <Input_Component_Appointment
                 required
@@ -526,7 +526,7 @@ export const Add_Appointment_Modal = ({
 
             <div className="space-y-2">
               <Label className="font-medium text-gray-800 dark:text-gray-300">
-                Treatment
+                {t("Appoinments_k3")}
               </Label>
               <Select
                 value={formData.service}
@@ -536,7 +536,7 @@ export const Add_Appointment_Modal = ({
                 className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
-                  Select treatment type
+                  {t("Appoinments_k28")}
                 </option>
                 {services?.map((service: string, index: any) => (
                   <option

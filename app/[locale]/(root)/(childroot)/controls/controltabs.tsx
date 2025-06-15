@@ -29,15 +29,15 @@ const TopTabs = () => {
 
   const WebsiteContentMenu = [
     {
-      title: "Reporting Time",
+      title: "CT_k1",
       url: "/",
     },
     {
-      title: "Email Templates",
+      title: "CT_k8",
       url: "emailtemplates",
     },
     {
-      title: "Location Limits",
+      title: "CT_k28",
       url: "locationlimits",
     },
     // {
@@ -46,7 +46,7 @@ const TopTabs = () => {
     // },
   ];
 
-  const { t } = useTranslation(translationConstant.WEBCONT);
+  const { t } = useTranslation(translationConstant.CONTROLS);
 
   return (
     <>

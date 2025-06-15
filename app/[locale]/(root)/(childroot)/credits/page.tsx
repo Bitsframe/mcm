@@ -25,7 +25,7 @@ interface CreditData {
 }
 
 const Credits = () => {
-  const { t } = useTranslation(translationConstant.POSHISTORY)
+  const { t } = useTranslation(translationConstant.CREDITS)
   const [loading, setLoading] = useState(true)
   const [credits, setCredits] = useState<CreditData[]>([])
   const [totalAmount, setTotalAmount] = useState(0)
@@ -72,7 +72,7 @@ const Credits = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-gray-500" />
-              Total Credits Overview
+              <span>{t("Credits_k1")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -80,21 +80,21 @@ const Credits = () => {
               <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                   <BadgeDollarSign className="h-4 w-4" />
-                  Total Credits
+                  <span>{t("Credits_k2")}</span>
                 </p>
                 <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Total Patients
+                  <span>{t("Credits_k3")}</span>
                 </p>
                 <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
-                  Average Credit
+                  <span>{t("Credits_k4")}</span>
                 </p>
                 <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
               </div>
@@ -107,7 +107,7 @@ const Credits = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Users className="h-5 w-5 text-gray-500" />
-              Individual Credits
+              <span>{t("Credits_k5")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-6 lg:p-8">
@@ -115,11 +115,11 @@ const Credits = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-gray-800">
-                    <TableHead className="font-medium">Credit ID</TableHead>
-                    <TableHead className="font-medium">Patient Name</TableHead>
-                    <TableHead className="font-medium">Contact</TableHead>
-                    <TableHead className="font-medium">Balance</TableHead>
-                    <TableHead className="font-medium">Date</TableHead>
+                    <TableHead className="font-medium">{t("Credits_k6")}</TableHead>
+                    <TableHead className="font-medium">{t("Credits_k7")}</TableHead>
+                    <TableHead className="font-medium">{t("Credits_k8")}</TableHead>
+                    <TableHead className="font-medium">{t("Credits_k9")}</TableHead>
+                    <TableHead className="font-medium">{t("Credits_k10")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

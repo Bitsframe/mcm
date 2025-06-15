@@ -1,4 +1,4 @@
-import { create_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
+import { create_content_service, fetch_content_service, update_content_service, updateLocationData } from '@/utils/supabase/data_services/data_services';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
@@ -163,7 +163,30 @@ function useSingleRowDataHandle(paramData: DataInterface) {
     };
 
     const handle_update = async () => {
-        if (update_content_service) {
+        console.log('handle_update called with:', { table, data });
+        if (table === 'Locations' && data) {
+            set_update_loading(true);
+            try {
+                console.log('Updating location with data:', data);
+                const res_data = await updateLocationData(data.id, data);
+                console.log('Location update response:', res_data);
+                if (res_data?.length) {
+                    setData_list(prevList => 
+                        prevList.map(item => 
+                            item.id === data.id ? res_data[0] : item
+                        )
+                    );
+                    toast.success('Updated successfully');
+                    set_default_data(res_data[0]);
+                    set_data(res_data[0]);
+                }
+            } catch (error) {
+                console.error('Error in handle_update:', error);
+                toast.error('Failed to update location');
+            }
+            set_update_loading(false);
+            set_is_edited(false);
+        } else if (update_content_service && data) {
             set_update_loading(true);
             const res_data = await update_content_service({
                 table: selected_section,
@@ -171,6 +194,11 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                 post_data: data
             });
             if (res_data?.length) {
+                setData_list(prevList => 
+                    prevList.map(item => 
+                        item.id === data.id ? res_data[0] : item
+                    )
+                );
                 toast.success('Updated successfully');
             }
             set_default_data(res_data[0]);

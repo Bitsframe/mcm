@@ -10,7 +10,8 @@ import { CircularProgress } from "@mui/material";
 import { LocationContext } from "@/context";
 import { toast } from "sonner";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
-
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 interface LocationLimit {
   id: number;
   title: string;
@@ -19,6 +20,7 @@ interface LocationLimit {
 }
 
 const LocationLimits = () => {
+  const { t } = useTranslation(translationConstant.CONTROLS);
   const [updating, setUpdating] = useState<number | null>(null);
   const [newLimits, setNewLimits] = useState<{ [key: number]: number }>({});
   const [updatedLocations, setUpdatedLocations] = useState<LocationLimit[]>([]);
@@ -121,7 +123,7 @@ const LocationLimits = () => {
     <main className="flex-1 space-y-4 p-4 md:p-8 pt-6 h-[80dvh]">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Location Credit Limits</CardTitle>
+          <CardTitle>{t("CT_k1")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -129,11 +131,11 @@ const LocationLimits = () => {
               <Table>
                 <TableHeader className="sticky top-0 bg-white dark:bg-gray-950 z-10">
                   <TableRow>
-                    <TableHead>Location Name</TableHead>
-                    <TableHead>Current Balance</TableHead>
-                    <TableHead>Credit Limit</TableHead>
-                    <TableHead>New Credit Limit</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t("CT_k21")}</TableHead>
+                    <TableHead>{t("CT_k22")}</TableHead>
+                    <TableHead>{t("CT_k23")}</TableHead>
+                    <TableHead>{t("CT_k24")}</TableHead>
+                    <TableHead>{t("CT_k25")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="max-h-[calc(100vh-300px)] overflow-y-auto">
@@ -183,7 +185,7 @@ const LocationLimits = () => {
                             {updating === location.id ? (
                               <CircularProgress size={20} color="inherit" />
                             ) : (
-                              "Update"
+                              t("CT_k26")
                             )}
                           </Button>
                         </TableCell>

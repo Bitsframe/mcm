@@ -9,16 +9,16 @@ const TopTabs = () => {
 
   const WebsiteContentMenu = [
     {
-      title: "Profile",
+      title: "Settings_k4",
       url: "/",
     },
     {
-      title: "Security",
+      title: "Settings_k11",
       url: "security",
     },
   ];
 
-  const { t } = useTranslation(translationConstant.WEBCONT);
+  const { t } = useTranslation(translationConstant.SETTINGS);
 
   return (
     <>
