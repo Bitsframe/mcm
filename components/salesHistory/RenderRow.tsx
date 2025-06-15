@@ -16,7 +16,7 @@ interface TableListRenderInterface {
   dataList: any;
   order_id: any;
   isAnyReturned: boolean;
-  hasReturnedHandle: (val: boolean) => void;
+  hasReturnedHandle: (val: boolean, productName: string) => void;
   preDefinedReasonList: PreDefinedReasonListInterface[];
 }
 
