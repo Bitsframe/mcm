@@ -207,9 +207,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter((patient) =>
-        `${patient.firstname} ${patient.lastname}`
-          .toLowerCase()
-          .includes(searchLower)
+        `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower) ||
+        patient.email.toLowerCase().includes(searchLower) ||
+        patient.phone.toLowerCase().includes(searchLower)
       );
     }
 
