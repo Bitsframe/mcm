@@ -69,6 +69,11 @@ const TopTabs = () => {
       url: "faqs",
       icon: <CircleHelp />
     },
+    {
+      title: "Services",
+      url: "services",
+      icon: <BriefcaseBusiness />
+    }
   ];
 
   const { t } = useTranslation(translationConstant.WEBCONT);

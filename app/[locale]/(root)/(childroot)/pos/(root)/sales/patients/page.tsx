@@ -190,6 +190,7 @@ const Payment_Method_Select = () => {
 
 const Patients = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [addPatientModalOpen, setAddPatientModalOpen] = useState(false);
   const { locations } = useLocationClinica();
   const [dataList, setDataList] = useState<PatientDetailsInterface[]>([]);
   const [allData, setAllData] = useState<PatientDetailsInterface[]>([]);
@@ -299,9 +300,14 @@ const Patients = () => {
     if (val === "") {
       setDataList([...allData]);
     } else {
-      const filteredData = allData.filter(({ firstname, lastname }) => {
-        const concatName = `${firstname} ${lastname}`;
-        return concatName.toLocaleLowerCase().includes(val.toLocaleLowerCase());
+      const filteredData = allData.filter(({ firstname, lastname, email, phone }) => {
+        const concatName = `${firstname} ${lastname}`.toLowerCase();
+        const searchTerm = val.toLowerCase();
+        return (
+          concatName.includes(searchTerm) ||
+          email.toLowerCase().includes(searchTerm) ||
+          phone.includes(searchTerm)
+        );
       });
       setDataList([...filteredData]);
     }
@@ -444,45 +450,58 @@ const Patients = () => {
 
   return (
     <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
-      <div className="w-full flex flex-col md:flex-row gap-4">
-        {/* Patients List Section - Now at the top */}
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full md:w-1/2 mb-4 md:mb-0">
-          <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
-            <div className="w-full md:w-auto">
-              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-2 md:mb-4">
+      <div className="w-full">
+        {/* Patients List Section - Now Full Width */}
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
+          <div className="p-4">
+            {/* First Row - Title and Add Button */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4 md:mb-0">
                 {t("POS-Sales_k35")}
               </h1>
-              <div className="relative w-full md:w-60">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                <input
-                  onChange={onChangeHandle}
-                  type="text"
-                  placeholder="Search by patient name"
-                  className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-                />
-              </div>
+              <button
+                onClick={() => setAddPatientModalOpen(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors w-full md:w-auto"
+              >
+                Add New Patient
+              </button>
             </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <button
-                onClick={() => setActiveFilterBtn(0)}
-                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
-                  activeFilterBtn === 0
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                }`}
-              >
-                {t("POS-Sales_k16")}
-              </button>
-              <button
-                onClick={() => setActiveFilterBtn(1)}
-                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
-                  activeFilterBtn === 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                }`}
-              >
-                {t("POS-Sales_k17")}
-              </button>
+
+            {/* Second Row - Search and Filter Tabs */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
+              <div className="w-full md:w-60">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <input
+                    onChange={onChangeHandle}
+                    type="text"
+                    placeholder="Search by name, email or phone"
+                    className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <button
+                  onClick={() => setActiveFilterBtn(0)}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
+                    activeFilterBtn === 0
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                  }`}
+                >
+                  {t("POS-Sales_k16")}
+                </button>
+                <button
+                  onClick={() => setActiveFilterBtn(1)}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
+                    activeFilterBtn === 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                  }`}
+                >
+                  {t("POS-Sales_k17")}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -697,16 +716,18 @@ const Patients = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Add Patient Form Section - Moved to bottom */}
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-full md:w-1/2 p-4">
-          <div className="mb-4">
-            <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
+      {/* Add Patient Modal */}
+      <Dialog open={addPatientModalOpen} onOpenChange={setAddPatientModalOpen}>
+        <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-medium text-gray-800 dark:text-gray-200">
               {t("POS-Sales_k18")}
-            </h2>
-          </div>
-
-          <div className="overflow-auto w-full space-y-4">
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="w-full space-y-4">
             <div className="w-full space-y-4">
               <div>
                 <Input_Component
@@ -715,7 +736,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -727,7 +748,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your last name"
                 />
               </div>
@@ -735,7 +756,7 @@ const Patients = () => {
               <div>
                 <Select_Dropdown
                   value={createActionData.gender}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
                   options_arr={["Male", "Female"].map((gender) => ({
                     value: gender,
@@ -755,7 +776,7 @@ const Patients = () => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your email"
                 />
               </div>
@@ -773,7 +794,7 @@ const Patients = () => {
               <div>
                 <Select_Dropdown
                   value={createActionData.treatmenttype}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
                   // @ts-ignore
                   options_arr={services?.map((service) => ({
@@ -791,16 +812,19 @@ const Patients = () => {
             </div>
           </div>
 
-          <div className="mt-6">
-            <button
-              onClick={createNewDataHandle}
-              className="bg-blue-600 py-3 w-full text-center text-white hover:bg-blue-700 transition-colors rounded-md font-medium"
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                createNewDataHandle();
+                setAddPatientModalOpen(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
             >
               {t("POS-Sales_k25")}
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* @ts-ignore */}
       <Custom_Modal
