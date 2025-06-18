@@ -25,16 +25,19 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [historyRecord, setHistoryRecord] = useState([]);
-  const [isAnyReturned, setIsAnyReturned] = useState(false);
+  const [returnedItems, setReturnedItems] = useState<Set<string>>(new Set());
   const { order_id, pos, patient_id } = orderDetails || {};
 
   const renderIndexHandle = (fetched_data: any, index: number) => {
     setDataList(fetched_data?.[index] || {});
     const listHistory = fetched_data?.[index]?.sales_history || [];
-    const checkRtn = listHistory.filter(
-      ({ return_qty }: { return_qty: number }) => return_qty > 0
-    );
-    setIsAnyReturned(() => checkRtn.length > 0);
+    const returnedItemsSet = new Set<string>();
+    listHistory.forEach((item: any) => {
+      if (item.return_qty > 0) {
+        returnedItemsSet.add(item.inventory?.products?.product_name);
+      }
+    });
+    setReturnedItems(returnedItemsSet);
     setSalesHistory(listHistory);
   };
 
@@ -94,8 +97,16 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     }
   };
 
-  const hasReturnedHandle = (val: boolean) => {
-    setIsAnyReturned(() => val);
+  const hasReturnedHandle = (val: boolean, productName: string) => {
+    setReturnedItems(prev => {
+      const newSet = new Set(prev);
+      if (val) {
+        newSet.add(productName);
+      } else {
+        newSet.delete(productName);
+      }
+      return newSet;
+    });
   };
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
@@ -250,7 +261,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         <TableRowRender
                           preDefinedReasonList={preDefinedReasonList}
                           hasReturnedHandle={hasReturnedHandle}
-                          isAnyReturned={isAnyReturned || page > 1}
+                          isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
                           dataList={elem}
                           order_id={order_id}
                         />
@@ -262,7 +273,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       <TableRowRender
                         preDefinedReasonList={preDefinedReasonList}
                         hasReturnedHandle={hasReturnedHandle}
-                        isAnyReturned={isAnyReturned || page > 1}
+                        isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
                         dataList={elem}
                         order_id={order_id}
                       />

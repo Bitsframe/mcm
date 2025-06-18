@@ -19,7 +19,7 @@ export const sendOrderEmail = async (
     const formattedDate = `${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`;
 
     // Create a feedback URL with order ID and patient ID for tracking
-    const feedbackUrl = `https://new.clinicsanmiguel.com/feedback/${orderDetails.order_id}`;
+    const feedbackUrl = `${process.env.NEXT_PUBLIC_USER_WEBSITE}/feedback/${orderDetails.order_id}`;
 
     const netAmount = +totalAmount - +discountAmount;
 

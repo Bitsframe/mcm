@@ -48,6 +48,7 @@ interface DataListInterface {
         phone: string;
         email: string;
         locationid: number;
+        patientid: number;
       };
     };
   };
@@ -68,7 +69,7 @@ const detailsArray = (dataDetails: DataListInterface) => [
   },
   {
     label: "POS-Returnk11",
-    value: dataDetails?.sales_history?.orders.patient_id,
+    value: dataDetails?.sales_history?.orders?.pos?.patientid || 'null',
   },
   {
     label: "POS-Returnk12",
@@ -137,7 +138,7 @@ const Returns: FC<Props> = () => {
     setLoading(true);
     const fetched_data: any = await fetch_content_service({
       table: "returns",
-      selectParam: `,sales_history(order_id, orders(patient_id,  pos(firstname,lastname,phone,email,locationid ))),inventory(price, products(product_name,price, categories(category_name)))`,
+      selectParam: `,sales_history(order_id, orders(patient_id,  pos:allpatients(firstname,lastname,phone,email,locationid, patientid:id ))),inventory(price, products(product_name,price, categories(category_name)))`,
       matchCase: [
         { key: "merge", value: false },
         { key: "sales_history.orders.pos.locationid", value: location_id },

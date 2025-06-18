@@ -10,7 +10,6 @@ import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
 import { CircularProgress } from "@mui/material";
 import { currencyFormatHandle } from "@/helper/common_functions";
-import { create_content_service } from "@/utils/supabase/data_services/data_services";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
@@ -21,8 +20,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
 import {
-  fetch_content_service,
-  update_content_service,
+  fetch_content_service
 } from "@/utils/supabase/data_services/data_services";
 import axios from 'axios';
 
@@ -268,7 +266,7 @@ const Orders = () => {
         try {
           const data: any = await fetch_content_service({
             table: "credit_audit",
-            matchCase: [{ key: "patient_id", value: selectedPatient.patientid }],
+            matchCase: [{ key: "patient_id", value: selectedPatient.id }],
             selectParam: "balance"
           });
           // Assuming data contains at most one entry for a given patient_id
@@ -349,7 +347,6 @@ const Orders = () => {
         promoCodeData,
         selectedPatient,
         selectedLocation,
-        posId: selectedPatient.id
       });
 
       toast.success(data.message, {
@@ -436,8 +433,8 @@ const Orders = () => {
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
-      <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-      <div className="space-y-3 dark:bg-[#080E16]">
+        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
+          <div className="space-y-3 dark:bg-[#080E16]">
             {fetchingDataLoading ? (
               <div className="w-full flex flex-col justify-center h-full space-y-1">
                 <CircularProgress size={16} className="dark:text-white" />

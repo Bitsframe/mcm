@@ -14,7 +14,6 @@ export async function POST(request: Request) {
       promoCodeData,
       selectedPatient,
       selectedLocation,
-      posId
     } = await request.json();
 
     // Calculate all amounts
@@ -25,7 +24,7 @@ export async function POST(request: Request) {
 
     // Create order
     const orderCreatePostData = {
-      patient_id: posId,
+      patient_id: patient_id,
       previous_credit_amount: Number(creditAmount.toFixed(2)),
       credit_balance: newCreditBalance,
       paid_amount: Number(receivedAmount.toFixed(2)),

@@ -112,11 +112,11 @@ const SalesHistory = () => {
       const fetched_data = await fetch_content_service({
         table: "orders",
         language: "",
-        selectParam: `,pos:pos (
+        selectParam: `,pos:allpatients (
           lastname,
           firstname,
           locationid,
-          patientid
+          patientid:id
         ),
         sales_history (
           sales_history_id,
@@ -130,7 +130,7 @@ const SalesHistory = () => {
           key: "pos.locationid",
           value: location_id,
         },
-        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "pos.patientid", value: null }],
+        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "allpatients.id", value: null }],
       });
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
       setDataList(filteredData);

@@ -226,14 +226,15 @@ const Patients = () => {
 
     const filterOptions =
       activeFilterBtn === 0
-        ? [{ column: "updated_at", operator: "gte", value: todayStart }]
-        : [{ column: "updated_at", operator: "lt", value: todayStart }];
+        ? [{ column: "lastvisit", operator: "gte", value: todayStart }]
+        : [{ column: "lastvisit", operator: "lt", value: todayStart }];
 
     const fetched_data: any = await fetch_content_service({
-      table: "pos",
+      table: "allpatients",
+      selectParam:', updated_at:lastvisit',
       matchCase: [{ key: "locationid", value: locationId || 17 }],
       filterOptions: filterOptions,
-      sortOptions: { column: "updated_at", order: "desc" },
+      sortOptions: { column: "lastvisit", order: "desc" },
     });
 
     setDataList(fetched_data);
@@ -318,7 +319,7 @@ const Patients = () => {
     setModalLoading(true);
     const selectedId = actionData?.id;
     const { data: res_data, error } = await delete_content_service({
-      table: "pos",
+      table: "allpatients",
       id: selectedId,
     });
     if (!error) {
@@ -338,7 +339,7 @@ const Patients = () => {
     setModalLoading(true);
     try {
       const data = await update_content_service({
-        table: "pos",
+        table: "allpatients",
         language: "",
         post_data: actionData,
       });
@@ -413,7 +414,7 @@ const Patients = () => {
       }
     }
     const { data, error } = await create_content_service({
-      table: "pos",
+      table: "allpatients",
       language: "",
       post_data: postData,
     });

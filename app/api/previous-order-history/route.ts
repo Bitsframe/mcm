@@ -18,9 +18,9 @@ export const POST = async (req: Request) => {
 
 
     const posRecords = await fetch_content_service({
-      table: 'pos',
+      table: 'allpatients',
       selectParam: ', Locations(title)',
-      matchCase: { key: 'patientid', value: patientId }
+      matchCase: { key: 'id', value: patientId }
     });
     console.log(posRecords)
 
