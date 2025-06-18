@@ -20,9 +20,13 @@ import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
 import {
-  fetch_content_service
+  fetch_content_service,
+  update_content_service,
+  create_content_service
 } from "@/utils/supabase/data_services/data_services";
 import axios from 'axios';
+import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import { Input } from "@/components/ui/input";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -213,6 +217,9 @@ const Orders = () => {
   const [creditAmount, setCreditAmount] = useState<number>(0);
   const [receivedAmount, setReceivedAmount] = useState<number>(0);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+  const [isAddBalanceModalOpen, setIsAddBalanceModalOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState(0);
+  const [addBalanceLoading, setAddBalanceLoading] = useState(false);
 
   const router = useRouter();
 
@@ -338,7 +345,7 @@ const Orders = () => {
       if (!selectedPatient || !cartArray.length) return;
 
       const { data } = await axios.post('/api/orders', {
-        patient_id: selectedPatient.patientid,
+        patient_id: selectedPatient.id,
         cartArray,
         appliedDiscount,
         creditAmount,
@@ -374,6 +381,8 @@ const Orders = () => {
         selectedLocation.balance = updatedLocation[0].balance;
         selectedLocation.credit_limit = updatedLocation[0].credit_limit;
       }
+
+      // Add to transaction_history (collected amount for order)
 
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
@@ -429,6 +438,55 @@ const Orders = () => {
     return receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount);
   }, [receivedAmount, cartArray, appliedDiscount, creditAmount]);
 
+  // Handler to add balance
+  const handleAddBalance = async () => {
+    if (!selectedPatient?.id || isNaN(addAmount) || addAmount === 0) return;
+    setAddBalanceLoading(true);
+    try {
+      // Fetch current credit (to avoid race conditions)
+      const data: any = await fetch_content_service({
+        table: "credit_audit",
+        matchCase: [{ key: "patient_id", value: selectedPatient.id }],
+        selectParam: "balance,id"
+      });
+      let newBalance = addAmount;
+      let creditAuditId = null;
+      if (data && data.length > 0) {
+        newBalance = Number(data[0].balance) + Number(addAmount);
+        creditAuditId = data[0].id;
+        // Update existing
+        await update_content_service({
+          table: "credit_audit",
+          post_data: { id: creditAuditId, balance: newBalance },
+        });
+      } else {
+        // Insert new
+        await create_content_service({
+          table: "credit_audit",
+          post_data: { patient_id: selectedPatient.id, balance: newBalance },
+        });
+      }
+      // Add to transaction_history
+      await create_content_service({
+        table: "transaction_history",
+        post_data: {
+          patient_id: selectedPatient.id,
+          amount: addAmount,
+          balance: creditAmount,
+          type: "topup",
+        },
+      });
+      setCreditAmount(newBalance);
+      setAddAmount(0);
+      setIsAddBalanceModalOpen(false);
+      toast.success("Balance updated successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update balance");
+    } finally {
+      setAddBalanceLoading(false);
+    }
+  };
+
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
@@ -443,10 +501,61 @@ const Orders = () => {
                 </h1>
               </div>
             ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
-                <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  {t("POS-Sales_k3")}
-                </h2>
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                    {t("POS-Sales_k3")}
+                  </h2>
+                  <button
+                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                    onClick={() => setIsAddBalanceModalOpen(true)}
+                    disabled={!selectedPatient}
+                    type="button"
+                  >
+                    Add Balance
+                  </button>
+                  <Custom_Modal
+                    is_open={isAddBalanceModalOpen}
+                    close_handle={() => setIsAddBalanceModalOpen(false)}
+                    create_new_handle={handleAddBalance}
+                    loading={addBalanceLoading}
+                    Title="Add Balance"
+                    buttonLabel="Add"
+                    submit_button_color="blue"
+                    disabled={addBalanceLoading || !addAmount}
+                  >
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <div className="p-2 rounded font-bold">{creditAmount}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={addAmount}
+                          onChange={e => setAddAmount(Number(e.target.value))}
+                          className="w-full border border-black"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <div
+                          className={`
+                            p-3 rounded font-bold text-lg 
+                            ${creditAmount + (addAmount || 0) >= 0
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"}
+                          `}
+                        >
+                          
+                            { (creditAmount + (addAmount || 0)).toFixed(2) }
+                        </div>
+                      </div>
+                    </div>
+                  </Custom_Modal>
+                </div>
                 {selectedPatient ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {render_details.map(({ label, key, render_value }, ind) => {
