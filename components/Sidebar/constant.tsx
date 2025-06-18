@@ -1,4 +1,3 @@
-
 import {
   Home,
   Users,
@@ -13,6 +12,7 @@ import {
   CreditCard
 } from "lucide-react";
 import { ComponentType } from "react";
+import { FaReceipt } from "react-icons/fa";
 
 
 
@@ -59,6 +59,7 @@ const ROUTES = {
   },
   CONTROLS: "/controls",
   CREDITS: "/credits",
+  TRANSACTIONS: "/transactions",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -122,6 +123,13 @@ export const routeList: Route[] = [
       { id: 'pos-history', name: "pos", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
       { id: 'pos-return', name: "pos", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
     ],
+  },
+  {
+    id: 'transactions',
+    name: "transactions",
+    label: "Transactions",
+    icon: FaReceipt,
+    route: ROUTES.TRANSACTIONS,
   },
   {
     id: 'inventory',

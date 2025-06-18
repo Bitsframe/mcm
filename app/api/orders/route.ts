@@ -58,6 +58,18 @@ export async function POST(request: Request) {
 
       if (salesError) throw new Error(salesError.message);
 
+
+      await create_content_service({
+        table: "transaction_history",
+        post_data: {
+          patient_id,
+          amount: receivedAmount,
+          balance: creditAmount,
+          type: "order",
+          order_id: order_id
+        },
+      });
+
       // Send order email with credit information
       await sendOrderEmail(
         { order_id, paymentcash: selectedMethod === "Cash" },
