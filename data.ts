@@ -6,7 +6,6 @@ import {
 import { Group47, Group44, Group52, Globe, Group53, Ellipse, blueshade, octagon } from "@/assets/images";
 import { AlertOctagon } from "lucide-react";
 
-
 export const render_arr: RenderArrInterface[] = [
   {
     label: "Dashboard_k1",
@@ -94,7 +93,7 @@ export const cronitorSampleData: CronitorData = {
       passing: true,
       paused: false,
       platform: "http",
-      realert_interval: "every 8 hours",
+      realert_interval: "Dashboard_k26",
       request: {
         url: "https://new.clinicsanmiguel.com/",
         headers: {},
@@ -107,7 +106,7 @@ export const cronitorSampleData: CronitorData = {
         verify_ssl: true,
       },
       running: false,
-      schedule: "every 5 minutes",
+      schedule: "Dashboard_k25",
       schedule_tolerance: null,
       tags: [],
       timezone: null,

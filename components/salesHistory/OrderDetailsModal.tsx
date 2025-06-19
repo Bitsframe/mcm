@@ -139,7 +139,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             {/* Patient Details */}
             <div className="mb-4 p-4 bg-gray-50 dark:bg-[#080e16] rounded-lg">
               <PatientDetailsRender
-                order_id={order_id?.order_id}
+                order_id={order_id}
                 patientData={dataList?.pos}
                 paymentType={
                   dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"

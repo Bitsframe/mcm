@@ -569,7 +569,7 @@ export const Add_Appointment_Modal = ({
               onClick={close_handle}
               className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-black dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
-              Cancel
+              {t("Appoinments_k58")}
             </button>
             <button
               disabled={loading}
@@ -578,7 +578,7 @@ export const Add_Appointment_Modal = ({
                 loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
               } px-4 py-2 rounded-md text-white transition-colors`}
             >
-              {loading ? "Submitting..." : "Add appointment"}
+              {loading ? "Submitting..." : t("Appoinments_k57")}
             </button>
           </div>
         </Modal.Footer>

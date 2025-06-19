@@ -307,7 +307,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
     <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
         <h1 className="text-xl font-bold dark:text-white">
-          {t("RP_k10")}
+          {t("RP_k7")}
         </h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           {t("RP_k9")}

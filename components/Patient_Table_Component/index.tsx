@@ -69,6 +69,7 @@ import {
   Calendar,
   User,
   FileText,
+  Trash2,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -95,6 +96,7 @@ interface Patient {
   created_at: string;
   lastvisit: string;
   note: string;
+  deleted_at?: string | null;
 }
 
 interface Props {
@@ -119,6 +121,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const [isMobile, setIsMobile] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -170,6 +173,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           matchCase: [
             QUERIES[renderType] as any,
             { key: "locationid", value: locationId },
+          ],
+          filterOptions: [
+            { column: "deleted_at", operator: "is", value: null }
           ],
         });
         console.log("Raw Supabase Data:", fetchedData);
@@ -422,10 +428,71 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             patientDetails={patient}
             serviceList={serviceList}
           />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={deleteLoading === patient.id}
+                className="h-8 w-8 flex items-center justify-center p-0 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                {deleteLoading === patient.id ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <Trash2 className="h-5 w-5" />
+                )}
+                <span className="sr-only">Delete</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="dark:text-white">
+                  Delete Patient
+                </AlertDialogTitle>
+                <AlertDialogDescription className="dark:text-gray-400">
+                  Are you sure you want to delete {patient.firstname} {patient.lastname}? 
+                  This action cannot be undone and will only work if the patient has no sales history, orders, or appointments.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDeletePatient(patient.id)}
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
   );
+
+  const handleDeletePatient = async (patientId: number) => {
+    setDeleteLoading(patientId);
+    try {
+      const response = await axios.post("/api/user/delete", {
+        patientId: patientId,
+      });
+
+      if (response.data.success) {
+        toast.success("Patient deleted successfully");
+        // Remove patient from local state
+        setPatients(prev => prev.filter(patient => patient.id !== patientId));
+      } else {
+        toast.error(response.data.message || "Failed to delete patient");
+      }
+    } catch (error: any) {
+      console.error("Error deleting patient:", error);
+      toast.error(error.response?.data?.message || "Failed to delete patient");
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   return (
     <main className="w-full dark:bg-[#0E1725]">
@@ -472,15 +539,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
                 <AlertDialogTitle className="text-2xl font-semibold dark:text-white">
-                  Add New Patient
+                  {t("Patients_k38")}
                 </AlertDialogTitle>
                 <AlertDialogCancel className="h-8 w-8 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 absolute right-6 top-6 z-10 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                   <X className="h-5 w-5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
                 </AlertDialogCancel>
               </div>
               <AlertDialogDescription className="text-gray-500 dark:text-gray-400">
-                Enter the patient's information below. Click save when you're
-                done.
+                {t("Patients_k35")}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -489,7 +555,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Current Location
+                    {t("Patients_k36")}
                   </p>
                   <p className="font-medium dark:text-white">
                     {selectedLocation?.title}
@@ -506,7 +572,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       htmlFor="firstname"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      First Name
+                      {t("Patients_k17")}
                     </Label>
                     <Input
                       id="firstname"
@@ -526,7 +592,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       htmlFor="lastname"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      Last Name
+                      {t("Patients_k18")}
                     </Label>
                     <Input
                       id="lastname"
@@ -548,7 +614,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       htmlFor="phone"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      Phone
+                      {t("Patients_k19")}
                     </Label>
                     <Input
                       id="phone"
@@ -569,7 +635,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       htmlFor="email"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      Email
+                      {t("Patients_k20")}
                     </Label>
                     <Input
                       id="email"
@@ -591,7 +657,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     htmlFor="treatmenttype"
                     className="text-sm text-gray-500 dark:text-gray-400"
                   >
-                    Treatment Type
+                    {t("Patients_k11")}
                   </Label>
                   <Select
                     onValueChange={(value) =>
@@ -619,7 +685,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm text-gray-500 dark:text-gray-400">
-                      Gender
+                      {t("Patients_k12")}
                     </Label>
                     <RadioGroup
                       className="flex gap-3"
@@ -650,7 +716,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
                   <div className="space-y-2">
                     <Label className="text-sm text-gray-500 dark:text-gray-400">
-                      Location
+                      {t("Patients_k36")}
                     </Label>
                     <RadioGroup
                       defaultValue="true"
@@ -683,7 +749,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     htmlFor="note"
                     className="text-sm text-gray-500 dark:text-gray-400"
                   >
-                    Note
+                    {t("Patients_k24")}
                   </Label>
                   <Input
                     id="note"
@@ -705,7 +771,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     variant="outline"
                     className="border-gray-200 mt-0 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
                   >
-                    Cancel
+                    {t("Patients_k21")}
                   </Button>
                 </AlertDialogCancel>
                 <AlertDialogAction asChild>
@@ -839,6 +905,45 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             patientDetails={patient}
                             serviceList={serviceList}
                           />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={deleteLoading === patient.id}
+                                className="h-10 w-10 sm:h-8 sm:w-8 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                {deleteLoading === patient.id ? (
+                                  <Spinner size="sm" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="dark:text-white">
+                                  Delete Patient
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="dark:text-gray-400">
+                                  Are you sure you want to delete {patient.firstname} {patient.lastname}? 
+                                  This action cannot be undone and will only work if the patient has no sales history, orders, or appointments.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeletePatient(patient.id)}
+                                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1066,7 +1171,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       <div className="space-y-2">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            First Name
+            {t("Patients_k17")}
           </Label>
           <Input
             name="firstname"
@@ -1077,7 +1182,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         </div>
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Last Name
+            {t("Patients_k18")}
           </Label>
           <Input
             name="lastname"
@@ -1091,7 +1196,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       <div className="space-y-2">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Phone
+            {t("Patients_k19")}
           </Label>
           <Input
             name="phone"
@@ -1102,7 +1207,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         </div>
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Email
+            {t("Patients_k20")}
           </Label>
           <Input
             name="email"
@@ -1115,7 +1220,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
       <div className="space-y-2">
         <Label className="text-sm text-gray-500 dark:text-gray-400">
-          Treatment Type
+          {t("Patients_k11")}
         </Label>
         <Select
           value={formData.treatmenttype}
@@ -1141,7 +1246,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">Note</Label>
+        <Label className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k24")}</Label>
         <Input
           name="note"
           value={formData.note || ""}
@@ -1154,7 +1259,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       <div className="grid grid-1 gap-4">
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Gender
+            {t("Patients_k12")}
           </Label>
           <RadioGroup
             value={formData.gender}
@@ -1186,7 +1291,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Location
+            {t("Patients_k36")}
           </Label>
           <RadioGroup
             value={formData.onsite ? "true" : "false"}

@@ -86,7 +86,7 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                         className='disabled:opacity-60 px-3 py-[2px] text-sm bg-[#0066ff] text-white rounded-lg'
                         color="info"
                     >
-                        {loading ? '...' : 'Apply'}
+                        {loading ? '...' : t("POS-Sales_k31")}
                     </button>
                 </form>
             )}

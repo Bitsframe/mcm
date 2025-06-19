@@ -16,9 +16,9 @@ const WebsiteContentLayout: React.FC<WebsiteContentLayoutProps> = ({
     <div>
       <Toaster richColors position="top-right" />
       <div className="dark:bg-[#0e1725] pl-2">
-        <h1 className="text-xl font-bold">{t("WebCont_k30")}</h1>
+        <h1 className="text-xl font-bold">{t("WebCont_k29")}</h1>
         <h1 className="mt-1 pb-5 text-sm text-gray-500 dark:text-gray-400">
-          {t("WebCont_k29")}
+          {t("WebCont_k30")}
         </h1>
       </div>
       

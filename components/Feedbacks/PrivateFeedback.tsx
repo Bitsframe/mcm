@@ -170,9 +170,6 @@ const PrivateFeedbackComponent: FC = () => {
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
           {t("Privatefeedback_k8")}
         </h1>
-        <h1 className="mt-1 mb-2 text-gray-500 text-base dark:text-gray-400">
-          {t("Privatefeedback_k9")}
-        </h1>
       </div>
 
       <div className="w-full py-2 grid grid-cols-1 md:grid-cols-5 gap-2">

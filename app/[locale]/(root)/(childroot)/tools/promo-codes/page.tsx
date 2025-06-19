@@ -156,16 +156,16 @@ const Page = () => {
       },
     },
     edit: {
-      modalLabel: t("Procode_k24"),
+      modalLabel: t("Procode_k25"),
       button: {
-        label: t("Procode_k24"),
+        label: t("Procode_k25"),
         color: "blue",
       },
     },
     delete: {
-      modalLabel: t("Procode_k25"),
+      modalLabel: t("Procode_k26"),
       button: {
-        label: t("Procode_k25"),
+        label: t("Procode_k26"),
         color: "failure",
       },
     },
@@ -417,7 +417,7 @@ const Page = () => {
     <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mt-4">
-        <h1 className="text-xl font-bold">{t("Procode_k18")}</h1>
+        <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           {t("Procode_k17")}
         </h1>
@@ -666,11 +666,11 @@ const Page = () => {
             </div>
 
             <div className="flex items-center justify-between mt-4 px-2">
-              <p className="text-sm text-muted-foreground dark:text-gray-300">
-                {dataList.length === 0
-                  ? `${t("Procode_k19")} 0 ${t("Procode_k22")} 0 ${t("Procode_k23")} 0 ${t("Procode_k24")}`
-                  : `${t("Procode_k19")} ${startIndex + 1} ${t("Procode_k22")} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
-              </p>
+            <p className="text-sm text-muted-foreground dark:text-gray-300">
+  {dataList.length === 0
+    ? t("Procode_k20")
+    : `${t("Procode_k21")} ${startIndex + 1} ${t("Procode_k22")} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
+</p>
               <div className="flex space-x-2">
                 <button
                   onClick={handlePreviousPage}
@@ -679,7 +679,7 @@ const Page = () => {
                     currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  {t("Procode_k21")}
+                  {t("Procode_k19")}
                 </button>
                 <button
                   onClick={handleNextPage}
@@ -690,7 +690,7 @@ const Page = () => {
                       : ""
                   }`}
                 >
-                  {t("Procode_k20")}
+                  {t("Procode_k18")}
                 </button>
               </div>
             </div>

@@ -244,6 +244,7 @@ interface MemoizedTableRowProps {
 
 const MemoizedTableRow = memo(
   ({ appointment, onSelect, isUnapproved, onDelete, onEdit, onApprove }: MemoizedTableRowProps) => {
+    const { t } = useTranslation(translationConstant.APPOINMENTS)
     const handleApprove = async (event: React.MouseEvent) => {
       event.stopPropagation()
       try {
@@ -287,11 +288,11 @@ const MemoizedTableRow = memo(
               className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
               onClick={handleApprove}
             >
-              Approve
+              {t("Appoinments_k54")}
             </button>
           ) : (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-              Approved ✓
+              {t("Appoinments_k53")} ✓
             </span>
           )}
         </TableCell>
