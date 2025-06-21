@@ -664,7 +664,7 @@ const Products = () => {
                                       onClick={() =>
                                         buttonClickActionHandle("Assign", elem)
                                       }
-                                      label={t("Inventory_k27")}
+                                      label={t("Inventory_k6")}
                                       text_color="text-[#0EA542] dark:text-green-400"
                                       bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
                                       border="border-[#72F39E] dark:border-green-800"

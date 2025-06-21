@@ -98,7 +98,7 @@ const InfoCard = memo(
                     : "text-slate-800 dark:text-slate-200"
                 }`}
               >
-                {value}
+                {t(value)}
               </p>
             </div>
           )}

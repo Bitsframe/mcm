@@ -2,6 +2,8 @@ import moment from "moment";
 import React, { FC, useState, useEffect } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 export type DayTimings = {
   mon_timing: string;
@@ -134,11 +136,13 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
     }
   }, []);
 
+  const { t } = useTranslation(translationConstant.APPOINMENTS)
+
   return (
     <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">
       <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
         <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
-          Select Schedule Date:
+          {t("Appoinments_k56")}
         </label>
         <span className="border-[1px] border-[#000000] dark:border-gray-500 rounded-[10px] w-full">
           <ReactDatePicker
@@ -152,7 +156,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
       </div>
       <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
         <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
-          Select Schedule Time:
+          {t("Appoinments_k55")}
         </label>
         <select
           value={selectedSlot}
