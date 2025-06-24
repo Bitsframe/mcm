@@ -8,6 +8,7 @@ const TransactionsPage = () => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPatients, setLoadingPatients] = useState(true);
@@ -20,12 +21,10 @@ const TransactionsPage = () => {
       try {
         const data = await fetch_content_service({
           table: "allpatients",
-          selectParam: "*",
           matchCase:{
             key: "locationid",
             value: selectedLocation.id,
           }
-          
         });
         setPatients(data || []);
       } catch (err) {
@@ -37,15 +36,37 @@ const TransactionsPage = () => {
     fetchPatients();
   }, [selectedLocation]);
 
-  // Fetch selected patient details
+  // Fetch selected patient details and credit balance
   useEffect(() => {
     if (!selectedPatientId) {
       setSelectedPatient(null);
+      setCreditBalance(null);
       setTransactions([]);
       return;
     }
-    const patient = patients.find((p) => p.id === selectedPatientId);
-    setSelectedPatient(patient || null);
+    
+    const fetchPatientDetails = async () => {
+      const patient = patients.find((p) => p.id === selectedPatientId);
+      setSelectedPatient(patient || null);
+      
+      // Fetch credit balance for the selected patient
+      try {
+        const creditData = await fetch_content_service({
+          table: "credit_audit",
+          matchCase: { key: "patient_id", value: selectedPatientId }
+        });
+        
+        if (creditData && creditData.length > 0) {
+          setCreditBalance(creditData[0].balance);
+        } else {
+          setCreditBalance(0);
+        }
+      } catch (err) {
+        setCreditBalance(0);
+      }
+    };
+    
+    fetchPatientDetails();
   }, [selectedPatientId, patients]);
 
   // Fetch transactions for selected patient
@@ -99,7 +120,10 @@ const TransactionsPage = () => {
           <div className="text-sm text-gray-700 dark:text-gray-300">
             <span className="mr-4">Phone: {selectedPatient.phone}</span>
             <span className="mr-4">Email: {selectedPatient.email}</span>
-            <span>Treatment Type: {selectedPatient.treatmenttype}</span>
+            <span className="mr-4">Treatment Type: {selectedPatient.treatmenttype}</span>
+            <span className={`font-semibold ${creditBalance && creditBalance < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              Current Balance: {creditBalance && creditBalance < 0 ? '-' : ''}${Math.abs(creditBalance || 0).toFixed(2)}
+            </span>
           </div>
         </div>
       )}

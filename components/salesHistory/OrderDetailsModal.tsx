@@ -142,7 +142,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 order_id={order_id}
                 patientData={{...dataList?.pos, patientid:patient_id}}
                 paymentType={
-                  dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"
+                  {cash: dataList?.cash, card: dataList?.card}
                 }
               />
             </div>

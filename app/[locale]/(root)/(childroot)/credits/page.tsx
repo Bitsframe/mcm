@@ -9,7 +9,7 @@ import { CircularProgress } from "@mui/material"
 import { formatPhoneNumber } from "@/utils/getCountryName"
 import moment from "moment"
 import { LocationContext } from "@/context"
-import { BadgeDollarSign, CreditCard, Users } from "lucide-react"
+import { BadgeDollarSign, CreditCard, Users, Building2 } from "lucide-react"
 
 interface CreditData {
   id: number
@@ -24,35 +24,55 @@ interface CreditData {
   }
 }
 
+interface LocationData {
+  id: number
+  title: string
+  credit_limit: number
+  balance: number
+}
+
 const Credits = () => {
   const { t } = useTranslation(translationConstant.CREDITS)
   const [loading, setLoading] = useState(true)
   const [credits, setCredits] = useState<CreditData[]>([])
   const [totalAmount, setTotalAmount] = useState(0)
+  const [locationData, setLocationData] = useState<LocationData | null>(null)
   const { selectedLocation } = useContext(LocationContext)
 
   useEffect(() => {
-    const fetchCredits = async () => {
+    const fetchData = async () => {
       setLoading(true)
       try {
-        const data: CreditData[] = await fetch_content_service({
+        // Fetch credits data
+        const creditsData: CreditData[] = await fetch_content_service({
           table: "credit_audit",
           selectParam: ", patientData:allpatients(*)",
           matchCase: [{ key: "patientData.locationid", value: selectedLocation.id }],
           filterOptions: [{ operator: "not", column: "patientData", value: null }],
         })
-        setCredits(data)
-        const total = data.reduce((sum: number, credit: CreditData) => sum + credit.balance, 0)
+        setCredits(creditsData)
+        const total = creditsData.reduce((sum: number, credit: CreditData) => sum + credit.balance, 0)
         setTotalAmount(total)
+
+        // Fetch location data for credit limit and balance
+        const locationResponse = await fetch_content_service({
+          table: "Locations",
+          matchCase: { key: "id", value: selectedLocation.id },
+          selectParam: "id, title, credit_limit, balance"
+        })
+        
+        if (locationResponse && locationResponse.length > 0) {
+          setLocationData(locationResponse[0])
+        }
       } catch (error) {
-        console.error("Error fetching credits:", error)
+        console.error("Error fetching data:", error)
       } finally {
         setLoading(false)
       }
     }
 
     if (selectedLocation?.id) {
-      fetchCredits()
+      fetchData()
     }
   }, [selectedLocation?.id])
 
@@ -66,6 +86,34 @@ const Credits = () => {
         <div className="w-full max-w-5xl flex items-center justify-center mb-4">
           <CircularProgress size={40} />
         </div>
+
+        {/* Location Credit Limit Card - Loading State */}
+        <Card className="w-full shadow-sm border-opacity-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-gray-500" />
+              <span>Location Credit Limits</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Credit Limit</span>
+                </p>
+                <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  <BadgeDollarSign className="h-4 w-4" />
+                  <span>Current Balance</span>
+                </p>
+                <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Total Credits Card - Loading State */}
         <Card className="w-full shadow-sm border-opacity-50">
@@ -156,12 +204,48 @@ const Credits = () => {
 
   return (
     <main className="w-full flex-col flex justify-start items-start md:p-2 lg:p-4 space-y-6">
+      {/* Location Credit Limit Card */}
+      <Card className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border-opacity-50 transition-all hover:shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-gray-500" />
+            Location Credit Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-gray-50 dark:bg-[#080e16] p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Credit Limit
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                {locationData ? formatCurrency(locationData.credit_limit) : "$0.00"}
+              </p>
+            </div>
+            <div className="bg-gray-50 dark:bg-[#080e16] p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <BadgeDollarSign className="h-4 w-4" />
+                Current Balance
+              </p>
+              <p className={`text-2xl font-bold mt-2 ${
+                locationData?.balance && locationData.balance < 0 
+                  ? "text-red-600 dark:text-red-400" 
+                  : "text-gray-900 dark:text-white"
+              }`}>
+                {locationData ? formatCurrency(locationData.balance) : "$0.00"}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Total Credits Card */}
       <Card className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border-opacity-50 transition-all hover:shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-gray-500" />
-            Total Credits Overview
+            Patients Credits Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -169,7 +253,7 @@ const Credits = () => {
             <div className="bg-gray-50 dark:bg-[#080e16] p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <BadgeDollarSign className="h-4 w-4" />
-                Total Credits
+                Total Patients Credit
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{formatCurrency(totalAmount)}</p>
             </div>

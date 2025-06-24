@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import axios from "axios";
 
 interface PatientDetailsInterface {
   firstname: string;
@@ -215,7 +216,7 @@ const Patients = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const cardsPerPage = 2;
 
-  const category_change_handle = () => {};
+  const category_change_handle = () => { };
 
   const router = useRouter();
 
@@ -231,7 +232,7 @@ const Patients = () => {
 
     const fetched_data: any = await fetch_content_service({
       table: "allpatients",
-      selectParam:', updated_at:lastvisit',
+      selectParam: ', updated_at:lastvisit',
       matchCase: [{ key: "locationid", value: locationId || 17 }],
       filterOptions: filterOptions,
       sortOptions: { column: "lastvisit", order: "desc" },
@@ -406,6 +407,7 @@ const Patients = () => {
     const postData = {
       ...createActionData,
       locationid: selectedLocation?.id || "",
+      onsite: true
     };
     for (const field of requiredFields) {
       if (!postData[field]) {
@@ -413,27 +415,16 @@ const Patients = () => {
         return;
       }
     }
-    const { data, error } = await create_content_service({
-      table: "allpatients",
-      language: "",
-      post_data: postData,
-    });
+    try {
+      const response = await axios.post("/api/user", postData);
 
-    if (error) {
-      if (
-        error?.message ===
-        'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
-      ) {
-        toast.error(
-          `Sorry, Appointment time slot is not available, Please select any other time slot`
-        );
-      } else {
-        toast.error(`Error adding patient: ${error?.message}`);
+      if (response) {
+        toast.success("Patient successfully added!");
+        setCreateActionData({});
+        fetch_handle(selectedLocation?.id);
       }
-    } else {
-      toast.success("Patient successfully added!");
-      setCreateActionData({});
-      fetch_handle(selectedLocation?.id);
+    } catch (error) {
+      toast.error("Failed to add patient. Please try again.");
     }
   };
 
@@ -484,21 +475,19 @@ const Patients = () => {
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <button
                   onClick={() => setActiveFilterBtn(0)}
-                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
-                    activeFilterBtn === 0
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                    }`}
                 >
                   {t("POS-Sales_k16")}
                 </button>
                 <button
                   onClick={() => setActiveFilterBtn(1)}
-                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${
-                    activeFilterBtn === 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                    }`}
                 >
                   {t("POS-Sales_k17")}
                 </button>
@@ -533,7 +522,7 @@ const Patients = () => {
                       {formattedDateTime}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
                       <p className="text-gray-500 dark:text-gray-400">Phone</p>
@@ -554,7 +543,7 @@ const Patients = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between gap-2">
                     <button
                       onClick={() => editHandle(elem)}
@@ -605,11 +594,10 @@ const Patients = () => {
                 <button
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    currentPage === 1
-                      ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white"
+                    }`}
                 >
                   Previous
                 </button>
@@ -619,11 +607,10 @@ const Patients = () => {
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    currentPage === totalPages
-                      ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white"
+                    }`}
                 >
                   Next
                 </button>
@@ -727,7 +714,7 @@ const Patients = () => {
               {t("POS-Sales_k18")}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="w-full space-y-4">
             <div className="w-full space-y-4">
               <div>
@@ -885,7 +872,7 @@ const Patients = () => {
                 label="Phone Number"
                 placeholder=""
                 breakpoint={false}
-                
+
               />
             </div>
 
