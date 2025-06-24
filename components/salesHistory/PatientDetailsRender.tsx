@@ -7,12 +7,10 @@ import { toast } from "sonner"
 
 export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
   patientData,
-  paymentType = "Cash",
+  paymentType,
   order_id,
 }) => {
   const { t } = useTranslation(translationConstant.POSHISTORY)
-  const [currentPaymentType, setCurrentPaymentType] = useState(paymentType)
-  const [isUpdating, setIsUpdating] = useState(false)
 
   const {
     firstname = "",
@@ -25,29 +23,9 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
     Locations,
   } = patientData
 
-  const handlePaymentTypeChange = async (newPaymentType: string) => {
-    if (newPaymentType === currentPaymentType) return
+  console.log(patientData)
 
-    setIsUpdating(true)
-    try {
-      const response = await axios.put("/api/orders/update-payment", {
-        order_id,
-        paymentType: newPaymentType
-      })
 
-      if (response.data.success) {
-        setCurrentPaymentType(newPaymentType)
-        toast.success("Payment type updated successfully")
-      } else {
-        toast.error(response.data.message || "Failed to update payment type")
-      }
-    } catch (error: any) {
-      console.error("Error updating payment type:", error)
-      toast.error(error.response?.data?.message || "Failed to update payment type")
-    } finally {
-      setIsUpdating(false)
-    }
-  }
 
   return (
     <div className="py-4 space-y-4">
@@ -76,7 +54,12 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk18")}:</span><br />
-          <select
+          <div className="space-x-4">
+            {paymentType.cash ? <strong>Cash</strong> : null}
+            {paymentType.cash && paymentType.card ? <span>/</span> : null}
+            {paymentType.card ? <strong>Card</strong> : null}
+          </div>
+          {/* <select
             value={currentPaymentType}
             onChange={(e) => handlePaymentTypeChange(e.target.value)}
             disabled={isUpdating}
@@ -87,7 +70,7 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
           </select>
           {isUpdating && (
             <span className="text-xs text-blue-500 mt-1">Updating...</span>
-          )}
+          )} */}
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk19")}:</span><br />

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { create_content_service } from '@/utils/supabase/data_services/data_services';
+import { create_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
 import { sendOrderEmail } from '@/utils/emailServices/sendOrderEmail';
 
 export async function POST(request: Request) {
@@ -50,8 +50,6 @@ export async function POST(request: Request) {
         inventory_id: elem.product_id,
         quantity_sold: elem.quantity,
         total_price: elem.price * elem.quantity,
-        paymentcash: cashAmount > 0,
-        paymentcard: cardAmount > 0,
       }));
 
       const { error: salesError } = await create_content_service({
@@ -72,6 +70,40 @@ export async function POST(request: Request) {
           order_id: order_id
         },
       });
+
+      // Credit audit logic - update existing record or insert new one
+      try {
+        const existingCreditAudit = await fetch_content_service({
+          table: "credit_audit",
+          matchCase: { key: "patient_id", value: patient_id }
+        });
+
+        if (existingCreditAudit && existingCreditAudit.length > 0) {
+          // Update existing credit record
+          await update_content_service({
+            table: "credit_audit",
+            post_data: {
+              id: existingCreditAudit[0].id,
+              balance: newCreditBalance,
+              updated_at: new Date().toISOString()
+            }
+          });
+        } else {
+          // Insert new credit record
+          await create_content_service({
+            table: "credit_audit",
+            post_data: {
+              patient_id,
+              balance: newCreditBalance,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          });
+        }
+      } catch (creditAuditError: any) {
+        console.error("Credit audit error:", creditAuditError.message);
+        // Don't throw error here to avoid failing the entire order
+      }
 
       // Send order email with credit information
       await sendOrderEmail(

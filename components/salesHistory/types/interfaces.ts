@@ -29,7 +29,7 @@ export interface PatientDetailsInterface {
 
 export interface PatientDetailsRenderPropsInterface {
     patientData: PatientDetailsInterface;
-    paymentType: string;
+    paymentType: {card:number, cash:number};
     order_id: number;
 }
 
