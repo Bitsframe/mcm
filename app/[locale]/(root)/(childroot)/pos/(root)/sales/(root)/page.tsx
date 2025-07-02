@@ -69,32 +69,6 @@ const render_details = [
   },
 ];
 
-const Payment_Method_Select = ({ handleSelectChange, selectedMethod }: any) => {
-  return (
-    <div className="w-30">
-      <Select
-        onChange={handleSelectChange}
-        className="w-full border rounded-md text-xs focus:outline-none dark:bg-[#122136] dark:border-gray-700 dark:text-white bg-white text-black"
-        id="section"
-        required={true}
-      >
-        <option
-          value="Cash"
-          className="dark:bg-[#122136] dark:text-white text-black"
-        >
-          Cash
-        </option>
-        <option
-          value="Debit Card"
-          className="dark:bg-[#122136] dark:text-white text-black"
-        >
-          Debit Card
-        </option>
-      </Select>
-    </div>
-  );
-};
-
 const grandTotalHandle = (cart: any[], discount = 0): { amount: number; discountAmount: number } => {
   const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = (amount * discount) / 100;
@@ -212,7 +186,6 @@ const Orders = () => {
   const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(
     null
   );
-  const [selectedMethod, setSelectedMethod] = useState("Cash");
   const [lastLocationId, setLastLocationId] = useState(0);
   const [creditAmount, setCreditAmount] = useState<number>(0);
   const [receivedAmount, setReceivedAmount] = useState<number>(0);
@@ -220,6 +193,9 @@ const Orders = () => {
   const [isAddBalanceModalOpen, setIsAddBalanceModalOpen] = useState(false);
   const [addAmount, setAddAmount] = useState(0);
   const [addBalanceLoading, setAddBalanceLoading] = useState(false);
+  const [payWithCash, setPayWithCash] = useState(true);
+  const [payWithCard, setPayWithCard] = useState(false);
+  const [cardAmount, setCardAmount] = useState<number>(0);
 
   const router = useRouter();
 
@@ -341,21 +317,19 @@ const Orders = () => {
     try {
       setPlaceOrderLoading(true);
       setIsBalanceLoading(true);
-
       if (!selectedPatient || !cartArray.length) return;
-
       const { data } = await axios.post('/api/orders', {
         patient_id: selectedPatient.id,
         cartArray,
         appliedDiscount,
         creditAmount,
-        receivedAmount,
-        selectedMethod,
+        cashAmount: payWithCash ? receivedAmount : 0,
+        cardAmount: payWithCard ? cardAmount : 0,
+        creditUsed,
         promoCodeData,
         selectedPatient,
         selectedLocation,
       });
-
       toast.success(data.message, {
         style: {
           background: "white",
@@ -363,33 +337,23 @@ const Orders = () => {
           border: "1px solid var(--border)",
         },
       });
-
-      // Wait for 2 seconds to allow trigger updates to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Fetch updated location data
       const response = await fetch_content_service({
         table: "Locations",
         matchCase: [{ key: "id", value: selectedLocation.id }],
         selectParam: "balance,credit_limit"
       });
-
       const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
-
       if (updatedLocation && updatedLocation.length > 0) {
-        // Update the selectedLocation context with new balance
         selectedLocation.balance = updatedLocation[0].balance;
         selectedLocation.credit_limit = updatedLocation[0].credit_limit;
       }
-
-      // Add to transaction_history (collected amount for order)
-
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
       setCreditAmount(0);
       setReceivedAmount(0);
-
+      setCardAmount(0);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message, {
         style: {
@@ -412,10 +376,6 @@ const Orders = () => {
     setPromoCode(codeData);
   };
 
-  const selectPaymentHandle = (event: any) => {
-    setSelectedMethod(event.target.value);
-  };
-
   const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
@@ -435,8 +395,16 @@ const Orders = () => {
   }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
 
   const finalCredit = useMemo(() => {
-    return receivedAmount - (grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount);
-  }, [receivedAmount, cartArray, appliedDiscount, creditAmount]);
+    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount;
+    return (receivedAmount + cardAmount) - totalDue;
+  }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+
+  // Calculate credit used
+  const creditUsed = useMemo(() => {
+    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+    const paid = receivedAmount + cardAmount;
+    return Math.max(0, totalDue - paid);
+  }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
 
   // Handler to add balance
   const handleAddBalance = async () => {
@@ -488,6 +456,16 @@ const Orders = () => {
   };
 
   const { t } = useTranslation(translationConstant.POSSALES);
+
+  useEffect(() => {
+    if (payWithCash && !payWithCard) setCardAmount(0);
+    if (payWithCard && !payWithCash) setReceivedAmount(0);
+    // Prevent both from being unchecked
+    if (!payWithCash && !payWithCard) setPayWithCash(true);
+  }, [payWithCash, payWithCard]);
+
+  const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
+
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
@@ -757,85 +735,116 @@ const Orders = () => {
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k12")}
+                  Discount %
                 </h1>
-                <Payment_Method_Select
-                  selectedMethod={selectedMethod}
-                  handleSelectChange={selectPaymentHandle}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k13")}%
-                </h1>
-                <p
-                  className={`text-xs ${appliedDiscount
-                    ? "text-red-500 dark:text-red-400"
-                    : "text-gray-700 dark:text-gray-300"
-                    }`}
-                >
+                <p className="text-xs">
                   {appliedDiscount
-                    ? `-${grandTotalHandle(cartArray, appliedDiscount)
-                      .discountAmount
-                    }`
+                    ? `-${grandTotalHandle(cartArray, appliedDiscount).discountAmount.toFixed(2)}`
                     : "NILL"}
                 </p>
               </div>
-
-              {/* Sub Total */}
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k14")}
+                  Sub total
                 </h1>
-                <p className="text-xs text-gray-900 dark:text-white">
+                <p className="text-xs">
                   ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
                 </p>
               </div>
-
-              {/* Display Fetched Credit */}
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k32")}
+                  Patient Credit
                 </h1>
-                <p className="text-xs text-gray-900 dark:text-white">
+                <p className="text-xs">
                   {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
                 </p>
               </div>
-
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k14")}
+                  Sub total
                 </h1>
-                <p className="text-xs text-gray-900 dark:text-white">
+                <p className="text-xs">
                   ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
                 </p>
               </div>
 
-
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k33")}
-                </h1>
-                <div className="border  border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white  text-black ">
+              <div className="flex items-center mb-2 space-x-4">
+                <label className="flex items-center cursor-pointer">
                   <input
-                    type="number"
-                    value={receivedAmount}
-                    onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
-                    className="w-40  border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-                    placeholder="0.00"
-                    step="0.01"
+                    type="checkbox"
+                    checked={payWithCash}
+                    onChange={() => {
+                      setPayWithCash((prev) => !prev);
+                      if (payWithCash && !payWithCard) setCardAmount(0); // If unchecking last, keep at least one
+                    }}
+                    className="mr-1"
                   />
-                </div>
+                  <span className="text-xs text-gray-700 dark:text-gray-300">Cash</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={payWithCard}
+                    onChange={() => {
+                      setPayWithCard((prev) => !prev);
+                      if (payWithCard && !payWithCash) setReceivedAmount(0); // If unchecking last, keep at least one
+                    }}
+                    className="mr-1"
+                  />
+                  <span className="text-xs text-gray-700 dark:text-gray-300">Card</span>
+                </label>
               </div>
 
-              {/* Display Calculated Final Credit */}
-              <div className="flex items-center justify-between">
+              {payWithCash && (
+                <div className="flex items-center justify-between mt-1">
+                  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                    Cash Amount
+                  </h1>
+                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
+                    <input
+                      type="number"
+                      value={receivedAmount}
+                      onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
+                      className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              )}
+              {payWithCard && (
+                <div className="flex items-center justify-between mt-1">
+                  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                    Card Amount
+                  </h1>
+                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
+                    <input
+                      type="number"
+                      value={cardAmount}
+                      onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
+                      className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k34")}
+                  Credit Used
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  {finalCredit < 0 ? `-$${Math.abs(finalCredit).toFixed(2)}` : `$${finalCredit.toFixed(2)}`}
+                  {creditUsed < 0 ? `-$${Math.abs(creditUsed).toFixed(2)}` : `$${creditUsed.toFixed(2)}`}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between mt-1">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Total Paid
+                </h1>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  {`$${totalPaid.toFixed(2)}`}
                 </p>
               </div>
 
@@ -850,7 +859,7 @@ const Orders = () => {
                   ) : (
                     <>
                       <span className="font-medium">
-                        ${receivedAmount}
+                        {`$${totalPaid.toFixed(2)}`}
                       </span>
                       <PiCaretCircleRightFill size={16} />
                     </>

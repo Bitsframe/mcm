@@ -175,7 +175,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             { key: "locationid", value: locationId },
           ],
           filterOptions: [
-            { column: "deleted_at", operator: "is", value: null }
+            { column: "deleted_at", operator: "is", value: null },
           ],
         });
         console.log("Raw Supabase Data:", fetchedData);
@@ -212,10 +212,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      result = result.filter((patient) =>
-        `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower) ||
-        patient.email.toLowerCase().includes(searchLower) ||
-        patient.phone.toLowerCase().includes(searchLower)
+      result = result.filter(
+        (patient) =>
+          `${patient.firstname} ${patient.lastname}`
+            .toLowerCase()
+            .includes(searchLower) ||
+          patient.email.toLowerCase().includes(searchLower) ||
+          patient.phone.toLowerCase().includes(searchLower)
       );
     }
 
@@ -450,8 +453,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   Delete Patient
                 </AlertDialogTitle>
                 <AlertDialogDescription className="dark:text-gray-400">
-                  Are you sure you want to delete {patient.firstname} {patient.lastname}? 
-                  This action cannot be undone and will only work if the patient has no sales history, orders, or appointments.
+                  Are you sure you want to delete {patient.firstname}{" "}
+                  {patient.lastname}? This action cannot be undone and will only
+                  work if the patient has no sales history, orders, or
+                  appointments.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -482,7 +487,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       if (response.data.success) {
         toast.success("Patient deleted successfully");
         // Remove patient from local state
-        setPatients(prev => prev.filter(patient => patient.id !== patientId));
+        setPatients((prev) =>
+          prev.filter((patient) => patient.id !== patientId)
+        );
       } else {
         toast.error(response.data.message || "Failed to delete patient");
       }
@@ -927,8 +934,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                                   Delete Patient
                                 </AlertDialogTitle>
                                 <AlertDialogDescription className="dark:text-gray-400">
-                                  Are you sure you want to delete {patient.firstname} {patient.lastname}? 
-                                  This action cannot be undone and will only work if the patient has no sales history, orders, or appointments.
+                                  Are you sure you want to delete{" "}
+                                  {patient.firstname} {patient.lastname}? This
+                                  action cannot be undone and will only work if
+                                  the patient has no sales history, orders, or
+                                  appointments.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -936,7 +946,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                                   Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeletePatient(patient.id)}
+                                  onClick={() =>
+                                    handleDeletePatient(patient.id)
+                                  }
                                   className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
                                 >
                                   Delete
@@ -974,8 +986,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
               <p className="text-gray-700 dark:text-gray-300">
                 {t("Patients_k27")} {startIndex + 1} {t("Patients_k28")}{" "}
-                {Math.min(endIndex, filteredAndSortedPatients.length)} {t("Patients_k29")}{" "}
-                {filteredAndSortedPatients.length}
+                {Math.min(endIndex, filteredAndSortedPatients.length)}{" "}
+                {t("Patients_k29")} {filteredAndSortedPatients.length}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -1246,7 +1258,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k24")}</Label>
+        <Label className="text-sm text-gray-500 dark:text-gray-400">
+          {t("Patients_k24")}
+        </Label>
         <Input
           name="note"
           value={formData.note || ""}
@@ -1322,7 +1336,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           onClick={onCancel}
           className="border-gray-200 dark:bg-[#111827] text-gray-700 dark:border-gray-600 dark:text-gray-300"
         >
-        {t("Patients_k21")}
+          {t("Patients_k21")}
         </Button>
         <Button
           onClick={handleSave}
@@ -1407,7 +1421,9 @@ const PatientDetails: FC<{
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k24")}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k24")}
+          </p>
           <p className="text-base font-medium dark:text-gray-300">
             {patient.note || "No note available"}
           </p>

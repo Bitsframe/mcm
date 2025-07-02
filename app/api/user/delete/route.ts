@@ -78,29 +78,25 @@ export const POST = async (req: Request) => {
         }
 
         // If all checks pass, perform soft delete
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from("allpatients")
-            .update({
-                deleted_at: new Date().toISOString()
-            })
-            .eq("id", patientId)
-            .select();
+            .delete()
+            .eq("id", patientId);
 
         if (error) {
-            console.error("Error soft deleting patient:", error);
+            console.error("Error deleting patient:", error);
             return NextResponse.json(
                 { success: false, message: error.message },
                 { status: 400 }
             );
         }
 
-        console.log('Successfully deleted patient:', data);
+        console.log('Successfully deleted patient:', patientId);
 
         return NextResponse.json(
             {
                 success: true,
                 message: "Patient deleted successfully.",
-                data,
             },
             { status: 200 }
         );

@@ -43,37 +43,40 @@ const TimeSelector = forwardRef<
   HTMLDivElement,
   { value: string; onChange: (time: string) => void }
 >(({ value, onChange }, ref) => {
-  const timeOptions: TimeOption[] = Array.from({ length: 24 * 2 }, (_, i) => {
-    const hour = Math.floor(i / 2) % 12 || 12;
-    const period = i < 24 ? "AM" : "PM";
-    const minute = i % 2 === 0 ? "00" : "30";
-    const formattedTime = `${hour}:${minute} ${period}`;
-    const value = `${String(Math.floor(i / 2)).padStart(2, "0")}:${minute}:00`;
-    return { label: formattedTime, value };
-  });
+  const timeOptions: TimeOption[] = [];
+
+  for (let hour = 18; hour < 24; hour++) {
+    const displayHour12 = hour > 12 ? hour - 12 : hour;
+    const period = "PM";
+    const value24Hour = `${String(hour).padStart(2, "0")}:00:00`;
+    timeOptions.push({
+      label: `${displayHour12}:00 ${period}`,
+      value: value24Hour,
+    });
+  }
 
   timeOptions.push({
     label: "12:00 AM",
-    value: "23:59:00",
+    value: "00:00:00",
   });
 
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       {/* @ts-ignore */}
-      <SelectTrigger 
-      // @ts-ignore
-        ref={ref} 
+      <SelectTrigger
+        // @ts-ignore
+        ref={ref}
         className="w-full bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white"
       >
-        <SelectValue 
-          placeholder="Select time" 
-          className="text-gray-900 dark:text-white placeholder:text-gray-500 placeholder:dark:text-gray-400" 
+        <SelectValue
+          placeholder="Select time"
+          className="text-gray-900 dark:text-white placeholder:text-gray-500 placeholder:dark:text-gray-400"
         />
       </SelectTrigger>
       <SelectContent className="bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600">
         {timeOptions.map(({ label, value }) => (
-          <SelectItem 
-            key={value} 
+          <SelectItem
+            key={value}
             value={value}
             className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:bg-gray-100 dark:focus:bg-gray-600 data-[highlighted]:bg-gray-100 data-[highlighted]:dark:bg-gray-600 data-[highlighted]:text-gray-900 data-[highlighted]:dark:text-white"
           >
@@ -156,7 +159,7 @@ const SettingsComponent: React.FC = () => {
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
-            {t("CT_k1")}
+            Reporting Time
           </h1>
         </div>
 
@@ -222,9 +225,7 @@ const SettingsComponent: React.FC = () => {
                 </div>
 
                 <div className="mb-4">
-                  <h3 className="text-sm font-medium mb-1">
-                    {t("CT_k4")}
-                  </h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k4")}</h3>
                   <p className="text-sm">
                     {selectedLocation.report_time
                       ? formattedTime(selectedLocation.report_time!)

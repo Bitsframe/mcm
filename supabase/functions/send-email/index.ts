@@ -1,4 +1,3 @@
-// Direct API key use karo (temporary testing ke liye)
 const RESEND_API_KEY = "re_8gEyaRox_GmBUZfWxoyg1a9xjmnc1tsL5";
 
 const CORS_HEADERS = {
@@ -8,7 +7,6 @@ const CORS_HEADERS = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       status: 200,
@@ -19,7 +17,6 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Debug: Log incoming request headers
     console.log("[EdgeFunction] Incoming request headers:", Object.fromEntries(req.headers.entries()));
     const { to, subject, html } = await req.json(); // Request body se data lo
 
@@ -37,7 +34,6 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
-    // Debug: Log Resend API response text
     const responseText = await res.text();
     console.log("[EdgeFunction] Resend API response:", responseText);
 

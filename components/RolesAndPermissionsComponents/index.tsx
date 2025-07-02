@@ -405,7 +405,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   disabled={currentPage === 1}
                   className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827]"
                 >
-                  {t("RP_k12")}
+                  {t("RP_k10")}
                 </Button>
 
                 <Button

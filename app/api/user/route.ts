@@ -86,44 +86,82 @@ export const POST = async (req: Request) => {
 
         console.log('patientData from api:', patientData);
 
-        const { data, error } = await supabase
+        const { data: existingPatients, error: findError } = await supabase
             .from("allpatients")
-            .insert([
-                {
-                    locationid:patientData.locationid,
-                    lastvisit: patientData.lastvisit,
-                    onsite: patientData.onsite,
-                    firstname: patientData.firstname,
-                    lastname: patientData.lastname,
-                    gender: patientData.gender,
-                    email: patientData.email,
-                    phone: patientData.phone,
-                    treatmenttype: patientData.treatmenttype,
-                    note: patientData?.note,
-                }
-            ]);
+            .select("*")
+            .or(`email.eq.${patientData.email},phone.eq.${patientData.phone}`)
+            .eq("locationid", patientData.locationid);
 
-        if (error) {
-            console.log("ERROR ->",error);
+        if (findError) {
+            console.log("ERROR ->", findError);
             return NextResponse.json(
-                { success: false, message: error.message },
+                { success: false, message: findError.message },
                 { status: 400 }
             );
         }
 
-        console.log("DATA",data);
+        if (existingPatients && existingPatients.length > 0) {
+            // Update the first matching patient
+            const patient = existingPatients[0];
+            const { data: updated, error: updateError } = await supabase
+                .from("allpatients")
+                .update({
+                    lastvisit: new Date().toISOString(),
+                    treatmenttype: patientData.treatmenttype,
+                    email: patientData.email,
+                    phone: patientData.phone,
+                    note: patientData?.note,
+                })
+                .eq("id", patient.id)
+                .select();
+
+            if (updateError) {
+                return NextResponse.json(
+                    { success: false, message: updateError.message },
+                    { status: 400 }
+                );
+            }
+
+            return NextResponse.json(
+                { success: true, message: "User updated successfully.", data: updated },
+                { status: 200 }
+            );
+        } else {
+            // Insert new patient
+            const { data: inserted, error: insertError } = await supabase
+                .from("allpatients")
+                .insert([
+                    {
+                        locationid: patientData.locationid,
+                        lastvisit: new Date().toISOString(),
+                        onsite: patientData.onsite,
+                        firstname: patientData.firstname,
+                        lastname: patientData.lastname,
+                        gender: patientData.gender,
+                        email: patientData.email,
+                        phone: patientData.phone,
+                        treatmenttype: patientData.treatmenttype,
+                        note: patientData?.note,
+                    }
+                ])
+                .select();
+
+            if (insertError) {
+                return NextResponse.json(
+                    { success: false, message: insertError.message },
+                    { status: 400 }
+                );
+            }
+
+            return NextResponse.json(
+                { success: true, message: "User added successfully.", data: inserted },
+                { status: 200 }
+            );
+        }
+    } catch (error: any) {
+        console.log("ERROR ->", error);
         return NextResponse.json(
-            {
-                success: true,
-                message: "User added successfully.",
-                data,
-            },
-            { status: 200 }
-        );
-    } catch (error:any) {
-        console.log("ERROR ->",error);
-        return NextResponse.json(
-            { success: false, message: "An error occurred.", error: error.message  || "Internal Server Error" },
+            { success: false, message: "An error occurred.", error: error.message || "Internal Server Error" },
             { status: 500 }
         );
     }

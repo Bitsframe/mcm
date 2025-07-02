@@ -24,7 +24,7 @@ const TopTabs = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
 
   return (
-    <nav className="flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-fit">
+    <nav className="flex items-center justify-center rounded-lg bg-gray-100 dark:bg-[#122136] p-1 w-fit">
       <ul className="flex gap-2">
         {PosTopMenu.map((menuItem, index) => {
           const isActive =

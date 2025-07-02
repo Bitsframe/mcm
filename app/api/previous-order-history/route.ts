@@ -114,6 +114,8 @@ export const POST = async (req: Request) => {
           promo_code_id: order.promo_code_id,
           promo_code: order.promocodes,
           promo_code_percentage: percentage,
+          cash: order.cash,
+          card: order.card,
           pos: {
             id: pos.id,
             email: pos.email,

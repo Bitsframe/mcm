@@ -3,11 +3,21 @@ import React, { useContext, useEffect, useState } from "react";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import { LocationContext } from "@/context";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const TransactionsPage = () => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPatients, setLoadingPatients] = useState(true);
@@ -20,12 +30,10 @@ const TransactionsPage = () => {
       try {
         const data = await fetch_content_service({
           table: "allpatients",
-          selectParam: "*",
-          matchCase:{
+          matchCase: {
             key: "locationid",
             value: selectedLocation.id,
           }
-          
         });
         setPatients(data || []);
       } catch (err) {
@@ -37,15 +45,37 @@ const TransactionsPage = () => {
     fetchPatients();
   }, [selectedLocation]);
 
-  // Fetch selected patient details
+  // Fetch selected patient details and credit balance
   useEffect(() => {
     if (!selectedPatientId) {
       setSelectedPatient(null);
+      setCreditBalance(null);
       setTransactions([]);
       return;
     }
-    const patient = patients.find((p) => p.id === selectedPatientId);
-    setSelectedPatient(patient || null);
+    
+    const fetchPatientDetails = async () => {
+      const patient = patients.find((p) => p.id === selectedPatientId);
+      setSelectedPatient(patient || null);
+      
+      // Fetch credit balance for the selected patient
+      try {
+        const creditData = await fetch_content_service({
+          table: "credit_audit",
+          matchCase: { key: "patient_id", value: selectedPatientId }
+        });
+        
+        if (creditData && creditData.length > 0) {
+          setCreditBalance(creditData[0].balance);
+        } else {
+          setCreditBalance(0);
+        }
+      } catch (err) {
+        setCreditBalance(0);
+      }
+    };
+    
+    fetchPatientDetails();
   }, [selectedPatientId, patients]);
 
   // Fetch transactions for selected patient
@@ -61,7 +91,6 @@ const TransactionsPage = () => {
           table: "transaction_history",
           selectParam: "*",
           matchCase: { key: "patient_id", value: selectedPatientId },
-        //   orderBy: { column: "created_at", ascending: false },
         });
         setTransactions(data || []);
       } catch (err) {
@@ -82,7 +111,7 @@ const TransactionsPage = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Transactions</h1>
-      <div className="mb-4 max-w-lg">
+      <div className="mb-4 w-full max-w-lg">
         <Searchable_Dropdown
           options_arr={patientOptions}
           value={selectedPatientId || ''}
@@ -91,51 +120,95 @@ const TransactionsPage = () => {
           start_empty={true}
         />
       </div>
+
       {selectedPatient && (
         <div className="mb-4 p-3 rounded bg-gray-100 dark:bg-gray-800">
           <div className="font-semibold text-lg mb-1">
             {selectedPatient.firstname} {selectedPatient.lastname}
           </div>
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            <span className="mr-4">Phone: {selectedPatient.phone}</span>
-            <span className="mr-4">Email: {selectedPatient.email}</span>
+          <div className="text-sm text-gray-700 dark:text-gray-300 flex flex-wrap gap-2">
+            <span>Phone: {selectedPatient.phone}</span>
+            <span>Email: {selectedPatient.email}</span>
             <span>Treatment Type: {selectedPatient.treatmenttype}</span>
+            <span className={`font-semibold ${creditBalance && creditBalance < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              Current Balance: {creditBalance && creditBalance < 0 ? '-' : ''}${Math.abs(creditBalance || 0).toFixed(2)}
+            </span>
           </div>
         </div>
       )}
+
       {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 border rounded">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border">Date</th>
-                <th className="px-4 py-2 border">Amount</th>
-                <th className="px-4 py-2 border">Balance</th>
-                <th className="px-4 py-2 border">Treatment Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((tx: any) => (
-                <tr key={tx.id}>
-                  <td className="px-4 py-2 border">{tx.created_at ? new Date(tx.created_at).toLocaleString() : "-"}</td>
-                  <td className="px-4 py-2 border">${tx.amount?.toFixed(2)}</td>
-                  <td className="px-4 py-2 border">${tx.balance?.toFixed(2)}</td>
-                  <td className="px-4 py-2 border">{tx.type}</td>
-                </tr>
-              ))}
-              {transactions.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-center py-4 text-gray-400">No transactions found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="flex justify-center items-center py-8">
+          <div>Loading...</div>
         </div>
+      ) : (
+        <>
+          {/* Desktop Table View (shadcn/ui Table) */}
+          <div className="hidden md:block">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Balance</TableHead>
+                    <TableHead>Treatment Type</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.length > 0 ? (
+                    transactions.map((tx: any) => (
+                      <TableRow key={tx.id}>
+                        <TableCell>{tx.created_at ? new Date(tx.created_at).toLocaleString() : "-"}</TableCell>
+                        <TableCell>${tx.amount?.toFixed(2)}</TableCell>
+                        <TableCell>${tx.balance?.toFixed(2)}</TableCell>
+                        <TableCell>{tx.type}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-4 text-gray-400">
+                        No transactions found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {transactions.length > 0 ? (
+              transactions.map((tx: any) => (
+                <Card key={tx.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {tx.created_at ? new Date(tx.created_at).toLocaleString() : "-"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-muted-foreground">Amount:</div>
+                      <div>${tx.amount?.toFixed(2)}</div>
+                      
+                      <div className="text-muted-foreground">Balance:</div>
+                      <div>${tx.balance?.toFixed(2)}</div>
+                      
+                      <div className="text-muted-foreground">Type:</div>
+                      <div>{tx.type}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-400">No transactions found.</div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-export default TransactionsPage; 
+export default TransactionsPage;

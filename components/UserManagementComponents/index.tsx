@@ -457,7 +457,7 @@ const UserManagementComponent = () => {
                 onClick={handlePrevious}
                 disabled={currentPage === 1}
               >
-                {t("UM_k20")}
+                {t("UM_k18")}
               </button>
               <button
                 className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
@@ -487,7 +487,7 @@ const UserManagementComponent = () => {
         <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
           <SheetHeader>
             <SheetTitle className="text-xl font-semibold dark:text-white">
-              {t("UM_k23")}
+              {t("UM_k20")}
             </SheetTitle>
           </SheetHeader>
           {selectedUser && (
