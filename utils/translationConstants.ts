@@ -18,4 +18,5 @@ export const translationConstant = {
     SETTINGS:"Settings",
     CONTROLS:"Controls",
     CREDITS:"Credits",
+    TRANSACTION:"Transaction",
 }

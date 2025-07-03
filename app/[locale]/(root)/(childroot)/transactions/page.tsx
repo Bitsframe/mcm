@@ -12,6 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const TransactionsPage = () => {
   const [patients, setPatients] = useState<any[]>([]);
@@ -22,7 +24,6 @@ const TransactionsPage = () => {
   const [loading, setLoading] = useState(false);
   const [loadingPatients, setLoadingPatients] = useState(true);
   const { selectedLocation } = useContext(LocationContext);
-
   // Fetch all patients for dropdown
   useEffect(() => {
     const fetchPatients = async () => {
@@ -107,16 +108,17 @@ const TransactionsPage = () => {
     value: p.id,
     label: `${p.firstname} ${p.lastname} - (${p.email})`,
   }));
+  const { t } = useTranslation(translationConstant.TRANSACTION);
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Transactions</h1>
+      <h1 className="text-xl font-bold mb-4">{t("Transaction_k1")}</h1>
       <div className="mb-4 w-full max-w-lg">
         <Searchable_Dropdown
           options_arr={patientOptions}
           value={selectedPatientId || ''}
           on_change_handle={(e: any) => setSelectedPatientId(Number(e.target.value))}
-          label="Select Patient"
+          label={t("Transaction_k7")}
           start_empty={true}
         />
       </div>
@@ -149,10 +151,10 @@ const TransactionsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Treatment Type</TableHead>
+                    <TableHead>{t("Transaction_k3")}</TableHead>
+                    <TableHead>{t("Transaction_k4")}</TableHead>
+                    <TableHead>{t("Transaction_k6")}</TableHead>
+                    <TableHead>{t("Transaction_k5")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -168,7 +170,7 @@ const TransactionsPage = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-4 text-gray-400">
-                        No transactions found.
+                        {t("Transaction_k8")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -189,20 +191,20 @@ const TransactionsPage = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-muted-foreground">Amount:</div>
+                      <div className="text-muted-foreground">{t("Transaction_k4")}:</div>
                       <div>${tx.amount?.toFixed(2)}</div>
                       
-                      <div className="text-muted-foreground">Balance:</div>
+                      <div className="text-muted-foreground">{t("Transaction_k6")}:</div>
                       <div>${tx.balance?.toFixed(2)}</div>
                       
-                      <div className="text-muted-foreground">Type:</div>
+                      <div className="text-muted-foreground">{t("Transaction_k5")}:</div>
                       <div>{tx.type}</div>
                     </div>
                   </CardContent>
                 </Card>
               ))
             ) : (
-              <div className="text-center py-4 text-gray-400">No transactions found.</div>
+              <div className="text-center py-4 text-gray-400">{t("Transaction_k8")}</div>
             )}
           </div>
         </>

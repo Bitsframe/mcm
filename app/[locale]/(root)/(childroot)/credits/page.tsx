@@ -1,5 +1,4 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
@@ -43,7 +42,6 @@ const Credits = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Fetch credits data
         const creditsData: CreditData[] = await fetch_content_service({
           table: "credit_audit",
           selectParam: ", patientData:allpatients(*)",
@@ -54,7 +52,6 @@ const Credits = () => {
         const total = creditsData.reduce((sum: number, credit: CreditData) => sum + credit.balance, 0)
         setTotalAmount(total)
 
-        // Fetch location data for credit limit and balance
         const locationResponse = await fetch_content_service({
           table: "Locations",
           matchCase: { key: "id", value: selectedLocation.id },
@@ -87,14 +84,12 @@ const Credits = () => {
           <CircularProgress size={32} className="sm:size-40" />
         </div>
 
-        <Card className="w-full shadow-sm border-opacity-50">
-          <CardHeader className="p-3 sm:p-4">
-            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-              <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-              <span>Location Credit Limits</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4">
+        <section className="w-full shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 p-3 sm:p-4">
+            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold">Location Credit Limits</h2>
+          </div>
+          <div className="p-3 sm:p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
               <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
@@ -111,17 +106,15 @@ const Credits = () => {
                 <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card className="w-full shadow-sm border-opacity-50">
-          <CardHeader className="p-3 sm:p-4">
-            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-              <span>{t("Credits_k1")}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4">
+        <section className="w-full shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 p-3 sm:p-4">
+            <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold">{t("Credits_k1")}</h2>
+          </div>
+          <div className="p-3 sm:p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
               <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
@@ -145,17 +138,15 @@ const Credits = () => {
                 <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card className="w-full shadow-sm border-opacity-50">
-          <CardHeader className="p-3 sm:p-4">
-            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-              <span>{t("Credits_k5")}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-3 md:p-6">
+        <section className="w-full shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 p-3 sm:p-4">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold">{t("Credits_k5")}</h2>
+          </div>
+          <div className="p-0 sm:p-3 md:p-6">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -193,27 +184,25 @@ const Credits = () => {
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </main>
     )
   }
 
   return (
     <main className="w-full flex flex-col items-start p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 md:space-y-6">
-      <Card className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border-opacity-50 transition-all hover:shadow-md">
-        <CardHeader className="p-3 sm:p-4">
-          <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-            <span className="text-sm sm:text-base md:text-lg">Location Credit Overview</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-4">
+      <section className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
+        <div className="flex items-center gap-2 p-3 sm:p-4">
+          <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold">{t("Credits_k11")}</h2>
+        </div>
+        <div className="p-3 sm:p-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-                Credit Limit
+                {t("Credits_k12")}
               </p>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
                 {locationData ? formatCurrency(locationData.credit_limit) : "$0.00"}
@@ -222,7 +211,7 @@ const Credits = () => {
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                Current Balance
+                {t("Credits_k13")}
               </p>
               <p className={`text-lg sm:text-xl md:text-2xl font-bold mt-1 sm:mt-2 ${
                 locationData?.balance && locationData.balance < 0 
@@ -233,22 +222,20 @@ const Credits = () => {
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border-opacity-50 transition-all hover:shadow-md">
-        <CardHeader className="p-3 sm:p-4">
-          <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-            <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-            <span className="text-sm sm:text-base md:text-lg">Patients Credits Overview</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-4">
+      <section className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
+        <div className="flex items-center gap-2 p-3 sm:p-4">
+          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold">{t("Credits_k15")}</h2>
+        </div>
+        <div className="p-3 sm:p-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                Total Patients Credit
+                {t("Credits_k16")}
               </p>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
                 {formatCurrency(totalAmount)}
@@ -257,7 +244,7 @@ const Credits = () => {
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                Total Patients
+                {t("Credits_k3")}
               </p>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
                 {credits.length}
@@ -266,33 +253,31 @@ const Credits = () => {
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-                Average Credit
+                {t("Credits_k17")}
               </p>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
                 {formatCurrency(totalAmount / (credits.length || 1))}
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="w-full dark:bg-[#0e1725] dark:border-[#172945] shadow-sm border-opacity-50 transition-all hover:shadow-md">
-        <CardHeader className="p-3 sm:p-4">
-          <CardTitle className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
-            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-            <span className="text-sm sm:text-base md:text-lg">Individual Credits</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-3 md:p-6">
+      <section className="w-full dark:bg-[#0e1725] dark:border-[#172945] shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
+        <div className="flex items-center gap-2 p-3 sm:p-4">
+          <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold">{t("Credits_k5")}</h2>
+        </div>
+        <div className="p-0 sm:p-3 md:p-6">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-[#0e1725] border-t border-x rounded-lg border-gray-200 dark:border-[#172945]">
-                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">Credit ID</TableHead>
-                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">Patient Name</TableHead>
-                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">Contact</TableHead>
-                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">Balance</TableHead>
-                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">Date</TableHead>
+                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">{t("Credits_k6")}</TableHead>
+                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">{t("Credits_k7")}</TableHead>
+                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">{t("Credits_k8")}</TableHead>
+                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">{t("Credits_k9")}</TableHead>
+                  <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">{t("Credits_k10")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -345,8 +330,8 @@ const Credits = () => {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </main>
   )
 }

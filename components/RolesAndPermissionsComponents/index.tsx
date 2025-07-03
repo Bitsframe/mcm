@@ -69,7 +69,7 @@ const SingleRoleHandle = ({
     <>
       {/* Desktop Table Row */}
       <TableRow
-        className={`hidden md:table-row hover:bg-gray-200 border dark:border-[#172945] dark:hover:bg-gray-700 ${
+        className={`hidden md:table-row border dark:border-[#172945] ${
           selectedRole.id === data.id ? "bg-gray-200 dark:bg-[#0E1725]" : ""
         }`}
       >
@@ -100,7 +100,7 @@ const SingleRoleHandle = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                  className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
                   onClick={handleSelectRole}
                 >
                   <Eye size={16} color="gray" />
@@ -110,7 +110,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                      className="text-red-600 dark:text-red-400 h-8 w-8 hover:bg-transparent"
                       onClick={() => deleteRoleHandle(data.id)}
                     >
                       <Trash2 size={16} color="red" />
@@ -118,7 +118,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                      className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
                       onClick={() => editHandle(data.id)}
                     >
                       <PenBoxIcon size={16} color="blue" />
@@ -163,7 +163,7 @@ const SingleRoleHandle = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                  className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
                   onClick={handleSelectRole}
                 >
                   <Eye size={16} color="gray" />
@@ -173,7 +173,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-600 hover:text-red-400 dark:text-red-400 dark:hover:text-red-300 h-8 w-8"
+                      className="text-red-600 dark:text-red-400 h-8 w-8 hover:bg-transparent"
                       onClick={() => deleteRoleHandle(data.id)}
                     >
                       <Trash2 size={16} color="red" />
@@ -181,7 +181,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 h-8 w-8"
+                      className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
                       onClick={() => editHandle(data.id)}
                     >
                       <PenBoxIcon size={16} color="blue" />
@@ -328,7 +328,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             <div className="w-full sm:w-auto">
               <button
                 onClick={() => toggleActivateAddNewRoleHandle(true)}
-                className="bg-[#0066ff] hover:bg-[#0055cc] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="bg-[#0066ff] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <CirclePlus className="h-4 w-4" />
                 {t("RP_k6")}
@@ -403,7 +403,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   variant="outline"
                   onClick={goToPrevPage}
                   disabled={currentPage === 1}
-                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827]"
+                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827] hover:bg-white dark:hover:bg-[#111827]"
                 >
                   {t("RP_k10")}
                 </Button>
@@ -412,7 +412,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   variant="outline"
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827]"
+                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827] hover:bg-white dark:hover:bg-[#111827]"
                 >
                   Next
                 </Button>
@@ -435,7 +435,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             {selectedRoleDetails && (
               <>
                 <div className="grid gap-2">
-                  <Label className="dark:text-white">{t("RP_k16")}</Label>
+                  <Label className="dark:text-white">Select roles</Label>
                   <div className="space-y-3 p-4 dark:bg-[#111827]">
                     {permissions.map((perm: any) => (
                       <div
@@ -544,7 +544,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   setNewRolePermissions({});
                   toggleActivateAddNewRoleHandle(false);
                 }}
-                className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+                className="dark:border-gray-600 dark:text-white dark:hover:bg-[#111827]"
               >
                 {t("RP_k4")}
               </Button>
@@ -552,7 +552,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 type="submit"
                 onClick={handleCreateRole}
                 disabled={newAddLoading || !newRoleName.trim()}
-                className="dark:bg-blue-700 dark:hover:bg-blue-800"
+                className="dark:bg-blue-700"
               >
                 {newAddLoading ? <CircularProgress size={20} /> : t("RP_k5")}
               </Button>

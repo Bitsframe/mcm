@@ -226,7 +226,7 @@ const UserManagementComponent = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 py-3 dark:bg-[#0E1725]">
+    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-3 dark:bg-[#0E1725]">
       <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
         {/* Heading Section */}
         <div className="p-1 sm:px-3">
@@ -433,7 +433,7 @@ const UserManagementComponent = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center py-4 text-sm dark:text-white">
+          <div className="flex justify-between items-center pt-4 text-sm dark:text-white">
             <div className="text-gray-500 dark:text-gray-300">
               {dataList.length > 0
                 ? `${

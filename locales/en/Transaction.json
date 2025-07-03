@@ -1,0 +1,10 @@
+{
+    "Transaction_k1": "Transactions",
+    "Transaction_k2": "Transaction",
+    "Transaction_k3": "Date",
+    "Transaction_k4": "Amount",
+    "Transaction_k5": "Treatment Type",
+    "Transaction_k6": "Balance",
+    "Transaction_k7": "Select Patient",
+    "Transaction_k8": "No transactions found"
+}

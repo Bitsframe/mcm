@@ -149,16 +149,16 @@ const Page = () => {
   
   const modal_titles: any = {
     create: {
-      modalLabel: t("Procode_k24"),
+      modalLabel: "Add Promocode",
       button: {
-        label: t("Procode_k24"),
+        label: "Add Promocode",
         color: "blue",
       },
     },
     edit: {
-      modalLabel: t("Procode_k25"),
+      modalLabel: "Edit Promocode",
       button: {
-        label: t("Procode_k25"),
+        label: "Edit Promocode",
         color: "blue",
       },
     },
