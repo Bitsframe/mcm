@@ -521,16 +521,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
-        <div className="relative w-full sm:w-72 border rounded-lg dark:border-gray-700">
+        <div className="relative w-full sm:w-72 rounded-lg">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <input
             onChange={handleSearch}
             value={searchTerm}
             type="text"
             placeholder={t("Patients_k3")}
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-[#0E1725] dark:text-white dark:placeholder-gray-400"
+            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
           />
         </div>
+
         <Button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800 whitespace-nowrap shrink-0"
@@ -923,7 +924,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                                 {deleteLoading === patient.id ? (
                                   <Spinner size="sm" />
                                 ) : (
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" color="red" />
                                 )}
                                 <span className="sr-only">Delete</span>
                               </Button>
@@ -1076,7 +1077,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           }
         }}
       >
-        <SheetContent className="dark:bg-gray-900 m-0 sm:m-3 rounded-xl w-full sm:max-w-md">
+        <SheetContent className="dark:bg-gray-900 m-0 sm:m-3 rounded-xl">
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10 dark:border-gray-700">
               <h3 className="text-xl font-semibold dark:text-white">
@@ -1109,14 +1110,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </ScrollArea>
             )}
             <div className="flex gap-2 mb-5">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium w-20 px-3 py-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium w-20 px-3 py-1 rounded-lg"
               >
                 {t("Patients_k8")}
-              </Button>
+              </button>
             </div>
           </div>
         </SheetContent>
@@ -1240,15 +1239,15 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             setFormData({ ...formData, treatmenttype: value })
           }
         >
-          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white">
-            <SelectValue placeholder="Select treatment type" />
+          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white">
+            <SelectValue placeholder="Select treatment type" className="text-gray-900 dark:text-white" />
           </SelectTrigger>
           <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
             {serviceList.map((service) => (
               <SelectItem
                 key={service.title}
                 value={service.title}
-                className="dark:hover:bg-gray-700 dark:text-white"
+                className="text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 hover:bg-gray-200"
               >
                 {service.title}
               </SelectItem>

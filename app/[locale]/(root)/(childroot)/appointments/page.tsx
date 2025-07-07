@@ -402,7 +402,7 @@ const AppointmentDetailsPanel = ({
           }
         }}
       >
-        <SheetContent className="p-0 dark:bg-gray-900 m-0 sm:m-3 rounded-xl w-[95vw] sm:max-w-md overflow-y-auto overflow-x-hidden">
+        <SheetContent className="p-0 dark:bg-gray-900 m-0 sm:m-3 rounded-xl overflow-y-auto overflow-x-hidden">
           <SheetTitle className="sr-only">
             {appointmentDetails
               ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`

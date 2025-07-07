@@ -127,7 +127,7 @@ export const routeList: Route[] = [
   {
     id: 'transactions',
     name: "transactions",
-    label: "Transactions",
+    label: "Sidebar_k27",
     icon: FaReceipt,
     route: ROUTES.TRANSACTIONS,
   },
