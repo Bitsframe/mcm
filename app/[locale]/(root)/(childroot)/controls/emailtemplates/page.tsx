@@ -399,7 +399,7 @@ const EmailTemplates = () => {
   };
 
   return (
-    <div className="relative z-[51] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900 p-4">
+    <div className="relative z-[51] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">

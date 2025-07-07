@@ -500,7 +500,7 @@ const Products = () => {
 
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-1 rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>{t("Inventory_k26")}</span>
@@ -508,7 +508,7 @@ const Products = () => {
             </div>
 
             <div className="text-sm text-gray-500 flex items-center justify-start w-full sm:w-auto">
-              <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-[#122136]">
                 <button
                   onClick={handleActiveClick}
                   className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
@@ -802,7 +802,7 @@ const Products = () => {
                   <button 
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
                     
                     {t("Inventory_k23")}
@@ -810,7 +810,7 @@ const Products = () => {
                   <button 
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
                     {t("Inventory_k22")}
                   </button>
@@ -835,8 +835,8 @@ const Products = () => {
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
         {modalState === modalStateEnum.ASSIGN ? (
-          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
-            <div className="col-span-2 space-y-2">
+          <div className="w-full grid grid-cols-2 h-[300px] gap-4 dark:bg-[#0e1725]">
+            <div className="col-span-2 space-y-2" >
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("Inventory_k29")}

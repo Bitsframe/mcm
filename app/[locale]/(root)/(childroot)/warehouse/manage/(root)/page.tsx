@@ -201,7 +201,7 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm p-1 space-x-1 flex items-center justify-start rounded-lg bg-[#F1F4F7] dark:bg-[#080e16]">
+      <div className="text-sm p-1 space-x-1 flex items-center justify-start rounded-lg bg-[#F1F4F7] dark:bg-[#122136]">
         <button
           onClick={handleActiveClick}
           className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
@@ -277,7 +277,7 @@ const Categories = () => {
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("Inventory_k4")}
-                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-gray-800 border-2 border-gray-600 focus:border-blue-600 text-white"
+                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-[#122136] border-2 border-gray-600 focus:border-blue-600 text-white"
                   />
                 </div>
                 <button
@@ -297,91 +297,98 @@ const Categories = () => {
           <div className="px-3 pt-5">
             <div className="border rounded-md border-gray-300 dark:border-gray-700">
               <div className="hidden md:block overflow-x-auto">
-                <Table className="min-w-full">
-                  <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700">
-                    <TableRow className="flex hover:bg-transparent">
-                      <TableHead className="w-12 p-3">
-                        {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
-                      </TableHead>
-                      {tableHeader.map(({ label, align }, index) => (
-                        <TableHead
-                          key={index}
-                          className={`flex-1 ${
-                            align || "text-start"
-                          } text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
-                        >
-                          {t(label)}
+                <div className="min-h-[45dvh] max-h-[45dvh] overflow-y-auto">
+                  <Table className="min-w-full">
+                    <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700 sticky top-0 z-10">
+                      <TableRow className="flex hover:bg-transparent">
+                        <TableHead className="w-12 p-3">
                         </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
+                        {tableHeader.map(({ label, align }, index) => (
+                          <TableHead
+                            key={index}
+                            className={`flex-1 ${
+                              align || "text-start"
+                            } text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+                          >
+                            {t(label)}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
 
-                  <TableBody className="mb-4 bg-white dark:bg-[#0e1725]">
-                    {loading ? (
-                      <TableRow className="flex h-full">
-                        <TableCell className="h-[60dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
-                          <Spinner size="xl" />
-                        </TableCell>
-                      </TableRow>
-                    ) : dataList.length === 0 ? (
-                      <TableRow className="flex h-full">
-                        <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
-                          <h1 className="text-gray-700 dark:text-white">
-                            No Category is available
-                          </h1>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      currentPageData.map((elem, index) => (
-                        <TableRow
-                          key={index}
-                          className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
-                        >
-                          <TableCell className="w-12 p-0">
-                            {/* <Checkbox className="border-gray-400 dark:border-gray-600 checked:bg-blue-600 checked:border-blue-600" /> */}
+                    <TableBody className="bg-white dark:bg-[#0e1725]">
+                      {loading ? (
+                        <TableRow className="flex h-[45dvh]">
+                          <TableCell
+                            colSpan={tableHeader.length + 1}
+                            className="w-full flex items-center justify-center bg-white dark:bg-[#0e1725]"
+                          >
+                            <Spinner size="xl" />
                           </TableCell>
-                          {tableHeader.map(
-                            ({ id, Render_Value, align }, ind) => {
-                              const content = Render_Value ? (
-                                <Render_Value
-                                  getDataArchiveType={getDataArchiveType}
-                                  isLoading={deleteLoading}
-                                  onClickHandle={() =>
-                                    onClickHandle(elem.category_id)
-                                  }
-                                />
-                              ) : (
-                                <span className="text-gray-800 dark:text-white">
-                                  {elem[id]}
-                                </span>
-                              );
-
-                              return (
-                                <TableCell
-                                  key={ind}
-                                  className={`flex-1 ${
-                                    align || "text-start"
-                                  } text-base p-0 text-gray-800 dark:text-white`}
-                                >
-                                  {content}
-                                </TableCell>
-                              );
-                            }
-                          )}
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : dataList.length === 0 ? (
+                        <TableRow className="flex h-[45dvh]">
+                          <TableCell
+                            colSpan={tableHeader.length + 1}
+                            className="w-full flex items-center justify-center bg-white dark:bg-[#0e1725]"
+                          >
+                            <h1 className="text-gray-700 dark:text-white">
+                              No Category is available
+                            </h1>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        currentPageData.map((elem, index) => (
+                          <TableRow
+                            key={index}
+                            className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
+                          >
+                            <TableCell className="w-12 p-0">
+                            </TableCell>
+                            {tableHeader.map(
+                              ({ id, Render_Value, align }, ind) => {
+                                const content = Render_Value ? (
+                                  <Render_Value
+                                    getDataArchiveType={getDataArchiveType}
+                                    isLoading={deleteLoading}
+                                    onClickHandle={() =>
+                                      onClickHandle(elem.category_id)
+                                    }
+                                  />
+                                ) : (
+                                  <span className="text-gray-800 dark:text-white">
+                                    {elem[id]}
+                                  </span>
+                                );
+
+                                return (
+                                  <TableCell
+                                    key={ind}
+                                    className={`flex-1 ${
+                                      align || "text-start"
+                                    } text-base p-0 text-gray-800 dark:text-white`}
+                                  >
+                                    {content}
+                                  </TableCell>
+                                );
+                              }
+                            )}
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
 
+              {/* Mobile View */}
               <div className="md:hidden p-4 space-y-4">
                 {loading ? (
-                  <div className="h-[30dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                  <div className="h-[45dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
                     <Spinner size="xl" />
                   </div>
                 ) : dataList.length === 0 ? (
-                  <div className="h-[30dvh] w-full flex flex-col justify-center items-center bg-white dark:bg-[#0e1725]">
+                  <div className="h-[45dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
                     <h1 className="text-gray-700 dark:text-white">
                       No Category is available
                     </h1>
@@ -426,6 +433,7 @@ const Categories = () => {
                 )}
               </div>
 
+              {/* Pagination */}
               <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
                 <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                   Rows {dataList.length === 0 ? 0 : startIndex + 1}-{endIndex}{" "}
@@ -435,22 +443,21 @@ const Categories = () => {
                   <button
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1}
-                    className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
+                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
-                   
                     {t("Inventory_k23")}
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page === totalPages}
-                    className="px-3 py-1 border rounded-md text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50 min-w-[80px]"
+                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
-                     {t("Inventory_k22")}
+                    {t("Inventory_k22")}
                   </button>
                 </div>
               </div>
             </div>
-          </div>  
+          </div>
         </div>
       </div>
 
@@ -475,18 +482,18 @@ const Categories = () => {
       </Custom_Modal>
 
       {activeDeleteId ? (
-        <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-20">
+        <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-50">
           <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-              <h1 className="font-bold text-xl text-white mb-5">
+            <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
+              <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
                 Confirmation
               </h1>
-              <p className="text-lg text-gray-300">
-                Do you really want to{" "}
+              <p className="text-lg text-black dark:text-white">
+                Do you really want to
                 {getDataArchiveType ? "Unarchive" : "Archive"} this category
               </p>
-              <p className="text-sm text-gray-400">
-                Remember All of the associated products will also be{" "}
+              <p className="text-sm text-gray-800 dark:text-white">
+                Remember All of the associated products will also be
                 {getDataArchiveType ? "Unarchive" : "Archive"} with the category
               </p>
 
@@ -495,7 +502,7 @@ const Categories = () => {
                   disabled={deleteLoading}
                   onClick={() => setActiveDeleteId(0)}
                   color="gray"
-                  className="bg-gray-700 text-white hover:bg-gray-600"
+                  className="bg-white text-black"
                 >
                   Cancel
                 </Button>

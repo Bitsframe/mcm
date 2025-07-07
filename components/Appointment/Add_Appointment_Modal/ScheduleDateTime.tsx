@@ -130,19 +130,42 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     <PopoverTrigger asChild>
                         <Button
                             variant={"outline"}
-                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] dark:bg-[#374151] justify-start text-left font-normal"
+                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] dark:bg-[#374151] justify-start text-left font-normal border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {date ? format(date, "MM-dd-yyyy") : <span>Pick a date</span>}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                         <Calendar
                             mode="single"
                             selected={date}
                             onSelect={dateTimeChangeHandle}
                             fromDate={new Date()}
                             initialFocus
+                            className="rounded-md bg-white dark:bg-gray-800"
+                            classNames={{
+                                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                                month: "space-y-4",
+                                caption: "flex justify-center pt-1 relative items-center text-gray-900 dark:text-gray-100",
+                                caption_label: "text-sm font-medium text-gray-900 dark:text-gray-100",
+                                nav: "space-x-1 flex items-center",
+                                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md",
+                                nav_button_previous: "absolute left-1",
+                                nav_button_next: "absolute right-1",
+                                table: "w-full border-collapse space-y-1",
+                                head_row: "flex",
+                                head_cell: "text-gray-500 dark:text-gray-400 rounded-md w-9 font-normal text-[0.8rem]",
+                                row: "flex w-full mt-2",
+                                cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-blue-100 dark:[&:has([aria-selected])]:bg-blue-900 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                day: "h-9 w-9 p-0 font-normal text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md aria-selected:opacity-100",
+                                day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 dark:focus:bg-blue-700",
+                                day_today: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+                                day_outside: "text-gray-400 dark:text-gray-600 opacity-50",
+                                day_disabled: "text-gray-400 dark:text-gray-600 opacity-50",
+                                day_range_middle: "aria-selected:bg-blue-100 dark:aria-selected:bg-blue-900 aria-selected:text-gray-900 dark:aria-selected:text-gray-100",
+                                day_hidden: "invisible"
+                            }}
                         />
                     </PopoverContent>
                 </Popover>

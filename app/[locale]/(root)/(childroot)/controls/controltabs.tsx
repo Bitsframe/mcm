@@ -29,7 +29,7 @@ const TopTabs = () => {
 
   const WebsiteContentMenu = [
     {
-      title: "CT_k1",
+      title: "Reporting Time",
       url: "/",
     },
     {

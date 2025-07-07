@@ -8,7 +8,7 @@ import {
 } from "@/utils/supabase/data_services/data_services"
 import { toast } from "react-toastify"
 import moment from "moment"
-import { DatePicker } from "antd"
+import { DatePicker, ConfigProvider, theme } from "antd"
 import { Add_Appointment_Modal } from "@/components/Appointment/Add_Appointment_Modal"
 import { LocationContext } from "@/context"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -42,6 +42,23 @@ const Appointments = () => {
   const originalUnapprovedRef = useRef<Appointment[]>([])
 
   const { setActiveTitle } = useContext(TabContext)
+
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    setIsDarkMode(document.documentElement.classList.contains('dark'))
+    
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    })
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     setActiveTitle("Sidebar_k7")
@@ -265,12 +282,25 @@ const Appointments = () => {
         <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:items-center md:gap-4 md:justify-between">
           <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 md:gap-4 md:items-center">
             <div className="w-full md:w-56 min-w-0">
-              <DatePicker
-                onChange={filterHandle}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
-                placeholder="Filter by date"
-                suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
-              />
+              <ConfigProvider
+                theme={{
+                  algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+                  token: {
+                    colorBgContainer: isDarkMode ? '#374151' : '#ffffff',
+                    colorText: isDarkMode ? '#ffffff' : '#000000',
+                    colorTextPlaceholder: isDarkMode ? '#9CA3AF' : '#6B7280',
+                    colorBorder: isDarkMode ? '#4B5563' : '#D1D5DB',
+                    colorBgElevated: isDarkMode ? '#374151' : '#ffffff',
+                  },
+                }}
+              >
+                <DatePicker
+                  onChange={filterHandle}
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
+                  placeholder="Filter by date"
+                  suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                />
+              </ConfigProvider>
             </div>
             <div className="flex-shrink-0">
               <Add_Appointment_Modal newAddedRow={newAddedRow} />
