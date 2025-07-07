@@ -42,6 +42,7 @@ const Credits = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
+
         const creditsData: CreditData[] = await fetch_content_service({
           table: "credit_audit",
           selectParam: ", patientData:allpatients(*)",
@@ -51,6 +52,7 @@ const Credits = () => {
         setCredits(creditsData)
         const total = creditsData.reduce((sum: number, credit: CreditData) => sum + credit.balance, 0)
         setTotalAmount(total)
+
 
         const locationResponse = await fetch_content_service({
           table: "Locations",
@@ -119,6 +121,7 @@ const Credits = () => {
               <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                   <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+
                   <span>{t("Credits_k2")}</span>
                 </p>
                 <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
@@ -191,6 +194,7 @@ const Credits = () => {
   }
 
   return (
+
     <main className="w-full flex flex-col items-start p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 md:space-y-6">
       <section className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
         <div className="flex items-center gap-2 p-3 sm:p-4">
@@ -222,23 +226,7 @@ const Credits = () => {
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
-        <div className="flex items-center gap-2 p-3 sm:p-4">
-          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold">{t("Credits_k15")}</h2>
-        </div>
-        <div className="p-3 sm:p-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
-            <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                {t("Credits_k16")}
-              </p>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
-                {formatCurrency(totalAmount)}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">

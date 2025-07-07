@@ -31,7 +31,9 @@ const TransactionsPage = () => {
       try {
         const data = await fetch_content_service({
           table: "allpatients",
-          matchCase: {
+
+          matchCase:{
+
             key: "locationid",
             value: selectedLocation.id,
           }
@@ -128,10 +130,12 @@ const TransactionsPage = () => {
           <div className="font-semibold text-lg mb-1">
             {selectedPatient.firstname} {selectedPatient.lastname}
           </div>
+
           <div className="text-sm text-gray-700 dark:text-gray-300 flex flex-wrap gap-2">
             <span>Phone: {selectedPatient.phone}</span>
             <span>Email: {selectedPatient.email}</span>
             <span>Treatment Type: {selectedPatient.treatmenttype}</span>
+
             <span className={`font-semibold ${creditBalance && creditBalance < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
               Current Balance: {creditBalance && creditBalance < 0 ? '-' : ''}${Math.abs(creditBalance || 0).toFixed(2)}
             </span>
