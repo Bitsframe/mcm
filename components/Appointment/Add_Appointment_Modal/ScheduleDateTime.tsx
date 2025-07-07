@@ -101,7 +101,19 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 <select
                     value={selectedSlot}
                     onChange={(e) => selectSlotHandle(e.target.value)}
-                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-[#f9fafb] dark:bg-[#374151] outline-none rounded-[10px]'
+                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 outline-none rounded-[10px]'
+                    style={{
+                        backgroundColor: document.documentElement.classList.contains('dark') ? '#122136' : '#f1f4f9',
+                        border: 'none',
+                        outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                        const isDark = document.documentElement.classList.contains('dark') || 
+                                       window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        e.target.style.backgroundColor = isDark ? '#122136' : '#f1f4f9';
+                        e.target.style.border = 'none';
+                        e.target.style.outline = 'none';
+                    }}
                     disabled={isClosed}
                 >
                     {isClosed ? (
@@ -130,7 +142,12 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     <PopoverTrigger asChild>
                         <Button
                             variant={"outline"}
-                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg bg-[#f9fafb] dark:bg-[#374151] justify-start text-left font-normal border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg justify-start text-left font-normal hover:bg-gray-50 dark:hover:bg-gray-700"
+                            style={{
+                                backgroundColor: document.documentElement.classList.contains('dark') ? '#122136' : '#f1f4f9',
+                                border: 'none',
+                                outline: 'none'
+                            }}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {date ? format(date, "MM-dd-yyyy") : <span>Pick a date</span>}

@@ -384,7 +384,7 @@ export const Add_Appointment_Modal = ({
                   }
                   value={formData.first_name}
                   placeholder="FirstName"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
               <div className="space-y-2">
@@ -396,7 +396,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("last_name", e)}
                   value={formData.last_name}
                   placeholder="LastName"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
@@ -414,7 +414,7 @@ export const Add_Appointment_Modal = ({
                   type="email"
                   value={formData.email_address}
                   placeholder="Email"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
               <div className="space-y-2">
@@ -426,7 +426,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("phone", e)}
                   value={formData.phone}
                   placeholder="Phone Number"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
@@ -442,7 +442,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("dob", e)}
                   value={formData.dob}
                   placeholder="mm/dd/yyyy"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
 
@@ -474,7 +474,25 @@ export const Add_Appointment_Modal = ({
                   onChange={(e) =>
                     select_change_handle("state", e.target.value)
                   }
-                  className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                  className="text-black dark:text-white"
+                  style={{
+                    backgroundColor:
+                      document.documentElement.classList.contains("dark")
+                        ? "#122136"
+                        : "#f1f4f9",
+                    border: "none",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    const isDark =
+                      document.documentElement.classList.contains("dark") ||
+                      window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    e.target.style.backgroundColor = isDark
+                      ? "#122136"
+                      : "#f1f4f9";
+                    e.target.style.border = "none";
+                    e.target.style.outline = "none";
+                  }}
                 >
                   <option
                     disabled
@@ -502,7 +520,7 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("zipcode", e)}
                   value={formData.zipcode}
                   placeholder="Enter Zipcode"
-                  bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
@@ -518,7 +536,7 @@ export const Add_Appointment_Modal = ({
                 }
                 value={formData.street_address}
                 placeholder="Enter your address with zipcode"
-                bg_color="dark:bg-[#374151] bg-[#f9fafb]"
+                bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
               />
             </div>
 
@@ -533,7 +551,26 @@ export const Add_Appointment_Modal = ({
                 onChange={(e) =>
                   select_change_handle("service", e.target.value)
                 }
-                className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                className="text-black dark:text-white"
+                style={{
+                  backgroundColor: document.documentElement.classList.contains(
+                    "dark"
+                  )
+                    ? "#122136"
+                    : "#f1f4f9",
+                  border: "none",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  const isDark =
+                    document.documentElement.classList.contains("dark") ||
+                    window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  e.target.style.backgroundColor = isDark
+                    ? "#122136"
+                    : "#f1f4f9";
+                  e.target.style.border = "none";
+                  e.target.style.outline = "none";
+                }}
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
                   {t("Appoinments_k28")}

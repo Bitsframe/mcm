@@ -31,14 +31,14 @@ export const Input_Component_Appointment: FC<Props> = ({
                     className={`font-bold break-words ${bg_color}`}
                 />
             )}
-            <div className={`border rounded-lg ${bg_color}`}>
+            <div className={` rounded-lg ${bg_color}`}>
                 <input
                     maxLength={max}
                     placeholder={placeholder}
                     onChange={(e) => onChange(e.target.value)}
                     type={type}
                     required={required}
-                    className={`w-full h-auto rounded-lg py-3 px-3 outline-none
+                    className={`w-full h-auto rounded-lg py-2 px-3 outline-none
                         ${bg_color}`}
                     id="section"
                     value={value}

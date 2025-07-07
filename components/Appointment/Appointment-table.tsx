@@ -86,7 +86,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   }
 
   return (
-    <div className="w-full bg-white rounded-lg shadow overflow-hidden dark:bg-[#0E1725] px-4">
+    <div className="w-full overflow-hidden px-4">
       {appointLoading ? (
         <div className="flex h-40 flex-col justify-center items-center">
           <Spinner size="xl" className="dark:text-white" />
@@ -98,7 +98,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:flex relative flex-col h-[258px] overflow-x-auto rounded-lg">
+          <div className="hidden md:flex relative flex-col h-[260px] overflow-x-auto rounded-lg">
           <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full rounded-lg">
               <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm rounded-lg">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
@@ -160,7 +160,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
 
           {/* Desktop Pagination */}
-          <div className="hidden md:flex p-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-row justify-between items-center gap-2">
+          <div className="hidden md:flex py-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-row justify-between items-center gap-2">
             <span>
               {appointments.length === 0
                 ? "Showing 0 to 0 of 0 results"
@@ -196,7 +196,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
 
           {/* Mobile Pagination */}
-          <div className="md:hidden p-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-row justify-between items-center gap-2">
+          <div className="md:hidden py-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-row justify-between items-center gap-2">
             <span>
               {appointments.length === 0
                 ? `${t("Appoinments_k48")} 0 ${t("Appoinments_k49")} 0`
