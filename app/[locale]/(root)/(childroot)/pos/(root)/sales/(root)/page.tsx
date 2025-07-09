@@ -394,17 +394,31 @@ const Orders = () => {
     return displayedLimit;
   }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
 
-  const finalCredit = useMemo(() => {
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount;
-    return (receivedAmount + cardAmount) - totalDue;
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+  // const finalCredit = useMemo(() => {
+  //   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount;
+  //   return (receivedAmount + cardAmount) - totalDue;
+  // }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+
+const finalCredit = useMemo(() => {
+  const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+  const totalPaid = receivedAmount + cardAmount;
+  return totalDue - totalPaid; // This is the new balance (amount owed)
+}, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+
 
   // Calculate credit used
+  // const creditUsed = useMemo(() => {
+  //   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+  //   const paid = receivedAmount + cardAmount;
+  //   return Math.max(0, totalDue - paid);
+  // }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+  const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
   const creditUsed = useMemo(() => {
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
     const paid = receivedAmount + cardAmount;
-    return Math.max(0, totalDue - paid);
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+    return Math.max(0, subtotal - paid);
+  }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+
+
 
   // Handler to add balance
   const handleAddBalance = async () => {
@@ -745,7 +759,7 @@ const Orders = () => {
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Sub total
+                  Product Total
                 </h1>
                 <p className="text-xs">
                   ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
@@ -764,7 +778,8 @@ const Orders = () => {
                   Sub total
                 </h1>
                 <p className="text-xs">
-                  ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
+                  {/* ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)} */}
+                  ${(grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount).toFixed(2)}
                 </p>
               </div>
 
