@@ -753,7 +753,7 @@ const Orders = () => {
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Patient Credit
+                  Patient Balance
                 </h1>
                 <p className="text-xs">
                   {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
