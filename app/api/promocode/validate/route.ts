@@ -50,10 +50,6 @@ export const POST = async (req: Request) => {
             matchCase: { key: 'promocodeid', value: promocodeId },
         });
 
-        // Logging for debugging
-        console.log('Promo Code ID ---------------------------->:', promocodeId);
-        console.log('Promo Usage Data ---------------------------->:', promoUsage);
-
         const hasBeenUsed = promoUsage.some(usage => usage.patientid === Number(patientid)); // Ensure type matching
         if (hasBeenUsed) {
             return NextResponse.json(

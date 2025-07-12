@@ -59,5 +59,5 @@ const handler = async (req: Request): Promise<Response> => {
     });
   }
 }
-
+// @ts-ignore
 Deno.serve(handler);

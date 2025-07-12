@@ -29,6 +29,7 @@ import { Archive, CirclePlus, RefreshCcw, ShieldCheck } from "lucide-react";
 import LocationModal from "@/components/UserManagementComponents/LocationModal";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import axios from "axios";
+import { TransferUnits } from "@/components/Inventory/TransferUnits";
 
 interface DataListInterface {
   [key: string]: any;
@@ -175,6 +176,7 @@ const Products = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const calculateTotalAssigned = useCallback(() => {
     if (!assignModalData.location_ids?.length || !assignModalData.quantity)
@@ -497,13 +499,19 @@ const Products = () => {
                 placeholder={t("Inventory_k20")}
                 className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#f1f4f9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
               />
-
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
                 <span>{t("Inventory_k26")}</span>
+              </button>
+              <button
+                onClick={() => setTransferModalOpen(true)}
+                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-green-600 hover:bg-green-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-green-700 dark:hover:bg-green-800 mt-2 sm:mt-0"
+              >
+                <CirclePlus className="w-6 h-6" />
+                <span>Transfer Units</span>
               </button>
             </div>
 
@@ -1043,6 +1051,12 @@ const Products = () => {
           </div>
         </div>
       ) : null}
+
+      <TransferUnits
+        open={transferModalOpen}
+        onClose={() => setTransferModalOpen(false)}
+        onTransferSuccess={() => fetch_handle(getDataArchiveType)}
+      />
     </main>
   );
 };
