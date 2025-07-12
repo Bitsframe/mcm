@@ -208,6 +208,8 @@ const [cardInput, setCardInput] = useState("0");
   const [payWithCash, setPayWithCash] = useState(true);
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountInput, setDiscountInput] = useState<string | number>(appliedDiscount);
 
   const router = useRouter();
 
@@ -330,7 +332,10 @@ const [cardInput, setCardInput] = useState("0");
     try {
       setPlaceOrderLoading(true);
       setIsBalanceLoading(true);
+  
       if (!selectedPatient || !cartArray.length) return;
+  
+      // Step 1: Place the order
       const { data } = await axios.post('/api/orders', {
         patient_id: selectedPatient.id,
         cartArray,
@@ -343,6 +348,8 @@ const [cardInput, setCardInput] = useState("0");
         selectedPatient,
         selectedLocation,
       });
+  
+      // Step 2: Show success toast
       toast.success(data.message, {
         style: {
           background: "white",
@@ -350,17 +357,38 @@ const [cardInput, setCardInput] = useState("0");
           border: "1px solid var(--border)",
         },
       });
+  
+      // Step 3: Wait briefly
       await new Promise(resolve => setTimeout(resolve, 2000));
+  
+      // Step 4: Update Locations.balance in DB using displayedBalanceLimit logic
+      const newBalance = Number((selectedLocation.balance - creditUsed).toFixed(2));
+  
+      await update_content_service({
+        table: "Locations",
+        post_data: {
+          id: selectedLocation.id,
+          balance: newBalance,
+        },
+      });
+  
+      // Step 5: Optionally update local state immediately
+      selectedLocation.balance = newBalance;
+  
+      // Step 6: Refresh updated balance from DB (if needed)
       const response = await fetch_content_service({
         table: "Locations",
         matchCase: [{ key: "id", value: selectedLocation.id }],
-        selectParam: "balance,credit_limit"
+        selectParam: "balance,credit_limit",
       });
+  
       const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
       if (updatedLocation && updatedLocation.length > 0) {
         selectedLocation.balance = updatedLocation[0].balance;
         selectedLocation.credit_limit = updatedLocation[0].credit_limit;
       }
+  
+      // Step 7: Reset form state
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
@@ -380,6 +408,10 @@ const [cardInput, setCardInput] = useState("0");
       setIsBalanceLoading(false);
     }
   };
+  
+
+
+
 
   const applyDiscountHandle = (
     codeData: PromoCodeDataInterface | null,
@@ -395,45 +427,24 @@ const [cardInput, setCardInput] = useState("0");
     setActiveTitle("Sidebar_k19");
   }, []);
 
-  // // Calculate displayedBalanceLimit whenever relevant state changes
-  // const displayedBalanceLimit = React.useMemo(() => {
-  //   // Ensure selectedLocation and its balance are available
-  //   if (!selectedLocation || selectedLocation.balance === undefined) {
-  //     return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
-  //   }
 
-    
-  //   const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
-  //   const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
-  //   const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
-    
-  //   return Math.min(selectedLocation.credit_limit, Math.max(0, displayedLimit));
 
-  // }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
-  // console.log("🧮 displayedBalanceLimit:", displayedBalanceLimit);
 
   const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
-  console.log("🔢 Subtotal:", subtotal);
+ 
+  const creditUsed = useMemo(() => {
+    const paid = receivedAmount + cardAmount;
+
+    // If no payment has been entered, return 0
+    if (paid === 0) return 0;
+
+    // Calculate remaining unpaid amount (i.e. needed credit)
+    const rawCreditNeeded = subtotal - paid;
   
+    // Don't allow negative credit used
+    return Math.max(0, rawCreditNeeded);
+  }, [receivedAmount, cardAmount, subtotal]);
   
-const creditUsed = useMemo(() => {
-  const paid = receivedAmount + cardAmount;
-  const rawCreditNeeded = subtotal - paid;
-
-  // ✅ Use actual available balance from DB (not predictive)
-  const availableCredit = Math.max(0, selectedLocation?.balance ?? 0);
-
-  const result = Math.min(Math.max(0, rawCreditNeeded), availableCredit);
-
-  console.log("🧮 Subtotal:", subtotal);
-  console.log("💵 Paid (Cash + Card):", paid);
-  console.log("📉 Raw Credit Needed:", rawCreditNeeded);
-  console.log("✅ Available Credit (from DB):", availableCredit);
-  console.log("📌 Final Credit Used:", result);
-
-  return result;
-}, [receivedAmount, cardAmount, subtotal, selectedLocation]);
-
 
 
 
@@ -790,16 +801,99 @@ const finalCredit = useMemo(() => {
                 applyDiscountHandle={applyDiscountHandle}
               />
 
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Discount %
-                </h1>
-                <p className="text-xs">
-                  {appliedDiscount
-                    ? `-${grandTotalHandle(cartArray, appliedDiscount).discountAmount.toFixed(2)}`
-                    : "NILL"}
-                </p>
-              </div>
+
+
+      <div className="flex items-center justify-between">
+  <h1 className="text-xs text-gray-700 dark:text-gray-300">Discount %</h1>
+  <div className="flex items-center gap-2">
+    <p className="text-xs">
+      {appliedDiscount
+        ? `-${grandTotalHandle(cartArray, appliedDiscount).discountAmount.toFixed(2)} (${appliedDiscount}%)`
+        : "NILL"}
+    </p>
+    <button
+      className={`text-xs px-2 py-0.5 rounded ${
+        cartArray.length === 0
+          ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+          : 'bg-blue-500 text-white'
+      }`}
+      disabled={cartArray.length === 0}
+      onClick={() => setIsDiscountModalOpen(true)}
+    >
+      Apply
+    </button>
+  </div>
+</div>
+
+
+      {isDiscountModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-56 flex flex-col justify-between">
+      <div>
+        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+          Enter Discount % (0 - 100)
+        </h2>
+        <input
+  type="number"
+  min="0"
+  max="100"
+  step="1"
+  value={discountInput}
+  onChange={(e) => {
+    const value = e.target.value;
+    // Allow empty string to show placeholder, else parse number
+    if (value === "") {
+      setDiscountInput("");
+    } else {
+      const num = Number(value);
+      if (!isNaN(num)) {
+        setDiscountInput(num);
+      }
+    }
+  }}
+  placeholder="Enter % of discount"
+  className="w-full p-2 border rounded focus:outline-none text-sm text-black dark:text-white dark:bg-[#122136] appearance-auto"
+/>
+
+
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <button
+          className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
+          onClick={() => setIsDiscountModalOpen(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+          onClick={() => {
+            const numValue = typeof discountInput === 'string' ? parseFloat(discountInput) : discountInput;
+            if (numValue >= 0 && numValue <= 100) {
+              setAppliedDiscount(numValue);
+              setIsDiscountModalOpen(false);
+            } else {
+              toast.error("Discount must be between 0 and 100%");
+            }
+          }}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
+
+
+
+
+
+
+
+
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   Product Total
@@ -855,25 +949,22 @@ const finalCredit = useMemo(() => {
 
               {payWithCash && (
   <div className="flex items-center justify-between mt-1">
-    <h1 className="text-xs text-gray-700 dark:text-gray-300">
-      Cash Amount
-    </h1>
+    <h1 className="text-xs text-gray-700 dark:text-gray-300">Cash Amount</h1>
     <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
       <input
         type="text"
         value={cashInput}
         onChange={(e) => {
           const raw = e.target.value;
-      
-          // Allow only digits and optional decimal
-          if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
-            const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
+          // Only allow numbers and decimal (no letters)
+          if (/^\d*\.?\d*$/.test(raw)) {
+            const normalized = raw.replace(/^0+(?!\.)/, '') || '';
             setCashInput(normalized);
             setReceivedAmount(parseFloat(normalized) || 0);
-          }}}
+          }
+        }}
+        placeholder="Enter your amount"
         className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-        placeholder="0.00"
-        step="0.01"
       />
     </div>
   </div>
@@ -881,31 +972,27 @@ const finalCredit = useMemo(() => {
 
 {payWithCard && (
   <div className="flex items-center justify-between mt-1">
-    <h1 className="text-xs text-gray-700 dark:text-gray-300">
-      Card Amount
-    </h1>
+    <h1 className="text-xs text-gray-700 dark:text-gray-300">Card Amount</h1>
     <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
       <input
         type="text"
         value={cardInput}
         onChange={(e) => {
-    const raw = e.target.value;
+          const raw = e.target.value;
+          // Only allow numbers and decimal (no letters)
+          if (/^\d*\.?\d*$/.test(raw)) {
+            const normalized = raw.replace(/^0+(?!\.)/, raw === '0' ? '0' : '');
 
-    // Allow only digits and optional decimal
-    if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
-      const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
-      setCardInput(normalized);
-      setCardAmount(parseFloat(normalized) || 0);
-    }
-  }}
+            setCardInput(normalized);
+            setCardAmount(parseFloat(normalized) || 0);
+          }
+        }}
+        placeholder="Enter your amount"
         className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-        placeholder="0.00"
-        step="0.01"
       />
     </div>
   </div>
 )}
-
 
               <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
