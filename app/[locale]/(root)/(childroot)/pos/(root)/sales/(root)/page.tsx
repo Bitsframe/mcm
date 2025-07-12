@@ -79,6 +79,13 @@ const grandTotalHandle = (cart: any[], discount = 0): { amount: number; discount
   };
 };
 
+
+
+
+
+
+
+
 const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
@@ -168,6 +175,11 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
 const Orders = () => {
   const { categories } = useCategoriesClinica(true);
   const { selectedLocation } = useContext(LocationContext);
+
+  // Add these at the top (state hooks):
+const [cashInput, setCashInput] = useState("0");
+const [cardInput, setCardInput] = useState("0");
+
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const {
@@ -298,6 +310,7 @@ const Orders = () => {
     }
   };
 
+  
   const controllProductQtyHandle = (
     product_id: number,
     qty: number,
@@ -382,22 +395,58 @@ const Orders = () => {
     setActiveTitle("Sidebar_k19");
   }, []);
 
-  // Calculate displayedBalanceLimit whenever relevant state changes
-  const displayedBalanceLimit = React.useMemo(() => {
-    // Ensure selectedLocation and its balance are available
-    if (!selectedLocation || selectedLocation.balance === undefined) {
-      return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
-    }
-    const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
-    const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
-    return displayedLimit;
-  }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
+  // // Calculate displayedBalanceLimit whenever relevant state changes
+  // const displayedBalanceLimit = React.useMemo(() => {
+  //   // Ensure selectedLocation and its balance are available
+  //   if (!selectedLocation || selectedLocation.balance === undefined) {
+  //     return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
+  //   }
 
-  // const finalCredit = useMemo(() => {
-  //   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount;
-  //   return (receivedAmount + cardAmount) - totalDue;
-  // }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+    
+  //   const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+  //   const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
+  //   const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
+    
+  //   return Math.min(selectedLocation.credit_limit, Math.max(0, displayedLimit));
+
+  // }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
+  // console.log("🧮 displayedBalanceLimit:", displayedBalanceLimit);
+
+  const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
+  console.log("🔢 Subtotal:", subtotal);
+  
+  
+const creditUsed = useMemo(() => {
+  const paid = receivedAmount + cardAmount;
+  const rawCreditNeeded = subtotal - paid;
+
+  // ✅ Use actual available balance from DB (not predictive)
+  const availableCredit = Math.max(0, selectedLocation?.balance ?? 0);
+
+  const result = Math.min(Math.max(0, rawCreditNeeded), availableCredit);
+
+  console.log("🧮 Subtotal:", subtotal);
+  console.log("💵 Paid (Cash + Card):", paid);
+  console.log("📉 Raw Credit Needed:", rawCreditNeeded);
+  console.log("✅ Available Credit (from DB):", availableCredit);
+  console.log("📌 Final Credit Used:", result);
+
+  return result;
+}, [receivedAmount, cardAmount, subtotal, selectedLocation]);
+
+
+
+
+  const displayedBalanceLimit = React.useMemo(() => {
+    if (!selectedLocation || selectedLocation.balance === undefined) {
+      return 0;
+    }
+  
+    return Math.max(0, selectedLocation.balance - creditUsed);
+  }, [selectedLocation, creditUsed]);
+  
+
+
 
 const finalCredit = useMemo(() => {
   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
@@ -412,12 +461,6 @@ const finalCredit = useMemo(() => {
   //   const paid = receivedAmount + cardAmount;
   //   return Math.max(0, totalDue - paid);
   // }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
-  const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
-  const creditUsed = useMemo(() => {
-    const paid = receivedAmount + cardAmount;
-    return Math.max(0, subtotal - paid);
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
-
 
 
   // Handler to add balance
@@ -434,18 +477,18 @@ const finalCredit = useMemo(() => {
       let newBalance = addAmount;
       let creditAuditId = null;
       if (data && data.length > 0) {
-        newBalance = Number(data[0].balance) + Number(addAmount);
+        newBalance = Number(data[0].balance) - Number(addAmount);
         creditAuditId = data[0].id;
         // Update existing
         await update_content_service({
           table: "credit_audit",
-          post_data: { id: creditAuditId, balance: newBalance },
+          post_data: { id: creditAuditId, balance:  newBalance },
         });
       } else {
         // Insert new
         await create_content_service({
           table: "credit_audit",
-          post_data: { patient_id: selectedPatient.id, balance: newBalance },
+          post_data: { patient_id: selectedPatient.id, balance:  newBalance },
         });
       }
       // Add to transaction_history
@@ -454,7 +497,7 @@ const finalCredit = useMemo(() => {
         post_data: {
           patient_id: selectedPatient.id,
           amount: addAmount,
-          balance: creditAmount,
+          balance: creditUsed,
           type: "topup",
         },
       });
@@ -514,7 +557,7 @@ const finalCredit = useMemo(() => {
                     Title="Add Balance"
                     buttonLabel="Add"
                     submit_button_color="blue"
-                    disabled={addBalanceLoading || !addAmount}
+                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
                   >
                     <div>
                       <div className="mb-4">
@@ -542,7 +585,7 @@ const finalCredit = useMemo(() => {
                           `}
                         >
                           
-                            { (creditAmount + (addAmount || 0)).toFixed(2) }
+                          { Math.max(0, creditAmount - (addAmount || 0)).toFixed(2) }
                         </div>
                       </div>
                     </div>
@@ -811,39 +854,58 @@ const finalCredit = useMemo(() => {
               </div>
 
               {payWithCash && (
-                <div className="flex items-center justify-between mt-1">
-                  <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                    Cash Amount
-                  </h1>
-                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
-                    <input
-                      type="number"
-                      value={receivedAmount}
-                      onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
-                      className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-                      placeholder="0.00"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              )}
-              {payWithCard && (
-                <div className="flex items-center justify-between mt-1">
-                  <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                    Card Amount
-                  </h1>
-                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
-                    <input
-                      type="number"
-                      value={cardAmount}
-                      onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
-                      className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-                      placeholder="0.00"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              )}
+  <div className="flex items-center justify-between mt-1">
+    <h1 className="text-xs text-gray-700 dark:text-gray-300">
+      Cash Amount
+    </h1>
+    <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
+      <input
+        type="text"
+        value={cashInput}
+        onChange={(e) => {
+          const raw = e.target.value;
+      
+          // Allow only digits and optional decimal
+          if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
+            const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
+            setCashInput(normalized);
+            setReceivedAmount(parseFloat(normalized) || 0);
+          }}}
+        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+        placeholder="0.00"
+        step="0.01"
+      />
+    </div>
+  </div>
+)}
+
+{payWithCard && (
+  <div className="flex items-center justify-between mt-1">
+    <h1 className="text-xs text-gray-700 dark:text-gray-300">
+      Card Amount
+    </h1>
+    <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
+      <input
+        type="text"
+        value={cardInput}
+        onChange={(e) => {
+    const raw = e.target.value;
+
+    // Allow only digits and optional decimal
+    if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
+      const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
+      setCardInput(normalized);
+      setCardAmount(parseFloat(normalized) || 0);
+    }
+  }}
+        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+        placeholder="0.00"
+        step="0.01"
+      />
+    </div>
+  </div>
+)}
+
 
               <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
@@ -864,22 +926,36 @@ const finalCredit = useMemo(() => {
               </div>
 
               <div className="flex justify-end pt-0.5">
-                <button
-                  onClick={placeOrderHandle}
-                  disabled={!cartArray.length || displayedBalanceLimit < 0}
-                  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
-                >
-                  {placeOrderLoading ? (
-                    <CircularProgress size={14} color="secondary" />
-                  ) : (
-                    <>
-                      <span className="font-medium">
-                        {`$${totalPaid.toFixed(2)}`}
-                      </span>
-                      <PiCaretCircleRightFill size={16} />
-                    </>
-                  )}
-                </button>
+                    <button
+        onClick={placeOrderHandle}
+        disabled={!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal)}
+        className={`
+          rounded py-1 px-3 text-white w-1/2 
+          flex justify-between items-center text-sm
+          ${
+            (totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
+              ? 'bg-red-600'
+              : 'bg-blue-600'
+          }
+          ${
+            (!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
+              ? 'opacity-50'
+              : ''
+          }
+        `}
+      >
+        {placeOrderLoading ? (
+          <CircularProgress size={14} color="secondary" />
+        ) : (
+          <>
+            <span className="font-medium">
+              {`$${totalPaid.toFixed(2)}`}
+            </span>
+            <PiCaretCircleRightFill size={16} />
+          </>
+        )}
+      </button>
+
               </div>
             </div>
           </div>
