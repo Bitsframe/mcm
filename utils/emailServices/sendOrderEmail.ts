@@ -101,7 +101,7 @@ export const sendOrderEmail = async (
       </div>
     `;
 
-    const fromEmail = "test@alerts.myclinicmd.com";
+    const fromEmail = "clinicasanmiguel@alerts.myclinicmd.com";
 
 
     const payload = {
