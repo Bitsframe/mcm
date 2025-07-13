@@ -18,6 +18,6 @@ This project requires **Yarn** as the package manager. Ensure you have Yarn inst
 ### Setting up Git Hooks
 This repository uses **Husky** to enforce pre-commit checks. After cloning the repository, run:
 ```bash
-yarn husky install
+yarn husky install ----
 ```
 

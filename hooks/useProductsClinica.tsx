@@ -13,7 +13,7 @@ interface ProductDataInterface {
 }
 
 
-export function useProductsClinica() {
+export function useProductsClinica(locationId?: number) {
 
 
     const [data, setdata] = useState([])
@@ -58,7 +58,7 @@ export function useProductsClinica() {
                         },
                         {
                             key: 'location_id',
-                            value: selectedLocation.id
+                            value: locationId || selectedLocation.id
                         },
                         {
                             key: 'archived',
@@ -74,7 +74,7 @@ export function useProductsClinica() {
                     { operator: 'not', column: 'products', value: null },
                     { operator: 'neq', column: 'products.price', value: 0 }
                     ] })
-                const formattedData = data.filter((elem)=>elem.quantity > 0 || elem.products.unlimited && elem.products.price > 0).map(({ quantity, inventory_id,  products: { price, product_name, category_id, unlimited } }: any) => {
+                const formattedData = data.filter((elem)=>elem.quantity > 0 || elem.products.unlimited && elem.products.price > 0).map(({ quantity, inventory_id, product_id,  products: { price, product_name, category_id, unlimited } }: any) => {
                     return {
                         product_id: inventory_id,
                         category_id,
@@ -82,6 +82,7 @@ export function useProductsClinica() {
                         price,
                         quantity_available: quantity,
                         unlimited,
+                        main_product_id: product_id,
                     }
                 })
 

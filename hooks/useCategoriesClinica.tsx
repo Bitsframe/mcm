@@ -6,7 +6,7 @@ import { useContext } from 'react';
 
 
 
-export function useCategoriesClinica(productsWithQuantity?: boolean) {
+export function useCategoriesClinica(productsWithQuantity?: boolean, locationId?: number) {
     const [categories, setCategories] = useState([])
     const { selectedLocation } = useContext(LocationContext);
 
@@ -14,7 +14,7 @@ export function useCategoriesClinica(productsWithQuantity?: boolean) {
 
 
     useEffect(() => {
-        if (selectedLocation) {
+        if (locationId || selectedLocation) {
           (async function fetchData(allCats = false, locationId) {
             try {
               let data = [];
@@ -31,7 +31,7 @@ export function useCategoriesClinica(productsWithQuantity?: boolean) {
               console.error("Error fetching categories:", error);
               setCategories([]); 
             }
-          })(productsWithQuantity, selectedLocation?.id);
+          })(productsWithQuantity, locationId || selectedLocation?.id);
         }
       }, [selectedLocation]);
       
