@@ -177,8 +177,8 @@ const Orders = () => {
   const { selectedLocation } = useContext(LocationContext);
 
   // Add these at the top (state hooks):
-const [cashInput, setCashInput] = useState("0");
-const [cardInput, setCardInput] = useState("0");
+const [cashInput, setCashInput] = useState('');
+const [cardInput, setCardInput] = useState('');
 
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -209,7 +209,8 @@ const [cardInput, setCardInput] = useState("0");
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
-  const [discountInput, setDiscountInput] = useState<string | number>(appliedDiscount);
+  const [discountInput, setDiscountInput] = useState<string>("");
+
 
   const router = useRouter();
 
@@ -395,6 +396,8 @@ const [cardInput, setCardInput] = useState("0");
       setCreditAmount(0);
       setReceivedAmount(0);
       setCardAmount(0);
+      setCardInput('');       // ✅ Reset the input field so placeholder shows
+      setCashInput('');    
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message, {
         style: {
@@ -435,9 +438,7 @@ const [cardInput, setCardInput] = useState("0");
   const creditUsed = useMemo(() => {
     const paid = receivedAmount + cardAmount;
 
-    // If no payment has been entered, return 0
-    if (paid === 0) return 0;
-
+   
     // Calculate remaining unpaid amount (i.e. needed credit)
     const rawCreditNeeded = subtotal - paid;
   
@@ -578,10 +579,25 @@ const finalCredit = useMemo(() => {
                       <div>
                         <label className="block text-sm font-medium mb-1">Add Amount</label>
                         <Input
-                          type="number"
-                          min={1}
-                          value={addAmount}
-                          onChange={e => setAddAmount(Number(e.target.value))}
+                          type="text"
+                          inputMode="numeric" // Keeps numeric keypad for mobile
+                          value={addAmount === 0 ? "" : addAmount.toString()}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+
+                            // Allow empty input
+                            if (raw === "") {
+                              setAddAmount(0);
+                              return;
+                            }
+
+                            // Allow only digits and remove leading zeros
+                            if (/^\d*$/.test(raw)) {
+                              const normalized = raw.replace(/^0+(?!$)/, "");
+                              setAddAmount(normalized === "" ? 0 : Number(normalized));
+                            }
+                          }}
+                          placeholder="Enter amount"
                           className="w-full border border-black"
                         />
                       </div>
@@ -818,9 +834,13 @@ const finalCredit = useMemo(() => {
           : 'bg-blue-500 text-white'
       }`}
       disabled={cartArray.length === 0}
-      onClick={() => setIsDiscountModalOpen(true)}
+      onClick={() => {
+        setDiscountInput(appliedDiscount !== 0 ? String(appliedDiscount) : "");
+        setIsDiscountModalOpen(true);
+      }}
+      
     >
-      Apply
+      Add
     </button>
   </div>
 </div>
@@ -828,32 +848,37 @@ const finalCredit = useMemo(() => {
 
       {isDiscountModalOpen && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-56 flex flex-col justify-between">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
       <div>
         <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
           Enter Discount % (0 - 100)
         </h2>
         <input
-  type="number"
-  min="0"
-  max="100"
-  step="1"
+  type="text"
   value={discountInput}
   onChange={(e) => {
     const value = e.target.value;
-    // Allow empty string to show placeholder, else parse number
+
+    // Allow empty value
     if (value === "") {
       setDiscountInput("");
-    } else {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        setDiscountInput(num);
+      return;
+    }
+
+    // Allow only numeric input with optional decimal
+    if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+      const num = parseFloat(value);
+
+      // Restrict max to 100
+      if (num <= 100) {
+        setDiscountInput(value);
       }
     }
   }}
   placeholder="Enter % of discount"
-  className="w-full p-2 border rounded focus:outline-none text-sm text-black dark:text-white dark:bg-[#122136] appearance-auto"
+   className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
 />
+
 
 
       </div>
@@ -958,13 +983,13 @@ const finalCredit = useMemo(() => {
           const raw = e.target.value;
           // Only allow numbers and decimal (no letters)
           if (/^\d*\.?\d*$/.test(raw)) {
-            const normalized = raw.replace(/^0+(?!\.)/, '') || '';
+            const normalized = raw.replace(/^0+(?!\.)/, raw === '0' ? '0' : '');
             setCashInput(normalized);
             setReceivedAmount(parseFloat(normalized) || 0);
           }
         }}
-        placeholder="Enter your amount"
-        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
+        placeholder="Enter amount"
+         className="w-40 border border-gray-50 rounded-md text-lg focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-left text-black p-1"
       />
     </div>
   </div>
@@ -987,7 +1012,7 @@ const finalCredit = useMemo(() => {
             setCardAmount(parseFloat(normalized) || 0);
           }
         }}
-        placeholder="Enter your amount"
+        placeholder="Enter amount"
         className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
       />
     </div>
