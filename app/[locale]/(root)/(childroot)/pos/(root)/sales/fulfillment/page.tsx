@@ -274,13 +274,11 @@ const FulfillmentPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {request.status === 'pending' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full text-sm font-medium">
-                            <FaClock className="text-xs" />
+                          <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full text-sm font-medium">
                             Pending
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
-                            <FaCheckCircle className="text-xs" />
+                          <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
                             Fulfilled
                           </span>
                         )}
