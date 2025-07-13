@@ -436,15 +436,16 @@ const [cardInput, setCardInput] = useState('');
   const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
  
   const creditUsed = useMemo(() => {
-    const paid = receivedAmount + cardAmount;
-
-   
-    // Calculate remaining unpaid amount (i.e. needed credit)
-    const rawCreditNeeded = subtotal - paid;
+    const userStartedPaying = cashInput !== "" || cardInput !== "";
   
-    // Don't allow negative credit used
-    return Math.max(0, rawCreditNeeded);
-  }, [receivedAmount, cardAmount, subtotal]);
+    if (!userStartedPaying) return 0;
+  
+    const paid = receivedAmount + cardAmount;
+    const credit = subtotal - paid;
+  
+    return Math.max(0, credit);
+  }, [cashInput, cardInput, receivedAmount, cardAmount, subtotal]);
+  
   
 
 
@@ -585,7 +586,7 @@ const finalCredit = useMemo(() => {
                           onChange={(e) => {
                             const raw = e.target.value;
 
-                            // Allow empty input
+                           
                             if (raw === "") {
                               setAddAmount(0);
                               return;
@@ -810,6 +811,9 @@ const finalCredit = useMemo(() => {
             </div>
           </div>
 
+
+          
+
           <div className="bg-white dark:bg-gray-700 mt-auto rounded-b">
             <div className="p-2 space-y-2 rounded dark:bg-[#0E1725]">
               <PromoCodeComponent
@@ -818,15 +822,26 @@ const finalCredit = useMemo(() => {
               />
 
 
+              
+<div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  Product Total
+                </h1>
+                <p className="text-xs">
+                  ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
+                </p>
+              </div>
+
+
 
       <div className="flex items-center justify-between">
   <h1 className="text-xs text-gray-700 dark:text-gray-300">Discount %</h1>
   <div className="flex items-center gap-2">
-    <p className="text-xs">
-      {appliedDiscount
-        ? `-${grandTotalHandle(cartArray, appliedDiscount).discountAmount.toFixed(2)} (${appliedDiscount}%)`
-        : "NILL"}
-    </p>
+        <p className="text-xs">
+        {appliedDiscount
+          ? `$${Math.abs(grandTotalHandle(cartArray, appliedDiscount).discountAmount).toFixed(2)} (${appliedDiscount}%)`
+          : "NILL"}
+      </p>
     <button
       className={`text-xs px-2 py-0.5 rounded ${
         cartArray.length === 0
@@ -909,6 +924,14 @@ const finalCredit = useMemo(() => {
 )}
 
 
+        <div className="flex items-center justify-between">
+          <h1 className="text-xs text-gray-700 dark:text-gray-300">
+            Product Total After Discount
+          </h1>
+          <p className="text-xs">
+            ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
+          </p>
+        </div>
 
 
 
@@ -918,15 +941,6 @@ const finalCredit = useMemo(() => {
 
 
 
-
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Product Total
-                </h1>
-                <p className="text-xs">
-                  ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
-                </p>
-              </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   Patient Balance
@@ -1013,8 +1027,8 @@ const finalCredit = useMemo(() => {
           }
         }}
         placeholder="Enter amount"
-        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
-      />
+        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-left text-black p-1"
+/>
     </div>
   </div>
 )}
