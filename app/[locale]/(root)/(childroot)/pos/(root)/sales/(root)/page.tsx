@@ -84,6 +84,13 @@ const grandTotalHandle = (cart: any[], discount = 0): { amount: number; discount
   };
 };
 
+
+
+
+
+
+
+
 const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
@@ -202,6 +209,11 @@ const Orders = () => {
   const [fulfillmentResults, setFulfillmentResults] = useState<any[]>([]);
   const [fulfillmentLoading, setFulfillmentLoading] = useState(false);
   const [fulfilledId, setFulfilledId] = useState<number | null>(null);
+
+  // Add these at the top (state hooks):
+  const [cashInput, setCashInput] = useState("0");
+  const [cardInput, setCardInput] = useState("0");
+
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const {
@@ -499,29 +511,73 @@ const Orders = () => {
     setActiveTitle("Sidebar_k19");
   }, []);
 
-  // Calculate displayedBalanceLimit whenever relevant state changes
+  // // Calculate displayedBalanceLimit whenever relevant state changes
+  // const displayedBalanceLimit = React.useMemo(() => {
+  //   // Ensure selectedLocation and its balance are available
+  //   if (!selectedLocation || selectedLocation.balance === undefined) {
+  //     return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
+  //   }
+
+
+  //   const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+  //   const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
+  //   const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
+
+  //   return Math.min(selectedLocation.credit_limit, Math.max(0, displayedLimit));
+
+  // }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
+  // console.log("🧮 displayedBalanceLimit:", displayedBalanceLimit);
+
+  const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
+  console.log("🔢 Subtotal:", subtotal);
+
+
+  const creditUsed = useMemo(() => {
+    const paid = receivedAmount + cardAmount;
+    const rawCreditNeeded = subtotal - paid;
+
+    // ✅ Use actual available balance from DB (not predictive)
+    const availableCredit = Math.max(0, selectedLocation?.balance ?? 0);
+
+    const result = Math.min(Math.max(0, rawCreditNeeded), availableCredit);
+
+    console.log("🧮 Subtotal:", subtotal);
+    console.log("💵 Paid (Cash + Card):", paid);
+    console.log("📉 Raw Credit Needed:", rawCreditNeeded);
+    console.log("✅ Available Credit (from DB):", availableCredit);
+    console.log("📌 Final Credit Used:", result);
+
+    return result;
+  }, [receivedAmount, cardAmount, subtotal, selectedLocation]);
+
+
+
+
   const displayedBalanceLimit = React.useMemo(() => {
-    // Ensure selectedLocation and its balance are available
     if (!selectedLocation || selectedLocation.balance === undefined) {
-      return 0; // Or handle this case as appropriate, maybe return selectedLocation.balance if it exists but is 0
+      return 0;
     }
-    const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const finalCreditAfterCheckout = receivedAmount - (subtotal - creditAmount);
-    const displayedLimit = selectedLocation.balance + Math.min(0, finalCreditAfterCheckout);
-    return displayedLimit;
-  }, [selectedLocation, receivedAmount, cartArray, appliedDiscount, creditAmount]);
+
+    return Math.max(0, selectedLocation.balance - creditUsed);
+  }, [selectedLocation, creditUsed]);
+
+
+
 
   const finalCredit = useMemo(() => {
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount;
-    return (receivedAmount + cardAmount) - totalDue;
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount, creditAmount]);
+    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+    const totalPaid = receivedAmount + cardAmount;
+    return totalDue - totalPaid; // This is the new balance (amount owed)
+  }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+
 
   // Calculate credit used
-  const creditUsed = useMemo(() => {
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const paid = receivedAmount + cardAmount;
-    return Math.max(0, totalDue - paid);
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+  // const creditUsed = useMemo(() => {
+  //   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+  //   const paid = receivedAmount + cardAmount;
+  //   return Math.max(0, totalDue - paid);
+  // }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+
 
   // Handler to add balance
   const handleAddBalance = async () => {
@@ -537,7 +593,7 @@ const Orders = () => {
       let newBalance = addAmount;
       let creditAuditId = null;
       if (data && data.length > 0) {
-        newBalance = Number(data[0].balance) + Number(addAmount);
+        newBalance = Number(data[0].balance) - Number(addAmount);
         creditAuditId = data[0].id;
         // Update existing
         await update_content_service({
@@ -557,7 +613,7 @@ const Orders = () => {
         post_data: {
           patient_id: selectedPatient.id,
           amount: addAmount,
-          balance: creditAmount,
+          balance: creditUsed,
           type: "topup",
         },
       });
@@ -591,7 +647,7 @@ const Orders = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderRef: fulfillmentOrderRef, 
+          orderRef: fulfillmentOrderRef,
           token: fulfillmentToken,
           location_id: selectedLocation.id
         })
@@ -639,111 +695,111 @@ const Orders = () => {
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-          {/* Header with fulfillment button */}
-
-          {fetchingDataLoading ? (
-            <div className="w-full flex flex-col justify-center h-full space-y-1">
-              <CircularProgress size={16} className="dark:text-white" />
-              <h1 className="text-xs text-gray-400 dark:text-gray-300">
-                Fetching patient details
-              </h1>
-            </div>
-          ) : (
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  {t("POS-Sales_k3")}
-                </h2>
-                <div className="flex items-center gap-2">
-                <button
-                  className="flex items-center gap-2 px-4 py-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-                  onClick={() => setShowFulfillmentModal(true)}
-                  type="button"
-                >
-                  <FaHandshake className="text-sm" />
-                  <span className="font-medium">Fulfillment Pickup</span>
-                </button>
-                <button
-                  className="ml-2 px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                  onClick={() => setIsAddBalanceModalOpen(true)}
-                  disabled={!selectedPatient}
-                  type="button"
-                >
-                  Add Balance
-                </button>
-                </div>
-                <Custom_Modal
-                  is_open={isAddBalanceModalOpen}
-                  close_handle={() => setIsAddBalanceModalOpen(false)}
-                  create_new_handle={handleAddBalance}
-                  loading={addBalanceLoading}
-                  Title="Add Balance"
-                  buttonLabel="Add"
-                  submit_button_color="blue"
-                  disabled={addBalanceLoading || !addAmount}
-                >
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Current Balance</label>
-                      <div className="p-2 rounded font-bold">{creditAmount}</div>
-                    </div>
+            {/* Header with fulfillment button */}
+            {fetchingDataLoading ? (
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                  Fetching patient details
+                </h1>
+              </div>
+            ) : (
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                    {t("POS-Sales_k3")}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="flex items-center gap-2 px-4 py-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
+                      onClick={() => setShowFulfillmentModal(true)}
+                      type="button"
+                    >
+                      <FaHandshake className="text-sm" />
+                      <span className="font-medium">Fulfillment Pickup</span>
+                    </button>
+                    <button
+                      className="ml-2 px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={() => setIsAddBalanceModalOpen(true)}
+                      disabled={!selectedPatient}
+                      type="button"
+                    >
+                      Add Balance
+                    </button>
+                  </div>
+                  <Custom_Modal
+                    is_open={isAddBalanceModalOpen}
+                    close_handle={() => setIsAddBalanceModalOpen(false)}
+                    create_new_handle={handleAddBalance}
+                    loading={addBalanceLoading}
+                    Title="Add Balance"
+                    buttonLabel="Add"
+                    submit_button_color="blue"
+                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
+                  >
                     <div>
-                      <label className="block text-sm font-medium mb-1">Add Amount</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={addAmount}
-                        onChange={e => setAddAmount(Number(e.target.value))}
-                        className="w-full border border-black"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="block text-sm font-medium mb-1">New Balance</label>
-                      <div
-                        className={`
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <div className="p-2 rounded font-bold">{creditAmount}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={addAmount}
+                          onChange={e => setAddAmount(Number(e.target.value))}
+                          className="w-full border border-black"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <div
+                          className={`
                           p-3 rounded font-bold text-lg 
                           ${creditAmount + (addAmount || 0) >= 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"}
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"}
                         `}
-                      >
+                        >
 
-                        {(creditAmount + (addAmount || 0)).toFixed(2)}
+                          {Math.max(0, creditAmount - (addAmount || 0)).toFixed(2)}
+                        </div>
                       </div>
                     </div>
+                  </Custom_Modal>
+
+                </div>
+                {selectedPatient ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {render_details.map(({ label, key, render_value }, ind) => {
+                      const extracted_val = render_value
+                        ? render_value(selectedPatient)
+                        : selectedPatient[key];
+                      return (
+                        <div
+                          key={ind}
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                        >
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {label}
+                          </p>
+                          <p className="text-sm font-medium dark:text-white">
+                            {extracted_val}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
-                </Custom_Modal>
+                ) : (
+                  <div>
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
+                      {t("POS-Sales_k4")}
+                    </h1>
+                  </div>
+                )}
               </div>
-              {selectedPatient ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {render_details.map(({ label, key, render_value }, ind) => {
-                    const extracted_val = render_value
-                      ? render_value(selectedPatient)
-                      : selectedPatient[key];
-                    return (
-                      <div
-                        key={ind}
-                        className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
-                      >
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {label}
-                        </p>
-                        <p className="text-sm font-medium dark:text-white">
-                          {extracted_val}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div>
-                  <h1 className="text-red-600 dark:text-red-400 text-xs">
-                    {t("POS-Sales_k4")}
-                  </h1>
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
             <h2 className="text-sm font-semibold mb-2 dark:text-white">
@@ -933,7 +989,7 @@ const Orders = () => {
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Sub total
+                  Product Total
                 </h1>
                 <p className="text-xs">
                   ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
@@ -941,7 +997,7 @@ const Orders = () => {
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Patient Credit
+                  Patient Balance
                 </h1>
                 <p className="text-xs">
                   {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
@@ -952,7 +1008,8 @@ const Orders = () => {
                   Sub total
                 </h1>
                 <p className="text-xs">
-                  ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)}
+                  {/* ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)} */}
+                  ${(grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount).toFixed(2)}
                 </p>
               </div>
 
@@ -988,11 +1045,20 @@ const Orders = () => {
                   <h1 className="text-xs text-gray-700 dark:text-gray-300">
                     Cash Amount
                   </h1>
-                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
+                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
                     <input
-                      type="number"
-                      value={receivedAmount}
-                      onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
+                      type="text"
+                      value={cashInput}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+
+                        // Allow only digits and optional decimal
+                        if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
+                          const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
+                          setCashInput(normalized);
+                          setReceivedAmount(parseFloat(normalized) || 0);
+                        }
+                      }}
                       className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
                       placeholder="0.00"
                       step="0.01"
@@ -1000,16 +1066,26 @@ const Orders = () => {
                   </div>
                 </div>
               )}
+
               {payWithCard && (
                 <div className="flex items-center justify-between mt-1">
                   <h1 className="text-xs text-gray-700 dark:text-gray-300">
                     Card Amount
                   </h1>
-                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black ">
+                  <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
                     <input
-                      type="number"
-                      value={cardAmount}
-                      onChange={(e) => setCardAmount(parseFloat(e.target.value) || 0)}
+                      type="text"
+                      value={cardInput}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+
+                        // Allow only digits and optional decimal
+                        if (/^[0-9]*\.?[0-9]*$/.test(raw)) {
+                          const normalized = raw.replace(/^0+(?!\.)/, '') || '0';
+                          setCardInput(normalized);
+                          setCardAmount(parseFloat(normalized) || 0);
+                        }
+                      }}
                       className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg font-bold focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-right text-black p-1"
                       placeholder="0.00"
                       step="0.01"
@@ -1017,6 +1093,7 @@ const Orders = () => {
                   </div>
                 </div>
               )}
+
 
               <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
@@ -1039,8 +1116,19 @@ const Orders = () => {
               <div className="flex justify-end pt-0.5">
                 <button
                   onClick={placeOrderHandle}
-                  disabled={!cartArray.length || displayedBalanceLimit < 0}
-                  className="bg-blue-600 rounded py-1 px-3 text-white w-1/2 disabled:opacity-50 flex justify-between items-center text-sm"
+                  disabled={!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal)}
+                  className={`
+          rounded py-1 px-3 text-white w-1/2 
+          flex justify-between items-center text-sm
+          ${(totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
+                      ? 'bg-red-600'
+                      : 'bg-blue-600'
+                    }
+          ${(!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
+                      ? 'opacity-50'
+                      : ''
+                    }
+        `}
                 >
                   {placeOrderLoading ? (
                     <CircularProgress size={14} color="secondary" />
@@ -1053,6 +1141,7 @@ const Orders = () => {
                     </>
                   )}
                 </button>
+
               </div>
             </div>
           </div>

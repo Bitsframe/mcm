@@ -18,6 +18,49 @@ export async function POST(request: Request) {
       selectedLocation,
     } = await request.json();
 
+//     // Calculate all amounts
+//     const subtotalAmount = cartArray.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+//     const discountAmount = (subtotalAmount * appliedDiscount) / 100;
+//     const finalAmountDue = Number((subtotalAmount - discountAmount - creditAmount).toFixed(2));
+//     const paidAmount = Number((cashAmount + cardAmount).toFixed(2));
+//     // const newCreditBalance = Number((paidAmount - finalAmountDue).toFixed(2));
+
+// // If patient owes money, balance should be negative
+// const newCreditBalance = Number((finalAmountDue - paidAmount).toFixed(2));
+
+const subtotalAmount = cartArray.reduce(
+  (sum: number, item: any) => sum + item.price * item.quantity,
+  0
+);
+
+// Apply discount
+const discountAmount = (subtotalAmount * appliedDiscount) / 100;
+const discountedSubtotal = Number((subtotalAmount - discountAmount).toFixed(2));
+
+// Total amount due includes previous credit (outstanding dues)
+const totalDue = Number((discountedSubtotal + creditAmount).toFixed(2));
+
+// Amount patient is paying now
+const paidAmount = Number((cashAmount + cardAmount).toFixed(2));
+
+// New balance calculation: how much is still owed or overpaid
+const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Split cart by fulfillment location
     console.log('Cart array received:', cartArray);
     const cartByLocation: Record<string, any[]> = {};
@@ -30,13 +73,6 @@ export async function POST(request: Request) {
     const posLocationId = selectedLocation.id;
     const posCart = cartByLocation[posLocationId] || [];
     const otherLocationIds = Object.keys(cartByLocation).filter(id => id !== String(posLocationId));
-
-    // --- 1. Create main POS order ---
-    const subtotalAmount = posCart.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    const discountAmount = (subtotalAmount * appliedDiscount) / 100;
-    const finalAmountDue = Number((subtotalAmount - discountAmount - creditAmount).toFixed(2));
-    const paidAmount = Number((cashAmount + cardAmount).toFixed(2));
-    const newCreditBalance = Number((paidAmount - finalAmountDue).toFixed(2));
 
     const orderCreatePostData = {
       patient_id: patient_id,
