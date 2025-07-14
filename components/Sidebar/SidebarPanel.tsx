@@ -73,30 +73,31 @@ const SingleRoute = memo(
     return (
       <div className="relative w-full">
         {isActive && <ActiveIndicator />}
-        <Link href={route.route || "#"} passHref onClick={onNavigate}>
-          <Sidebar.Item
-            icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
-            label={
-              <FaChevronRight
-                className={`text-[15px] ${
-                  isActive
-                    ? "text-[#0066ff]"
-                    : "text-[#79808B] dark:text-gray-400"
-                } -mr-1`}
-              />
-            }
-            labelColor="transparent"
-            className={`hover:text-[#0066ff] ${
-              isActive ? "text-[#0066ff]" : "text-[#79808B] dark:text-gray-400"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <h3 className={`${isActive ? "text-[#0066ff]" : ""}`}>
-                {t(route.label)}
-              </h3>
-            </div>
-          </Sidebar.Item>
-        </Link>
+        <Sidebar.Item
+      href={route.route || "#"} // ✅ direct link here
+      onClick={onNavigate}      // ✅ click handler preserved
+      icon={() => <RouteIcon icon={route.icon} isActive={isActive} />}
+      label={
+        <FaChevronRight
+          className={`text-[15px] ${
+            isActive
+              ? "text-[#0066ff]"
+              : "text-[#79808B] dark:text-gray-400"
+          } -mr-1`}
+        />
+      }
+      labelColor="transparent"
+      className={`hover:text-[#0066ff] ${
+        isActive ? "text-[#0066ff]" : "text-[#79808B] dark:text-gray-400"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <h3 className={`${isActive ? "text-[#0066ff]" : ""}`}>
+          {t(route.label)}
+        </h3>
+      </div>
+    </Sidebar.Item>
+      
       </div>
     );
   }
@@ -149,45 +150,42 @@ const CollapsibleRoute = memo(
         >
           {filteredChildren.map((item) => {
             const isCurrent = currentPath === item.route;
-
+    
             return (
-              <Link
+              <Sidebar.Item
                 key={item.id}
-                href={item.route || "#"}
-                passHref
-                onClick={onNavigate}
+                href={item.route || "#"} // ✅ pass href directly
+                onClick={onNavigate}     // ✅ preserve click handler
+                className={`text-left text-sm hover:text-[#0066ff] ${
+                  isCurrent
+                    ? "text-[#0066ff]"
+                    : "text-[#79808B] dark:text-gray-400"
+                }`}
               >
-                <Sidebar.Item
-                  className={`text-left text-sm hover:text-[#0066ff] ${
-                    isCurrent
-                      ? "text-[#0066ff]"
-                      : "text-[#79808B] dark:text-gray-400"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="relative w-4 h-4">
-                      {isCurrent && (
-                        <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
-                      )}
-                      <span
-                        className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
-                          isCurrent
-                            ? "bg-[#0066ff]"
-                            : "bg-[#79808B] dark:bg-gray-400"
-                        }`}
-                      />
-                    </span>
-                    <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
-                      {t(item.label)}
-                    </span>
-                  </div>
-                </Sidebar.Item>
-              </Link>
+                <div className="flex items-center gap-2">
+                  <span className="relative w-4 h-4">
+                    {isCurrent && (
+                      <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
+                    )}
+                    <span
+                      className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transition-colors transform -translate-x-1/2 -translate-y-1/2 ${
+                        isCurrent
+                          ? "bg-[#0066ff]"
+                          : "bg-[#79808B] dark:bg-gray-400"
+                      }`}
+                    />
+                  </span>
+                  <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
+                    {t(item.label)}
+                  </span>
+                </div>
+              </Sidebar.Item>
             );
           })}
         </Sidebar.Collapse>
       </div>
     );
+    
   }
 );
 

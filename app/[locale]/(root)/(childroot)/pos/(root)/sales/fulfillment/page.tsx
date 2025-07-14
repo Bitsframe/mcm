@@ -10,6 +10,7 @@ import { TabContext } from "@/context";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { Modal } from "flowbite-react";
 
+
 interface FulfillmentRequest {
   id: number;
   order_id: string;
@@ -32,18 +33,26 @@ interface StatsCardProps {
 }
 
 const StatsCard: FC<StatsCardProps> = ({ title, value, icon, color, bgColor }) => (
-  <div className={`p-6 rounded-lg shadow-sm ${bgColor}`}>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</p>
+  <div className={`p-6 rounded-lg shadow-sm w-full ${bgColor}`}>
+    <div className="flex items-center justify-between flex-wrap gap-4">
+      
+      <div className="min-w-0 overflow-hidden">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 truncate max-w-full">
+          {title}
+        </p>
         <p className={`text-2xl font-bold ${color}`}>{value}</p>
       </div>
-      <div className={`p-3 rounded-full ${color} bg-opacity-10`}>
+
+      <div className={`flex-shrink-0 p-3 rounded-full ${color} bg-opacity-10`}>
         {icon}
       </div>
     </div>
   </div>
 );
+
+
+
+
 
 const FulfillmentPage = () => {
   const { selectedLocation } = useContext(LocationContext);
@@ -157,48 +166,59 @@ const FulfillmentPage = () => {
   };
 
   return (
-    <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white p-4">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("POS-Sales_k43")}</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("POS-Sales_k44")}</p>
-          </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-            onClick={() => setShowSearchModal(true)}
-          >
-            <FaSearch className="text-sm" />
-            <span className="font-medium">{t("POS-Sales_k45")}</span>
-          </button>
-        </div>
+    <main className="w-full max-w-[1000px] font-medium text-sm dark:bg-gray-900 dark:text-white px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
+  <div className="space-y-6 max-w-[500px] ">
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between flex-wrap gap-4 w-full min-w-0">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t("POS-Sales_k43")}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          {t("POS-Sales_k44")}
+        </p>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard
-            title={t("POS-Sales_k46")}
-            value={stats.total}
-            icon={<FaBoxes className="text-xl" />}
-            color="text-blue-600"
-            bgColor="bg-blue-50 dark:bg-blue-900/20"
-          />
-          <StatsCard
-            title={t("POS-Sales_k47")}
-            value={stats.pending}
-            icon={<FaClock className="text-xl" />}
-            color="text-orange-600"
-            bgColor="bg-orange-50 dark:bg-orange-900/20"
-          />
-          <StatsCard
-            title={t("POS-Sales_k48")}
-            value={stats.fulfilled}
-            icon={<FaCheckCircle className="text-xl" />}
-            color="text-green-600"
-            bgColor="bg-green-50 dark:bg-green-900/20"
-          />
-        </div>
+      <div className="w-full sm:w-auto">
+        <button
+          className="flex items-center justify-center gap-2 max-w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
+          onClick={() => setShowSearchModal(true)}
+        >
+          <FaSearch className="text-sm" />
+          <span className="font-medium">{t("POS-Sales_k45")}</span>
+        </button>
+      </div>
+    </div>
 
+    {/* Statistics Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+      <StatsCard
+        title={t("POS-Sales_k46")}
+        value={stats.total}
+        icon={<FaBoxes className="text-xl" />}
+        color="text-blue-600"
+        bgColor="bg-blue-50 dark:bg-blue-900/20"
+      />
+
+      <StatsCard
+        title={t("POS-Sales_k47")}
+        value={stats.pending}
+        icon={<FaClock className="text-xl" />}
+        color="text-orange-600"
+        bgColor="bg-orange-50 dark:bg-orange-900/20"
+      />
+
+      <StatsCard
+        title={t("POS-Sales_k48")}
+        value={stats.fulfilled}
+        icon={<FaCheckCircle className="text-xl" />}
+        color="text-green-600"
+        bgColor="bg-green-50 dark:bg-green-900/20"
+      />
+    </div>
+
+
+        </div>
         {/* Fulfillment Requests Table */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -220,7 +240,8 @@ const FulfillmentPage = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[800px]">
+
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -327,7 +348,7 @@ const FulfillmentPage = () => {
             </div>
           )}
         </div>
-      </div>
+      
 
       {/* Search Modal */}
       <Modal show={showSearchModal} onClose={() => setShowSearchModal(false)} size="2xl">
