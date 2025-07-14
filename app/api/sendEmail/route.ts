@@ -138,7 +138,7 @@ export async function POST(req: any) {
 
     // Create a payload that includes all recipients
     const payload = {
-      from: process.env.SENDER_BROADCAST_EMAIL || "test@alerts.myclinicmd.com",
+      from: process.env.SENDER_BROADCAST_EMAIL || "ClinicaSanMiguel@alerts.myclinicmd.com",
       recipients: email.map((recipient: any) => recipient.email),
       subject,
       html: emailHtmls,
