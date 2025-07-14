@@ -166,8 +166,8 @@ const FulfillmentPage = () => {
   };
 
   return (
-    <main className="w-full max-w-[1000px] font-medium text-sm dark:bg-gray-900 dark:text-white px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
-  <div className="space-y-6 max-w-[500px] ">
+    <main className="w-full max-w-screen-lg font-medium text-sm dark:bg-gray-900 dark:text-white py-4 overflow-x-hidden ">
+  <div className="space-y-6 w-full max-w-[90%] sm:max-w-[500px] md:max-w-[768px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto md:mx-0">
     {/* Header */}
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between flex-wrap gap-4 w-full min-w-0">
       <div className="min-w-0">
@@ -239,8 +239,9 @@ const FulfillmentPage = () => {
               <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k52")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+            <div className="hidden md:block w-full overflow-x-auto">
+  <div className="min-w-[800px]">
+    <table className="w-full table-auto">
 
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -346,9 +347,114 @@ const FulfillmentPage = () => {
                 </tbody>
               </table>
             </div>
+            </div>
           )}
         </div>
       
+
+
+{/* Mobile Cards (only visible on small screens) */}
+<div className="md:hidden space-y-4">
+  {fulfillmentRequests.map((request) => (
+    <div
+      key={request.id}
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"
+    >
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k53")}
+        </div>
+        <div className="text-sm font-medium text-gray-900 dark:text-white">
+          {request.order_id}
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k54")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">{request.product_name}</div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k55")}
+        </div>
+        <div className="text-sm font-medium text-gray-900 dark:text-white">
+          {request.patient_name}
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {request.patient_email}
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k56")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">{request.quantity}</div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k57")}
+        </div>
+        {request.status === 'pending' ? (
+          <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full text-sm font-medium">
+            Pending
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
+            Fulfilled
+          </span>
+        )}
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k58")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">
+          {formatDate(request.created_at)}
+        </div>
+        {request.fulfilled_at && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Fulfilled: {formatDate(request.fulfilled_at)}
+          </div>
+        )}
+      </div>
+
+      <div className="pt-2">
+        {request.status === 'pending' ? (
+          <button
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2 w-full justify-center"
+            onClick={() => handleMarkAsFulfilled(request.id)}
+            disabled={fulfillingId === request.id}
+          >
+            {fulfillingId === request.id ? (
+              <>
+                <CircularProgress size={14} color="inherit" />
+                <span>{t("POS-Sales_k74")}</span>
+              </>
+            ) : (
+              <>
+                <FaHandshake />
+                <span>{t("POS-Sales_k60")}</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <FaCheckCircle className="text-xl" />
+            <span className="font-semibold">✓ Fulfilled</span>
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+
 
       {/* Search Modal */}
       <Modal show={showSearchModal} onClose={() => setShowSearchModal(false)} size="2xl">
