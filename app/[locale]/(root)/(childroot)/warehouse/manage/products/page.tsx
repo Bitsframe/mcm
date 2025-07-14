@@ -861,7 +861,7 @@ const Products = () => {
                     htmlFor="select-all-locations"
                     className="text-sm text-gray-700 dark:text-gray-300"
                   >
-                     {t("Inventory_k30")}
+                     Select All
                   </label>
                 </div>
               </div>
@@ -890,7 +890,7 @@ const Products = () => {
                 ))}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {assignModalData.location_ids?.length || 0} {t("Inventory_k32")}
+                {assignModalData.location_ids?.length || 0} Selected
               </div>
             </div>
             <div className="col-span-2 space-y-4">
@@ -906,7 +906,7 @@ const Products = () => {
               </div>
               <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-[#0e1725]">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">{t("Inventory_k33")}:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Stock type:</span>
                   <span className="font-medium dark:text-white">
                     {modalData.unlimited ? "Unlimited" : "Limited"}
                   </span>
@@ -915,7 +915,7 @@ const Products = () => {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k34")}:
+                      Available stock:
                       </span>
                       <span className="font-medium dark:text-white">
                         {modalData.stock}
@@ -923,7 +923,7 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k35")}:
+                      Assigned stock:
                       </span>
                       <span
                         className={`font-medium ${
@@ -937,7 +937,7 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k36")}:
+                      Remaining stock:
                       </span>
                       <span
                         className={`font-medium ${

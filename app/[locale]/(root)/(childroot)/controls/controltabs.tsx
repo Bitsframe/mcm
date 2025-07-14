@@ -29,7 +29,7 @@ const TopTabs = () => {
 
   const WebsiteContentMenu = [
     {
-      title: "Reporting Time",
+      title: "CT_k29",
       url: "/",
     },
     {
@@ -37,7 +37,7 @@ const TopTabs = () => {
       url: "emailtemplates",
     },
     {
-      title: "CT_k28",
+      title: "CT_k1",
       url: "locationlimits",
     },
     // {

@@ -221,7 +221,7 @@ const StockPanel = () => {
             tableHeader={tableHeader}
             loading={loading}
             dataList={dataList}
-            searchInputplaceholder="Search by name"
+            searchInputplaceholder="SP_k19"
             searchHandle={onChangeHandle}
             RightSideComponent={() => RightSideComponent}
             itemPerPage={3}

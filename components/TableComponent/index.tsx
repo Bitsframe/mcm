@@ -271,8 +271,8 @@ const TableComponent: React.FC<Props> = ({
       <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
         <div>
           {dataList.length === 0
-            ? "Showing 0 to 0 of 0 results"
-            : `Showing ${startIndex + 1} to ${endIndex} of ${
+            ? `${t("SP_k16")} 0 ${t("SP_k17")} 0 ${t("SP_k18")} 0`
+            : `${t("SP_k16")} ${startIndex + 1}  ${t("SP_k17")} ${endIndex} ${t("SP_k18")} ${
                 dataList.length
               }`}
         </div>
@@ -284,7 +284,7 @@ const TableComponent: React.FC<Props> = ({
               currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            Previous
+            {t("SP_k15")}
           </button>
           <button
             onClick={handleNextPage}
@@ -295,7 +295,7 @@ const TableComponent: React.FC<Props> = ({
                 : ""
             }`}
           >
-            Next
+            {t("SP_k14")}
           </button>
         </div>
       </div>

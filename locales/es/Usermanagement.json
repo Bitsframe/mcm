@@ -1,5 +1,11 @@
 {
   "UM_k1": "Usuarios",
+  "UM_k10": "Contraseña",
+  "UM_k11": "Seleccionar ubicaciones",
+  "UM_k12": "Cerrar",
+  "UM_k13": "Editar usuario",
+  "UM_k14": "Agregar usuario",
+  "UM_k15": "Editar",
   "UM_k2": "Agregar nuevo usuario",
   "UM_k3": "Buscar un usuario",
   "UM_k4": "Nombre",
@@ -8,15 +14,19 @@
   "UM_k7": "Nombre completo",
   "UM_k8": "Seleccionar rol",
   "UM_k9": "Correo electrónico",
-  "UM_k10": "Contraseña",
-  "UM_k11": "Seleccionar ubicaciones",
-  "UM_k12": "Cerrar",
-  "UM_k13": "Editar usuario",
-  "UM_k14": "Agregar usuario",
-  "UM_k15": "Editar",
   "UM_k16": "Herramientas / Gestión de usuarios",
   "UM_k17": "Gestión de usuarios",
   "UM_k18": "Anterior",
   "UM_k19": "Siguiente",
-  "UM_k20": "Detalles del usuario"
+  "UM_k20": "Detalles del usuario",
+  "UM_k21": "Mostrando",
+  "UM_k22": "a",
+  "UM_k23": "de",
+  "UM_k24": "Ubicaciones",
+  "UM_k25": "Seleccionar todo",
+  "UM_k26": "Seleccionado",
+  "UM_k27": "Hecho",
+  "UM_k28": "Cancelar",
+  "UM_k29": "Seleccionar ubicaciones"
+
 }

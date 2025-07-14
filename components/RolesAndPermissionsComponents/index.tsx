@@ -226,19 +226,16 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const rowsPerPage = 7;
 
-  // Filter roles based on search query
   const filteredRoles = roles.filter((role: any) =>
     role.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate pagination with filtered roles
   const totalPages = Math.ceil(filteredRoles.length / rowsPerPage);
   const paginatedRoles = filteredRoles.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
 
-  // Pagination handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -251,12 +248,10 @@ const RolesAndPermissionsComponent: React.FC = () => {
     }
   };
 
-  // Reset to first page when roles or search query changes
   useEffect(() => {
     setCurrentPage(1);
   }, [roles, searchQuery]);
 
-  // Initialize permissions for new role
   useEffect(() => {
     if (permissions.length > 0) {
       const initialPermissions: Record<string, boolean> = {};
@@ -306,9 +301,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
   return (
     <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
       <div>
-        <h1 className="text-xl font-bold dark:text-white">
-          {t("RP_k7")}
-        </h1>
+        <h1 className="text-xl font-bold dark:text-white">{t("RP_k7")}</h1>
         <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
           {t("RP_k9")}
         </h1>
@@ -318,7 +311,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2 sm:gap-0">
             <div className="relative w-full sm:w-auto">
               <Input
-                placeholder="Search roles..."
+                placeholder={t("RP_k14")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10 w-full sm:w-auto"
@@ -340,7 +333,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             <Table className="w-full hidden md:table border dark:border-[#172945]">
               <TableHeader>
                 <TableRow className="border dark:border-[#172945]">
-                  <TableHead className="w-full">Role</TableHead>
+                  <TableHead className="w-full">{t("RP_k11")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -396,7 +389,9 @@ const RolesAndPermissionsComponent: React.FC = () => {
           {!loadingDataState && filteredRoles.length > rowsPerPage && (
             <div className="flex justify-between items-center py-2 border-t dark:border-gray-700 bg-white dark:bg-[#0E1725]">
               <span className="text-sm text-gray-800 dark:text-white">
-                Showing {currentPage} out of {totalPages}
+              {t("RP_k15")} {(currentPage - 1) * rowsPerPage + 1} {t("RP_k17")}{" "}
+                {Math.min(currentPage * rowsPerPage, filteredRoles.length)} {t("RP_k16")}{" "}
+                {filteredRoles.length}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -414,7 +409,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   disabled={currentPage === totalPages}
                   className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827] hover:bg-white dark:hover:bg-[#111827]"
                 >
-                  Next
+                  {t("RP_k12")}
                 </Button>
               </div>
             </div>
@@ -435,7 +430,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             {selectedRoleDetails && (
               <>
                 <div className="grid gap-2">
-                  <Label className="dark:text-white">Select roles</Label>
+                  <Label className="dark:text-white">{t("RP_k13")}</Label>
                   <div className="space-y-3 p-4 dark:bg-[#111827]">
                     {permissions.map((perm: any) => (
                       <div
@@ -501,7 +496,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 id="role-title"
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
-                placeholder="Enter user role"
+                placeholder={t("RP_k18")}
                 className="bg-[#f1f4f9] dark:bg-[#1f2937] dark:border-gray-600 dark:text-white border border-gray-300"
               />
             </div>
