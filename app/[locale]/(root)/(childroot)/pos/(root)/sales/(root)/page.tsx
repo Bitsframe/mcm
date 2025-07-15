@@ -111,6 +111,11 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     fulfillment_location_name,
   } = data;
   const { selectedLocation } = useContext(LocationContext);
+
+
+
+
+  
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
 
   const qtyHandle = (type: string) => {
@@ -192,6 +197,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   );
 };
 
+
+
+
 const Orders = () => {
   const { categories } = useCategoriesClinica(true);
   const { selectedLocation } = useContext(LocationContext);
@@ -203,6 +211,8 @@ const Orders = () => {
   const [otherLocationProductQty, setOtherLocationProductQty] = useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
   const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
+
+  
 
   // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
@@ -234,13 +244,14 @@ const Orders = () => {
   const [receivedAmount, setReceivedAmount] = useState<number>(0);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [isAddBalanceModalOpen, setIsAddBalanceModalOpen] = useState(false);
-  const [addAmount, setAddAmount] = useState(0);
   const [addBalanceLoading, setAddBalanceLoading] = useState(false);
   const [payWithCash, setPayWithCash] = useState(true);
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountInput, setDiscountInput] = useState<string>("");
+  const [addAmount, setAddAmount] = useState(0);
+const [addAmountInput, setAddAmountInput] = useState("");
 
   const router = useRouter();
 
@@ -317,8 +328,9 @@ const Orders = () => {
     setProductQty(qty);
   };
 
-  // Remove location dropdown from default add-to-cart
-  // Default add to cart only uses current location
+
+
+  
   const addToCartHandle = () => {
     const findCategory: any = categories.find(
       ({ category_id }: any) => +selectedProduct.category_id === +category_id
@@ -465,12 +477,22 @@ const Orders = () => {
     setCartArray([...cartArray]);
   };
 
-
   const placeOrderHandle = async () => {
     try {
       setPlaceOrderLoading(true);
       setIsBalanceLoading(true);
+  
       if (!selectedPatient || !cartArray.length) return;
+  
+      console.log("🛒 Placing order for patient:", selectedPatient);
+      console.log("📦 Cart array:", cartArray);
+      console.log("💸 Applied Discount:", appliedDiscount);
+      console.log("💳 Card Amount:", cardAmount);
+      console.log("💵 Cash Amount:", receivedAmount);
+      console.log("🧾 Credit Amount:", creditAmount);
+      console.log("💳 Credit Used (initial):", creditUsed);
+      console.log("🌍 Selected Location:", selectedLocation);
+  
       const { data } = await axios.post('/api/orders', {
         patient_id: selectedPatient.id,
         cartArray,
@@ -483,6 +505,7 @@ const Orders = () => {
         selectedPatient,
         selectedLocation,
       });
+  
       toast.success(data.message, {
         style: {
           background: "white",
@@ -490,51 +513,68 @@ const Orders = () => {
           border: "1px solid var(--border)",
         },
       });
-
-
-
-
-
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-  // Step 4: Update Locations.balance in DB using displayedBalanceLimit logic
-  const newBalance = Number((selectedLocation.balance - creditUsed).toFixed(2));
   
-  await update_content_service({
-    table: "Locations",
-    post_data: {
-      id: selectedLocation.id,
-      balance: newBalance,
-    },
-  });
-
-  // Step 5: Optionally update local state immediately
-  selectedLocation.balance = newBalance;
-
-
-
-
-
+      await new Promise(resolve => setTimeout(resolve, 2000));
+  
+      // Step 4: Update Locations.balance in DB using displayedBalanceLimit logic
+      const totalAfterDiscount = grandTotalHandle(cartArray, appliedDiscount).amount;
+      const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
+  
+      console.log("🧮 Total After Discount:", totalAfterDiscount);
+      console.log("💰 Total Paid:", totalPaid);
+  
+      let newBalance;
+  
+      if (totalPaid > totalAfterDiscount) {
+        const newAmount = totalPaid - totalAfterDiscount;
+        const newAmount2 = selectedLocation.balance - newAmount;
+        newBalance = Number(newAmount2.toFixed(2));
+        console.log("📉 Overpaid — Reducing balance by:", newAmount);
+      } else {
+        const amount = totalAfterDiscount - totalPaid;
+        const creditUsedCalculated = creditUsed + amount;
+        newBalance = Number((selectedLocation.balance + creditUsedCalculated).toFixed(2));
+        console.log("📈 Underpaid — Increasing balance by credit used:", creditUsedCalculated);
+      }
+  
+      console.log("🧾 New Location Balance (before DB update):", newBalance);
+  
+      await update_content_service({
+        table: "Locations",
+        post_data: {
+          id: selectedLocation.id,
+          balance: newBalance,
+        },
+      });
+  
+      // Step 5: Optionally update local state immediately
+      selectedLocation.balance = newBalance;
+  
       const response = await fetch_content_service({
         table: "Locations",
         matchCase: [{ key: "id", value: selectedLocation.id }],
-        selectParam: "balance,credit_limit"
+        selectParam: "balance,credit_limit",
       });
+  
       const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
+  
       if (updatedLocation && updatedLocation.length > 0) {
         selectedLocation.balance = updatedLocation[0].balance;
         selectedLocation.credit_limit = updatedLocation[0].credit_limit;
+        console.log("📥 Refreshed Location Balance & Limit from DB:", updatedLocation[0]);
       }
+  
+      // Reset UI
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
       setCreditAmount(0);
       setReceivedAmount(0);
       setCardAmount(0);
-      setCardInput('');       // ✅ Reset the input field so placeholder shows
-      setCashInput('');  
+      setCardInput('');
+      setCashInput('');
     } catch (err: any) {
+      console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {
         style: {
           background: "var(--background)",
@@ -547,6 +587,7 @@ const Orders = () => {
       setIsBalanceLoading(false);
     }
   };
+  
 
   const applyDiscountHandle = (
     codeData: PromoCodeDataInterface | null,
@@ -584,12 +625,14 @@ const Orders = () => {
     if (!userStartedPaying) return 0;
   
     const paid = receivedAmount + cardAmount;
-    const creditNeeded = subtotal - paid;
+    const productTotalAfterDiscount = grandTotalHandle(cartArray, appliedDiscount).amount;
   
+    const creditNeeded = productTotalAfterDiscount - paid;
     const allowedCredit = Math.min(creditNeeded, creditAvailable);
   
     return Math.max(0, allowedCredit);
-  }, [cashInput, cardInput, receivedAmount, cardAmount, subtotal, creditAvailable]);
+  }, [cashInput, cardInput, receivedAmount, cardAmount, creditAvailable, cartArray, appliedDiscount]);
+  
 
 
 
@@ -613,12 +656,7 @@ const Orders = () => {
   }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
 
 
-  // Calculate credit used
-  // const creditUsed = useMemo(() => {
-  //   const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-  //   const paid = receivedAmount + cardAmount;
-  //   return Math.max(0, totalDue - paid);
-  // }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+ 
 
 
   // Handler to add balance
@@ -682,6 +720,27 @@ const Orders = () => {
   const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
 
+  const isValidPayment = () => {
+    if (!selectedLocation || cartArray.length === 0) return false;
+  
+    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+    const totalPaid = receivedAmount + cardAmount;
+    const patientBalance = selectedLocation.balance;
+  
+    if (totalPaid > totalDue) {
+      const overpay = totalPaid - totalDue;
+      const resultBalance = patientBalance - overpay;
+      return resultBalance >= 0;
+    } else {
+      const creditShort = totalDue - totalPaid;
+      const resultBalance = patientBalance + creditUsed + creditShort;
+      return resultBalance >= 0;
+    }
+  };
+  
+
+
+  
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
@@ -734,30 +793,33 @@ const Orders = () => {
                         <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Add Amount</label>
-                        <Input
-                          type="text"
-                          inputMode="numeric" // Keeps numeric keypad for mobile
-                          value={addAmount === 0 ? "" : addAmount.toString()}
-                          onChange={(e) => {
-                            const raw = e.target.value;
+                      <label className="block text-sm font-medium mb-1">Add Amount</label>
+<Input
+  type="text"
+  inputMode="decimal"
+  value={addAmountInput}
+  onChange={(e) => {
+    const raw = e.target.value;
 
-                           
-                            if (raw === "") {
-                              setAddAmount(0);
-                              return;
-                            }
+    // Allow only valid float input (digits and optional one decimal point)
+    if (/^\d*\.?\d{0,2}$/.test(raw)) {
+      setAddAmountInput(raw); // update display text
+      const parsed = parseFloat(raw);
+      setAddAmount(isNaN(parsed) ? 0 : parsed); // store numeric value
+    }
 
-                            // Allow only digits and remove leading zeros
-                            if (/^\d*$/.test(raw)) {
-                              const normalized = raw.replace(/^0+(?!$)/, "");
-                              setAddAmount(normalized === "" ? 0 : Number(normalized));
-                            }
-                          }}
-                          placeholder="Enter amount"
-                          className="w-full border border-black"
-                        />
-                      </div>
+    // Clear state if input is empty
+    if (raw === "") {
+      setAddAmountInput("");
+      setAddAmount(0);
+    }
+  }}
+  placeholder="Enter amount"
+  className="w-full border border-black"
+/>
+
+</div>
+
                       <div className="mb-2">
                         <label className="block text-sm font-medium mb-1">New Balance</label>
                         <div
@@ -1086,16 +1148,6 @@ const Orders = () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
               
         <div className="flex items-center justify-between">
           <h1 className="text-xs text-gray-700 dark:text-gray-300">
@@ -1230,35 +1282,43 @@ const Orders = () => {
               </div>
 
               <div className="flex justify-end pt-0.5">
-                    <button
-        onClick={placeOrderHandle}
-        disabled={!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal)}
-        className={`
-          rounded py-1 px-3 text-white w-1/2 
-          flex justify-between items-center text-sm
-          ${
-            (totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
-              ? 'bg-red-600'
-              : 'bg-blue-600'
-          }
-          ${
-            (!cartArray.length || totalPaid > subtotal || (receivedAmount + cardAmount + creditUsed !== subtotal))
-              ? 'opacity-50'
-              : ''
-          }
-        `}
-      >
-        {placeOrderLoading ? (
-          <CircularProgress size={14} color="secondary" />
-        ) : (
-          <>
-            <span className="font-medium">
-              {`$${totalPaid.toFixed(2)}`}
-            </span>
-            <PiCaretCircleRightFill size={16} />
-          </>
-        )}
-      </button>
+              <button
+  onClick={placeOrderHandle}
+  disabled={
+    !cartArray.length ||
+    totalPaid > subtotal ||
+    creditUsed > (selectedLocation?.balance ?? 0)
+  }
+  className={`
+    rounded py-1 px-3 text-white w-1/2 
+    flex justify-between items-center text-sm
+    ${
+      (!cartArray.length ||
+        totalPaid > subtotal ||
+        creditUsed > (selectedLocation?.balance ?? 0))
+        ? 'bg-red-600'
+        : 'bg-blue-600'
+    }
+    ${
+      (!cartArray.length ||
+        totalPaid > subtotal ||
+        creditUsed > (selectedLocation?.balance ?? 0))
+        ? 'opacity-50'
+        : ''
+    }
+  `}
+>
+  {placeOrderLoading ? (
+    <CircularProgress size={14} color="secondary" />
+  ) : (
+    <>
+      <span className="font-medium">{`$${totalPaid.toFixed(2)}`}</span>
+      <PiCaretCircleRightFill size={16} />
+    </>
+  )}
+</button>
+
+
 
               </div>
             </div>
