@@ -584,7 +584,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     </Label>
                     <Input
                       id="firstname"
-                      placeholder="Enter firstname"
+                      placeholder={t("Patients_k45")}
                       onChange={(e) =>
                         setPatientData({
                           ...patientData,
@@ -604,7 +604,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     </Label>
                     <Input
                       id="lastname"
-                      placeholder="Enter lastname"
+                      placeholder={t("Patients_k46")}
                       onChange={(e) =>
                         setPatientData({
                           ...patientData,
@@ -627,7 +627,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter phone"
+                      placeholder={t("Patients_k48")}
                       onChange={(e) =>
                         setPatientData({
                           ...patientData,
@@ -648,7 +648,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter Email"
+                      placeholder={t("Patients_k47")}
                       onChange={(e) =>
                         setPatientData({
                           ...patientData,
@@ -673,7 +673,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     }
                   >
                     <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
-                      <SelectValue placeholder="Select treatment type" />
+                      <SelectValue placeholder={t("Patients_k54")} />
                     </SelectTrigger>
 
                     <SelectContent className="dark:bg-[#122136] dark:border-gray-700">
@@ -704,19 +704,19 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="male" id="male" />
                         <Label htmlFor="male" className="dark:text-gray-300">
-                          Male
+                        {t("Patients_k40")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="female" id="female" />
                         <Label htmlFor="female" className="dark:text-gray-300">
-                          Female
+                        {t("Patients_k41")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="other" id="other" />
                         <Label htmlFor="other" className="dark:text-gray-300">
-                          Other
+                        {t("Patients_k42")}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -739,13 +739,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="true" id="onsite" />
                         <Label htmlFor="onsite" className="dark:text-gray-300">
-                          On site
+                        {t("Patients_k43")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="false" id="offsite" />
                         <Label htmlFor="offsite" className="dark:text-gray-300">
-                          Off site
+                        {t("Patients_k44")}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -761,7 +761,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </Label>
                   <Input
                     id="note"
-                    placeholder="Enter any note about the patient"
+                    placeholder= {t("Patients_k49")}
                     onChange={(e) =>
                       setPatientData({
                         ...patientData,
@@ -788,7 +788,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     disabled={isSubmitting || !isFormValid}
                     className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                   >
-                    {isSubmitting ? "Saving..." : "Save"}
+                    {isSubmitting ? "Saving..." : t("Patients_k39")}
                   </Button>
                 </AlertDialogAction>
               </div>
@@ -932,19 +932,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="dark:text-white">
-                                  Delete Patient
+                                {t("Patients_k53")}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription className="dark:text-gray-400">
-                                  Are you sure you want to delete{" "}
-                                  {patient.firstname} {patient.lastname}? This
-                                  action cannot be undone and will only work if
-                                  the patient has no sales history, orders, or
-                                  appointments.
+                                {t("Patients_k50")}{" "}
+                                  {patient.firstname} {patient.lastname}{t("Patients_k51")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
-                                  Cancel
+                                {t("Patients_k21")}
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
@@ -952,7 +949,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                                   }
                                   className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
                                 >
-                                  Delete
+                                  {t("Patients_k52")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -1284,19 +1281,19 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="male" id="edit-male" />
               <Label htmlFor="edit-male" className="dark:text-gray-300">
-                Male
+              {t("Patients_k40")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="female" id="edit-female" />
               <Label htmlFor="edit-female" className="dark:text-gray-300">
-                Female
+              {t("Patients_k41")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="other" id="edit-other" />
               <Label htmlFor="edit-other" className="dark:text-gray-300">
-                Other
+              {t("Patients_k42")}
               </Label>
             </div>
           </RadioGroup>
@@ -1316,13 +1313,13 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="edit-onsite" />
               <Label htmlFor="edit-onsite" className="dark:text-gray-300">
-                On site
+              {t("Patients_k43")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="false" id="edit-offsite" />
               <Label htmlFor="edit-offsite" className="dark:text-gray-300">
-                Off site
+              {t("Patients_k44")}
               </Label>
             </div>
           </RadioGroup>
@@ -1675,7 +1672,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
             disabled={loading}
           >
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? "Saving..." : t("Patients_k30")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

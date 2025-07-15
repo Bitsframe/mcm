@@ -167,7 +167,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                 : `${t("Appoinments_k42")} ${desktopStartIndex + 1} ${t("Appoinments_k43")} ${Math.min(
                     desktopEndIndex,
                     appointments.length,
-                  )} ${t("Appoinments_k44")} ${appointments.length} ${t("Appoinments_k45")}`}
+                  )} ${t("Appoinments_k44")} ${appointments.length}`}
             </span>
             <div className="flex items-center gap-2">
               <button
