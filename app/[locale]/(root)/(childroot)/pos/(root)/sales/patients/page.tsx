@@ -138,21 +138,21 @@ const fields = [
 
 const modal_titles: any = {
   create: {
-    modalLabel: "Create New",
+    modalLabel: "POS-Sales_k94",
     button: {
       label: "Create",
       color: "blue",
     },
   },
   edit: {
-    modalLabel: "Edit",
+    modalLabel: "POS-Sales_k39",
     button: {
       label: "Update",
       color: "blue",
     },
   },
   delete: {
-    modalLabel: "Delete Confirmation",
+    modalLabel: "POS-Sales_k95",
     button: {
       label: "Delete",
       color: "failure",
@@ -455,7 +455,7 @@ const Patients = () => {
                 onClick={() => setAddPatientModalOpen(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors w-full md:w-auto"
               >
-                Add New Patient
+               {t("POS-Sales_k81")}
               </button>
             </div>
 
@@ -467,7 +467,7 @@ const Patients = () => {
                   <input
                     onChange={onChangeHandle}
                     type="text"
-                    placeholder="Search by name, email or phone"
+                    placeholder={t("POS-Sales_k15")}
                     className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
                   />
                 </div>
@@ -839,7 +839,7 @@ const Patients = () => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
-                label="First Name"
+                label={t("POS-Sales_k19")}
               />
             </div>
 
@@ -850,7 +850,7 @@ const Patients = () => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-                label="Last Name"
+                label={t("POS-Sales_k25")}
               />
             </div>
 
@@ -861,7 +861,7 @@ const Patients = () => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "email")}
-                label="Email"
+                label={t("POS-Sales_k93")}
               />
             </div>
 
@@ -869,7 +869,7 @@ const Patients = () => {
               <PhoneNumberInput
                 value={actionData?.phone || ""}
                 onChange={(e: string) => modalInputChangeHandle(e, "phone")}
-                label="Phone Number"
+                label={t("POS-Sales_k23")}
                 placeholder=""
                 breakpoint={false}
 
@@ -891,7 +891,7 @@ const Patients = () => {
                   //@ts-ignore
                   modalInputChangeHandle(e.target.value, "treatmenttype")
                 }
-                label="Treatment Type"
+                label={t("POS-Sales_k24")}
               />
             </div>
 
@@ -909,7 +909,7 @@ const Patients = () => {
                   // @ts-ignore
                   modalInputChangeHandle(e.target.value, "gender")
                 }
-                label="Gender"
+                label={t("POS-Sales_k21")}
               />
             </div>
           </div>
