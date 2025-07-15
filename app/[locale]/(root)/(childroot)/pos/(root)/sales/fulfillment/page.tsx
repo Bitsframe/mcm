@@ -10,6 +10,7 @@ import { TabContext } from "@/context";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { Modal } from "flowbite-react";
 
+
 interface FulfillmentRequest {
   id: number;
   order_id: string;
@@ -32,18 +33,26 @@ interface StatsCardProps {
 }
 
 const StatsCard: FC<StatsCardProps> = ({ title, value, icon, color, bgColor }) => (
-  <div className={`p-6 rounded-lg shadow-sm ${bgColor}`}>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</p>
+  <div className={`p-6 rounded-lg shadow-sm w-full ${bgColor}`}>
+    <div className="flex items-center justify-between flex-wrap gap-4">
+      
+      <div className="min-w-0 overflow-hidden">
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 truncate max-w-full">
+          {title}
+        </p>
         <p className={`text-2xl font-bold ${color}`}>{value}</p>
       </div>
-      <div className={`p-3 rounded-full ${color} bg-opacity-10`}>
+
+      <div className={`flex-shrink-0 p-3 rounded-full ${color} bg-opacity-10`}>
         {icon}
       </div>
     </div>
   </div>
 );
+
+
+
+
 
 const FulfillmentPage = () => {
   const { selectedLocation } = useContext(LocationContext);
@@ -157,48 +166,59 @@ const FulfillmentPage = () => {
   };
 
   return (
-    <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white p-4">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("POS-Sales_k43")}</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("POS-Sales_k44")}</p>
-          </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-            onClick={() => setShowSearchModal(true)}
-          >
-            <FaSearch className="text-sm" />
-            <span className="font-medium">{t("POS-Sales_k45")}</span>
-          </button>
-        </div>
+    <main className="w-full max-w-screen-lg font-medium text-sm dark:bg-gray-900 dark:text-white py-4 overflow-x-hidden ">
+  <div className="space-y-6 w-full max-w-[90%] sm:max-w-[500px] md:max-w-[768px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto md:mx-0">
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between flex-wrap gap-4 w-full min-w-0">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t("POS-Sales_k43")}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          {t("POS-Sales_k44")}
+        </p>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard
-            title={t("POS-Sales_k46")}
-            value={stats.total}
-            icon={<FaBoxes className="text-xl" />}
-            color="text-blue-600"
-            bgColor="bg-blue-50 dark:bg-blue-900/20"
-          />
-          <StatsCard
-            title={t("POS-Sales_k47")}
-            value={stats.pending}
-            icon={<FaClock className="text-xl" />}
-            color="text-orange-600"
-            bgColor="bg-orange-50 dark:bg-orange-900/20"
-          />
-          <StatsCard
-            title={t("POS-Sales_k48")}
-            value={stats.fulfilled}
-            icon={<FaCheckCircle className="text-xl" />}
-            color="text-green-600"
-            bgColor="bg-green-50 dark:bg-green-900/20"
-          />
-        </div>
+      <div className="w-full sm:w-auto">
+        <button
+          className="flex items-center justify-center gap-2 max-w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
+          onClick={() => setShowSearchModal(true)}
+        >
+          <FaSearch className="text-sm" />
+          <span className="font-medium">{t("POS-Sales_k45")}</span>
+        </button>
+      </div>
+    </div>
 
+    {/* Statistics Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+      <StatsCard
+        title={t("POS-Sales_k46")}
+        value={stats.total}
+        icon={<FaBoxes className="text-xl" />}
+        color="text-blue-600"
+        bgColor="bg-blue-50 dark:bg-blue-900/20"
+      />
+
+      <StatsCard
+        title={t("POS-Sales_k47")}
+        value={stats.pending}
+        icon={<FaClock className="text-xl" />}
+        color="text-orange-600"
+        bgColor="bg-orange-50 dark:bg-orange-900/20"
+      />
+
+      <StatsCard
+        title={t("POS-Sales_k48")}
+        value={stats.fulfilled}
+        icon={<FaCheckCircle className="text-xl" />}
+        color="text-green-600"
+        bgColor="bg-green-50 dark:bg-green-900/20"
+      />
+    </div>
+
+
+        </div>
         {/* Fulfillment Requests Table */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -219,8 +239,10 @@ const FulfillmentPage = () => {
               <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k52")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="hidden md:block w-full overflow-x-auto">
+  <div className="min-w-[800px]">
+    <table className="w-full table-auto">
+
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -325,9 +347,114 @@ const FulfillmentPage = () => {
                 </tbody>
               </table>
             </div>
+            </div>
           )}
         </div>
+      
+
+
+{/* Mobile Cards (only visible on small screens) */}
+<div className="md:hidden space-y-4">
+  {fulfillmentRequests.map((request) => (
+    <div
+      key={request.id}
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"
+    >
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k53")}
+        </div>
+        <div className="text-sm font-medium text-gray-900 dark:text-white">
+          {request.order_id}
+        </div>
       </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k54")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">{request.product_name}</div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k55")}
+        </div>
+        <div className="text-sm font-medium text-gray-900 dark:text-white">
+          {request.patient_name}
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {request.patient_email}
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k56")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">{request.quantity}</div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k57")}
+        </div>
+        {request.status === 'pending' ? (
+          <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full text-sm font-medium">
+            Pending
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
+            Fulfilled
+          </span>
+        )}
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {t("POS-Sales_k58")}
+        </div>
+        <div className="text-sm text-gray-900 dark:text-white">
+          {formatDate(request.created_at)}
+        </div>
+        {request.fulfilled_at && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Fulfilled: {formatDate(request.fulfilled_at)}
+          </div>
+        )}
+      </div>
+
+      <div className="pt-2">
+        {request.status === 'pending' ? (
+          <button
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2 w-full justify-center"
+            onClick={() => handleMarkAsFulfilled(request.id)}
+            disabled={fulfillingId === request.id}
+          >
+            {fulfillingId === request.id ? (
+              <>
+                <CircularProgress size={14} color="inherit" />
+                <span>{t("POS-Sales_k74")}</span>
+              </>
+            ) : (
+              <>
+                <FaHandshake />
+                <span>{t("POS-Sales_k60")}</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <FaCheckCircle className="text-xl" />
+            <span className="font-semibold">✓ Fulfilled</span>
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+
 
       {/* Search Modal */}
       <Modal show={showSearchModal} onClose={() => setShowSearchModal(false)} size="2xl">
