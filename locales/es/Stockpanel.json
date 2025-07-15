@@ -1,1 +1,22 @@
-{"SP_k1":"Cantidad disponible","SP_k10":"Valor de las acciones\n","SP_k11":"Categorías totales","SP_k12":"Productos","SP_k2":"Precio","SP_k3":"Archivo","SP_k4":"Activo","SP_k5":"Nombre","SP_k6":"Categoría","SP_k7":"Identificación del producto","SP_k8":"Buscar por ID de producto","SP_k9":"alertas de stock bajo\n", "SP_k13": "Panel de valores"}
+{
+    "SP_k1": "Cantidad disponible",
+    "SP_k10": "Valor del inventario\n",
+    "SP_k11": "Categorías totales",
+    "SP_k12": "Productos",
+    "SP_k2": "Precio",
+    "SP_k3": "Archivar",
+    "SP_k4": "Activo",
+    "SP_k5": "Nombre",
+    "SP_k6": "Categoría",
+    "SP_k7": "ID del producto",
+    "SP_k8": "Buscar por ID del producto",
+    "SP_k9": "alertas de poco stock\n",
+    "SP_k13": "Panel de inventario",
+    "SP_k14": "Siguiente",
+    "SP_k15": "Anterior",
+    "SP_k16": "Mostrando",
+    "SP_k17": "a",
+    "SP_k18": "de",
+    "SP_k19": "Buscar por nombre"
+  }
+  

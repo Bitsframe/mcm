@@ -50,7 +50,15 @@ export const Select_Dropdown = ({
         onChange={on_change_handle}
         id="section"
         required={required}
-        className="w-full h-auto disabled:opacity-70 text-black dark:text-gray-300 bg-[#F1F4F7] dark:bg-[#122136] border-gray-300 dark:border-gray-600"
+        className="w-full h-auto disabled:opacity-70 text-black dark:text-gray-300 border-none outline-none"
+        style={{
+          backgroundColor: document.documentElement.classList.contains("dark")
+            ? "#122136"
+            : "#f1f4f9",
+          color: document.documentElement.classList.contains("dark")
+            ? "#d1d5db"
+            : "#000000",
+        }}
       >
         {start_empty && (
           <option

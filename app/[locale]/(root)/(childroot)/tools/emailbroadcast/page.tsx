@@ -529,7 +529,8 @@ const EmailBroadcast: React.FC = () => {
                           className="text-foreground w-5 h-5 sm:w-6 sm:h-6"
                         />
                         <AlertDialogTitle className="text-foreground text-base sm:text-lg">
-                          Filter Patients
+                        {t("EmailB_k29")}
+
                         </AlertDialogTitle>
                       </div>
                       <AlertDialogCancel className="bg-[#f1f4f9] dark:bg-[#122136] text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-[#1a2e4a] h-8 w-8 sm:h-10 sm:w-10">
@@ -598,7 +599,7 @@ const EmailBroadcast: React.FC = () => {
                       <RadioGroup defaultValue="comfortable">
                         <div className="flex flex-wrap gap-2 sm:gap-4">
                           <h1 className="font-bold text-foreground text-sm sm:text-base">
-                            Gender
+                          {t("EmailB_k19")}
                           </h1>
                           <div className="flex items-center space-x-2">
                             <input
@@ -612,7 +613,7 @@ const EmailBroadcast: React.FC = () => {
                               htmlFor="r2"
                               className="text-foreground text-sm sm:text-base"
                             >
-                              Male
+                              {t("EmailB_k20")}
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -627,7 +628,7 @@ const EmailBroadcast: React.FC = () => {
                               htmlFor="r3"
                               className="text-foreground text-sm sm:text-base"
                             >
-                              Female
+                              {t("EmailB_k21")}
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -642,7 +643,7 @@ const EmailBroadcast: React.FC = () => {
                               htmlFor="r3"
                               className="text-foreground text-sm sm:text-base"
                             >
-                              Other
+                             {t("EmailB_k22")}
                             </Label>
                           </div>
                         </div>
@@ -650,7 +651,7 @@ const EmailBroadcast: React.FC = () => {
 
                       <div className="flex items-center gap-2">
                         <h1 className="font-bold text-foreground text-sm sm:text-base">
-                          Treatment Type
+                          {t("EmailB_k23")}
                         </h1>
                         <Select
                           onValueChange={(value) => setTreatmentType(value)}
@@ -679,7 +680,7 @@ const EmailBroadcast: React.FC = () => {
                       <RadioGroup defaultValue="comfortable">
                         <div className="flex flex-wrap gap-2 sm:gap-4">
                           <h1 className="font-bold text-foreground text-sm sm:text-base">
-                            Visit Type
+                          {t("EmailB_k24")}
                           </h1>
                           <div className="flex items-center space-x-2">
                             <input
@@ -692,7 +693,7 @@ const EmailBroadcast: React.FC = () => {
                               htmlFor="r2"
                               className="text-foreground text-sm sm:text-base"
                             >
-                              On-site
+                              {t("EmailB_k27")}
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -706,7 +707,7 @@ const EmailBroadcast: React.FC = () => {
                               htmlFor="r3"
                               className="text-foreground text-sm sm:text-base"
                             >
-                              Off-site
+                              {t("EmailB_k28")}
                             </Label>
                           </div>
                         </div>
@@ -714,7 +715,7 @@ const EmailBroadcast: React.FC = () => {
 
                       <div className="flex items-center gap-2">
                         <h1 className="font-bold text-foreground text-sm sm:text-base">
-                          Location
+                        {t("EmailB_k25")}
                         </h1>
                         <Select onValueChange={(value) => setLocation(value)}>
                           <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
@@ -746,12 +747,12 @@ const EmailBroadcast: React.FC = () => {
                         </Select>
                       </div>
 
-                      <Button
+                      <button
                         onClick={() => handleReset()}
-                        className="bg-secondary dark:bg-[#0e1725] text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-[#0e1725]/80 text-sm sm:text-base"
+                        className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
                       >
-                        Reset
-                      </Button>
+                        {t("EmailB_k26")}
+                      </button>
                     </div>
                   )}
                 </AlertDialogDescription>

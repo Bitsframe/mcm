@@ -2,6 +2,8 @@
 
 import { Button, Modal } from "flowbite-react";
 import { FC, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 interface PropsInterface {
     open_handle?: any;
@@ -32,6 +34,8 @@ export const Custom_Modal: FC<PropsInterface> = ({
     Trigger_Button,
     darkMode,
 }) => {
+
+    const { t } = useTranslation(translationConstant.PROCODE);
     return (
         <Modal show={is_open} onClose={close_handle} className="!p-0">
             <div className="fixed inset-0 z-[1000] flex items-center justify-center min-h-screen p-2">
@@ -47,7 +51,7 @@ export const Custom_Modal: FC<PropsInterface> = ({
                             className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white px-4 py-[10px] rounded-lg"
                             onClick={close_handle}
                         >
-                            Cancel
+                            {t("Procode_k27")}
                         </button>
                         <Button
                             color={submit_button_color}

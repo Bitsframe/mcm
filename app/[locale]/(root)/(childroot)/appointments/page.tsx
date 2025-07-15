@@ -297,7 +297,7 @@ const Appointments = () => {
                 <DatePicker
                   onChange={filterHandle}
                   className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
-                  placeholder="Filter by date"
+                  placeholder={t("Appoinments_k59")}
                   suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
                 />
               </ConfigProvider>

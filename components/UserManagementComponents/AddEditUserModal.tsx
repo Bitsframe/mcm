@@ -112,7 +112,7 @@ export default function AddEditUserModal({
                   placeholder={t("UM_k7")}
                   border="border border-gray-200 rounded-lg dark:border-none"
                   onChange={(value) => handleInputChange("fullName", value)}
-                  bg_color=" dark:bg-[#122136]"
+                  bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
                 />
 
                 <Select_Dropdown
@@ -128,7 +128,7 @@ export default function AddEditUserModal({
                     handleInputChange("roleId", Number(e.target.value))
                   }
                   required
-                  bg_color=" dark:bg-[#122136]"
+                  // bg_color=" dark:bg-[#122136]"
                 />
               </div>
 
@@ -139,7 +139,7 @@ export default function AddEditUserModal({
                 type="email"
                 border="border border-gray-200 rounded-lg dark:border-none"
                 onChange={(value) => handleInputChange("email", value)}
-                bg_color=" dark:bg-[#122136]"
+                bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
               />
 
               <Input_Component
@@ -150,7 +150,7 @@ export default function AddEditUserModal({
                 type="password"
                 border="border border-gray-200 rounded-lg dark:border-none"
                 onChange={(value) => handleInputChange("password", value)}
-                bg_color=" dark:bg-[#122136]"
+                bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
               />
 
               <LocationModal

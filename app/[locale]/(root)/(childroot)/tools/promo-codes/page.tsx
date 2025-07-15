@@ -146,19 +146,19 @@ function removeDuplicates(array: DataListInterface[]): DataListInterface[] {
 
 const Page = () => {
   const { t } = useTranslation(translationConstant.PROCODE);
-  
+
   const modal_titles: any = {
     create: {
-      modalLabel: "Add Promocode",
+      modalLabel: t("Procode_k24"),
       button: {
-        label: "Add Promocode",
+        label: t("Procode_k24"),
         color: "blue",
       },
     },
     edit: {
-      modalLabel: "Edit Promocode",
+      modalLabel: t("Procode_k25"),
       button: {
-        label: "Edit Promocode",
+        label: t("Procode_k25"),
         color: "blue",
       },
     },
@@ -416,12 +416,12 @@ const Page = () => {
   return (
     <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mt-4">
-        <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
-        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          {t("Procode_k17")}
-        </h1>
-      </div>
+        <div className="mt-4">
+          <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
+          <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+            {t("Procode_k17")}
+          </h1>
+        </div>
 
         <div className="w-full py-2 flex flex-col gap-2">
           <div className="space-y-6 pb-4 mt-3">
@@ -665,12 +665,14 @@ const Page = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-4 px-2">
-            <p className="text-sm text-muted-foreground dark:text-gray-300">
-  {dataList.length === 0
-    ? t("Procode_k20")
-    : `${t("Procode_k21")} ${startIndex + 1} ${t("Procode_k22")} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
-</p>
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground dark:text-gray-300">
+                {dataList.length === 0
+                  ? t("Procode_k20")
+                  : `${t("Procode_k21")} ${startIndex + 1} ${t(
+                      "Procode_k22"
+                    )} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
+              </p>
               <div className="flex space-x-2">
                 <button
                   onClick={handlePreviousPage}

@@ -1,1 +1,37 @@
-{"Inventory_k1":"Categorías","Inventory_k10":"Confirmación","Inventory_k11":"¿Realmente quieres archivar esta categoría?\n\n","Inventory_k12":"Recuerda Todos los productos asociados también estarán Archivados con la categoría\n\n\n","Inventory_k13":"Cancelar","Inventory_k14":"Archivo","Inventory_k15":"Identificación del producto\n","Inventory_k16":"Actualizar producto\n\n","Inventory_k17":"Actualizar","Inventory_k18":"Precio ","Inventory_k19":"Unidades ","Inventory_k2":"Productos","Inventory_k20":"Buscar por producto","Inventory_k3":"Inventario","Inventory_k4":"Buscar por categoría","Inventory_k5":"Activo","Inventory_k6":"Archivado","Inventory_k7":"Identificación de categoría\n","Inventory_k8":"Nombre","Inventory_k9":"Acción", "Inventory_k21": "Filtro 0", "Inventory_k22": "Siguiente", "Inventory_k23": "Anterior", "Inventory_k24": "Almacén", "Inventory_k25": "Agregar categoría", "Inventory_k26": "Agregar producto"}
+{
+    "Inventory_k1": "Categorías",
+    "Inventory_k10": "Confirmación",
+    "Inventory_k11": "¿Realmente deseas archivar esta categoría?\n\n",
+    "Inventory_k12": "Recuerda que todos los productos asociados también serán archivados con la categoría\n\n\n",
+    "Inventory_k13": "Cancelar",
+    "Inventory_k14": "Archivar",
+    "Inventory_k15": "ID del producto\n",
+    "Inventory_k16": "Actualizar producto\n\n",
+    "Inventory_k17": "Actualizar",
+    "Inventory_k18": "Precio ",
+    "Inventory_k19": "Unidades ",
+    "Inventory_k2": "Productos",
+    "Inventory_k20": "Buscar por producto",
+    "Inventory_k3": "Inventario",
+    "Inventory_k4": "Buscar por categoría",
+    "Inventory_k5": "Activo",
+"Inventory_k6": "Asignar",
+    "Inventory_k7": "ID de la categoría\n",
+    "Inventory_k8": "Nombre",
+    "Inventory_k9": "Acción",
+    "Inventory_k21": "Filtro 0",
+    "Inventory_k22": "Siguiente",
+    "Inventory_k23": "Anterior",
+    "Inventory_k24": "Almacén",
+    "Inventory_k25": "Agregar categoría",
+    "Inventory_k26": "Agregar producto",
+    "Inventory_k27": "Mostrando",
+    "Inventory_k28": "a",
+    "Inventory_k29": "de",
+    "Inventory_k30": "Desarchivar",
+    "Inventory_k31": "Crear categoría",
+    "Inventory_k32": "Categoría",
+    "Inventory_k33": "Archivado"
+
+  }
+  

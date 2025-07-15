@@ -385,10 +385,8 @@ const Inventory = () => {
   const handleZeroQuantityToggle = useCallback(() => {
     setExcludeZeroQuantity((prev) => !prev);
   }, []);
-  
 
   const RightSideComponent = useMemo(
-    
     () => (
       <div className="text-sm text-gray-500 flex flex-col sm:flex-row items-start sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2">
         <div className="flex items-center space-x-0 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-700">
@@ -401,7 +399,7 @@ const Inventory = () => {
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">Active</span>
+            <span className="hidden sm:inline">{t("Inventory_k5")}</span>
           </button>
           <button
             onClick={handleArchiveClick}
@@ -412,7 +410,7 @@ const Inventory = () => {
             }`}
           >
             <Archive className="w-4 h-4" />
-            <span className="hidden sm:inline">Archived</span>
+            <span className="hidden sm:inline">{t("Inventory_k33")}</span>
           </button>
         </div>
         <button
@@ -425,9 +423,7 @@ const Inventory = () => {
           title="Exclude zero quantity products"
         >
           <Filter className="w-4 h-4" />
-          <span className="hidden lg:inline">
-            {t("Inventory_k21")}
-          </span>
+          <span className="hidden lg:inline">{t("Inventory_k21")}</span>
           <span className="lg:hidden">Filter 0</span>
         </button>
       </div>
@@ -749,25 +745,33 @@ const Inventory = () => {
 
             {!loading && dataList.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                {/* Showing x to y of z using translations */}
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {(currentPage - 1) * itemsPerPage + 1}-
-                  {Math.min(currentPage * itemsPerPage, dataList.length)} of{" "}
-                  {dataList.length} row(s)
+                  {dataList.length === 0
+                    ? `${t("Inventory_k27")} 0 ${t("Inventory_k29")} 0`
+                    : `${t("Inventory_k27")} ${
+                        (currentPage - 1) * itemsPerPage + 1
+                      } ${t("Inventory_k28")} ${Math.min(
+                        currentPage * itemsPerPage,
+                        dataList.length
+                      )} ${t("Inventory_k29")} ${dataList.length}`}
                 </div>
+
+                {/* Pagination buttons */}
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                   >
-                    {t("Inventory_k23")}
+                    {t("Inventory_k23") || "Previous"}
                   </button>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
+                    className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-300"
                   >
-                    {t("Inventory_k22")}
+                    {t("Inventory_k22") || "Next"}
                   </button>
                 </div>
               </div>
