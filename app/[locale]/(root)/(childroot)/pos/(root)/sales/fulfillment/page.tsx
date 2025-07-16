@@ -23,6 +23,7 @@ interface FulfillmentRequest {
   fulfilled_at?: string;
   patient_name?: string;
   patient_email?: string;
+  category_name?: string; // Added property
 }
 
 interface StatsCardProps {
@@ -308,9 +309,7 @@ const FulfillmentPage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       {t("POS-Sales_k58")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      {t("POS-Sales_k59")}
-                    </th>
+                   
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -357,39 +356,6 @@ const FulfillmentPage = () => {
                         {request.fulfilled_at && (
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             Fulfilled: {formatDate(request.fulfilled_at)}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {request.status === 'pending' && (
-                          <button
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
-                            onClick={() => {
-                              setFulfillmentOrderRef("");          // optional: reset input fields
-                              setFulfillmentToken("");            // optional
-                              setShowSearchModal(true);           // ✅ opens the modal
-                                    // optional if needed
-                            }}
-                            
-                            disabled={fulfillingId === request.id}
-                          >
-                            {fulfillingId === request.id ? (
-                              <>
-                                <CircularProgress size={14} color="inherit" />
-                                <span>{t("POS-Sales_k74")}</span>
-                              </>
-                            ) : (
-                              <>
-                                <FaHandshake />
-                                <span>{t("POS-Sales_k60")}</span>
-                              </>
-                            )}
-                          </button>
-                        )}
-                        {request.status === 'fulfilled' && (
-                          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                            <FaCheckCircle className="text-xl" />
-                            <span className="font-semibold">✓ Fulfilled</span>
                           </div>
                         )}
                       </td>
@@ -508,7 +474,12 @@ const FulfillmentPage = () => {
 
 
       {/* Search Modal */}
-      <Modal show={showSearchModal} onClose={() => setShowSearchModal(false)} size="2xl">
+      <Modal show={showSearchModal} onClose={() => {
+    setShowSearchModal(false);
+    setFulfillmentOrderRef("");
+    setFulfillmentToken("");
+    setSearchResults([]);
+  }}size="2xl">
         <Modal.Header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <div className="flex items-center gap-3">
             <FaSearch className="text-xl" />
@@ -537,7 +508,7 @@ const FulfillmentPage = () => {
                   className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                   placeholder="Enter token"
                   value={fulfillmentToken}
-                  onChange={e => setFulfillmentToken(e.target.value)}
+                    onChange={e => setFulfillmentToken(e.target.value.toUpperCase())}
                 />
               </div>
               <div className="flex items-end">
@@ -583,6 +554,14 @@ const FulfillmentPage = () => {
                           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("POS-Sales_k54")}</span>
                           <p className="text-gray-900 dark:text-white">{req.product_name}</p>
                         </div>
+
+                        <div>
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Category
+                    </span>
+                    <p className="text-gray-900 dark:text-white">{req.category_name}</p>
+                  </div>
+
                         <div>
                           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("POS-Sales_k56")}</span>
                           <p className="text-gray-900 dark:text-white">{req.quantity}</p>
