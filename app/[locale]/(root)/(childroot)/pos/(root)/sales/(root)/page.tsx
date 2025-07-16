@@ -22,9 +22,9 @@ import { TabContext } from "@/context";
 import {
   fetch_content_service,
   update_content_service,
-  create_content_service
+  create_content_service,
 } from "@/utils/supabase/data_services/data_services";
-import axios from 'axios';
+import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
@@ -206,9 +206,14 @@ const Orders = () => {
   const { locations } = useLocationClinica();
   const [showOtherLocationModal, setShowOtherLocationModal] = useState(false);
   const [otherLocationId, setOtherLocationId] = useState<number | null>(null);
-  const [otherLocationCategoryId, setOtherLocationCategoryId] = useState<number | null>(null);
-  const [otherLocationProductId, setOtherLocationProductId] = useState<number | null>(null);
-  const [otherLocationProductQty, setOtherLocationProductQty] = useState<number>(1);
+  const [otherLocationCategoryId, setOtherLocationCategoryId] = useState<
+    number | null
+  >(null);
+  const [otherLocationProductId, setOtherLocationProductId] = useState<
+    number | null
+  >(null);
+  const [otherLocationProductQty, setOtherLocationProductQty] =
+    useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
   const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
 
@@ -948,7 +953,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
                           Total Cost {currencyFormatHandle(
                             (selectedProduct?.price || 0) * productQty
                           )}
-
                         </p>
                       </div>
                       {selectedProduct.unlimited ? (
@@ -1320,6 +1324,42 @@ const [addAmountInput, setAddAmountInput] = useState("");
 
 
 
+                <button
+                  onClick={placeOrderHandle}
+                  disabled={
+                    !cartArray.length ||
+                    totalPaid > subtotal ||
+                    receivedAmount + cardAmount + creditUsed !== subtotal
+                  }
+                  className={`
+          rounded py-1 px-3 text-white w-1/2 
+          flex justify-between items-center text-sm
+          ${
+            totalPaid > subtotal ||
+            receivedAmount + cardAmount + creditUsed !== subtotal
+              ? "bg-red-600"
+              : "bg-blue-600"
+          }
+          ${
+            !cartArray.length ||
+            totalPaid > subtotal ||
+            receivedAmount + cardAmount + creditUsed !== subtotal
+              ? "opacity-50"
+              : ""
+          }
+        `}
+                >
+                  {placeOrderLoading ? (
+                    <CircularProgress size={14} color="secondary" />
+                  ) : (
+                    <>
+                      <span className="font-medium">
+                        {`$${totalPaid.toFixed(2)}`}
+                      </span>
+                      <PiCaretCircleRightFill size={16} />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -1331,8 +1371,10 @@ const [addAmountInput, setAddAmountInput] = useState("");
             <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">Select Location</label>
             <select
               className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
-              value={String(otherLocationId ?? '')}
-              onChange={e => handleOtherLocationChange(Number(e.target.value))}
+              value={String(otherLocationId ?? "")}
+              onChange={(e) =>
+                handleOtherLocationChange(Number(e.target.value))
+              }
             >
               <option value="">Select Location</option>
               {locations.map((loc: any) => (
@@ -1403,7 +1445,10 @@ const [addAmountInput, setAddAmountInput] = useState("");
                 </button>
               </div>
               <div className="text-xs mt-1 text-gray-500 dark:text-gray-400">
-                Available: {otherLocationProducts.find((p: any) => p.product_id === otherLocationProductId)?.quantity_available ?? 0}
+                Available:{" "}
+                {otherLocationProducts.find(
+                  (p: any) => p.product_id === otherLocationProductId
+                )?.quantity_available ?? 0}
               </div>
             </div>
           )}
@@ -1411,17 +1456,21 @@ const [addAmountInput, setAddAmountInput] = useState("");
             <button
               className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
               onClick={handleAddOtherLocationProduct}
-              disabled={!otherLocationId || !otherLocationCategoryId || !otherLocationProductId}
+              disabled={
+                !otherLocationId ||
+                !otherLocationCategoryId ||
+                !otherLocationProductId
+              }
               type="button"
             >
-              Add to Cart
+              {t("POS-Sales_k8")}
             </button>
             <button
               className="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded text-xs hover:bg-gray-400 dark:hover:bg-gray-600"
               onClick={() => setShowOtherLocationModal(false)}
               type="button"
             >
-              Cancel
+              {t("POS-Sales_k18")}
             </button>
           </div>
         </div>
@@ -1431,7 +1480,9 @@ const [addAmountInput, setAddAmountInput] = useState("");
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
-        selectedCategory={categories.find((cat: any) => cat.category_id === selectedCategory)}
+        selectedCategory={categories.find(
+          (cat: any) => cat.category_id === selectedCategory
+        )}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
       />
