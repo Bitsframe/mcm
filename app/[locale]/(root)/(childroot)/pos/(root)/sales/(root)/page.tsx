@@ -1324,42 +1324,7 @@ const [addAmountInput, setAddAmountInput] = useState("");
 
 
 
-                <button
-                  onClick={placeOrderHandle}
-                  disabled={
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    receivedAmount + cardAmount + creditUsed !== subtotal
-                  }
-                  className={`
-          rounded py-1 px-3 text-white w-1/2 
-          flex justify-between items-center text-sm
-          ${
-            totalPaid > subtotal ||
-            receivedAmount + cardAmount + creditUsed !== subtotal
-              ? "bg-red-600"
-              : "bg-blue-600"
-          }
-          ${
-            !cartArray.length ||
-            totalPaid > subtotal ||
-            receivedAmount + cardAmount + creditUsed !== subtotal
-              ? "opacity-50"
-              : ""
-          }
-        `}
-                >
-                  {placeOrderLoading ? (
-                    <CircularProgress size={14} color="secondary" />
-                  ) : (
-                    <>
-                      <span className="font-medium">
-                        {`$${totalPaid.toFixed(2)}`}
-                      </span>
-                      <PiCaretCircleRightFill size={16} />
-                    </>
-                  )}
-                </button>
+                
               </div>
             </div>
           </div>
