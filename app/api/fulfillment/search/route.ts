@@ -15,7 +15,8 @@ export async function POST(request: Request) {
     // Search for fulfillment requests
     const fulfillmentRequests = await fetch_content_service({
       table: 'fulfillment_requests',
-      selectParam: ', inventory(product_id, products(product_name)), orders(order_id)',
+      selectParam: ', inventory(product_id, products(product_name)), orders!fulfillment_requests_fulfillment_order_id_fkey(order_id)',
+
       matchCase: [
         { key: 'main_order_id', value: orderRef },
         { key: 'token', value: token },

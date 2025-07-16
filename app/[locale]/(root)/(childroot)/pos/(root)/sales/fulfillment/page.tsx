@@ -14,6 +14,7 @@ import { Modal } from "flowbite-react";
 interface FulfillmentRequest {
   id: number;
   order_id: string;
+  main_order_id?: string; 
   token: string;
   status: 'pending' | 'fulfilled';
   quantity: number;
@@ -74,12 +75,14 @@ const FulfillmentPage = () => {
   }, [selectedLocation]);
 
   const fetchFulfillmentRequests = async () => {
+   
     if (!selectedLocation?.id) return;
 
     setLoading(true);
     try {
       const response = await fetch(`/api/fulfillment/requests?locationId=${selectedLocation.id}`);
       const result = await response.json();
+    
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to fetch fulfillment requests');
@@ -94,9 +97,41 @@ const FulfillmentPage = () => {
     }
   };
 
+  // const handleSearch = async () => {
+  //   if (!fulfillmentOrderRef || !fulfillmentToken || !selectedLocation?.id) return;
+
+  //   setSearchLoading(true);
+  //   try {
+  //     const response = await fetch('/api/fulfillment/search', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         orderRef: fulfillmentOrderRef,
+  //         token: fulfillmentToken,
+  //         location_id: selectedLocation.id
+  //       })
+  //     });
+
+  //     const data = await response.json();
+  //     if (data.success) {
+  //       setSearchResults(data.data);
+  //       toast.success(t("POS-Sales_k68"));
+  //     } else {
+  //       toast.error(data.message || t("POS-Sales_k69"));
+  //       setSearchResults([]);
+  //     }
+  //   } catch (error) {
+  //     toast.error(t("POS-Sales_k70"));
+  //     setSearchResults([]);
+  //   } finally {
+  //     setSearchLoading(false);
+  //   }
+  // };
   const handleSearch = async () => {
     if (!fulfillmentOrderRef || !fulfillmentToken || !selectedLocation?.id) return;
+  
 
+  
     setSearchLoading(true);
     try {
       const response = await fetch('/api/fulfillment/search', {
@@ -108,8 +143,12 @@ const FulfillmentPage = () => {
           location_id: selectedLocation.id
         })
       });
-
+  
+     
+  
       const data = await response.json();
+    
+  
       if (data.success) {
         setSearchResults(data.data);
         toast.success(t("POS-Sales_k68"));
@@ -118,12 +157,17 @@ const FulfillmentPage = () => {
         setSearchResults([]);
       }
     } catch (error) {
+      console.error("❌ Search request failed:", error);
       toast.error(t("POS-Sales_k70"));
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
   };
+  
+
+
+
 
   const handleMarkAsFulfilled = async (requestId: number) => {
     setFulfillingId(requestId);
@@ -138,7 +182,8 @@ const FulfillmentPage = () => {
       if (data.success) {
         toast.success(t("POS-Sales_k71"));
         fetchFulfillmentRequests(); // Refresh the list
-        setSearchResults([]); // Clear search results
+        setSearchResults([]); 
+        setShowSearchModal(false); // Clear search results
       } else {
         toast.error(data.message || t("POS-Sales_k72"));
       }
@@ -319,7 +364,13 @@ const FulfillmentPage = () => {
                         {request.status === 'pending' && (
                           <button
                             className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
-                            onClick={() => handleMarkAsFulfilled(request.id)}
+                            onClick={() => {
+                              setFulfillmentOrderRef("");          // optional: reset input fields
+                              setFulfillmentToken("");            // optional
+                              setShowSearchModal(true);           // ✅ opens the modal
+                                    // optional if needed
+                            }}
+                            
                             disabled={fulfillingId === request.id}
                           >
                             {fulfillingId === request.id ? (
@@ -502,8 +553,8 @@ const FulfillmentPage = () => {
                     </>
                   ) : (
                     <>
-                      <FaSearch />
-                      <span>{t("POS-Sales_k65")}</span>
+                      
+                      <span>Confirmed Fullfillment</span>
                     </>
                   )}
                 </button>
@@ -522,7 +573,7 @@ const FulfillmentPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                         <div>
                           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("POS-Sales_k63")}</span>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">#{req.order_id}</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white"> #{req.main_order_id}</p>
                         </div>
                         <div>
                           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("POS-Sales_k64")}</span>
