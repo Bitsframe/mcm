@@ -7,6 +7,9 @@ import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
+
 
 interface TransferUnitsProps {
     open: boolean;
@@ -130,16 +133,19 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
         getCategoriesByLocationId(cat_id);
     }
 
+    const { t } = useTranslation(translationConstant.INVENTORY);
+
+
 
     return (
         <Custom_Modal
             open_handle={() => { }}
-            Title="Transfer Units"
+            Title={t("Inventory_k44")}
             loading={transferLoading}
             is_open={open}
             close_handle={onClose}
             create_new_handle={handleTransferSubmit}
-            buttonLabel="Transfer"
+            buttonLabel={t("Inventory_k45")}
             Trigger_Button={null}
             disabled={
                 transferLoading ||
@@ -154,9 +160,8 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
         >
             <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Location</label>
                     <Searchable_Dropdown
-                        label="From Location"
+                        label={t("Inventory_k46")}
                         value={fromLocation}
                         options_arr={locations.map((loc: any) => ({ value: loc.id, label: loc.title }))}
                         on_change_handle={(e: any) => setFromLocation(Number(e.target.value))}
@@ -164,9 +169,8 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Location</label>
                     <Searchable_Dropdown
-                        label="To Location"
+                        label={t("Inventory_k47")}
                         value={toLocation}
                         options_arr={locations.filter((loc: any) => loc.id !== fromLocation).map((loc: any) => ({ value: loc.id, label: loc.title }))}
                         on_change_handle={(e: any) => setToLocation(Number(e.target.value))}
@@ -174,9 +178,8 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                     <Searchable_Dropdown
-                        label="Category"
+                        label={t("Inventory_k32")}
                         value={selectedCategory}
                         options_arr={categories.map((cat: any) => ({ value: cat.category_id, label: cat.category_name }))}
                         on_change_handle={(e: any) => selectedCategoryHandle(Number(e.target.value))}
@@ -184,9 +187,8 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product</label>
                     <Searchable_Dropdown
-                        label="Product"
+                        label={t("Inventory_k2")}
                         value={selectedProduct}
                         options_arr={products.filter((prod: any) => !prod.unlimited).map((prod: any) => ({ value: prod.main_product_id, label: prod.product_name }))}
                         on_change_handle={(e: any) => setSelectedProduct(Number(e.target.value))}
@@ -200,7 +202,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                         value={units}
                         onChange={setUnits}
                         border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                        label={`Units (Available: ${availableUnits})`}
+                        label={`${t("Inventory_k19")} (${t("Inventory_k48")}: ${availableUnits})`}
                         bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                         disabled={!selectedProduct}
                     />

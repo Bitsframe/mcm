@@ -139,17 +139,17 @@ const requiredInputFields = [
   },
   {
     id: "product_name",
-    label: "Name",
+    label: "Inventory_k8",
   },
   {
     id: "price",
-    label: "Price",
+    label: "Inventory_k18",
     colSpan: "col-span-1",
     type: "number",
   },
   {
     id: "stock",
-    label: "Units",
+    label: "Inventory_k19",
     colSpan: "col-span-1",
     type: "number",
   },
@@ -519,7 +519,7 @@ const Products = () => {
                 className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-green-600 hover:bg-green-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-green-700 dark:hover:bg-green-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
-                <span>{t("Inventory_k34")}</span>
+                <span>{t("Inventory_k44")}</span>
               </button>
             </div>
 
@@ -878,7 +878,15 @@ const Products = () => {
 
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
-        Title={`${modalState} Product`}
+        Title={
+          modalState === modalStateEnum.CREATE
+            ? `${t("Inventory_k31")} ${t("Inventory_k2")}`
+            : modalState === modalStateEnum.UPDATE
+            ? `${t("Inventory_k17")} ${t("Inventory_k2")}`
+            : modalState === modalStateEnum.ASSIGN
+            ? `${t("Inventory_k6")} ${t("Inventory_k2")}`
+            : ""
+        }
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
@@ -887,7 +895,15 @@ const Products = () => {
             ? assignSubmitHandle
             : modalSubmitHandle
         }
-        buttonLabel={modalState}
+        buttonLabel={
+          modalState === modalStateEnum.CREATE
+            ? t("Inventory_k31")
+            : modalState === modalStateEnum.UPDATE
+            ? t("Inventory_k17")
+            : modalState === modalStateEnum.ASSIGN
+            ? t("Inventory_k6")
+            : ""
+        }
         Trigger_Button={null}
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
@@ -943,7 +959,7 @@ const Products = () => {
                 ))}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {assignModalData.location_ids?.length || 0} {t("Inventory_k42")}
+                {assignModalData.location_ids?.length || 0} {t("Inventory_k43")}
               </div>
             </div>
             <div className="col-span-2 space-y-4">
@@ -953,7 +969,7 @@ const Products = () => {
                   value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                  label={t("Inventory_k31")}
+                  label={t("Inventory_k42")}
                   bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                 />
               </div>
@@ -1034,7 +1050,7 @@ const Products = () => {
                     on_change_handle={(e: any) =>
                       modalInputChangeHandle(id, e.target.value)
                     }
-                    label="Category"
+                    label={t("Inventory_k32")}
                   />
                 </div>
               ) : (
@@ -1044,7 +1060,7 @@ const Products = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                    label={label}
+                    label={t(label)}
                     bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                     disabled={id === "stock" && modalData.unlimited}
                   />
@@ -1065,7 +1081,7 @@ const Products = () => {
                 htmlFor="unlimited"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                {t("Inventory_k28")}
+                {t("Inventory_k49")}
               </label>
             </div>
           </div>

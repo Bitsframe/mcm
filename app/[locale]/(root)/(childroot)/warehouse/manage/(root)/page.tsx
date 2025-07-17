@@ -36,54 +36,6 @@ interface DataListInterface {
   [key: string]: any;
 }
 
-const tableHeader = [
-  {
-    id: "category_id",
-    label: "Inventory_k7",
-    align: "text-start",
-  },
-  {
-    id: "category_name",
-    label: "Inventory_k8",
-    align: "text-center",
-  },
-  {
-    id: "actions",
-    label: "Inventory_k9",
-    align: "text-end",
-    component: true,
-    Render_Value: ({
-      val,
-      onClickHandle,
-      isLoading,
-      getDataArchiveType,
-    }: {
-      val?: string;
-      onClickHandle?: () => void;
-      isLoading?: boolean;
-      getDataArchiveType: boolean;
-    }) => {
-      return (
-        <div className="space-x-4 flex justify-end">
-          <Action_Button
-            isLoading={isLoading}
-            onClick={onClickHandle}
-            label={getDataArchiveType ? "Unarchive" : "Archive"}
-            bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
-            text_color={
-              getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
-            }
-            border={
-              getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
-            }
-            icon={<Archive size={18} />}
-          />
-        </div>
-      );
-    },
-  },
-];
-
 const modalStateEnum = {
   CREATE: "Create",
   UPDATE: "Update",
@@ -108,6 +60,59 @@ const Categories = () => {
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
   const currentPageData = dataList.slice(startIndex, endIndex);
+
+  const tableHeader = useMemo(
+    () => [
+      {
+        id: "category_id",
+        label: "Inventory_k7",
+        align: "text-start",
+      },
+      {
+        id: "category_name",
+        label: "Inventory_k8",
+        align: "text-center",
+      },
+      {
+        id: "actions",
+        label: "Inventory_k9",
+        align: "text-end",
+        component: true,
+        Render_Value: ({
+          val,
+          onClickHandle,
+          isLoading,
+          getDataArchiveType,
+        }: {
+          val?: string;
+          onClickHandle?: () => void;
+          isLoading?: boolean;
+          getDataArchiveType: boolean;
+        }) => {
+          return (
+            <div className="space-x-4 flex justify-end">
+              <Action_Button
+                isLoading={isLoading}
+                onClick={onClickHandle}
+                label={
+                  getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")
+                }
+                bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
+                text_color={
+                  getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
+                }
+                border={
+                  getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
+                }
+                icon={<Archive size={18} />}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    [t]
+  );
 
   const fetch_handle = async (archive: boolean) => {
     setLoading(true);
@@ -226,7 +231,7 @@ const Categories = () => {
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
+    [getDataArchiveType, handleActiveClick, handleArchiveClick, t]
   );
 
   const createNewHandle = async () => {
@@ -465,19 +470,31 @@ const Categories = () => {
 
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
-        Title={`${modalState} Category`}
+        Title={
+          modalState === modalStateEnum.CREATE
+            ? `${t("Inventory_k31")} ${t("Inventory_k32")}`
+            : modalState === modalStateEnum.UPDATE
+            ? `${t("Inventory_k17")} ${t("Inventory_k32")}`
+            : ""
+        }
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
         create_new_handle={createNewHandle}
-        buttonLabel={modalState}
+        buttonLabel={
+          modalState === modalStateEnum.CREATE
+            ? t("Inventory_k31")
+            : modalState === modalStateEnum.UPDATE
+            ? t("Inventory_k17")
+            : ""
+        }
         Trigger_Button={null}
       >
         <Input_Component
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          label="Category"
+          label={t("Inventory_k32")}
           darkMode={true}
           bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"
         />
@@ -485,48 +502,51 @@ const Categories = () => {
 
       {activeDeleteId ? (
         <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-50">
-        <div className="flex justify-center items-center w-full h-full">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-            <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
-              {t("Inventory_k10")}
-            </h1>
-      
-            <p className="text-lg text-black dark:text-white">
-              {t("Inventory_k11").replace(
-                "Archive",
-                t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
-              ).trim()}
-            </p>
-      
-            <p className="text-sm text-gray-800 dark:text-white">
-              {t("Inventory_k12").replace(
-                "Archive",
-                t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
-              ).trim()}
-            </p>
-      
-            <div className="mt-4 flex items-center space-x-3 justify-end">
-              <Button
-                disabled={deleteLoading}
-                onClick={() => setActiveDeleteId(0)}
-                color="gray"
-                className="bg-white text-black"
-              >
-                {t("Inventory_k13")}
-              </Button>
-              <Button
-                isProcessing={deleteLoading}
-                color="failure"
-                onClick={deleteHandle}
-                className="bg-red-700 hover:bg-red-800"
-              >
-                {t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")}
-              </Button>
+          <div className="flex justify-center items-center w-full h-full">
+            <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
+              <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
+                {t("Inventory_k10")}
+              </h1>
+
+              <p className="text-lg text-black dark:text-white">
+                {t("Inventory_k11")
+                  .replace(
+                    "Archive",
+                    t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
+                  )
+                  .trim()}
+              </p>
+
+              <p className="text-sm text-gray-800 dark:text-white">
+                {t("Inventory_k12")
+                  .replace(
+                    "Archive",
+                    t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
+                  )
+                  .trim()}
+              </p>
+
+              <div className="mt-4 flex items-center space-x-3 justify-end">
+                <Button
+                  disabled={deleteLoading}
+                  onClick={() => setActiveDeleteId(0)}
+                  color="gray"
+                  className="bg-white text-black"
+                >
+                  {t("Inventory_k13")}
+                </Button>
+                <Button
+                  isProcessing={deleteLoading}
+                  color="failure"
+                  onClick={deleteHandle}
+                  className="bg-red-700 hover:bg-red-800"
+                >
+                  {t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
       ) : null}
     </main>
   );

@@ -12,7 +12,7 @@ interface Action_Button_Props {
   width?: string;
   height?: string;
   onClick?: () => void;
-  icon?: ReactNode; // 👈 icon as a prop
+  icon?: ReactNode;
 }
 
 export const Action_Button: React.FC<Action_Button_Props> = ({

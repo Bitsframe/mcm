@@ -74,10 +74,12 @@ const tableHeader = [
       clickHandle: (state: string) => void;
       getDataArchiveType: boolean;
     }) => {
+      const { t } = useTranslation(translationConstant.INVENTORY);
+
       return (
         <div className="flex items-end justify-start">
           <Action_Button
-            label={getDataArchiveType ? "Unarchive" : "Archive"}
+            label={getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")}
             text_color={
               getDataArchiveType
                 ? "text-[#0EA542] dark:text-green-400"
@@ -209,14 +211,12 @@ const Inventory = () => {
     const val = e.target.value;
     let filteredData = allData;
 
-    // Apply zero quantity filter
     if (excludeZeroQuantity) {
       filteredData = filteredData.filter(
         (elem) => elem.quantity_available > 0 || elem.unlimited
       );
     }
 
-    // Apply search filter
     if (val !== "") {
       filteredData = filteredData.filter((elem) =>
         elem.product_name.toLocaleLowerCase().includes(val.toLocaleLowerCase())
@@ -226,7 +226,6 @@ const Inventory = () => {
     setDataList([...filteredData]);
   };
 
-  // Add effect to handle zero quantity filter changes
   useEffect(() => {
     onChangeHandle({ target: { value: "" } });
   }, [excludeZeroQuantity]);
@@ -667,7 +666,7 @@ const Inventory = () => {
                           <div className="flex-shrink-0">
                             <Action_Button
                               label={
-                                getDataArchiveType ? "Unarchive" : "Archive"
+                                getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")
                               }
                               text_color={
                                 getDataArchiveType
