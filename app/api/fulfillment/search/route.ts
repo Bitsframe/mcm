@@ -37,10 +37,6 @@ export async function POST(request: Request) {
 
     console.log('Raw Fulfillment Requests:', JSON.stringify(fulfillmentRequests, null, 2));
 
-    console.log("➡️ Incoming request payload:");
-    console.log("orderRef:", orderRef);
-    console.log("token:", token);
-    console.log("location_id:", location_id);
     
 
 

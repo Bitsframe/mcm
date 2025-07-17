@@ -149,114 +149,70 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
     }
 
     // --- 3. Handle fulfillment for other locations ---
+    for (const locId of otherLocationIds) {
+      const items = cartByLocation[locId];
+      if (!items?.length) continue;
     
- 
+      // Create fulfillment order (no payment)
+      const { data: fulfillOrderData, error: fulfillOrderError } = await create_content_service({
+        table: "orders",
+        post_data: {
+          patient_id: patient_id,
+          paid_amount: 0,
+          cash: 0,
+          card: 0,
+          credit_balance: 0,
+          previous_credit_amount: 0,
+        },
+      });
+      if (fulfillOrderError) throw new Error(fulfillOrderError.message);
+      if (!fulfillOrderData?.length) throw new Error('Failed to create fulfillment order');
+      const fulfill_order_id = fulfillOrderData[0].order_id;
     
-    // for (const locId of otherLocationIds) {
-    //   const items = cartByLocation[locId];
-    //   console.log(`Processing location ${locId} with ${items?.length || 0} items`);
-    //   if (!items?.length) continue;
-      
-    //   // Create fulfillment order (no payment)
-    //   const { data: fulfillOrderData, error: fulfillOrderError } = await create_content_service({
-    //     table: "orders",
-    //     post_data: {
-    //       patient_id: patient_id,
-    //       paid_amount: 0,
-    //       cash: 0,
-    //       card: 0,
-    //       credit_balance: 0,
-    //       previous_credit_amount: 0,
-    //     },
-    //   });
-    //   if (fulfillOrderError) throw new Error(fulfillOrderError.message);
-    //   if (!fulfillOrderData?.length) throw new Error('Failed to create fulfillment order');
-    //   const fulfill_order_id = fulfillOrderData[0].order_id;
-      
-    //   // Create sales history for fulfillment order
-    //   const fulfillSalesHistory = items.map((elem: any) => ({
-    //     order_id: fulfill_order_id,
-    //     inventory_id: elem.product_id,
-    //     quantity_sold: elem.quantity,
-    //     total_price: 0, // no revenue at fulfillment location
-    //   }));
-    //   await create_content_service({
-    //     table: "sales_history",
-    //     post_data: fulfillSalesHistory,
-    //     multiple_rows: true,
-    //   });
-      
-    //   // For each item, create a fulfillment request row and send email
-    //   for (const elem of items) {
-    //     // Generate a secure token
-    //     const token = crypto.randomBytes(4).toString('hex').toUpperCase();
-        
-    //     // Create fulfillment request
-    //     console.log('Attempting to create fulfillment request with data:', {
-    //       main_order_id: order_id,
-    //       fulfillment_order_id: fulfill_order_id,
-    //       inventory_id: elem.product_id,
-    //       quantity: elem.quantity,
-    //       token,
-    //       status: 'pending',
-    //     });
-        
-    //     const { data: fulfillmentData, error: fulfillmentError } = await create_content_service({
-    //       table: "fulfillment_requests",
-    //       post_data: {
-    //         main_order_id: order_id,
-    //         fulfillment_order_id: fulfill_order_id,
-    //         inventory_id: elem.product_id,
-    //         quantity: elem.quantity,
-    //         location_id: locId,
-    //         token,
-    //         status: 'pending',
-    //       },
-    //     });
-        
-    //     if (fulfillmentError) {
-    //       console.error('Fulfillment request creation error:', fulfillmentError);
-    //       console.error('Error details:', {
-    //         message: fulfillmentError.message,
-    //         details: fulfillmentError.details,
-    //         hint: fulfillmentError.hint,
-    //         code: fulfillmentError.code
-    //       });
-    //       throw new Error(`Fulfillment request creation failed: ${fulfillmentError.message}`);
-    //     }
-        
-    //     console.log('Successfully created fulfillment request:', fulfillmentData);
-        
-    //     // Fetch location info
-    //     const locationData = await fetch_content_service({
-    //       table: "Locations",
-    //       matchCase: { key: "id", value: Number(locId) }
-    //     });
-    //     const locationName = locationData?.[0]?.title || '';
-    //     const locationAddress = locationData?.[0]?.address || '';
-        
-    //     // Send fulfillment request email to patient
-    //     await sendFulfillmentRequestEmail(
-    //       selectedPatient.email,
-    //       `${selectedPatient.firstname} ${selectedPatient.lastname}`,
-    //       order_id,
-    //       token,
-    //       [
-    //         {
-    //           product_name: elem.product_name,
-    //           category_name: elem.category_name,
-    //           quantity: elem.quantity,
-    //         },
-    //       ],
-    //       locationName,
-    //       locationAddress
-    //     );
-    //   }
-    // }
-
-
-
+      // Generate token per location
+      const token = crypto.randomBytes(4).toString('hex').toUpperCase();
     
+      // Create fulfillment request entries
+      const fulfillmentRows = items.map((elem: any) => ({
+        main_order_id: order_id,
+        fulfillment_order_id: fulfill_order_id,
+        inventory_id: elem.product_id,
+        quantity: elem.quantity,
+        location_id: locId,
+        token,
+        status: 'pending',
+      }));
+    
+      await create_content_service({
+        table: "fulfillment_requests",
+        post_data: fulfillmentRows,
+        multiple_rows: true,
+      });
+    
+      // Fetch location info
+      const locationData = await fetch_content_service({
+        table: "Locations",
+        matchCase: { key: "id", value: Number(locId) }
+      });
+      const locationName = locationData?.[0]?.title || '';
+      const locationAddress = locationData?.[0]?.address || '';
+    
+      // Send grouped email (all products from same location)
+      await sendFulfillmentRequestEmail(
+        selectedPatient.email,
+        `${selectedPatient.firstname} ${selectedPatient.lastname}`,
+        order_id,
+        token,
+        items.map((elem: any) => ({
+          product_name: elem.product_name,
+          category_name: elem.category_name,
+          quantity: elem.quantity,
+        })),
+        locationName,
+        locationAddress
+      );
+    }
+     
 
 
     // --- 4. Send order email to patient ---
