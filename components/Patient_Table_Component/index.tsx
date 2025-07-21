@@ -542,14 +542,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <AlertDialogContent className="sm:max-w-[600px] max-h-[95vh] p-0 overflow-y-auto rounded-lg dark:bg-gray-900 w-[95vw] mx-auto">
-          <div className="p-6">
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] p-0 overflow-y-auto rounded-lg dark:bg-gray-900 mx-auto">
+          <div className="p-4 sm:p-6">
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
                 <AlertDialogTitle className="text-2xl font-semibold dark:text-white">
                   {t("Patients_k38")}
                 </AlertDialogTitle>
-                <AlertDialogCancel className="h-8 w-8 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 absolute right-6 top-6 z-10 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                <AlertDialogCancel className="h-8 w-8 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 absolute right-4 sm:right-6 top-4 sm:top-6 z-10 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                   <X className="h-5 w-5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
                 </AlertDialogCancel>
               </div>
@@ -574,7 +574,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 mt-4">
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="firstname"
@@ -704,19 +704,19 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="male" id="male" />
                         <Label htmlFor="male" className="dark:text-gray-300">
-                        {t("Patients_k40")}
+                          {t("Patients_k40")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="female" id="female" />
                         <Label htmlFor="female" className="dark:text-gray-300">
-                        {t("Patients_k41")}
+                          {t("Patients_k41")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="other" id="other" />
                         <Label htmlFor="other" className="dark:text-gray-300">
-                        {t("Patients_k42")}
+                          {t("Patients_k42")}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -739,13 +739,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="true" id="onsite" />
                         <Label htmlFor="onsite" className="dark:text-gray-300">
-                        {t("Patients_k43")}
+                          {t("Patients_k43")}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="false" id="offsite" />
                         <Label htmlFor="offsite" className="dark:text-gray-300">
-                        {t("Patients_k44")}
+                          {t("Patients_k44")}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -761,7 +761,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </Label>
                   <Input
                     id="note"
-                    placeholder= {t("Patients_k49")}
+                    placeholder={t("Patients_k49")}
                     onChange={(e) =>
                       setPatientData({
                         ...patientData,
@@ -932,16 +932,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="dark:text-white">
-                                {t("Patients_k53")}
+                                  {t("Patients_k53")}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription className="dark:text-gray-400">
-                                {t("Patients_k50")}{" "}
-                                  {patient.firstname} {patient.lastname}{t("Patients_k51")}
+                                  {t("Patients_k50")}{" "}
+                                  {patient.firstname} {patient.lastname}
+                                  {t("Patients_k51")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
-                                {t("Patients_k21")}
+                                  {t("Patients_k21")}
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
@@ -1237,7 +1238,10 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           }
         >
           <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white">
-            <SelectValue placeholder="Select treatment type" className="text-gray-900 dark:text-white" />
+            <SelectValue
+              placeholder="Select treatment type"
+              className="text-gray-900 dark:text-white"
+            />
           </SelectTrigger>
           <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
             {serviceList.map((service) => (
@@ -1281,19 +1285,19 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="male" id="edit-male" />
               <Label htmlFor="edit-male" className="dark:text-gray-300">
-              {t("Patients_k40")}
+                {t("Patients_k40")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="female" id="edit-female" />
               <Label htmlFor="edit-female" className="dark:text-gray-300">
-              {t("Patients_k41")}
+                {t("Patients_k41")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="other" id="edit-other" />
               <Label htmlFor="edit-other" className="dark:text-gray-300">
-              {t("Patients_k42")}
+                {t("Patients_k42")}
               </Label>
             </div>
           </RadioGroup>
@@ -1313,13 +1317,13 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="edit-onsite" />
               <Label htmlFor="edit-onsite" className="dark:text-gray-300">
-              {t("Patients_k43")}
+                {t("Patients_k43")}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="false" id="edit-offsite" />
               <Label htmlFor="edit-offsite" className="dark:text-gray-300">
-              {t("Patients_k44")}
+                {t("Patients_k44")}
               </Label>
             </div>
           </RadioGroup>
@@ -1452,11 +1456,6 @@ const PatientDetails: FC<{
             </p>
           </div>
         </div>
-
-        {/* <dl>
-          <dd className="font-semibold text-lg">{patient?.note || "-"}</dd>
-          <dt className="text-sm text-[#707070]">{t("Note")}</dt>
-        </dl> */}
       </div>
     </div>
   );
@@ -1540,7 +1539,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           <SquarePen className="h-4 w-4" color="#0066ff" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="w-[95vw] sm:max-w-[500px] dark:bg-gray-900 mx-auto">
+      <AlertDialogContent className="max-w-[90vw] sm:max-w-[500px] max-h-[90vh] p-4 sm:p-6 overflow-y-auto rounded-lg dark:bg-gray-900 mx-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl dark:text-white">
             {t("Patients_k15")}
@@ -1634,7 +1633,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                   className="w-full justify-between bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white"
                 >
                   {patientData.treatmenttype || "Select Treatment"}
-                  <MoreHorizontal className="h-4 w-4 opacity-50" />
+                  <MoreHorizontal className="h-4 w-4 fant opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full min-w-[200px] dark:bg-gray-800 dark:border-gray-700">
