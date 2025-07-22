@@ -20,7 +20,6 @@ import { toast } from "react-toastify";
 import { validateFormData } from "@/utils/validationCheck";
 import { LocationContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
-import { CiFilter } from "react-icons/ci";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";

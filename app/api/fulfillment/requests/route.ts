@@ -6,24 +6,33 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const locationId = searchParams.get('locationId');
 
+    console.log('Incoming request to /api/fulfillment/requests');
+    console.log('Received locationId:', locationId);
+
     if (!locationId) {
+      console.warn('locationId is missing in the request');
       return NextResponse.json(
         { error: 'Location ID is required' },
         { status: 400 }
       );
     }
 
+    const parsedLocationId = parseInt(locationId);
+    console.log('Parsed locationId:', parsedLocationId);
+
     const data: any = await fetch_content_service({
       table: 'fulfillment_requests',
       selectParam: ', inventory(product_id, products(product_name)), orders!fulfillment_requests_fulfillment_order_id_fkey(*,pos:allpatients(firstname, lastname, email))',
       matchCase: [
-        { key: 'location_id', value: parseInt(locationId) }
+        { key: 'location_id', value: parsedLocationId }
       ],
       filterOptions: [
         { operator: 'not', column: 'inventory', value: null },
         { operator: 'not', column: 'orders', value: null }
       ]
     });
+
+    console.log('Raw data from fetch_content_service:', data);
 
     const formattedData = data.map((item: any) => ({
       id: item.id,
@@ -33,9 +42,13 @@ export async function GET(request: NextRequest) {
       product_name: item.inventory?.products?.product_name || 'Unknown Product',
       created_at: item.created_at,
       fulfilled_at: item.fulfilled_at,
-      patient_name: item.orders?.pos ? `${item.orders.pos.firstname} ${item.orders.pos.lastname}` : 'Unknown Patient',
+      patient_name: item.orders?.pos
+        ? `${item.orders.pos.firstname} ${item.orders.pos.lastname}`
+        : 'Unknown Patient',
       patient_email: item.orders?.pos?.email || ''
     }));
+
+    console.log('Formatted response data:', formattedData);
 
     return NextResponse.json({
       success: true,
@@ -49,4 +62,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

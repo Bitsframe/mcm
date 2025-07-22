@@ -11,11 +11,22 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Search for fulfillment requests
+   
+    
+    // Search for fulfillment requests including category name
     const fulfillmentRequests = await fetch_content_service({
       table: 'fulfillment_requests',
-      selectParam: ', inventory(product_id, products(product_name)), orders(order_id)',
+      selectParam: `
+        , 
+        inventory(
+          product_id, 
+          products(
+            product_name, 
+            categories(category_name)
+          )
+        ), 
+        orders!fulfillment_requests_fulfillment_order_id_fkey(order_id)
+      `,
       matchCase: [
         { key: 'main_order_id', value: orderRef },
         { key: 'token', value: token },
@@ -24,6 +35,11 @@ export async function POST(request: Request) {
       ]
     });
 
+    console.log('Raw Fulfillment Requests:', JSON.stringify(fulfillmentRequests, null, 2));
+
+    
+
+
     if (!fulfillmentRequests || fulfillmentRequests.length === 0) {
       return NextResponse.json(
         { success: false, message: 'No pending fulfillment requests found' },
@@ -31,12 +47,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const mapData = fulfillmentRequests.map((elem)=>{
+    const mapData = fulfillmentRequests.map((elem) => {
       return {
         ...elem,
-        product_name: elem?.inventory?.products?.product_name
-      }
-    })
+        product_name: elem?.inventory?.products?.product_name,
+        category_name: elem?.inventory?.products?.categories?.category_name
+      };
+    });
+
+    console.log('Mapped Fulfillment Data:', JSON.stringify(mapData, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -50,4 +69,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

@@ -437,7 +437,7 @@ const EmailBroadcast: React.FC = () => {
                         </AlertDialogCancel>
                       </div>
 
-                      <div className="mt-2 p-3 bg-[#f1f4f9] h-12 dark:bg-[#0e1725] rounded-xl border border-input dark:border-[#0e1725]">
+                      
                         <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
                           {checkedItems
                             .slice(0, 2)
@@ -473,7 +473,7 @@ const EmailBroadcast: React.FC = () => {
                             </span>
                           )}
                         </div>
-                      </div>
+                     
 
                       <div className="flex items-center justify-between mt-2 sm:mt-3">
                         <div className="relative border border-input dark:border-[#0e1725] rounded-lg w-full sm:w-auto flex-1">

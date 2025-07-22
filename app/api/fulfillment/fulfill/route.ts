@@ -1,74 +1,66 @@
 import { NextResponse } from 'next/server';
-import { update_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
-import { sendFulfillmentConfirmationEmail } from '@/utils/emailServices/sendFulfillmentConfirmationEmail';
+import { update_content_service } from '@/utils/supabase/data_services/data_services';
 
-export async function POST(requestUser: Request) {
+export async function POST(request: Request) {
   try {
-    const { requestId } = await requestUser.json();
+    const body = await request.json();
+    const { requestId, requestIds } = body;
 
-    if (!requestId) {
-      return NextResponse.json(
-        { success: false, message: 'Request ID is required' },
-        { status: 400 }
-      );
-    }
+    // Case 1: Single fulfillment
+    if (requestId && !requestIds) {
+      const { error: updateError }: any = await update_content_service({
+        table: 'fulfillment_requests',
+        post_data: {
+          id: requestId,
+          status: 'fulfilled',
+          fulfilled_at: new Date().toISOString()
+        }
+      });
 
-    // Get the fulfillment request details
-    // const fulfillmentRequest = await fetch_content_service({
-    //   table: 'fulfillment_requests',
-    //   selectParam: ', inventory(product_name)',
-    //   matchCase: { key: 'id', value: requestId }
-    // });
-
-    // if (!fulfillmentRequest || fulfillmentRequest.length === 0) {
-    //   return NextResponse.json(
-    //     { success: false, message: 'Fulfillment request not found' },
-    //     { status: 404 }
-    //   );
-    // }
-
-    // const request = fulfillmentRequest[0];
-
-    // Update the fulfillment request status
-    const { error: updateError }:any = await update_content_service({
-      table: 'fulfillment_requests',
-      post_data: {
-        id: requestId,
-        status: 'fulfilled',
-        fulfilled_at: new Date().toISOString()
+      if (updateError) {
+        throw new Error(`Failed to fulfill ID ${requestId}: ${updateError.message}`);
       }
-    });
 
-    if (updateError) {
-      throw new Error(`Failed to update fulfillment request: ${updateError.message}`);
+      return NextResponse.json({
+        success: true,
+        message: `Fulfillment request #${requestId} marked as fulfilled`
+      });
     }
 
-    // Send confirmation email to patient
-    // if (request.pos?.email) {
-    //   try {
-    //     await sendFulfillmentConfirmationEmail(
-    //       request.pos.email,
-    //       `${request.pos.firstname} ${request.pos.lastname}`,
-    //       request.orders.order_id,
-    //       request.inventory.product_name,
-    //       request.quantity
-    //     );
-    //   } catch (emailError) {
-    //     console.error('Failed to send confirmation email:', emailError);
-    //     // Don't fail the whole request if email fails
-    //   }
-    // }
+    // Case 2: Batch fulfillment
+    if (Array.isArray(requestIds) && requestIds.length > 0) {
+      for (const id of requestIds) {
+        const { error: updateError }: any = await update_content_service({
+          table: 'fulfillment_requests',
+          post_data: {
+            id,
+            status: 'fulfilled',
+            fulfilled_at: new Date().toISOString()
+          }
+        });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Fulfillment request marked as fulfilled'
-    });
+        if (updateError) {
+          throw new Error(`Failed to fulfill ID ${id}: ${updateError.message}`);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'All selected fulfillment requests marked as fulfilled'
+      });
+    }
+
+    // If neither input is valid
+    return NextResponse.json(
+      { success: false, message: 'Either requestId or requestIds[] is required' },
+      { status: 400 }
+    );
 
   } catch (error: any) {
-    console.error('Fulfillment fulfill error:', error);
+    console.error('❌ Fulfillment error:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
-} 
+}

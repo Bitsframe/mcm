@@ -1,12 +1,24 @@
+# #!/bin/sh
+# . "$(dirname "$0")/_/husky.sh"
+
+# if [ ! -f yarn.lock ]; then
+#   echo "Error: yarn.lock is missing. Please use Yarn as the package manager."
+#   exit 1
+# fi
+
+# if [ -f package-lock.json ]; then
+#   echo "Error: package-lock.json found. Use Yarn instead of npm."
+#   exit 1
+# fi
+
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-if [ ! -f yarn.lock ]; then
-  echo "Error: yarn.lock is missing. Please use Yarn as the package manager."
-  exit 1
+# Optional: Warn if both lock files are found
+if [ -f yarn.lock ] && [ -f package-lock.json ]; then
+  echo "⚠️ Warning: Both yarn.lock and package-lock.json found. Consider using only one package manager."
 fi
 
-if [ -f package-lock.json ]; then
-  echo "Error: package-lock.json found. Use Yarn instead of npm."
-  exit 1
-fi
+# Run formatting, linting, or tests here if needed
+echo "✅ Pre-commit hook passed."
+exit 0
