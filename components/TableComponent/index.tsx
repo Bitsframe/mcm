@@ -40,6 +40,7 @@ interface Props {
   pdf?: () => React.ReactNode;
   resetPaginationTrigger?: any;
   itemPerPage?: number;
+  withSearch?: boolean;
 }
 
 interface DataListInterface {
@@ -59,6 +60,7 @@ const TableComponent: React.FC<Props> = ({
   RightSideComponent,
   pdf,
   resetPaginationTrigger,
+  withSearch = true
 }) => {
   const { t } = useTranslation([
     translationConstant.STOCKPANEL,
@@ -132,16 +134,18 @@ const TableComponent: React.FC<Props> = ({
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
-        <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10 min-w-0">
-          <CiSearch size={18} color="gray" />
-          <input
-            onChange={searchHandle}
-            type="text"
-            //@ts-ignore
-            placeholder={t(searchInputplaceholder)}
-            className="w-full px-1 focus:outline-none placeholder-gray-400 dark:placeholder-gray-400 bg-transparent text-sm text-black dark:text-white min-w-0"
-          />
-        </div>
+      {withSearch && (
+  <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10 min-w-0">
+    <CiSearch size={18} color="gray" />
+    <input
+      onChange={searchHandle}
+      type="text"
+      //@ts-ignore
+      placeholder={t(searchInputplaceholder)}
+      className="w-full px-1 focus:outline-none placeholder-gray-400 dark:placeholder-gray-400 bg-transparent text-sm text-black dark:text-white min-w-0"
+    />
+  </div>
+)}
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
           {pdf ? <ExportAsPDF /> : null}

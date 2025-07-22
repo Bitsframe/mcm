@@ -225,6 +225,7 @@ const StockPanel = () => {
             searchHandle={onChangeHandle}
             RightSideComponent={() => RightSideComponent}
             itemPerPage={3}
+            
           />
         </div>
       </div>

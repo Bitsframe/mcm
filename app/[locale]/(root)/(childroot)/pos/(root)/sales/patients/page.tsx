@@ -304,11 +304,20 @@ const Patients = () => {
       const filteredData = allData.filter(({ firstname, lastname, email, phone }) => {
         const concatName = `${firstname} ${lastname}`.toLowerCase();
         const searchTerm = val.toLowerCase();
-        return (
-          concatName.includes(searchTerm) ||
-          email.toLowerCase().includes(searchTerm) ||
-          phone.includes(searchTerm)
-        );
+        if (searchType === "all") {
+          return (
+            concatName.includes(searchTerm) ||
+            email.toLowerCase().includes(searchTerm) ||
+            phone.includes(searchTerm)
+          );
+        } else if (searchType === "name") {
+          return concatName.includes(searchTerm);
+        } else if (searchType === "email") {
+          return email.toLowerCase().includes(searchTerm);
+        } else if (searchType === "phone") {
+          return phone.includes(searchTerm);
+        }
+        return false;
       });
       setDataList([...filteredData]);
     }
@@ -430,6 +439,7 @@ const Patients = () => {
   const { t } = useTranslation(translationConstant.POSSALES);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [searchType, setSearchType] = useState<'all' | 'name' | 'email' | 'phone'>('all');
 
   // Pagination logic
   const indexOfLastCard = currentPage * cardsPerPage;
@@ -460,14 +470,27 @@ const Patients = () => {
 
             {/* Second Row - Search and Filter Tabs */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
-              <div className="w-full md:w-60">
-                <div className="relative">
+              <div className="flex items-center gap-2 w-full md:w-96">
+                <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Search by</span>
+                <select
+                  value={searchType}
+                  onChange={e => setSearchType(e.target.value as any)}
+                  className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                  style={{ minWidth: 90 }}
+                >
+                  <option value="all">All</option>
+                  <option value="name">Name</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone Number</option>
+                </select>
+                <span className="mx-1 text-gray-500 dark:text-gray-400">=</span>
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   <input
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("POS-Sales_k15")}
-                    className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                    className="pl-10 pr-4 py-2 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
                   />
                 </div>
               </div>

@@ -122,6 +122,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const itemsPerPage = 7;
   const [isMobile, setIsMobile] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [searchType, setSearchType] = useState<"all" | "name" | "email" | "phone">("all");
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -212,14 +213,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (patient) =>
-          `${patient.firstname} ${patient.lastname}`
-            .toLowerCase()
-            .includes(searchLower) ||
-          patient.email.toLowerCase().includes(searchLower) ||
-          patient.phone.toLowerCase().includes(searchLower)
-      );
+      result = result.filter((patient) => {
+        if (searchType === "all") {
+          return (
+            `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower) ||
+            patient.email.toLowerCase().includes(searchLower) ||
+            patient.phone.toLowerCase().includes(searchLower)
+          );
+        } else if (searchType === "name") {
+          return `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower);
+        } else if (searchType === "email") {
+          return patient.email.toLowerCase().includes(searchLower);
+        } else if (searchType === "phone") {
+          return patient.phone.toLowerCase().includes(searchLower);
+        }
+        return false;
+      });
     }
 
     if (sortConfig.key) {
@@ -235,8 +244,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         if (sortConfig.key === "date") {
           return (
             sortConfig.direction *
-            (new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime())
+            (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
           );
         }
         return 0;
@@ -244,7 +252,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
 
     return result;
-  }, [patients, searchTerm, sortConfig]);
+  }, [patients, searchTerm, searchType, sortConfig]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -521,17 +529,31 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
-        <div className="relative w-full sm:w-72 rounded-lg">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-          <input
-            onChange={handleSearch}
-            value={searchTerm}
-            type="text"
-            placeholder={t("Patients_k3")}
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-96">
+          <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Search by</span>
+          <select
+            value={searchType}
+            onChange={e => setSearchType(e.target.value as any)}
+            className="rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937] text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+            style={{ minWidth: 90 }}
+          >
+            <option value="all">All</option>
+            <option value="name">Name</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone Number</option>
+          </select>
+          <span className="mx-1 text-gray-500 dark:text-gray-400">=</span>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+            <input
+              onChange={handleSearch}
+              value={searchTerm}
+              type="text"
+              placeholder={t("Patients_k3")}
+              className=" pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
+            />
+          </div>
         </div>
-
         <Button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800 whitespace-nowrap shrink-0"
