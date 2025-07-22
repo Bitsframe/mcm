@@ -494,7 +494,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
       if (response.data.success) {
         toast.success("Patient deleted successfully");
-        // Remove patient from local state
+   
         setPatients((prev) =>
           prev.filter((patient) => patient.id !== patientId)
         );
