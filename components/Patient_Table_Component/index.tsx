@@ -59,18 +59,23 @@ import { translationConstant } from "@/utils/translationConstants";
 import {
   Eye,
   SquarePen,
-  Trash2,
   Search,
   MoreHorizontal,
   CirclePlus,
   MapPin,
   X,
+  Phone,
+  Mail,
+  Calendar,
+  User,
+  FileText,
+  Trash2,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { TabContext } from "@/context";
-import { Checkbox } from "../ui/checkbox";
+import { Card, CardContent } from "../ui/card";
 
 interface EditPatientModalProps {
   patientDetails: Patient;
@@ -91,6 +96,7 @@ interface Patient {
   created_at: string;
   lastvisit: string;
   note: string;
+  deleted_at?: string | null;
 }
 
 interface Props {
@@ -112,6 +118,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+  const [isMobile, setIsMobile] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -164,6 +174,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             QUERIES[renderType] as any,
             { key: "locationid", value: locationId },
           ],
+          filterOptions: [
+            { column: "deleted_at", operator: "is", value: null },
+          ],
         });
         console.log("Raw Supabase Data:", fetchedData);
         setPatients(fetchedData);
@@ -199,10 +212,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      result = result.filter((patient) =>
-        `${patient.firstname} ${patient.lastname}`
-          .toLowerCase()
-          .includes(searchLower)
+      result = result.filter(
+        (patient) =>
+          `${patient.firstname} ${patient.lastname}`
+            .toLowerCase()
+            .includes(searchLower) ||
+          patient.email.toLowerCase().includes(searchLower) ||
+          patient.phone.toLowerCase().includes(searchLower)
       );
     }
 
@@ -219,7 +235,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         if (sortConfig.key === "date") {
           return (
             sortConfig.direction *
-            (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+            (new Date(a.created_at).getTime() -
+              new Date(b.created_at).getTime())
           );
         }
         return 0;
@@ -228,6 +245,36 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
     return result;
   }, [patients, searchTerm, sortConfig]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const currentItemsPerPage = isMobile ? 3 : itemsPerPage;
+  const totalPages = Math.ceil(
+    filteredAndSortedPatients.length / currentItemsPerPage
+  );
+  const startIndex = (currentPage - 1) * currentItemsPerPage;
+  const endIndex = startIndex + currentItemsPerPage;
+  const currentPatients = filteredAndSortedPatients.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const formatDate = useCallback((date: string) => {
     return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY");
@@ -309,82 +356,231 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     });
   };
 
+  const PatientCard: FC<{ patient: Patient }> = ({ patient }) => (
+    <Card className="w-full mb-3 hover:shadow-md transition-shadow dark:bg-[#0E1725] dark:border-gray-800">
+      <CardContent className="p-3">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <User className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
+                {patient.firstname} {patient.lastname}
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              ID: {patient.id}
+            </p>
+          </div>
+          {renderType === "all" && (
+            <span
+              className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                patient.onsite
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                  : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+              }`}
+            >
+              {patient.onsite ? "On-site" : "Off-site"}
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-1 mb-3">
+          <div className="flex items-center gap-2 text-xs">
+            <Phone className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              {formatPhoneNumber(patient.phone)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Mail className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 truncate">
+              {patient.email}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Calendar className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              {formatDate(patient.created_at)}
+            </span>
+          </div>
+          {patient.note && (
+            <div className="flex items-start gap-2 text-xs">
+              <FileText className="h-3 w-3 text-gray-500 dark:text-gray-400 mt-0.5" />
+              <span className="text-gray-700 dark:text-gray-300 line-clamp-1">
+                {patient.note}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedPatient(patient);
+              setIsEditing(false);
+            }}
+            className="h-8 w-8 flex items-center justify-center p-0 text-gray-500 dark:text-gray-400"
+          >
+            <Eye className="h-5 w-5" color="gray" />
+            <span className="sr-only">View</span>
+          </Button>
+          <EditPatientModal
+            callAfterUpdate={updateOnEdit}
+            patientDetails={patient}
+            serviceList={serviceList}
+          />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={deleteLoading === patient.id}
+                className="h-8 w-8 flex items-center justify-center p-0 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                {deleteLoading === patient.id ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <Trash2 className="h-5 w-5" />
+                )}
+                <span className="sr-only">Delete</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="dark:text-white">
+                  Delete Patient
+                </AlertDialogTitle>
+                <AlertDialogDescription className="dark:text-gray-400">
+                  Are you sure you want to delete {patient.firstname}{" "}
+                  {patient.lastname}? This action cannot be undone and will only
+                  work if the patient has no sales history, orders, or
+                  appointments.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDeletePatient(patient.id)}
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const handleDeletePatient = async (patientId: number) => {
+    setDeleteLoading(patientId);
+    try {
+      const response = await axios.post("/api/user/delete", {
+        patientId: patientId,
+      });
+
+      if (response.data.success) {
+        toast.success("Patient deleted successfully");
+        // Remove patient from local state
+        setPatients((prev) =>
+          prev.filter((patient) => patient.id !== patientId)
+        );
+      } else {
+        toast.error(response.data.message || "Failed to delete patient");
+      }
+    } catch (error: any) {
+      console.error("Error deleting patient:", error);
+      toast.error(error.response?.data?.message || "Failed to delete patient");
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
   return (
-    <main className="w-full dark:bg-gray-900">
+    <main className="w-full dark:bg-[#0E1725]">
       <div className="px-6 pt-5">
         <h1 className="text-2xl font-bold dark:text-white">
           {renderType === "all"
             ? t("Patients_k1")
             : renderType === "onsite"
-            ? "Onsite Patients"
-            : "Offsite Patients"}
+            ? t("Patients_k31")
+            : t("Patients_k32")}
         </h1>
         <h1 className="mt-1 text-gray-500 dark:text-gray-400">
           {renderType === "all"
-            ? "Patients  /  All"
+            ? t("Patients_k22")
             : renderType === "onsite"
-            ? "Patients  /  Onsite"
-            : "Patients  /  Offsite"}
+            ? t("Patients_k33")
+            : t("Patients_k34")}
         </h1>
       </div>
 
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="relative w-72 border rounded-lg dark:border-gray-700">
+      <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
+        <div className="relative w-full sm:w-72 rounded-lg">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <input
             onChange={handleSearch}
             value={searchTerm}
             type="text"
             placeholder={t("Patients_k3")}
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
+            className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
           />
         </div>
+
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800"
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-800 whitespace-nowrap shrink-0"
         >
           <CirclePlus className="h-4 w-4" />
-          Add a Patient
+          {t("Patients_k2")}
         </Button>
       </div>
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <AlertDialogContent className="sm:max-w-[600px] max-h-[90vh] p-0 overflow-y-auto dark:bg-gray-900">
+        <AlertDialogContent className="sm:max-w-[600px] max-h-[95vh] p-0 overflow-y-auto rounded-lg dark:bg-gray-900 w-[95vw] mx-auto">
           <div className="p-6">
             <AlertDialogHeader className="space-y-2 pb-2">
               <div className="flex justify-between items-center">
                 <AlertDialogTitle className="text-2xl font-semibold dark:text-white">
-                  Add New Patient
+                  {t("Patients_k38")}
                 </AlertDialogTitle>
                 <AlertDialogCancel className="h-8 w-8 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 absolute right-6 top-6 z-10 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                   <X className="h-5 w-5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
                 </AlertDialogCancel>
               </div>
               <AlertDialogDescription className="text-gray-500 dark:text-gray-400">
-                Enter the patient's information below. Click save when you're
-                done.
+                {t("Patients_k35")}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             {selectedLocation?.title && (
-              <div className="mt-4 flex items-center gap-2 p-3 bg-gray-50 rounded-md dark:bg-gray-800">
+              <div className="mt-4 flex items-center gap-2 p-3 rounded-md">
                 <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Current Location</p>
-                  <p className="font-medium dark:text-white">{selectedLocation?.title}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t("Patients_k36")}
+                  </p>
+                  <p className="font-medium dark:text-white">
+                    {selectedLocation?.title}
+                  </p>
                 </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="firstname"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      First Name
+                      {t("Patients_k17")}
                     </Label>
                     <Input
                       id="firstname"
@@ -395,13 +591,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           firstname: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="lastname" className="text-sm text-gray-500 dark:text-gray-400">
-                      Last Name
+                    <Label
+                      htmlFor="lastname"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      {t("Patients_k18")}
                     </Label>
                     <Input
                       id="lastname"
@@ -412,15 +611,18 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           lastname: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm text-gray-500 dark:text-gray-400">
-                      Phone
+                    <Label
+                      htmlFor="phone"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      {t("Patients_k19")}
                     </Label>
                     <Input
                       id="phone"
@@ -432,13 +634,16 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           phone: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm text-gray-500 dark:text-gray-400">
-                      Email
+                    <Label
+                      htmlFor="email"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      {t("Patients_k20")}
                     </Label>
                     <Input
                       id="email"
@@ -450,7 +655,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                           email: e.target.value,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
                     />
                   </div>
                 </div>
@@ -460,20 +665,21 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     htmlFor="treatmenttype"
                     className="text-sm text-gray-500 dark:text-gray-400"
                   >
-                    Treatment Type
+                    {t("Patients_k11")}
                   </Label>
                   <Select
                     onValueChange={(value) =>
                       setPatientData({ ...patientData, treatmenttype: value })
                     }
                   >
-                    <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
                       <SelectValue placeholder="Select treatment type" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+
+                    <SelectContent className="dark:bg-[#122136] dark:border-gray-700">
                       {serviceList.map((service: { title: string }) => (
-                        <SelectItem 
-                          key={service.title} 
+                        <SelectItem
+                          key={service.title}
                           value={service.title}
                           className="dark:hover:bg-gray-700 dark:text-white"
                         >
@@ -484,26 +690,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="note" className="text-sm text-gray-500 dark:text-gray-400">
-                    Note
-                  </Label>
-                  <Input
-                    id="note"
-                    placeholder="Enter any note about the patient"
-                    onChange={(e) =>
-                      setPatientData({
-                        ...patientData,
-                        note: e.target.value,
-                      })
-                    }
-                    className="w-full bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-500 dark:text-gray-400">Gender</Label>
+                    <Label className="text-sm text-gray-500 dark:text-gray-400">
+                      {t("Patients_k12")}
+                    </Label>
                     <RadioGroup
                       className="flex gap-3"
                       onValueChange={(value) =>
@@ -512,21 +703,29 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="male" id="male" />
-                        <Label htmlFor="male" className="dark:text-gray-300">Male</Label>
+                        <Label htmlFor="male" className="dark:text-gray-300">
+                          Male
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="female" id="female" />
-                        <Label htmlFor="female" className="dark:text-gray-300">Female</Label>
+                        <Label htmlFor="female" className="dark:text-gray-300">
+                          Female
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other" className="dark:text-gray-300">Other</Label>
+                        <Label htmlFor="other" className="dark:text-gray-300">
+                          Other
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-500 dark:text-gray-400">Location</Label>
+                    <Label className="text-sm text-gray-500 dark:text-gray-400">
+                      {t("Patients_k36")}
+                    </Label>
                     <RadioGroup
                       defaultValue="true"
                       className="flex gap-3"
@@ -539,24 +738,48 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="true" id="onsite" />
-                        <Label htmlFor="onsite" className="dark:text-gray-300">On site</Label>
+                        <Label htmlFor="onsite" className="dark:text-gray-300">
+                          On site
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="false" id="offsite" />
-                        <Label htmlFor="offsite" className="dark:text-gray-300">Off site</Label>
+                        <Label htmlFor="offsite" className="dark:text-gray-300">
+                          Off site
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="note"
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    {t("Patients_k24")}
+                  </Label>
+                  <Input
+                    id="note"
+                    placeholder="Enter any note about the patient"
+                    onChange={(e) =>
+                      setPatientData({
+                        ...patientData,
+                        note: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-6 items-center">
                 <AlertDialogCancel asChild>
                   <Button
                     variant="outline"
-                    className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
+                    className="border-gray-200 mt-0 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800"
                   >
-                    Cancel
+                    {t("Patients_k21")}
                   </Button>
                 </AlertDialogCancel>
                 <AlertDialogAction asChild>
@@ -575,102 +798,90 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </AlertDialog>
 
       <div className="w-full px-6 dark:bg-[#0E1725]">
-        <div className="bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
-                <TableHead className="w-[50px] py-3 dark:border-gray-800">
-                  {/* <Checkbox
-                    checked={
-                      selectedPatients.length ===
-                        filteredAndSortedPatients.length &&
-                      filteredAndSortedPatients.length > 0
-                    }
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedPatients(
-                          filteredAndSortedPatients.map((p) => p.id)
-                        );
-                      } else {
-                        setSelectedPatients([]);
-                      }
-                    }}
-                  /> */}
-                </TableHead>
-                <TableHead className="py-3 font-medium w-72 text-gray-700 dark:text-gray-300">
-                  {t("Patients_k4")}
-                  <button
-                    onClick={() => handleSort("id")}
-                    className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
-                  >
-                    <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "id" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
-                    />
-                  </button>
-                </TableHead>
-                <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
-                  {t("Patients_k5")}
-                  <button
-                    onClick={() => handleSort("name")}
-                    className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
-                  >
-                    <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "name" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
-                    />
-                  </button>
-                </TableHead>
-                <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
-                  {t("Patients_k6")}
-                  <button
-                    onClick={() => handleSort("date")}
-                    className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
-                  >
-                    <PiCaretUpDownBold
-                      className={`inline ${
-                        sortConfig.key === "date" ? "text-blue-600 dark:text-blue-400" : ""
-                      }`}
-                    />
-                  </button>
-                </TableHead>
-                <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
-                  Note
-                </TableHead>
-                <TableHead className=" text-right py-3 w-72 font-medium text-gray-700 dark:text-gray-300">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-          </Table>
+        {/* Desktop Table View - Hidden on small screens */}
+        <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
+                  <TableHead className="w-[50px] py-3 dark:border-gray-800 min-w-[40px]"></TableHead>
+                  <TableHead className="py-3 font-medium w-72 text-gray-700 dark:text-gray-300">
+                    {t("Patients_k4")}
+                    <button
+                      onClick={() => handleSort("id")}
+                      className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
+                    >
+                      <PiCaretUpDownBold
+                        className={`inline ${
+                          sortConfig.key === "id"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
+                      />
+                    </button>
+                  </TableHead>
+                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k5")}
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
+                    >
+                      <PiCaretUpDownBold
+                        className={`inline ${
+                          sortConfig.key === "name"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
+                      />
+                    </button>
+                  </TableHead>
+                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k6")}
+                    <button
+                      onClick={() => handleSort("date")}
+                      className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-500 dark:hover:text-gray-400"
+                    >
+                      <PiCaretUpDownBold
+                        className={`inline ${
+                          sortConfig.key === "date"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : ""
+                        }`}
+                      />
+                    </button>
+                  </TableHead>
+                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k24")}
+                  </TableHead>
+                  <TableHead className=" text-right py-3 w-72 font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k23")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+          </div>
 
-          <div className="max-h-[calc(100vh-420px)] overflow-y-auto">
+          <div className="max-h-[calc(100vh-420px)] md:min-h-[341px] overflow-y-auto">
             <Table>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-40 dark:border-gray-800">
+                    <TableCell
+                      colSpan={6}
+                      className="h-40 dark:border-gray-800"
+                    >
                       <div className="flex justify-center items-center h-full">
                         <Spinner size="xl" className="dark:text-white" />
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : filteredAndSortedPatients.length > 0 ? (
-                  filteredAndSortedPatients.map((patient) => (
+                ) : currentPatients.length > 0 ? (
+                  currentPatients.map((patient) => (
                     <TableRow
                       key={patient.id}
                       className="hover:bg-gray-50 border-b border-gray-200 dark:hover:bg-gray-800 dark:border-gray-800"
                     >
-                      <TableCell className="w-[50px] dark:border-gray-800">
-                        {/* <Checkbox
-                          checked={selectedPatients.includes(patient.id)}
-                          onCheckedChange={() =>
-                            togglePatientSelection(patient.id)
-                          }
-                        /> */}
-                      </TableCell>
+                      <TableCell className="w-[50px] dark:border-gray-800"></TableCell>
                       <TableCell className="font-medium w-72 text-gray-900 dark:text-white">
                         {patient.id}
                       </TableCell>
@@ -684,7 +895,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                         {patient.note || "-"}
                       </TableCell>
                       <TableCell className="w-72 dark:border-gray-800">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-3">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -692,7 +903,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                               setSelectedPatient(patient);
                               setIsEditing(false);
                             }}
-                            className="h-8 w-8 text-gray-500 dark:text-gray-400"
+                            className="h-10 w-10 sm:h-8 sm:w-8 text-gray-500 dark:text-gray-400"
                           >
                             <Eye className="h-4 w-4" color="gray" />
                             <span className="sr-only">View</span>
@@ -702,21 +913,60 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             patientDetails={patient}
                             serviceList={serviceList}
                           />
-                          {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-500 dark:text-gray-400"
-                          >
-                            <Trash2 className="h-4 w-4" color="red" />
-                            <span className="sr-only">Delete</span>
-                          </Button> */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={deleteLoading === patient.id}
+                                className="h-10 w-10 sm:h-8 sm:w-8 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                {deleteLoading === patient.id ? (
+                                  <Spinner size="sm" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" color="red" />
+                                )}
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="sm:max-w-[425px] dark:bg-gray-900">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="dark:text-white">
+                                  Delete Patient
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="dark:text-gray-400">
+                                  Are you sure you want to delete{" "}
+                                  {patient.firstname} {patient.lastname}? This
+                                  action cannot be undone and will only work if
+                                  the patient has no sales history, orders, or
+                                  appointments.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeletePatient(patient.id)
+                                  }
+                                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-40 dark:border-gray-800">
+                    <TableCell
+                      colSpan={6}
+                      className="h-40 dark:border-gray-800"
+                    >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
                         <p className="text-lg font-medium">No patients found</p>
                         <p className="text-sm">
@@ -730,8 +980,91 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </Table>
           </div>
         </div>
-        <div className="text-sm text-gray-500 mt-5 dark:text-gray-400">
-          {selectedPatients.length} of {patients.length} row(s) selected.
+
+        {/* Pagination controls moved outside the table */}
+        {!loading && filteredAndSortedPatients.length > 0 && (
+          <div className="hidden md:flex flex-row items-center justify-between mt-2 bg-white dark:bg-[#0E1725]">
+            <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <p className="text-gray-700 dark:text-gray-300">
+                {t("Patients_k27")} {startIndex + 1} {t("Patients_k28")}{" "}
+                {Math.min(endIndex, filteredAndSortedPatients.length)}{" "}
+                {t("Patients_k29")} {filteredAndSortedPatients.length}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                {t("Patients_k25")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                {t("Patients_k26")}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="md:hidden">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Spinner size="xl" className="dark:text-white" />
+            </div>
+          ) : currentPatients.length > 0 ? (
+            <div className="space-y-4">
+              {currentPatients.map((patient) => (
+                <PatientCard key={patient.id} patient={patient} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col justify-center items-center h-40 text-gray-500 dark:text-gray-400">
+              <p className="text-lg font-medium">No patients found</p>
+              <p className="text-sm text-center">
+                Try adjusting your search or add a new patient
+              </p>
+            </div>
+          )}
+
+          {!loading && filteredAndSortedPatients.length > 0 && (
+            <div className="md:hidden flex sm:flex-row items-center justify-between py-3 gap-3 mt-4">
+              <div className="text-sm text-center">
+                <p className="text-gray-700 dark:text-gray-300">
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
+                  {filteredAndSortedPatients.length}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -744,10 +1077,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           }
         }}
       >
-        <SheetContent className="dark:bg-gray-900 m-3 rounded-xl">
+        <SheetContent className="dark:bg-gray-900 m-0 sm:m-3 rounded-xl">
           <div className="flex flex-col h-full">
             <div className="flex justify-between text-2xl font-bold items-center pb-4 border-b mt-10 dark:border-gray-700">
-              <h3 className="text-xl font-semibold dark:text-white">Patient Detail</h3>
+              <h3 className="text-xl font-semibold dark:text-white">
+                {t("Patients_k7")}
+              </h3>
             </div>
 
             {selectedPatient && (
@@ -774,22 +1109,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 )}
               </ScrollArea>
             )}
-            <div className="flex gap-2 mt-5">
-              <Button
-                variant="ghost"
-                size="sm"
+            <div className="flex gap-2 mb-5">
+              <button
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium w-20 px-3 py-1 rounded-lg"
               >
-                Edit
-              </Button>
-              {/* <Button
-                variant="ghost"
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1"
-              >
-                Delete
-              </Button> */}
+                {t("Patients_k8")}
+              </button>
             </div>
           </div>
         </SheetContent>
@@ -838,7 +1164,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         onsite: formData.onsite,
         note: formData.note,
       });
-      
+
       if (response.data.success) {
         setEditPatientData(formData);
         toast.success("Patient updated successfully");
@@ -850,67 +1176,78 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
     }
   };
 
+  const { t } = useTranslation(translationConstant.PATIENTS);
   return (
-    <div className="space-y-6 py-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">First Name</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k17")}
+          </Label>
           <Input
             name="firstname"
             value={formData.firstname}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Last Name</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k18")}
+          </Label>
           <Input
             name="lastname"
             value={formData.lastname}
             onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Phone</Label>
-          <Input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Email</Label>
-          <Input
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">Treatment Type</Label>
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k19")}
+          </Label>
+          <Input
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k20")}
+          </Label>
+          <Input
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm text-gray-500 dark:text-gray-400">
+          {t("Patients_k11")}
+        </Label>
         <Select
           value={formData.treatmenttype}
-          onValueChange={(value) => 
+          onValueChange={(value) =>
             setFormData({ ...formData, treatmenttype: value })
           }
         >
-          <SelectTrigger className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <SelectValue placeholder="Select treatment type" />
+          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white">
+            <SelectValue placeholder="Select treatment type" className="text-gray-900 dark:text-white" />
           </SelectTrigger>
-          <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+          <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
             {serviceList.map((service) => (
-              <SelectItem 
-                key={service.title} 
+              <SelectItem
+                key={service.title}
                 value={service.title}
-                className="dark:hover:bg-gray-700 dark:text-white"
+                className="text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 hover:bg-gray-200"
               >
                 {service.title}
               </SelectItem>
@@ -920,57 +1257,73 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">Note</Label>
+        <Label className="text-sm text-gray-500 dark:text-gray-400">
+          {t("Patients_k24")}
+        </Label>
         <Input
           name="note"
           value={formData.note || ""}
           onChange={handleChange}
-          className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+          className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           placeholder="Add any note about the patient"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-1 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Gender</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k12")}
+          </Label>
           <RadioGroup
             value={formData.gender}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setFormData({ ...formData, gender: value })
             }
             className="flex gap-3"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="male" id="edit-male" />
-              <Label htmlFor="edit-male" className="dark:text-gray-300">Male</Label>
+              <Label htmlFor="edit-male" className="dark:text-gray-300">
+                Male
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="female" id="edit-female" />
-              <Label htmlFor="edit-female" className="dark:text-gray-300">Female</Label>
+              <Label htmlFor="edit-female" className="dark:text-gray-300">
+                Female
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="other" id="edit-other" />
-              <Label htmlFor="edit-other" className="dark:text-gray-300">Other</Label>
+              <Label htmlFor="edit-other" className="dark:text-gray-300">
+                Other
+              </Label>
             </div>
           </RadioGroup>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm text-gray-500 dark:text-gray-400">Location</Label>
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k36")}
+          </Label>
           <RadioGroup
             value={formData.onsite ? "true" : "false"}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setFormData({ ...formData, onsite: value === "true" })
             }
             className="flex gap-3"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="edit-onsite" />
-              <Label htmlFor="edit-onsite" className="dark:text-gray-300">On site</Label>
+              <Label htmlFor="edit-onsite" className="dark:text-gray-300">
+                On site
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="false" id="edit-offsite" />
-              <Label htmlFor="edit-offsite" className="dark:text-gray-300">Off site</Label>
+              <Label htmlFor="edit-offsite" className="dark:text-gray-300">
+                Off site
+              </Label>
             </div>
           </RadioGroup>
         </div>
@@ -980,15 +1333,15 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         <Button
           variant="outline"
           onClick={onCancel}
-          className="border-gray-200 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="border-gray-200 dark:bg-[#111827] text-gray-700 dark:border-gray-600 dark:text-gray-300"
         >
-          Cancel
+          {t("Patients_k21")}
         </Button>
         <Button
           onClick={handleSave}
           className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
         >
-          Save Changes
+          {t("Patients_k30")}
         </Button>
       </div>
     </div>
@@ -1004,11 +1357,15 @@ const PatientDetails: FC<{
   const { t } = useTranslation(translationConstant.PATIENTS);
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-2 py-4">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k4")}</p>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{patient.id}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k4")}
+          </p>
+          <h2 className="text-base text-gray-900 dark:text-white">
+            {patient.id}
+          </h2>
         </div>
         {renderType === "all" && (
           <div>
@@ -1026,64 +1383,83 @@ const PatientDetails: FC<{
       </div>
 
       <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k5")}</p>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t("Patients_k5")}
+        </p>
+        <h2 className="text-base text-gray-900 dark:text-white">
           {patient.firstname} {patient.lastname}
         </h2>
       </div>
 
-      <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
-
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k9")}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k9")}
+          </p>
           <p className="text-base font-medium dark:text-gray-300">
             {formatPhoneNumber(patient.phone)}
           </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k10")}</p>
-          <p className="text-base font-medium dark:text-gray-300">{patient.email}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k10")}
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.email}
+          </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k11")}</p>
-          <p className="text-base font-medium dark:text-gray-300">{patient.treatmenttype}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k11")}
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.treatmenttype}
+          </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Note</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k24")}
+          </p>
           <p className="text-base font-medium dark:text-gray-300">
             {patient.note || "No note available"}
           </p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k12")}</p>
-          <p className="text-base font-medium capitalize dark:text-gray-300">{patient.gender}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("Patients_k12")}
+          </p>
+          <p className="text-base font-medium capitalize dark:text-gray-300">
+            {patient.gender}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k13")}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("Patients_k13")}
+            </p>
             <p className="text-base font-medium dark:text-gray-300">
               {formatDate(patient.created_at)}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k14")}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("Patients_k14")}
+            </p>
             <p className="text-base font-medium dark:text-gray-300">
               {formatDate(patient.lastvisit)}
             </p>
           </div>
         </div>
 
-
-        <dl>
-          <dd className='font-semibold text-lg'>{patient?.note || '-'}</dd>
-          <dt className='text-sm text-[#707070]'>{t("Note")}</dt>
-        </dl>
+        {/* <dl>
+          <dd className="font-semibold text-lg">{patient?.note || "-"}</dd>
+          <dt className="text-sm text-[#707070]">{t("Note")}</dt>
+        </dl> */}
       </div>
     </div>
   );
@@ -1100,9 +1476,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     phone: "",
     email: "",
     treatmenttype: "",
-
-    note: ""
-
+    note: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -1122,7 +1496,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     }
   }, [patientDetails]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     e.preventDefault();
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
   };
@@ -1165,10 +1541,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           className="h-8 w-8 text-gray-500 dark:text-gray-400"
         >
           <SquarePen className="h-4 w-4" color="#0066ff" />
-          <span className="sr-only">Edit</span>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[500px] dark:bg-gray-900">
+      <AlertDialogContent className="w-[95vw] sm:max-w-[500px] dark:bg-gray-900 mx-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl dark:text-white">
             {t("Patients_k15")}
@@ -1178,80 +1553,97 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-4 mt-3">
+        <div className="space-y-4">
           {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k17")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k17")}
+              </Label>
               <Input
                 type="text"
                 name="firstname"
                 value={patientData.firstname}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k18")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k18")}
+              </Label>
               <Input
                 type="text"
                 name="lastname"
                 value={patientData.lastname}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k19")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k19")}
+              </Label>
               <Input
                 type="text"
                 name="phone"
                 value={patientData.phone}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k20")}</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k20")}
+              </Label>
               <Input
                 type="email"
                 name="email"
                 value={patientData.email}
                 onChange={handleChange}
-                className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium dark:text-gray-300">Note</Label>
+            <Label className="text-sm font-medium dark:text-gray-300">
+              {t("Patients_k24")}
+            </Label>
             <Input
               type="text"
               name="note"
               value={patientData.note}
               onChange={handleChange}
-              className="w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               placeholder="Add any note about the patient"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium dark:text-gray-300">{t("Patients_k11")}</Label>
+            <Label className="text-sm font-medium dark:text-gray-300">
+              {t("Patients_k11")}
+            </Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white"
+                >
                   {patientData.treatmenttype || "Select Treatment"}
                   <MoreHorizontal className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full min-w-[200px] dark:bg-gray-800 dark:border-gray-700">
-                <DropdownMenuLabel className="dark:text-gray-300">{t("Patients_k11")}</DropdownMenuLabel>
+                <DropdownMenuLabel className="dark:text-gray-300">
+                  {t("Patients_k11")}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator className="dark:bg-gray-700" />
                 <ScrollArea className="h-72 w-full">
                   {serviceList.map((service) => (

@@ -41,6 +41,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import axios from "axios";
 
 interface PatientDetailsInterface {
   firstname: string;
@@ -189,6 +191,7 @@ const Payment_Method_Select = () => {
 
 const Patients = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [addPatientModalOpen, setAddPatientModalOpen] = useState(false);
   const { locations } = useLocationClinica();
   const [dataList, setDataList] = useState<PatientDetailsInterface[]>([]);
   const [allData, setAllData] = useState<PatientDetailsInterface[]>([]);
@@ -210,8 +213,10 @@ const Patients = () => {
   const [canAddPatient, setCanAddPatient] = useState(false);
   const { selectedLocation, setSelectedLocation } = useContext(LocationContext);
   const [activeFilterBtn, setActiveFilterBtn] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 2;
 
-  const category_change_handle = () => {};
+  const category_change_handle = () => { };
 
   const router = useRouter();
 
@@ -222,19 +227,21 @@ const Patients = () => {
 
     const filterOptions =
       activeFilterBtn === 0
-        ? [{ column: "updated_at", operator: "gte", value: todayStart }]
-        : [{ column: "updated_at", operator: "lt", value: todayStart }];
+        ? [{ column: "lastvisit", operator: "gte", value: todayStart }]
+        : [{ column: "lastvisit", operator: "lt", value: todayStart }];
 
     const fetched_data: any = await fetch_content_service({
-      table: "pos",
+      table: "allpatients",
+      selectParam: ', updated_at:lastvisit',
       matchCase: [{ key: "locationid", value: locationId || 17 }],
       filterOptions: filterOptions,
-      sortOptions: { column: "updated_at", order: "desc" },
+      sortOptions: { column: "lastvisit", order: "desc" },
     });
 
     setDataList(fetched_data);
     setAllData(fetched_data);
     setLoading(false);
+    setCurrentPage(1); // Reset to first page when data changes
   };
 
   useEffect(() => {
@@ -295,19 +302,25 @@ const Patients = () => {
     if (val === "") {
       setDataList([...allData]);
     } else {
-      const filteredData = allData.filter(({ firstname, lastname }) => {
-        const concatName = `${firstname} ${lastname}`;
-        return concatName.toLocaleLowerCase().includes(val.toLocaleLowerCase());
+      const filteredData = allData.filter(({ firstname, lastname, email, phone }) => {
+        const concatName = `${firstname} ${lastname}`.toLowerCase();
+        const searchTerm = val.toLowerCase();
+        return (
+          concatName.includes(searchTerm) ||
+          email.toLowerCase().includes(searchTerm) ||
+          phone.includes(searchTerm)
+        );
       });
       setDataList([...filteredData]);
     }
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const deleteDataHandle = async () => {
     setModalLoading(true);
     const selectedId = actionData?.id;
     const { data: res_data, error } = await delete_content_service({
-      table: "pos",
+      table: "allpatients",
       id: selectedId,
     });
     if (!error) {
@@ -327,7 +340,7 @@ const Patients = () => {
     setModalLoading(true);
     try {
       const data = await update_content_service({
-        table: "pos",
+        table: "allpatients",
         language: "",
         post_data: actionData,
       });
@@ -394,6 +407,7 @@ const Patients = () => {
     const postData = {
       ...createActionData,
       locationid: selectedLocation?.id || "",
+      onsite: true
     };
     for (const field of requiredFields) {
       if (!postData[field]) {
@@ -401,27 +415,16 @@ const Patients = () => {
         return;
       }
     }
-    const { data, error } = await create_content_service({
-      table: "pos",
-      language: "",
-      post_data: postData,
-    });
+    try {
+      const response = await axios.post("/api/user", postData);
 
-    if (error) {
-      if (
-        error?.message ===
-        'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
-      ) {
-        toast.error(
-          `Sorry, Appointment time slot is not available, Please select any other time slot`
-        );
-      } else {
-        toast.error(`Error adding patient: ${error?.message}`);
+      if (response) {
+        toast.success("Patient successfully added!");
+        setCreateActionData({});
+        fetch_handle(selectedLocation?.id);
       }
-    } else {
-      toast.success("Patient successfully added!");
-      setCreateActionData({});
-      fetch_handle(selectedLocation?.id);
+    } catch (error) {
+      toast.error("Failed to add patient. Please try again.");
     }
   };
 
@@ -429,47 +432,194 @@ const Patients = () => {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Pagination logic
+  const indexOfLastCard = currentPage * cardsPerPage;
+  const indexOfFirstCard = indexOfLastCard - cardsPerPage;
+  const currentCards = dataList.slice(indexOfFirstCard, indexOfLastCard);
+  const totalPages = Math.ceil(dataList.length / cardsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
-    <main className="w-full bg-white dark:bg-gray-900 font-normal text-base p-2">
-      <div className="w-full flex justify-center gap-4">
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-[65%]">
-          <div className="p-4 flex justify-between items-center">
-            <div>
-              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
-                All Patients
+    <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
+      <div className="w-full">
+        {/* Patients List Section - Now Full Width */}
+        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
+          <div className="p-4">
+            {/* First Row - Title and Add Button */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4 md:mb-0">
+                {t("POS-Sales_k35")}
               </h1>
-              <input
-                onChange={onChangeHandle}
-                type="text"
-                placeholder="Search by patient name"
-                className="px-4 py-2 w-60 text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-              />
+              <button
+                onClick={() => setAddPatientModalOpen(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors w-full md:w-auto"
+              >
+                Add New Patient
+              </button>
             </div>
-            <div className="space-x-3 flex items-center">
-              <button
-                onClick={() => setActiveFilterBtn(0)}
-                className={`px-4 py-2 rounded-md text-sm ${
-                  activeFilterBtn === 0
+
+            {/* Second Row - Search and Filter Tabs */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
+              <div className="w-full md:w-60">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <input
+                    onChange={onChangeHandle}
+                    type="text"
+                    placeholder="Search by name, email or phone"
+                    className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <button
+                  onClick={() => setActiveFilterBtn(0)}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 0
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                }`}
-              >
-                Today
-              </button>
-              <button
-                onClick={() => setActiveFilterBtn(1)}
-                className={`px-4 py-2 rounded-md text-sm ${
-                  activeFilterBtn === 1
+                    }`}
+                >
+                  {t("POS-Sales_k16")}
+                </button>
+                <button
+                  onClick={() => setActiveFilterBtn(1)}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 1
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
-                }`}
-              >
-                Past Records
-              </button>
+                    }`}
+                >
+                  {t("POS-Sales_k17")}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="overflow-auto max-h-[500px]">
+          {/* Mobile Cards View - Showing only 2 cards per page */}
+          <div className="block md:hidden p-4 space-y-3">
+            {currentCards.map((elem, ind) => {
+              const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
+              const formattedDateTime = moment
+                .utc(updated_at, "YYYY-MM-DD h:mm s")
+                .local()
+                .format("DD/MM/YYYY h:mm A");
+
+              return (
+                <div
+                  key={ind}
+                  className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                        {`${firstname} ${lastname}`}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {treatmenttype}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {formattedDateTime}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {formatPhoneNumber(phone)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-gray-700 dark:text-gray-300 truncate">
+                        {email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Gender</p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {gender}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between gap-2">
+                    <button
+                      onClick={() => editHandle(elem)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => selectHandle(elem)}
+                      className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      </svg>
+                      Select
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Pagination Controls */}
+            {dataList.length > cardsPerPage && (
+              <div className="flex justify-center items-center gap-2 mt-4">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white"
+                    }`}
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white"
+                    }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table View - Unchanged */}
+          <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
               {dataList.map((elem, ind) => {
                 const { firstname, lastname, phone, updated_at } = elem;
@@ -485,14 +635,14 @@ const Patients = () => {
                   >
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Name
+                        {t("POS-Sales_k41")}
                       </p>
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{`${firstname} ${lastname}`}</p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Phone
+                        {t("POS-Sales_k37")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
@@ -501,7 +651,7 @@ const Patients = () => {
 
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Created at
+                        {t("POS-Sales_k38")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formattedDateTime}
@@ -526,7 +676,7 @@ const Patients = () => {
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
-                        Edit
+                        {t("POS-Sales_k39")}
                       </button>
                       <button
                         onClick={() => selectHandle(elem)}
@@ -545,7 +695,7 @@ const Patients = () => {
                           <polyline points="9 11 12 14 22 4"></polyline>
                           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
-                        Select
+                        {t("POS-Sales_k40")}
                       </button>
                     </div>
                   </div>
@@ -554,15 +704,18 @@ const Patients = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-md flex flex-col w-[35%] p-4">
-          <div className="mb-4">
-            <h2 className="text-xl font-medium text-gray-800 dark:text-gray-200 text-left">
-              Add New Patient
-            </h2>
-          </div>
+      {/* Add Patient Modal */}
+      <Dialog open={addPatientModalOpen} onOpenChange={setAddPatientModalOpen}>
+        <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-medium text-gray-800 dark:text-gray-200">
+              {t("POS-Sales_k18")}
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="overflow-auto w-full space-y-4">
+          <div className="w-full space-y-4">
             <div className="w-full space-y-4">
               <div>
                 <Input_Component
@@ -571,7 +724,7 @@ const Patients = () => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -583,16 +736,15 @@ const Patients = () => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your last name"
-
                 />
               </div>
 
               <div>
                 <Select_Dropdown
                   value={createActionData.gender}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
                   options_arr={["Male", "Female"].map((gender) => ({
                     value: gender,
@@ -612,9 +764,8 @@ const Patients = () => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder="Enter your email"
-
                 />
               </div>
 
@@ -631,7 +782,7 @@ const Patients = () => {
               <div>
                 <Select_Dropdown
                   value={createActionData.treatmenttype}
-                  bg_color="bg-white dark:bg-gray-700"
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
                   // @ts-ignore
                   options_arr={services?.map((service) => ({
@@ -649,114 +800,121 @@ const Patients = () => {
             </div>
           </div>
 
-          <div className="mt-6">
-            <button
-              onClick={createNewDataHandle}
-              className="bg-blue-600 py-3 w-full text-center text-white hover:bg-blue-700 transition-colors rounded-md font-medium"
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                createNewDataHandle();
+                setAddPatientModalOpen(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
             >
-              Add Patient
-            </button>
-          </div>
-        </div>
-      </div>
+              {t("POS-Sales_k25")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* @ts-ignore */}
       <Custom_Modal
-  disabled={!canModalSubmit}
-  submit_button_color={modal_titles[activeModalMode]?.button?.color}
-  loading={modalLoading}
-  buttonLabel={modal_titles[activeModalMode]?.button?.label}
-  is_open={isOpenModal}
-  Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
-  close_handle={closeModalHandle}
-  open_handle={openModalHandle}
-  create_new_handle={modalSubmitHandle}
->
-  {activeModalMode === "delete" ? (
-    <div className="text-gray-800 dark:text-gray-200">
-      <h1>Are you sure you want to delete this POS?</h1>
-    </div>
-  ) : (
-    <div className="grid grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
-      <div className="col-span-1">
-        <Input_Component
-          value={actionData?.firstname || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
-          label="First Name"
-        />
-      </div>
+        disabled={!canModalSubmit}
+        submit_button_color={modal_titles[activeModalMode]?.button?.color}
+        loading={modalLoading}
+        buttonLabel={modal_titles[activeModalMode]?.button?.label}
+        is_open={isOpenModal}
+        Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+        close_handle={closeModalHandle}
+        open_handle={openModalHandle}
+        create_new_handle={modalSubmitHandle}
+      >
+        {activeModalMode === "delete" ? (
+          <div className="text-gray-800 dark:text-gray-200">
+            <h1>Are you sure you want to delete this POS?</h1>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
+            <div className="md:col-span-1">
+              <Input_Component
+                value={actionData?.firstname || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
+                label="First Name"
+              />
+            </div>
 
-      <div className="col-span-1">
-        <Input_Component
-          value={actionData?.lastname || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-          label="Last Name"
-        />
-      </div>
+            <div className="md:col-span-1">
+              <Input_Component
+                value={actionData?.lastname || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
+                label="Last Name"
+              />
+            </div>
 
-      <div className="col-span-2">
-        <Input_Component
-          value={actionData?.email || ""}
-          type="text"
-          border="border-2 border-gray-300 dark:border-none rounded-md"
-          bg_color="bg-white dark:bg-gray-700"
-          onChange={(e: string) => modalInputChangeHandle(e, "email")}
-          label="Email"
-        />
-      </div>
+            <div className="md:col-span-2">
+              <Input_Component
+                value={actionData?.email || ""}
+                type="text"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
+                bg_color="bg-white dark:bg-gray-700"
+                onChange={(e: string) => modalInputChangeHandle(e, "email")}
+                label="Email"
+              />
+            </div>
 
-      <div className="col-span-2">
-        <PhoneNumberInput
-          value={actionData?.phone || ""}
-          onChange={(e: string) => modalInputChangeHandle(e, "phone")}
-          label="Phone Number"
-          placeholder=""
-          breakpoint={false}
-        />
-      </div>
+            <div className="md:col-span-2">
+              <PhoneNumberInput
+                value={actionData?.phone || ""}
+                onChange={(e: string) => modalInputChangeHandle(e, "phone")}
+                label="Phone Number"
+                placeholder=""
+                breakpoint={false}
 
-      <Select_Dropdown
-        value={actionData?.treatmenttype || ""}
-        bg_color="bg-white dark:bg-gray-700"
-        start_empty
-        //@ts-ignore
-        options_arr={services?.map((service) => ({
-          value: service,
-          label: service,
-        }))}
-        required
-        on_change_handle={(e: string) =>
-          //@ts-ignore
-          modalInputChangeHandle(e.target.value, "treatmenttype")
-        }
-        label="Treatment Type"
-      />
+              />
+            </div>
 
-      <Select_Dropdown
-        value={actionData?.gender || ""}
-        bg_color="bg-white dark:bg-gray-700"
-        start_empty
-        options_arr={["Male", "Female"].map((gender) => ({
-          value: gender,
-          label: gender,
-        }))}
-        required
-        on_change_handle={(e: string) =>
-          // @ts-ignore
-          modalInputChangeHandle(e.target.value, "gender")
-        }
-        label="Gender"
-      />
-    </div>
-  )}
-</Custom_Modal>
+            <div className="md:col-span-2">
+              <Select_Dropdown
+                value={actionData?.treatmenttype || ""}
+                bg_color="bg-white dark:bg-gray-700"
+                start_empty
+                //@ts-ignore
+                options_arr={services?.map((service) => ({
+                  value: service,
+                  label: service,
+                }))}
+                required
+                on_change_handle={(e: string) =>
+                  //@ts-ignore
+                  modalInputChangeHandle(e.target.value, "treatmenttype")
+                }
+                label="Treatment Type"
+              />
+            </div>
 
+            <div className="md:col-span-2">
+              <Select_Dropdown
+                value={actionData?.gender || ""}
+                bg_color="bg-white dark:bg-gray-700"
+                start_empty
+                options_arr={["Male", "Female"].map((gender) => ({
+                  value: gender,
+                  label: gender,
+                }))}
+                required
+                on_change_handle={(e: string) =>
+                  // @ts-ignore
+                  modalInputChangeHandle(e.target.value, "gender")
+                }
+                label="Gender"
+              />
+            </div>
+          </div>
+        )}
+      </Custom_Modal>
     </main>
   );
 };

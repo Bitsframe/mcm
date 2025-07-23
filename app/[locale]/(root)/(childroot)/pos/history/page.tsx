@@ -17,6 +17,7 @@ import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
+import { Eye } from "lucide-react";
 
 interface DataListInterface {
   [key: string]: any;
@@ -58,7 +59,11 @@ const tableHeader = [
     id: "payment_type",
     label: "POS-Historyk8",
     render_value: (_val: string, elem: any) =>
-      elem?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit",
+      <div className="space-x-1">
+    {elem.cash ? <span className="text-sm">Cash</span> : null}
+    {elem.cash && elem.card ? <span>/</span> : null}
+    {elem.card ? <span className="text-sm">Card</span> : null}
+  </div>
   },
   {
     id: "last_updated",
@@ -66,9 +71,12 @@ const tableHeader = [
     render_value: (_val: string, elem: any, openModal: Function) => (
       <button
         onClick={() => openModal(elem)}
-        className=" bg-[#0066ff] text-white text-base border-2 px-2 py-1 rounded-md transition-colors"
+        className="bg-[#cce0ff] text-[#0066ff] border-2 border-[#0066ff] text-base px-2 py-1 rounded-md transition-colors w-full"
       >
-        Details
+        <div className="flex justify-center items-center gap-2">
+          <Eye className="w-4 h-4" />
+          Details
+        </div>
       </button>
     ),
     align: "text-center",
@@ -108,24 +116,24 @@ const SalesHistory = () => {
       const fetched_data = await fetch_content_service({
         table: "orders",
         language: "",
-        selectParam: `,pos:pos (
+        selectParam: `,pos:allpatients (
           lastname,
           firstname,
           locationid,
-          patientid
+          patientid:id
         ),
         sales_history (
           sales_history_id,
           inventory_id,
           date_sold,
           quantity_sold,
-          total_price,
-          paymentcash
+          total_price
         )`,
         matchCase: {
           key: "pos.locationid",
           value: location_id,
         },
+        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "allpatients.id", value: null }],
       });
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
       setDataList(filteredData);
@@ -179,14 +187,14 @@ const SalesHistory = () => {
   }, []);
 
   return (
-    <main className="w-full h-full font-[500] bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">
       <div className="flex justify-between items-center px-4 pt-4 space-x-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            History
+            {t("POS-Historyk1")}
           </h1>
           <h1 className="mt-1 mb-2 text-gray-600 dark:text-gray-400">
-            POS / History
+            {t("POS-Historyk28")}
           </h1>
         </div>
         <div className="flex items-center space-x-3">
@@ -194,7 +202,7 @@ const SalesHistory = () => {
         </div>
       </div>
 
-      <div className="w-full min-h-[82dvh] h-[100%] overflow-auto px-4">
+      <div className="w-full overflow-auto px-4">
         <TableComponent
           tableHeader={tableHeader}
           loading={loading}
@@ -203,6 +211,8 @@ const SalesHistory = () => {
           searchHandle={onChangeHandle}
           searchInputplaceholder={t("POS-Historyk3")}
           tableBodyHeight="h-[50dvh]"
+          tableHeight="h-[67dvh] md:h-[58dvh]"
+          itemPerPage={6}
         />
       </div>
 

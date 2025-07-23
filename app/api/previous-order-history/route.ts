@@ -18,9 +18,9 @@ export const POST = async (req: Request) => {
 
 
     const posRecords = await fetch_content_service({
-      table: 'pos',
+      table: 'allpatients',
       selectParam: ', Locations(title)',
-      matchCase: { key: 'patientid', value: patientId }
+      matchCase: { key: 'id', value: patientId }
     });
     console.log(posRecords)
 
@@ -29,6 +29,7 @@ export const POST = async (req: Request) => {
     // Step 2: Fetch orders linked to the found `pos` records
     const orders = await fetch_content_service({
       table: 'orders',
+      selectParam: ', promocodes(*, promotype(*))',
       filterOptions: [{ column: 'patient_id', operator: 'in', value: posIds },
         // { column: 'order_id', operator: 'neq', value: currentOrderId }
       ]
@@ -92,6 +93,7 @@ export const POST = async (req: Request) => {
             inventory: {
               inventory_id: sale.inventory_id,
               product_id: inventoryItem?.product_id,
+              price: product.price,
               products: product
                 ? {
                   product_name: product.product_name,
@@ -103,11 +105,17 @@ export const POST = async (req: Request) => {
           };
         });
 
+        const percentage = order.promocodes?.promotype?.percentage;
+
         return {
           order_id: order.order_id,
           patient_id: order.patientid,
           order_date: order.order_date,
           promo_code_id: order.promo_code_id,
+          promo_code: order.promocodes,
+          promo_code_percentage: percentage,
+          cash: order.cash,
+          card: order.card,
           pos: {
             id: pos.id,
             email: pos.email,

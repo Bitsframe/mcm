@@ -9,19 +9,10 @@ const TopTabs = () => {
   const pathname = usePathname();
 
   const PosTopMenu = [
-    {
-      title: "Inventory_k1",
-      url: "/",
-      icon: FolderClosed,
-    },
-    {
-      title: "Inventory_k2",
-      url: "products",
-      icon: ShoppingCart,
-    },
+
     {
       title: "Inventory_k3",
-      url: "inventory",
+      url: "",
       icon: Warehouse,
     },
   ];

@@ -39,37 +39,40 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
     // console.log('------------------>', isAnyReturned, data)
 
-    const processReturnHandle = async (e: React.FormEvent) => {
+    const processReturnHandle = async (e: any) => {
         e.preventDefault()
-
-        console.log({ data })
-
-        if (forReturnQty > data.quantity_sold) {
-            toast.error(`Return quantity should not be higher than the sold quantity`)
-            return
-
-        }
         setLoading(true)
-
-        const postData = {
-            sales_id: data.sales_history_id,
-            inventory_id: data.inventory_id,
-            quantity: forReturnQty,
-            reason: forReturnReason
+        try {
+            const { data: response, error } = await create_content_service({
+                table: "returns",
+                language: "",
+                post_data: {
+                    inventory_id: data?.inventory_id,
+                    return_date: new Date(),
+                    quantity: forReturnQty,
+                    reason: forReturnReason,
+                    sales_id: data?.sales_history_id,
+                    merge: false
+                }
+            })
+            if (error) {
+                throw error;
+            }
+            if (response) {
+                setReturnedQty(forReturnQty)
+                setOtherReturned(true, data?.inventory?.products?.product_name)
+                toast.success("Return processed successfully")
+                setProcessReturn(false)
+            }
+        } catch (error: any) {
+            if (error && error?.message) {
+                toast.error(error?.message)
+            } else {
+                toast.error("Something went wrong!")
+            }
+        } finally {
+            setLoading(false)
         }
-
-        const { data: resData, error } = await create_content_service({ table: 'returns', language: '', post_data: postData })
-
-        if (error) {
-            toast.error(`Error processing return: ${error?.message}`)
-        } else {
-            setProcessReturn(false)
-            setReturnedQty(forReturnQty)
-            setOtherReturned(true)
-            setForReturnQty(0)
-            toast.success("Return processed successfully!");
-        }
-        setLoading(false)
     }
 
 

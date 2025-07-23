@@ -84,21 +84,17 @@ const Locations = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-gray-300 rounded-xl' >
-
-                <div className='flex w-full'>
-                    <div className='w-full' >
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
+                <div className='flex flex-col gap-4 sm:flex-row w-full'>
+                    <div className='w-full'>
                         <Select_Dropdown
                             value={selected_list_id} label={t('WebCont_k5')} start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
                             on_change_handle={change_selected_list_id}
                             required={true}
                             bg_color='dark:bg-[#374151]' />
-
                     </div>
                     <Custom_Modal create_new_handle={create_content_handle} open_handle={open_modal} close_handle={close_modal} is_open={create_modal_open} Title='Create Location' loading={create_data_loading} >
-
-
-                        <div className='grid grid-cols-2 gap-4'>
+                        <div className='grid grid-cols-1 gap-4'>
                             {
                                 inputLabelandValue.map((item, index) => {
                                     const { key, label, col_span } = item
@@ -118,10 +114,9 @@ const Locations = () => {
                         </div>
                     </Custom_Modal>
                 </div>
-
                 <div className="border-t my-3 border-black"></div>
                 <div className=''>
-                    {data && <Form_Component className="grid grid-cols-2 gap-5 my-5" reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={inputLabelandValue.map(({ key }) => key)} on_change_handle={on_change_handle} />}
+                    {data && <Form_Component className="grid grid-cols-1 sm:grid-cols-2 gap-5 my-5" reset_fields={reset_fields} handle_update={handle_update} is_edited={is_edited} update_loading={update_loading} data={data} render_list_fields={inputLabelandValue.map(({ key }) => key)} on_change_handle={on_change_handle} />}
 
                 </div>
             </div>

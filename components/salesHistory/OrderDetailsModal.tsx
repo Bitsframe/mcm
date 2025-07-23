@@ -12,7 +12,7 @@ import { PatientDetailsRender } from "./PatientDetailsRender";
 import axios from "axios";
 import { toast } from "sonner";
 import moment from "moment";
-import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine } from 'lucide-react';
 
 const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   isOpen,
@@ -25,16 +25,19 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [historyRecord, setHistoryRecord] = useState([]);
-  const [isAnyReturned, setIsAnyReturned] = useState(false);
+  const [returnedItems, setReturnedItems] = useState<Set<string>>(new Set());
   const { order_id, pos, patient_id } = orderDetails || {};
 
   const renderIndexHandle = (fetched_data: any, index: number) => {
     setDataList(fetched_data?.[index] || {});
     const listHistory = fetched_data?.[index]?.sales_history || [];
-    const checkRtn = listHistory.filter(
-      ({ return_qty }: { return_qty: number }) => return_qty > 0
-    );
-    setIsAnyReturned(() => checkRtn.length > 0);
+    const returnedItemsSet = new Set<string>();
+    listHistory.forEach((item: any) => {
+      if (item.return_qty > 0) {
+        returnedItemsSet.add(item.inventory?.products?.product_name);
+      }
+    });
+    setReturnedItems(returnedItemsSet);
     setSalesHistory(listHistory);
   };
 
@@ -94,22 +97,30 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     }
   };
 
-  const hasReturnedHandle = (val: boolean) => {
-    setIsAnyReturned(() => val);
+  const hasReturnedHandle = (val: boolean, productName: string) => {
+    setReturnedItems(prev => {
+      const newSet = new Set(prev);
+      if (val) {
+        newSet.add(productName);
+      } else {
+        newSet.delete(productName);
+      }
+      return newSet;
+    });
   };
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
 
   return isOpen ? (
-    <div className="fixed inset-0 z-30 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
       {loading ? (
         <div className="h-full w-full flex justify-center items-center">
           <CircularProgress />
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#080e16] rounded-xl shadow-2xl w-11/12 max-w-4xl p-6">
-          {/* Header Section */}
-          <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-[#080e16] rounded-lg shadow-xl w-[85%] max-w-5xl mt-6 max-h-[80vh] flex flex-col">
+          {/* Fixed Header Section */}
+          <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#080e16] rounded-t-lg sticky top-0 z-10">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
               {t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}
             </h2>
@@ -123,125 +134,184 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             </button>
           </div>
 
-          {/* Patient Details */}
-          <div className="my-4 p-4 bg-gray-50 dark:bg-[#080e16] rounded-lg">
-            <PatientDetailsRender
-              order_id={order_id?.order_id}
-              patientData={dataList?.pos}
-              paymentType={
-                dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"
-              }
-            />
-          </div>
+          {/* Scrollable Content Section */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {/* Patient Details */}
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-[#080e16] rounded-lg">
+              <PatientDetailsRender
+                order_id={order_id}
+                patientData={{...dataList?.pos, patientid:patient_id}}
+                paymentType={
+                  {cash: dataList?.cash, card: dataList?.card}
+                }
+              />
+            </div>
 
-          {/* Order Summary */}
-          <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-              {t("POS-Historyk21")}
-            </h3>
+            {/* Order Summary */}
+            <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                {t("POS-Historyk21")}
+              </h3>
 
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              {/* <div className="space-y-1">
-                <p className="text-gray-500 dark:text-gray-400">Order ID:</p>
-                <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {dataList?.order_id}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-gray-500 dark:text-gray-400">Order Date:</p>
-                <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {moment(dataList?.order_date)
-                    .utcOffset(-6)
-                    .format("DD-MM-YYYY")}
-                </p>
+              <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                {/* <div className="space-y-1">
+                  <p className="text-gray-500 dark:text-gray-400">Order ID:</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    {dataList?.order_id}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-500 dark:text-gray-400">Order Date:</p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    {moment(dataList?.order_date)
+                      .utcOffset(-6)
+                      .format("DD-MM-YYYY")}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Payment Type:
+                  </p>
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
+                  </p>
+                </div> */}
               </div>
               <div className="space-y-1">
                 <p className="text-gray-500 dark:text-gray-400">
-                  Payment Type:
+                  {t("Discount")}: {dataList?.promo_code_percentage ? `${dataList.promo_code_percentage}%` : "N/A"}
                 </p>
-                <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
-                </p>
-              </div> */}
-            </div>
+              </div>
               <div className="space-y-1">
                 <p className="text-gray-500 dark:text-gray-400">
                   {t("POS-Historyk22")}: {calcTotalAmount(dataList)}
                 </p>
               </div>
-            
-          </div>
-
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative">
-              <CiSearch
-                size={20}
-                className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
-              />
-              <input
-                onChange={searchProductHandle}
-                type="text"
-                placeholder="Search product..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
-              />
             </div>
-          </div>
 
-          {/* Table Section */}
-          <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
-            {/* Table Header */}
-            <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 grid grid-cols-12 gap-4">
-              {tableHeader.map(({ label, align, flex }, index) => (
-                <div
-                  key={index}
-                  className={`col-span-2 text-sm font-medium text-gray-500 dark:text-gray-400 ${
-                    align === "right" ? "text-right" : "text-left"
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative">
+                <CiSearch
+                  size={20}
+                  className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
+                />
+                <input
+                  onChange={searchProductHandle}
+                  type="text"
+                  placeholder="Search product..."
+                  className=" pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                />
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
+              {/* Table Header - Only visible on md and larger screens */}
+              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-12 gap-28">
+                {tableHeader.map(({ label, align, flex }, index) => (
+                  <div
+                    key={index}
+                    className={`col-span-2 text-sm font-medium text-gray-500 dark:text-gray-400 ${
+                      align === "right" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {t(label)}
+                  </div>
+                ))}
+              </div>
+
+              {/* Table Body - Cards for small screens, Table for larger screens */}
+              <div className="overflow-y-auto divide-y divide-gray-200 dark:-gray-700">
+                {salesHistory.map((elem: DataListInterface, index: number) => (
+                  <div key={index}>
+                    {/* Mobile Card View */}
+                    <div className="md:hidden p-4 space-y-3 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Product")}</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300 break-words">
+                              {elem?.inventory?.products?.product_name}
+                            </p>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Price")}</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              ${elem?.inventory?.price}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Quantity")}</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              {elem?.quantity}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Total")}</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              ${calcTotalAmount({ sales_history: [elem] })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full">
+                        <TableRowRender
+                          preDefinedReasonList={preDefinedReasonList}
+                          hasReturnedHandle={hasReturnedHandle}
+                          isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
+                          dataList={elem}
+                          order_id={order_id}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block">
+                      <TableRowRender
+                        preDefinedReasonList={preDefinedReasonList}
+                        hasReturnedHandle={hasReturnedHandle}
+                        isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
+                        dataList={elem}
+                        order_id={order_id}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 justify-between dark:bg-[#080e16] px-3 py-2 rounded-md">
+                {/* <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Page
+                </span> */}
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Showing {page} out of {totalPages}
+                </span>
+                <div className="flex justify-center gap-2 items-center">
+                <button
+                  onClick={() => changeHistoryHandle("prev")}
+                  disabled={page === 1}
+                  className={`p-1 rounded border-2 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                    page === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  {t(label)}
+                  Previous
+                  {/* <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
+                </button>
+                
+                <button
+                  onClick={() => changeHistoryHandle("next")}
+                  disabled={page === totalPages}
+                  className={`p-1 rounded border-2 border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                    page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  Next
+                  {/* <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
+                </button>
                 </div>
-              ))}
-            </div>
-
-            {/* Table Body */}
-            <div className="overflow-y-auto divide-y divide-gray-200 dark:-gray-700">
-              {salesHistory.map((elem: DataListInterface, index: number) => (
-                <TableRowRender
-                  key={index}
-                  preDefinedReasonList={preDefinedReasonList}
-                  hasReturnedHandle={hasReturnedHandle}
-                  isAnyReturned={isAnyReturned || page > 1}
-                  dataList={elem}
-                  order_id={order_id}
-                />
-              ))}
-            </div>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#080e16] px-3 py-1 rounded-md">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                Page
-              </span>
-              <button
-                onClick={() => changeHistoryHandle("prev")}
-                disabled={page === 1}
-                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
-                  page === 1 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-              </button>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {page}/{totalPages}
-              </span>
-              <button
-                onClick={() => changeHistoryHandle("next")}
-                disabled={page === totalPages}
-                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
-                  page === totalPages ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-              </button>
+              </div>
             </div>
           </div>
         </div>

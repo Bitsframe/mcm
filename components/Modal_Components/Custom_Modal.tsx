@@ -33,38 +33,34 @@ export const Custom_Modal: FC<PropsInterface> = ({
     darkMode,
 }) => {
     return (
-        <Modal show={is_open} onClose={close_handle}>
-            <Modal.Header
-                className="bg-white dark:bg-[#080e16] dark:text-white text-black"
-            >
-                {Title}
-            </Modal.Header>
-
-            <Modal.Body
-                className="bg-white dark:bg-[#080e16] text-black dark:text-white"
-            >
-                <div className="space-y-6">{children}</div>
-            </Modal.Body>
-
-            <Modal.Footer
-                className="flex justify-end bg-white dark:bg-[#080e16]"
-            >
-                <button
-                    className="bg-[#F1F4F9] dark:bg-gray-700 text-black dark:text-white px-4 py-[10px] rounded-lg"
-                    onClick={close_handle}
-                >
-                    Cancel
-                </button>
-                <Button
-                    color={submit_button_color}
-                    className="capitalize ml-2"
-                    isProcessing={loading}
-                    disabled={loading || disabled}
-                    onClick={create_new_handle}
-                >
-                    {buttonLabel}
-                </Button>
-            </Modal.Footer>
+        <Modal show={is_open} onClose={close_handle} className="!p-0">
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center min-h-screen p-2">
+                <div className="bg-white dark:bg-[#0e1725] rounded-lg shadow-lg w-full max-w-[95vw] sm:max-w-[600px] mx-auto">
+                    <Modal.Header className="bg-white dark:bg-[#0e1725] dark:text-white text-black rounded-t-lg">
+                        {Title}
+                    </Modal.Header>
+                    <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
+                        <div className="space-y-6">{children}</div>
+                    </Modal.Body>
+                    <Modal.Footer className="flex justify-end bg-white dark:bg-[#0e1725] rounded-b-lg">
+                        <button
+                            className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white px-4 py-[10px] rounded-lg"
+                            onClick={close_handle}
+                        >
+                            Cancel
+                        </button>
+                        <Button
+                            color={submit_button_color}
+                            className="capitalize ml-2"
+                            isProcessing={loading}
+                            disabled={disabled}
+                            onClick={create_new_handle}
+                        >
+                            {buttonLabel}
+                        </Button>
+                    </Modal.Footer>
+                </div>
+            </div>
         </Modal>
     );
 };

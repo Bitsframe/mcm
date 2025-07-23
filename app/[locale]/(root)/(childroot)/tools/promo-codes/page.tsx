@@ -28,11 +28,17 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Slidercomp } from "@/components/sliderComp";
 import { TabContext } from "@/context";
-import { Eye, EyeIcon, PencilIcon, TrashIcon } from "lucide-react";
+import {
+  EyeIcon,
+  PenBoxIcon,
+  PencilIcon,
+  PlusCircle,
+  Search,
+  TrashIcon,
+} from "lucide-react";
 
 const fields = [
   {
@@ -98,7 +104,7 @@ const fields = [
     render_value: (val: string) =>
       moment(val, "YYYY-MM-DD h:mm s").format("MM/DD/YYYY"),
     min: moment(new Date()).format("YYYY-MM-DD"),
-    align: "text-end",
+    align: "text-left",
     details_order: 5,
     col_span_01: true,
   },
@@ -138,30 +144,33 @@ function removeDuplicates(array: DataListInterface[]): DataListInterface[] {
   });
 }
 
-const modal_titles: any = {
-  create: {
-    modalLabel: "Create New Promocode",
-    button: {
-      label: "Create Promocode",
-      color: "info",
-    },
-  },
-  edit: {
-    modalLabel: "Edit Promocode",
-    button: {
-      label: "Update Promocode",
-      color: "info",
-    },
-  },
-  delete: {
-    modalLabel: "Delete Promocode Confirmation",
-    button: {
-      label: "Delete Promocode",
-      color: "failure",
-    },
-  },
-};
 const Page = () => {
+  const { t } = useTranslation(translationConstant.PROCODE);
+  
+  const modal_titles: any = {
+    create: {
+      modalLabel: "Add Promocode",
+      button: {
+        label: "Add Promocode",
+        color: "blue",
+      },
+    },
+    edit: {
+      modalLabel: "Edit Promocode",
+      button: {
+        label: "Edit Promocode",
+        color: "blue",
+      },
+    },
+    delete: {
+      modalLabel: t("Procode_k26"),
+      button: {
+        label: t("Procode_k26"),
+        color: "failure",
+      },
+    },
+  };
+
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [detailsView, setDetailsView] = useState<DataListInterface | null>(
@@ -177,8 +186,13 @@ const Page = () => {
   const [newDetails, setNewDetails] = useState<any>({});
   const [modalLoading, setModalLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
+  const currentData = dataList.slice(startIndex, endIndex);
 
-  // Check for saved dark mode preference or system preference
   useEffect(() => {
     const savedMode = localStorage.getItem("darkMode");
     if (savedMode !== null) {
@@ -187,21 +201,6 @@ const Page = () => {
       setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
     }
   }, []);
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const openModalHandle = () => {
     setIsOpenModal(true);
@@ -217,10 +216,9 @@ const Page = () => {
     if (val === "") {
       setDataList([...allData]);
     } else {
-      const filteredData = allData.filter((elem) => {
-        const concatName = elem.typename;
-        return concatName.toLocaleLowerCase().includes(val.toLocaleLowerCase());
-      });
+      const filteredData = allData.filter((elem) =>
+        elem.typename.toLowerCase().includes(val.toLowerCase())
+      );
       setDataList([...filteredData]);
     }
   };
@@ -231,13 +229,18 @@ const Page = () => {
 
   const fetch_handle = async () => {
     setLoading(true);
-    // @ts-ignore
-    const fetched_data: any = await fetch_content_service({
-      table: "promotype",
-    });
-    setDataList(fetched_data);
-    setAllData(fetched_data);
-    setLoading(false);
+    try {
+      const fetched_data: any = await fetch_content_service({
+        table: "promotype",
+      });
+      setDataList(fetched_data || []);
+      setAllData(fetched_data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -245,105 +248,92 @@ const Page = () => {
   }, []);
 
   const sortHandle = (column: string, type: string) => {
-    console.log(column);
-    let sortedList: any = [];
+    let sortedList: DataListInterface[] = [...dataList];
     if (type === "text") {
-      sortedList = dataList.sort((a, b) => {
-        const aConcatName = a[column];
-        const bConcatName = b[column];
-
-        if (sortOrder === 1) {
-          return aConcatName.localeCompare(bConcatName);
-        } else {
-          return bConcatName.localeCompare(aConcatName);
-        }
-      });
+      sortedList.sort((a, b) =>
+        sortOrder === 1
+          ? a[column].localeCompare(b[column])
+          : b[column].localeCompare(a[column])
+      );
     } else if (type === "date") {
-      if (sortOrder === 1) {
-        sortedList = dataList.sort(
-          (a, b) =>
-            new Date(a[column]).getTime() - new Date(b[column]).getTime()
-        );
-      } else {
-        sortedList = dataList.sort(
-          (a, b) =>
-            new Date(b[column]).getTime() - new Date(a[column]).getTime()
-        );
-      }
+      sortedList.sort((a, b) =>
+        sortOrder === 1
+          ? new Date(a[column]).getTime() - new Date(b[column]).getTime()
+          : new Date(b[column]).getTime() - new Date(a[column]).getTime()
+      );
     } else {
-      if (sortOrder === 1) {
-        sortedList = dataList.sort((a, b) => a[column] - b[column]);
-      } else {
-        sortedList = dataList.sort((a, b) => b[column] - a[column]);
-      }
+      sortedList.sort((a, b) =>
+        sortOrder === 1 ? a[column] - b[column] : b[column] - a[column]
+      );
     }
-
     setSortOrder((order) => (order === -1 ? 1 : -1));
     setDataList([...sortedList]);
     setSortColumn(column);
   };
 
   const modalInputChangeHandle = (e: string, id: string) => {
-    setNewDetails((pre: any) => ({ ...pre, [id]: e }));
+    setNewDetails((prev: any) => ({ ...prev, [id]: e }));
   };
 
   const createNewDataHandle = async () => {
     setModalLoading(true);
-    const { data: res_data, error } = await create_content_service({
-      table: "promotype",
-      language: "",
-      post_data: newDetails,
-    });
-    if (error) {
-      console.log(error.message);
-      toast.error(error.message);
-      // throw new Error(error.message);
+    try {
+      const { data: res_data, error } = await create_content_service({
+        table: "promotype",
+        language: "",
+        post_data: newDetails,
+      });
+      if (error) {
+        console.error("Create error:", error.message);
+        toast.error(error.message);
+        return;
+      }
+      if (res_data?.length) {
+        toast.success("Created successfully");
+        closeModalHandle();
+        const newDataList = [res_data[0], ...dataList];
+        const newAllData = [res_data[0], ...allData];
+        setDataList(removeDuplicates(newDataList));
+        setAllData(removeDuplicates(newAllData));
+      }
+    } catch (error) {
+      console.error("Create error:", error);
+      toast.error("Failed to create promocode");
+    } finally {
+      setModalLoading(false);
     }
-
-    if (res_data?.length) {
-      toast.success("Created successfully");
-      closeModalHandle();
-      // @ts-ignore
-      dataList.unshift(res_data[0]);
-      const newDataSetDataList = removeDuplicates(dataList);
-      // @ts-ignore
-      allData.unshift(res_data[0]);
-      const newDataSetAllData = removeDuplicates(allData);
-      setAllData([...newDataSetAllData]);
-      setDataList([...newDataSetDataList]);
-    }
-
-    setModalLoading(false);
   };
 
   const deleteDataHandle = async () => {
     setModalLoading(true);
-
-    // Get ID from EITHER newDetails (icon click) OR detailsView (sheet button)
-    const selectedId = newDetails?.id || detailsView?.id;
-
-    const { data: res_data, error } = await delete_content_service({
-      table: "promotype",
-      id: selectedId!,
-    });
-
-    if (!error) {
-      // Update both data lists
+    try {
+      const selectedId = newDetails?.id || detailsView?.id;
+      if (!selectedId) {
+        toast.error("No item selected for deletion");
+        return;
+      }
+      const { error } = await delete_content_service({
+        table: "promotype",
+        id: selectedId,
+      });
+      if (error) {
+        console.error("Delete error:", error.message);
+        toast.error(error.message);
+        return;
+      }
       setDataList((list) => list.filter((data) => data.id !== selectedId));
       setAllData((list) => list.filter((data) => data.id !== selectedId));
-
-      // Reset states if deleted item was being viewed
       if (detailsView?.id === selectedId) {
-        setDetailsView(null); // Close sheet if open
+        setDetailsView(null);
       }
-
       toast.success("Deleted successfully");
       closeModalHandle();
-    } else {
-      toast.error(error.message);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete promocode");
+    } finally {
+      setModalLoading(false);
     }
-
-    setModalLoading(false);
   };
 
   const editDataHandle = async () => {
@@ -357,45 +347,33 @@ const Page = () => {
       if (data?.length) {
         toast.success("Updated successfully");
         closeModalHandle();
-
         const newData = data[0];
-        // @ts-ignore
-        const newDataSetDataList = allData.map((elem) =>
-          newData.id === elem.id ? newData : elem
+        setDataList((list) =>
+          list.map((elem) => (elem.id === newData.id ? newData : elem))
         );
-        // @ts-ignore
-        const newDataSetAllData = dataList.map((elem) =>
-          newData.id === elem.id ? newData : elem
+        setAllData((list) =>
+          list.map((elem) => (elem.id === newData.id ? newData : elem))
         );
-        // @ts-ignore
-        setAllData([...newDataSetAllData]);
-        // @ts-ignore
-        setDataList([...newDataSetDataList]);
-
-        // @ts-ignore
         setDetailsView(newData);
       }
     } catch (error: any) {
-      if (error && error?.message) {
-        toast.error(error?.message);
-        // throw new Error(error.message);
-      } else {
-        toast.error("Something went wrong!");
-      }
+      console.error("Update error:", error);
+      toast.error(error?.message || "Failed to update promocode");
+    } finally {
+      setModalLoading(false);
     }
-    setModalLoading(false);
   };
 
   const modalSubmitHandle = async () => {
     switch (activeModalMode) {
       case "create":
-        createNewDataHandle();
+        await createNewDataHandle();
         break;
       case "edit":
-        editDataHandle();
+        await editDataHandle();
         break;
       case "delete":
-        deleteDataHandle();
+        await deleteDataHandle();
         break;
     }
   };
@@ -404,6 +382,7 @@ const Page = () => {
     openModalHandle();
     setActiveModalMode("create");
   };
+
   const editHandle = () => {
     if (detailsView) {
       setNewDetails(detailsView);
@@ -414,6 +393,7 @@ const Page = () => {
 
   const deleteHandle = () => {
     if (detailsView) {
+      setNewDetails(detailsView);
       setActiveModalMode("delete");
       openModalHandle();
     }
@@ -425,123 +405,116 @@ const Page = () => {
     setActiveTitle("Sidebar_k16");
   }, []);
 
-  const { t } = useTranslation(translationConstant.PROCODE);
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   return (
-    <main className="w-full h-full font-[500] text-[20px] overflow-x-hidden dark:bg-gray-900 dark:text-white">
-      <div className="grid grid-cols-3 w-[150%]">
-        <div className="flex justify-between items-center px-4 py-2 space-x-2 col-span-2">
-          <h1 className="text-xl font-bold dark:text-white">
-            {t("Procode_k1")}
-          </h1>
-        </div>
+    <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mt-4">
+        <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          {t("Procode_k17")}
+        </h1>
       </div>
 
-      <div className="w-full min-h-[84dvh] py-2 px-2 grid grid-cols-3 gap-2">
-        <div className="h-[100%] col-span-2 rounded-md py-2 flex flex-col flex-1 w-[150%]">
-          <div className="space-y-6 px-3 pb-4 flex justify-between mt-3">
-            <div className="flex justify-between items-center w-full">
-              <div>
+        <div className="w-full py-2 flex flex-col gap-2">
+          <div className="space-y-6 pb-4 mt-3">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <input
                   onChange={onChangeHandle}
                   type="text"
                   placeholder={t("Procode_k3")}
-                  className="w-96 px-2 py-3 text-sm rounded-md focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full py-3 pl-10 pr-3 text-sm rounded-md focus:outline-none bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
-              <div>
-                <button
-                  onClick={addNewHandle}
-                  className="bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800"
-                >
-                  {t("Procode_k2")}
-                </button>
-              </div>
+              <button
+                onClick={addNewHandle}
+                className="w-full sm:w-auto bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800 flex justify-center items-center gap-2"
+              >
+                <PlusCircle className="w-4 h-4" />
+                {t("Procode_k2")} Promo Code
+              </button>
             </div>
           </div>
 
-          <div className="">
-            <Table className="border-collapse border border-gray-200 dark:border-gray-700 w-full">
-              <TableHeader>
-                <TableRow className="dark:border-gray-700">
-                  <TableHead className="text-left px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    {/* <input
-                      type="checkbox"
-                      className="dark:bg-gray-700 dark:border-gray-600"
-                    /> */}
-                  </TableHead>
-                  {fields
-                    .filter(({ table_column }) => table_column)
-                    .map(({ id, label, align, type }, ind) => (
-                      <TableHead
-                        key={ind}
-                        className={`${
-                          align || "text-left"
-                        } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b text-left border-gray-300 dark:border-gray-700`}
-                      >
-                        {t(label)}
-                        <button
-                          onClick={() => sortHandle(id, type)}
-                          className="active:opacity-50 ml-1"
-                        >
-                          <PiCaretUpDownBold
-                            className={`inline ${
-                              sortColumn === id
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-gray-400/50 dark:text-gray-500"
-                            } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
-                          />
-                        </button>
-                      </TableHead>
-                    ))}
-                  <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-gray-700">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={fields.filter((f) => f.table_column).length + 2}
-                      className="dark:bg-gray-800"
-                    >
-                      <div className="flex h-full flex-1 flex-col justify-center items-center">
-                        <Spinner size="xl" />
-                      </div>
-                    </TableCell>
+          <div className="overflow-y-auto max-h-[calc(84dvh-150px)]">
+            <div className="hidden md:block rounded-lg border border-gray-200 dark:border-[#172945]">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="dark:border-[#172945] hover:bg-none">
+                    {["typename", "percentage", "expiry", "active"].map(
+                      (fieldId, ind) => {
+                        const field = fields.find((f) => f.id === fieldId);
+                        if (!field) return null;
+                        return (
+                          <TableHead
+                            key={ind}
+                            className={`${
+                              field.align || "text-left"
+                            } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]`}
+                          >
+                            {t(field.label)}
+                            <button
+                              onClick={() => sortHandle(field.id, field.type)}
+                              className="active:opacity-50 ml-1"
+                            >
+                              <PiCaretUpDownBold
+                                className={`inline ${
+                                  sortColumn === field.id
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-gray-400/50 dark:text-gray-500"
+                                } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                              />
+                            </button>
+                          </TableHead>
+                        );
+                      }
+                    )}
+                    <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ) : dataList.length > 0 ? (
-                  dataList.map((elem) => {
-                    const { id, status } = elem;
-                    return (
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="dark:bg-gray-800">
+                        <div className="flex h-64 justify-center items-center">
+                          <Spinner size="xl" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : dataList.length > 0 ? (
+                    currentData.map((elem) => (
                       <TableRow
-                        key={id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-300 dark:border-gray-700"
+                        key={elem.id}
+                        className="cursor-pointer border-b border-gray-300 dark:border-gray-700"
                         onClick={() => detailsViewHandle(elem)}
                       >
-                        <TableCell className="text-left px-4 py-2 dark:bg-gray-800">
-                          {/* <input
-                            type="checkbox"
-                            className="dark:bg-gray-700 dark:border-gray-600"
-                          /> */}
-                        </TableCell>
-
-                        {fields
-                          .filter(({ table_column }) => table_column)
-                          .map(({ id: fieldKey, align, render_value }: any) => {
-                            const extract_val = render_value
-                              ? render_value(elem[fieldKey])
-                              : elem[fieldKey];
-
+                        {["typename", "percentage", "expiry", "active"].map(
+                          (fieldId) => {
+                            const field = fields.find((f) => f.id === fieldId);
+                            if (!field) return null;
+                            const extract_val = field.render_value
+                              ? //@ts-ignore
+                                field.render_value(elem[field.id])
+                              : elem[field.id];
                             return (
                               <TableCell
-                                key={fieldKey}
+                                key={field.id}
                                 className={`${
-                                  align || "text-left"
-                                } font-normal text-left text-base px-5 py-2 dark:text-white dark:bg-gray-800`}
+                                  field.align || "text-left"
+                                } font-normal text-base px-5 py-3 dark:text-white dark:bg-[#111827]`}
                               >
-                                {fieldKey === "status" ? (
+                                {field.id === "active" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
@@ -556,64 +529,168 @@ const Page = () => {
                                 )}
                               </TableCell>
                             );
-                          })}
-
-                        <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-gray-800">
+                          }
+                        )}
+                        <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-[#111827]">
                           <EyeIcon
-                            className="text-gray-500 hover:text-black dark:hover:text-white w-4 h-4 inline cursor-pointer"
+                            className="w-4 h-4 inline cursor-pointer text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               detailsViewHandle(elem);
                             }}
+                            color="grey"
                           />
-                          <PencilIcon
-                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-4 h-4 inline cursor-pointer ml-2"
+                          <PenBoxIcon
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-blue-500 hover:text-blue-700 dark:hover:text-blue-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
                               setActiveModalMode("edit");
                               setIsOpenModal(true);
                             }}
+                            color="blue"
                           />
                           <TrashIcon
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 w-4 h-4 inline cursor-pointer ml-2"
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-red-500 hover:text-red-700 dark:hover:text-red-300"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
                               setActiveModalMode("delete");
                               setIsOpenModal(true);
                             }}
+                            color="red"
                           />
                         </TableCell>
                       </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={fields.filter((f) => f.table_column).length + 2}
-                      className="dark:bg-gray-800"
-                    >
-                      <div className="flex h-full flex-1 flex-col justify-center items-center">
-                        <h1 className="dark:text-white">No Data found!</h1>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="dark:bg-[#111827]">
+                        <div className="flex h-64 justify-center items-center">
+                          <h1 className="dark:text-white">No Data found!</h1>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
-            {/* Footer */}
+            {/* Cards for small screens */}
+            <div className="md:hidden grid gap-4">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <Spinner size="xl" />
+                </div>
+              ) : dataList.length > 0 ? (
+                currentData.map((elem) => (
+                  <div
+                    key={elem.id}
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm cursor-pointer"
+                    onClick={() => detailsViewHandle(elem)}
+                  >
+                    <div className="space-y-3">
+                      {["typename", "percentage", "expiry", "active"].map(
+                        (fieldId) => {
+                          const field = fields.find((f) => f.id === fieldId);
+                          if (!field) return null;
+                          const extract_val = field.render_value
+                            ? //@ts-ignore
+                              field.render_value(elem[field.id])
+                            : elem[field.id];
+                          return (
+                            <div
+                              key={field.id}
+                              className="flex justify-between items-center"
+                            >
+                              <span className="text-sm text-gray-600 dark:text-gray-300">
+                                {t(field.label)}:
+                              </span>
+                              <span className="text-sm font-medium dark:text-white max-w-[60%] text-right">
+                                {field.id === "active" ? (
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      extract_val === "Active"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
+                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
+                                    }`}
+                                  >
+                                    {extract_val}
+                                  </span>
+                                ) : (
+                                  extract_val
+                                )}
+                              </span>
+                            </div>
+                          );
+                        }
+                      )}
+                      <div className="flex justify-end gap-2 pt-2">
+                        <EyeIcon
+                          className=" w-4 h-4 cursor-pointer"
+                          color="grey"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            detailsViewHandle(elem);
+                          }}
+                        />
+                        <PenBoxIcon
+                          className=" w-4 h-4 cursor-pointer"
+                          color="blue"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNewDetails(elem);
+                            setActiveModalMode("edit");
+                            setIsOpenModal(true);
+                          }}
+                        />
+                        <TrashIcon
+                          className="w-4 h-4 cursor-pointer"
+                          color="red"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNewDetails(elem);
+                            setActiveModalMode("delete");
+                            setIsOpenModal(true);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex justify-center items-center h-64">
+                  <h1 className="dark:text-white">No Data found!</h1>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center justify-between mt-4 px-2">
-              <p className="text-sm text-muted-foreground dark:text-gray-300">
-                0 of {dataList.length} row(s) selected.
-              </p>
+            <p className="text-sm text-muted-foreground dark:text-gray-300">
+  {dataList.length === 0
+    ? t("Procode_k20")
+    : `${t("Procode_k21")} ${startIndex + 1} ${t("Procode_k22")} ${endIndex} ${t("Procode_k23")} ${dataList.length}`}
+</p>
               <div className="flex space-x-2">
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
-                  Previous
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                    currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {t("Procode_k19")}
                 </button>
-                <button className="text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white">
-                  Next
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages || dataList.length === 0}
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                    currentPage === totalPages || dataList.length === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  {t("Procode_k18")}
                 </button>
               </div>
             </div>
@@ -624,7 +701,7 @@ const Page = () => {
           open={!!detailsView}
           onOpenChange={(open) => !open && setDetailsView(null)}
         >
-          <SheetContent className="p-0 pt-10 dark:bg-gray-800 dark:border-gray-700">
+          <SheetContent className="p-0 pt-10 dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
             <div className="flex flex-col h-full">
               <div className="px-4 pt-2 pb-3">
                 <SheetHeader className="sr-only">
@@ -644,12 +721,10 @@ const Page = () => {
                       .filter(({ details_section }) => details_section)
                       .sort((a, b) => a.details_order - b.details_order)
                       .map((field, ind) => {
-                        // @ts-ignore - Temporary type handling
                         const extract_val = field.render_value
-                          ? // @ts-ignore
+                          ? //@ts-ignore
                             field.render_value(detailsView[field.id])
                           : detailsView[field.id];
-
                         return (
                           <div
                             key={ind}
@@ -693,82 +768,131 @@ const Page = () => {
             </div>
           </SheetContent>
         </Sheet>
-      </div>
-      <Custom_Modal
-        submit_button_color={modal_titles[activeModalMode]?.button?.color}
-        loading={modalLoading}
-        buttonLabel={modal_titles[activeModalMode]?.button?.label}
-        is_open={isOpenModal}
-        Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
-        close_handle={closeModalHandle}
-        // @ts-ignore
-        open_handle={openModalHandle}
-        create_new_handle={modalSubmitHandle}
-        darkMode={darkMode}
-      >
-        {activeModalMode === "delete" ? (
-          <div className="dark:text-white">
-            <h1>Are you sure you want to delete this Promocode?</h1>
-          </div>
-        ) : (
-          <form className="grid grid-cols-2 gap-4">
-            {fields
-              .filter(({ editable }) => editable)
-              .map(
-                ({
-                  id,
-                  label,
-                  type,
-                  col_span_01,
-                  col_span_01_modal,
-                  min,
-                  max,
-                }) => {
-                  return (
-                    <div
-                      key={id}
-                      className={`col-span-${
-                        col_span_01 || col_span_01_modal ? "1" : "2"
-                      } flex flex-col gap-1`}
-                    >
-                      {id === "percentage" ? (
-                        <div className="flex flex-col w-full">
-                          <label className="text-base font-semibold mb-4 dark:text-white">
-                            Percentage
-                          </label>
-                          <Slidercomp
-                            className="w-full"
+
+        <Custom_Modal
+          submit_button_color={modal_titles[activeModalMode]?.button?.color}
+          loading={modalLoading}
+          buttonLabel={modal_titles[activeModalMode]?.button?.label}
+          is_open={isOpenModal}
+          Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
+          close_handle={closeModalHandle}
+          open_handle={openModalHandle}
+          create_new_handle={modalSubmitHandle}
+          darkMode={darkMode}
+        >
+          {activeModalMode === "delete" ? (
+            <div className="dark:text-white">
+              <h1>{t("Procode_k26")}</h1>
+            </div>
+          ) : (
+            <form className="grid grid-cols-2 gap-4">
+              {fields
+                .filter(({ editable }) => editable)
+                .map(
+                  ({
+                    id,
+                    label,
+                    type,
+                    col_span_01,
+                    col_span_01_modal,
+                    min,
+                    max,
+                  }) => {
+                    // Handle percentage and multiple in the same row
+                    if (id === "percentage" || id === "multiple") {
+                      return (
+                        <div
+                          key={id}
+                          className="col-span-1 flex flex-col gap-1"
+                        >
+                          {id === "percentage" ? (
+                            <div className="flex flex-col w-full">
+                              <label className="text-base font-semibold mb-4 dark:text-white">
+                                {t(label)}
+                              </label>
+                              <Slidercomp
+                                className="w-full"
+                                value={newDetails ? newDetails[id] : ""}
+                                //@ts-ignore
+                                onChange={(e: string) =>
+                                  modalInputChangeHandle(e, id)
+                                }
+                                darkMode={darkMode}
+                              />
+                            </div>
+                          ) : (
+                            <Input_Component
+                              value={newDetails ? newDetails[id] : ""}
+                              type={type}
+                              onChange={(e: string) =>
+                                modalInputChangeHandle(e, id)
+                              }
+                              label={t(label)}
+                              darkMode={darkMode}
+                              bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                            />
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // Handle expiry to take full width
+                    if (id === "expiry") {
+                      return (
+                        <div
+                          key={id}
+                          className="col-span-2 flex flex-col gap-1"
+                        >
+                          <Input_Component
+                            className="rounded-md"
+                            min={min || ""}
+                            //@ts-ignore
+                            max={max || ""}
                             value={newDetails ? newDetails[id] : ""}
-                            // @ts-ignore
+                            type={type}
                             onChange={(e: string) =>
                               modalInputChangeHandle(e, id)
                             }
+                            label={t(label)}
+                            isDate={type === "date"}
                             darkMode={darkMode}
+                            bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
                           />
                         </div>
-                      ) : (
+                      );
+                    }
+
+                    // Handle other fields normally
+                    return (
+                      <div
+                        key={id}
+                        className={`col-span-${
+                          col_span_01 || col_span_01_modal ? "1" : "2"
+                        } flex flex-col gap-1`}
+                      >
                         <Input_Component
+                          className="rounded-md"
                           min={min || ""}
                           //@ts-ignore
                           max={max || ""}
                           value={newDetails ? newDetails[id] : ""}
                           type={type}
-                          border="border-2 border-gray-300 dark:border-gray-600 rounded-md w-full"
                           onChange={(e: string) =>
                             modalInputChangeHandle(e, id)
                           }
                           label={t(label)}
                           isDate={type === "date"}
                           darkMode={darkMode}
+                          bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
                         />
-                      )}
-                    </div>
-                  );
-                }
-              )}
-          </form>
-        )}
-      </Custom_Modal>
+                      </div>
+                    );
+                  }
+                )}
+            </form>
+          )}
+        </Custom_Modal>
+      </div>
     </main>
   );
 };

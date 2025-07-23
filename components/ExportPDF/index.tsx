@@ -35,7 +35,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 table: 'sales_history',
                 language: '',
                 selectParam: `,
-                    orders(pos:pos (
+                    orders(pos:allpatients (
                     lastname,
                     firstname,
                     locationid

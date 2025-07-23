@@ -4,14 +4,12 @@ import { fetchLocations, updateLocationData } from '@/utils/supabase/data_servic
 import { useContext } from 'react';
 import { toast } from 'react-toastify';
 
-const LOCAL_STORAGE_KEY = "@location";
-
 const FULL_ACCESS_ROLES = ['super admin', 'admin', 'supervisor'];
 
 export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
     const { defaultSetFirst = false } = params
     const { selectedLocation, setSelectedLocation } = useContext(LocationContext);
-    const { allowedLocations, userRole } = useContext(AuthContext);
+    const { allowedLocations, userRole, userProfile } = useContext(AuthContext);
     const [locations, setLocations] = useState([])
     const [selected_location, setSelected_location] = useState('')
     const [selected_location_data, setSelected_location_data] = useState(null)
@@ -19,10 +17,16 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
     const [is_edited, set_is_edited] = useState(false);
     const [update_loading, set_update_loading] = useState(false);
 
+    // Get user-specific storage key
+    const getStorageKey = () => {
+        return userProfile?.id ? `@location_${userProfile.id}` : '@location';
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const allLocations = await fetchLocations();
+                const locationRecord = localStorage.getItem(getStorageKey());
 
                 // Check if user has full access
                 const hasFullAccess = FULL_ACCESS_ROLES.includes(userRole?.toLowerCase());
@@ -37,14 +41,25 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
 
                 setLocations(filteredLocations);
 
-                // If defaultSetFirst is true and we have locations, set the first one as selected
                 if (defaultSetFirst && filteredLocations.length > 0) {
-                    const firstLocation = filteredLocations[0];
-                    setSelected_location(firstLocation.id.toString());
-                    setSelected_location_data(firstLocation);
-                    setSelectedLocation(firstLocation);
-                    setChange_data(firstLocation);
-                    localStorage.setItem(LOCAL_STORAGE_KEY, firstLocation.id.toString());
+                    let selectedLocation = filteredLocations[0];
+
+                    // If we have a saved location in localStorage, try to find it
+                    if (locationRecord) {
+                        const savedLocation = filteredLocations.find(
+                            (location: any) => location.id.toString() === locationRecord
+                        );
+                        if (savedLocation) {
+                            selectedLocation = savedLocation;
+                        }
+                    }
+
+                    // Set the selected location
+                    setSelected_location(selectedLocation.id.toString());
+                    setSelected_location_data(selectedLocation);
+                    setSelectedLocation(selectedLocation);
+                    setChange_data(selectedLocation);
+                    localStorage.setItem(getStorageKey(), selectedLocation.id.toString());
                 }
             } catch (error) {
                 console.error('Error fetching locations:', error);
@@ -53,12 +68,12 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
         };
 
         fetchData();
-    }, [allowedLocations, userRole, defaultSetFirst]);
+    }, [allowedLocations, userRole, defaultSetFirst, userProfile]);
 
     const set_location_handle = (value: any) => {
         setSelected_location(value);
         const data: any = locations.find((item: { id: number | string; }) => item.id == value)
-        localStorage.setItem(LOCAL_STORAGE_KEY, value.toLocaleString())
+        localStorage.setItem(getStorageKey(), value.toString())
         setSelected_location_data(data)
         setSelectedLocation(data)
         setChange_data(data)

@@ -53,9 +53,9 @@ function Login() {
   };
 
   return (
-    <main className="h-screen w-full flex">
-      <div className="flex-1 flex items-center justify-center">
-        <Card className="w-full max-w-[450px]">
+    <main className=" w-full flex">
+      <div className="flex-1 flex items-center justify-center px-4 md:px-0 mt-12">
+        <Card className="w-full max-w-[450px] mx-auto">
           <CardHeader className="text-center">
             <h1 className="text-xl font-bold">{t("Login_k1")}</h1>
           </CardHeader>

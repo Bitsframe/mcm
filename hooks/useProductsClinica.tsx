@@ -13,7 +13,7 @@ interface ProductDataInterface {
 }
 
 
-export function useProductsClinica() {
+export function useProductsClinica(locationId?: number) {
 
 
     const [data, setdata] = useState([])
@@ -40,14 +40,14 @@ export function useProductsClinica() {
         onChangeCategory(0)
 
     }, [selectedLocation])
-    
+
 
 
 
     useEffect(() => {
         setLoading(true)
 
-        if(selectedCategory){
+        if (selectedCategory) {
             !(async function fetch_data() {
                 let matchCase = null
                 if (selectedCategory) {
@@ -58,7 +58,7 @@ export function useProductsClinica() {
                         },
                         {
                             key: 'location_id',
-                            value: selectedLocation.id
+                            value: locationId || selectedLocation.id
                         },
                         {
                             key: 'archived',
@@ -67,47 +67,25 @@ export function useProductsClinica() {
                         {
                             key: 'products.archived',
                             value: false
-                        },
-    
+                        }
                     ]
                 }
-                const data = await fetch_content_service({ table: 'inventory', matchCase: matchCase, selectParam: ',products(category_id, product_name,archived)', filterOptions: [{ operator: 'not', column: 'products', value: null }] })
-    
-                // {
-                //     "inventory_id": 4,
-                //     "product_id": 279,
-                //     "quantity": 5,
-                //     "last_updated": "2024-11-04T20:40:45.13231+00:00",
-                //     "location_id": 17,
-                //     "price": 400,
-                //     "archived": false,
-                //     "products": {
-                //       "archived": false,
-                //       "category_id": 2,
-                //       "product_name": "Excuse Forms"
-                //     }
-                //   }
-    
-    
-                // {
-                //     "product_id": 140,
-                //     "category_id": 2,
-                //     "product_name": "Ceftriaxone (500mg y 1gr)",
-                //     "price": 50,
-                //     "quantity_available": 94,
-                //     "archived": false
-                //   }
-    
-                const formattedData = data.map(({ quantity, inventory_id, price, products: { product_name, category_id } }: any) => {
+                const data = await fetch_content_service({ table: 'inventory', matchCase: matchCase, selectParam: ',products(price,category_id, product_name,archived, unlimited)', filterOptions: [
+                    { operator: 'not', column: 'products', value: null },
+                    { operator: 'neq', column: 'products.price', value: 0 }
+                    ] })
+                const formattedData = data.filter((elem)=>elem.quantity > 0 || elem.products.unlimited && elem.products.price > 0).map(({ quantity, inventory_id, product_id,  products: { price, product_name, category_id, unlimited } }: any) => {
                     return {
                         product_id: inventory_id,
                         category_id,
                         product_name: product_name,
                         price,
                         quantity_available: quantity,
+                        unlimited,
+                        main_product_id: product_id,
                     }
                 })
-    
+
                 setdata(formattedData);
                 setLoading(false)
             })()

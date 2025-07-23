@@ -52,10 +52,10 @@ const ChangeLocationModal = () => {
           bottom: 0,
         }}
       >
-        <div className="w-full h-full flex justify-center items-center">
-          <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 min-w-[650px] h-[480px] relative">
+        <div className="w-full h-full flex justify-center items-center p-2">
+          <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 w-full max-w-[650px] mx-2 max-h-[90vh] h-auto overflow-y-auto relative">
             <div className="flex items-center space-x-2 justify-between">
-              <h2 id="date-range-modal-title" className="font-bold">
+              <h2 id="date-range-modal-title" className="font-bold text-lg sm:text-xl">
                 Change Location
               </h2>
               <button onClick={handleClose}>
@@ -64,7 +64,7 @@ const ChangeLocationModal = () => {
             </div>
 
             <div className="flex flex-col w-full space-y-4 flex-1 mt-4">
-              <div className="h-[350px] overflow-y-auto space-y-3">
+              <div className="max-h-[60vh] overflow-y-auto space-y-3">
                 {locations.map(({ title, id }: any) => {
                   const isSelected = selectedId === id;
                   return (
@@ -80,17 +80,19 @@ const ChangeLocationModal = () => {
                           <RiCheckboxBlankLine color="gray" />
                         )}
                       </div>
-                      <h1 className="text-black dark:text-white">{title}</h1>
+                      <h1 className="text-black dark:text-white text-sm sm:text-base truncate">
+                        {title}
+                      </h1>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="my-5 flex justify-end">
+            <div className="my-5 flex justify-end sticky bottom-0 bg-white dark:bg-[#080e16] pt-2">
               <button
                 onClick={applyChangeHandle}
-                className="bg-[#0066ff] text-white w-36 py-2 rounded-md"
+                className="bg-[#0066ff] text-white w-full sm:w-36 py-2 rounded-md text-sm sm:text-base"
               >
                 Apply
               </button>

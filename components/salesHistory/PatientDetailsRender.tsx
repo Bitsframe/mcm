@@ -1,11 +1,14 @@
-import { FC } from "react"
+import { FC, useState } from "react"
 import { PatientDetailsRenderPropsInterface } from "./types/interfaces"
 import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
+import axios from "axios"
+import { toast } from "sonner"
 
 export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
   patientData,
-  paymentType = "Cash",
+  paymentType,
+  order_id,
 }) => {
   const { t } = useTranslation(translationConstant.POSHISTORY)
 
@@ -19,6 +22,10 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
     treatmenttype,
     Locations,
   } = patientData
+
+  console.log(patientData)
+
+
 
   return (
     <div className="py-4 space-y-4">
@@ -47,7 +54,23 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk18")}:</span><br />
-          <strong>{paymentType}</strong>
+          <div className="space-x-4">
+            {paymentType.cash ? <strong>Cash</strong> : null}
+            {paymentType.cash && paymentType.card ? <span>/</span> : null}
+            {paymentType.card ? <strong>Card</strong> : null}
+          </div>
+          {/* <select
+            value={currentPaymentType}
+            onChange={(e) => handlePaymentTypeChange(e.target.value)}
+            disabled={isUpdating}
+            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="Cash">Cash</option>
+            <option value="Debit">Debit</option>
+          </select>
+          {isUpdating && (
+            <span className="text-xs text-blue-500 mt-1">Updating...</span>
+          )} */}
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk19")}:</span><br />

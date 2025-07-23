@@ -73,62 +73,73 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
   const { t } = useTranslation(translationConstant.STOCKPANEL);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
-      {/* Products Count Card */}
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40">
-        <h1 className="text-3xl text-center font-bold">{procucts_count}</h1>
-        <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
-          {t("SP_k12")}
-        </p>
-        <div className="h-[50px] relative ml-14 text-center">
-          <Image
-            src={Group193.src}
-            alt="Products chart"
-            objectFit="contain"
-            width={150}
-            height={150}
-          />
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
+      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+        <div className="flex-1">
+          <h1 className="text-3xl text-center font-bold">{procucts_count}</h1>
+          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+            {t("SP_k12")}
+          </p>
+        </div>
+        <div className="flex justify-center md:block">
+          <div className="h-[50px] text-center md:ml-14 md:text-center">
+            <Image
+              src={Group193.src}
+              alt="Products chart"
+              width={150}
+              height={150}
+              className="mx-auto md:mx-0 w-24 sm:w-28 max-w-[90%] md:w-[150px]"
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Categories Count Card */}
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40">
-        <h1 className="text-3xl text-center font-bold">{categories_count}</h1>
-        <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
-          {t("SP_k11")}
-        </p>
-        <div className="h-[50px] relative ml-8">
-          <Image
-            src={Group198.src}
-            alt="Categories chart"
-            objectFit="contain"
-            width={220}
-            height={220}
-          />
+      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+        <div className="flex-1">
+          <h1 className="text-3xl text-center font-bold">{categories_count}</h1>
+          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+            {t("SP_k11")}
+          </p>
+        </div>
+        <div className="flex justify-center md:block">
+          <div className="h-[50px] text-center md:ml-8 md:text-center">
+            <Image
+              src={Group198.src}
+              alt="Categories chart"
+              width={220}
+              height={220}
+              className="mx-auto md:mx-0 w-28 sm:w-32 max-w-[90%] md:w-[220px]"
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Stock Value Card */}
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40">
-        <h1 className="text-3xl text-center font-bold">
-          {usdFormatter.format(stock_value)}
-        </h1>
-        <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
-          {t("SP_k10")}
-        </p>
-        <div className="h-[50px] relative ml-8">
-          <Image
-            src={Vector.src}
-            alt="Stock value chart"
-            objectFit="contain"
-            width={220}
-            height={220}
-          />
+      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+        <div className="flex-1">
+          <h1 className="text-3xl text-center font-bold">
+            {usdFormatter.format(stock_value)}
+          </h1>
+          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+            {t("SP_k10")}
+          </p>
+        </div>
+        <div className="flex justify-center md:block">
+          <div className="h-[50px] text-center md:ml-8 md:text-center">
+            <Image
+              src={Vector.src}
+              alt="Stock value chart"
+              width={220}
+              height={220}
+              className="mx-auto md:mx-0 w-28 sm:w-32 max-w-[90%] md:w-[220px]"
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Percentage Card */}
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40">
+      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
         <h1 className="text-3xl text-center font-bold">20%</h1>
         <p className="text-gray-500 dark:text-gray-300 text-center mb-2 text-sm">
           {t("SP_k9")}

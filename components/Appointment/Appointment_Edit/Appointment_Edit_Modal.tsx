@@ -110,11 +110,11 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
       create_new_handle={handleCreateContent}
       is_open={isOpen}
       close_handle={onClose}
-      Title="Update Appointment Time Slot"
+      Title={t("Appoinments_k49")}
       buttonLabel="Update"
       loading={loadingUpdate}
     >
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-2 sm:gap-4">
         <ScheduleDateTime
           default_data_time={defaultDateTime}
           selectDateTimeSlotHandle={handleSelectDateTimeSlot}

@@ -1,26 +1,18 @@
 import {
-  home,
-  appointment,
-  inventory,
-  patients,
-  pos,
-  reputation,
-  tools,
-} from "@/assets/SVGs";
-
-import { 
-  Home, 
-  Circle, 
-  Users, 
-  CalendarCheck2, 
-  BadgeCheck, 
-  Warehouse, 
-  Layers, 
+  Home,
+  Users,
+  CalendarCheck2,
+  Warehouse,
+  Grid,
+  Layers,
   Hammer,
   IdCard,
-  Calculator
+  Calculator,
+  Settings,
+  CreditCard
 } from "lucide-react";
 import { ComponentType } from "react";
+import { FaReceipt } from "react-icons/fa";
 
 
 
@@ -62,11 +54,17 @@ const ROUTES = {
     STOCK_PANEL: "/inventory/stockpanel",
     MANAGE: "/inventory/manage",
   },
+  WAREHOUSE: {
+    MANAGE: "/warehouse/manage",
+  },
+  CONTROLS: "/controls",
+  CREDITS: "/credits",
+  TRANSACTIONS: "/transactions",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
     PROMO_CODES: '/tools/promo-codes',
-    ROLES_PERMISSIONS: '/tools/roles-permissions',
+    ROLES: '/tools/roles',
     USER_MANAGEMENT: '/tools/user-management',
     // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
@@ -122,16 +120,37 @@ export const routeList: Route[] = [
     icon: Calculator,
     children: [
       { id: 'pos-sales', name: "pos", label: "Sidebar_k19", route: ROUTES.POS.SALES },
-      { id: 'pos-return', name: "pos", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
       { id: 'pos-history', name: "pos", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
+      { id: 'pos-return', name: "pos", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
     ],
+  },
+  {
+    id: 'transactions',
+    name: "transactions",
+    label: "Sidebar_k27",
+    icon: FaReceipt,
+    route: ROUTES.TRANSACTIONS,
   },
   {
     id: 'inventory',
     name: "inventory",
     label: "Sidebar_k11",
-    icon: Warehouse,
+    icon: Grid,
     route: ROUTES.INVENTORY.MANAGE,
+  },
+  {
+    id: 'credits',
+    name: "credits",
+    label: "Sidebar_k24",
+    icon: CreditCard,
+    route: ROUTES.CREDITS,
+  },
+  {
+    id: 'warehouse',
+    name: "warehouse",
+    label: "Sidebar_k25",
+    icon: Warehouse,
+    route: ROUTES.WAREHOUSE.MANAGE,
   },
   {
     id: 'inventory-stock',
@@ -139,6 +158,13 @@ export const routeList: Route[] = [
     label: "Sidebar_k12",
     icon: Layers,
     route: ROUTES.INVENTORY.STOCK_PANEL,
+  },
+  {
+    id: 'controls',
+    name: "control",
+    label: "Sidebar_k26",
+    icon: Settings,
+    route: ROUTES.CONTROLS
   },
   {
     id: 'tools',
@@ -166,9 +192,9 @@ export const routeList: Route[] = [
       },
       {
         id: 'tools-roles',
-        name: "roles and permissions",
-        label: "Sidebar_k17",
-        route: ROUTES.TOOLS.ROLES_PERMISSIONS
+        name: "roles",
+        label: "Roles",
+        route: ROUTES.TOOLS.ROLES
       },
       {
         id: 'tools-users',

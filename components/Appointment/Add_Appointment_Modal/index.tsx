@@ -1,16 +1,18 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio, Select } from "flowbite-react";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ScheduleDateTime from "./ScheduleDateTime";
 import { supabase } from "@/services/supabase";
 import moment from "moment";
 import { toast } from "sonner";
 import { usStates } from "@/us-states";
-import { validateFormData } from "@/utils/validationCheck";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { CirclePlus } from "lucide-react";
+import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
+import { sendEmail } from "@/utils/emailService";
+import { LocationContext } from "@/context";
 
 interface RadioButtonOptionsInterface {
   label: string;
@@ -117,6 +119,8 @@ export const Add_Appointment_Modal = ({
   newAddedRow: (e: any) => void;
 }) => {
   const { locations } = useLocationClinica();
+  const { selectedLocation } = useContext(LocationContext);
+
   const [formData, setFormData] = useState<any>({});
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
@@ -124,7 +128,11 @@ export const Add_Appointment_Modal = ({
 
   const close_handle = () => {
     setOpen(false);
-    setFormData({});
+    if (selectedLocation) {
+      setFormData({
+        location_id: selectedLocation.id,
+      });
+    }
   };
   const open_handle = () => {
     setOpen(true);
@@ -241,6 +249,22 @@ export const Add_Appointment_Modal = ({
           </button>
         </div>
       );
+
+      const emailType = EmailBodyTempEnum.APPOINTMENT_CONFIRMATION;
+
+      const { email_address, first_name, last_name, service, date_and_time } =
+        appointmentDetails;
+      const data: any = {
+        email: email_address,
+        name: `${first_name} ${last_name}`,
+        location: selectedLocation,
+        service: service,
+        date: date_and_time
+          ? date_and_time?.split?.("|")?.[1]?.split?.(" - ")?.[0]
+          : "-",
+        time: date_and_time ? date_and_time?.split?.(" - ")?.[1] : "-",
+      };
+      await sendEmail({ lang: "en", emailType, data });
       console.log(data, "Appointment Submitted");
       close_handle();
     }
@@ -258,8 +282,12 @@ export const Add_Appointment_Modal = ({
     };
 
     fetchServices();
+    if (selectedLocation) {
+      setFormData({
+        location_id: selectedLocation.id,
+      });
+    }
   }, []);
-  console.log(formData);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
@@ -267,35 +295,37 @@ export const Add_Appointment_Modal = ({
     <div>
       <button
         onClick={open_handle}
-        className="text-lg flex items-center gap-3 bg-[#0066ff] px-5 py-2 rounded-md text-white hover:bg-[#0052cc] transition-colors"
+        className="text-base flex items-center gap-3 bg-[#0066ff] px-5 py-2 rounded-md text-white hover:bg-[#0052cc] transition-colors"
       >
         <CirclePlus color="white" />
         {t("Appoinments_k15")}
       </button>
       <Modal show={open} onClose={close_handle}>
-        <Modal.Header className="border-b border-gray-200 dark:bg-[#080e16] dark:border-gray-700">
+        <Modal.Header className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
           <div>
             <h1 className="font-bold text-xl text-black dark:text-white">
-              Add an Appointment
+              {t("Appoinments_k15")}
             </h1>
             <p className="text-base text-gray-600 dark:text-gray-300">
-              Make changes to the patient’s information and save them.
+              {t("Appoinments_k50")}
             </p>
           </div>
         </Modal.Header>
 
-        <Modal.Body className="bg-white dark:bg-[#080e16] text-black dark:text-white">
+        <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-medium text-gray-800 dark:text-gray-300">
+              <p>{t("Appoinments_k51")} </p>
+              <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
+              {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
                 Locations
-              </Label>
+              </Label>x
               <Select
                 value={formData.location_id}
                 onChange={(e) =>
                   select_change_handle("location_id", e.target.value)
                 }
-                className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
                   All locations
@@ -309,13 +339,13 @@ export const Add_Appointment_Modal = ({
                     {location.address}
                   </option>
                 ))}
-              </Select>
+              </Select> */}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 order-1 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Type of visit
+                  {t("Appoinments_k17")}
                 </Label>
                 <RadioButtons
                   name="in_office_patient"
@@ -326,9 +356,9 @@ export const Add_Appointment_Modal = ({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 order-2 md:order-none">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Are you a New/Returning Patient?
+                  {t("Appoinments_k20")}
                 </Label>
                 <RadioButtons
                   name="new_patient"
@@ -345,7 +375,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  First Name
+                  {t("Appoinments_k13")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -354,19 +384,19 @@ export const Add_Appointment_Modal = ({
                   }
                   value={formData.first_name}
                   placeholder="FirstName"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Last Name
+                  {t("Appoinments_k12")}
                 </Label>
                 <Input_Component_Appointment
                   required
                   onChange={(e: string) => select_change_handle("last_name", e)}
                   value={formData.last_name}
                   placeholder="LastName"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
@@ -374,7 +404,7 @@ export const Add_Appointment_Modal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Email
+                  {t("Appoinments_k11")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -384,39 +414,42 @@ export const Add_Appointment_Modal = ({
                   type="email"
                   value={formData.email_address}
                   placeholder="Email"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Phone
+                  {t("Appoinments_k10")}
                 </Label>
                 <Input_Component_Appointment
                   required
                   onChange={(e: string) => select_change_handle("phone", e)}
                   value={formData.phone}
                   placeholder="Phone Number"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Date of Birth */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Date of Birth
+                  {t("Appoinments_k9")}
                 </Label>
                 <Input_Component_Appointment
                   type="date"
                   onChange={(e: string) => select_change_handle("dob", e)}
                   value={formData.dob}
                   placeholder="mm/dd/yyyy"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
+
+              {/* Gender */}
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Gender
+                  {t("Appoinments_k8")}
                 </Label>
                 <RadioButtons
                   name="sex"
@@ -424,24 +457,42 @@ export const Add_Appointment_Modal = ({
                   selectedValue={formData.sex}
                   required
                   onChange={(e) => select_change_handle("sex", e)}
-                  className="flex gap-2"
+                  className="flex gap-2 flex-wrap sm:flex-nowrap"
                 />
               </div>
             </div>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  State
+                  {t("Appoinments_k6")}
                 </Label>
                 <Select
                   value={formData.state}
                   onChange={(e) =>
                     select_change_handle("state", e.target.value)
                   }
-                  className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                  className="text-black dark:text-white"
+                  style={{
+                    backgroundColor:
+                      document.documentElement.classList.contains("dark")
+                        ? "#122136"
+                        : "#f1f4f9",
+                    border: "none",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    const isDark =
+                      document.documentElement.classList.contains("dark") ||
+                      window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    e.target.style.backgroundColor = isDark
+                      ? "#122136"
+                      : "#f1f4f9";
+                    e.target.style.border = "none";
+                    e.target.style.outline = "none";
+                  }}
                 >
                   <option
                     disabled
@@ -461,7 +512,7 @@ export const Add_Appointment_Modal = ({
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Zipcode
+                  {t("Appoinments_k5")}
                 </Label>
                 <Input_Component_Appointment
                   required
@@ -469,14 +520,14 @@ export const Add_Appointment_Modal = ({
                   onChange={(e: string) => select_change_handle("zipcode", e)}
                   value={formData.zipcode}
                   placeholder="Enter Zipcode"
-                  bg_color="dark:bg-[#374151] bg-white"
+                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label className="font-medium text-gray-800 dark:text-gray-300">
-                Street Address
+                {t("Appoinments_k4")}
               </Label>
               <Input_Component_Appointment
                 required
@@ -485,7 +536,7 @@ export const Add_Appointment_Modal = ({
                 }
                 value={formData.street_address}
                 placeholder="Enter your address with zipcode"
-                bg_color="dark:bg-[#374151] bg-white"
+                bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
               />
             </div>
 
@@ -493,17 +544,36 @@ export const Add_Appointment_Modal = ({
 
             <div className="space-y-2">
               <Label className="font-medium text-gray-800 dark:text-gray-300">
-                Treatment
+                {t("Appoinments_k3")}
               </Label>
               <Select
                 value={formData.service}
                 onChange={(e) =>
                   select_change_handle("service", e.target.value)
                 }
-                className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                className="text-black dark:text-white"
+                style={{
+                  backgroundColor: document.documentElement.classList.contains(
+                    "dark"
+                  )
+                    ? "#122136"
+                    : "#f1f4f9",
+                  border: "none",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  const isDark =
+                    document.documentElement.classList.contains("dark") ||
+                    window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  e.target.style.backgroundColor = isDark
+                    ? "#122136"
+                    : "#f1f4f9";
+                  e.target.style.border = "none";
+                  e.target.style.outline = "none";
+                }}
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
-                  Select treatment type
+                  {t("Appoinments_k28")}
                 </option>
                 {services?.map((service: string, index: any) => (
                   <option
@@ -519,9 +589,6 @@ export const Add_Appointment_Modal = ({
 
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  Time
-                </Label>
                 {locations.length > 0 && (
                   <ScheduleDateTime
                     data={locations[0]}
@@ -533,13 +600,13 @@ export const Add_Appointment_Modal = ({
           </div>
         </Modal.Body>
 
-        <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#080e16]">
-          <div className="flex w-full justify-between">
+        <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725]">
+          <div className="flex flex-col sm:flex-row w-full justify-end gap-2 sm:gap-3">
             <button
               onClick={close_handle}
               className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-black dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
-              Cancel
+              {t("Appoinments_k58")}
             </button>
             <button
               disabled={loading}
@@ -548,7 +615,7 @@ export const Add_Appointment_Modal = ({
                 loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
               } px-4 py-2 rounded-md text-white transition-colors`}
             >
-              {loading ? "Submitting..." : "Save Changes"}
+              {loading ? "Submitting..." : t("Appoinments_k57")}
             </button>
           </div>
         </Modal.Footer>

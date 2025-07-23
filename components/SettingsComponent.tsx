@@ -4,7 +4,8 @@ import React, { useState, useEffect, forwardRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 import moment from "moment";
-
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 import {
   Select,
   SelectContent,
@@ -42,30 +43,43 @@ const TimeSelector = forwardRef<
   HTMLDivElement,
   { value: string; onChange: (time: string) => void }
 >(({ value, onChange }, ref) => {
-  const timeOptions: TimeOption[] = Array.from({ length: 24 * 2 }, (_, i) => {
-    const hour = Math.floor(i / 2) % 12 || 12;
-    const period = i < 24 ? "AM" : "PM";
-    const minute = i % 2 === 0 ? "00" : "30";
-    const formattedTime = `${hour}:${minute} ${period}`;
-    const value = `${String(Math.floor(i / 2)).padStart(2, "0")}:${minute}:00`;
-    return { label: formattedTime, value };
-  });
+  const timeOptions: TimeOption[] = [];
 
-  // Add 12:00 AM with value as 11:59 PM
+  for (let hour = 18; hour < 24; hour++) {
+    const displayHour12 = hour > 12 ? hour - 12 : hour;
+    const period = "PM";
+    const value24Hour = `${String(hour).padStart(2, "0")}:00:00`;
+    timeOptions.push({
+      label: `${displayHour12}:00 ${period}`,
+      value: value24Hour,
+    });
+  }
+
   timeOptions.push({
     label: "12:00 AM",
-    value: "23:59:00", // 11:59 PM
+    value: "00:00:00",
   });
 
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       {/* @ts-ignore */}
-      <SelectTrigger ref={ref} className="w-full">
-        <SelectValue placeholder="Select time" />
+      <SelectTrigger
+        // @ts-ignore
+        ref={ref}
+        className="w-full bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white"
+      >
+        <SelectValue
+          placeholder="Select time"
+          className="text-gray-900 dark:text-white placeholder:text-gray-500 placeholder:dark:text-gray-400"
+        />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600">
         {timeOptions.map(({ label, value }) => (
-          <SelectItem key={value} value={value}>
+          <SelectItem
+            key={value}
+            value={value}
+            className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:bg-gray-100 dark:focus:bg-gray-600 data-[highlighted]:bg-gray-100 data-[highlighted]:dark:bg-gray-600 data-[highlighted]:text-gray-900 data-[highlighted]:dark:text-white"
+          >
             {label}
           </SelectItem>
         ))}
@@ -85,7 +99,7 @@ const SettingsComponent: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
-
+  const { t } = useTranslation(translationConstant.CONTROLS);
   useEffect(() => {
     fetchLocations();
   }, []);
@@ -141,8 +155,8 @@ const SettingsComponent: React.FC = () => {
   };
 
   return (
-<div className="relative z-0 h-[80dvh] bg-background dark:bg-gray-900">
-      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="relative z-0 h-[80dvh] md:h-[75dvh] bg-background dark:bg-[#0e1725]">
+      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
             Reporting Time
@@ -151,17 +165,17 @@ const SettingsComponent: React.FC = () => {
 
         <div className="flex flex-col md:flex-row">
           {/* Left - Locations */}
-          <div className="w-[30%] border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-4 border-b dark:border-gray-700">
               <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
-                Locations
+                {t("CT_k2")}
               </h2>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search locations"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
                 <svg
@@ -180,9 +194,9 @@ const SettingsComponent: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-auto h-[calc(80dvh-200px)]">
+            <div className="overflow-auto h-[180px] md:h-[calc(69vh-120px)]">
               {locations
-                .filter(location =>
+                .filter((location) =>
                   location.title.toLowerCase().includes(search.toLowerCase())
                 )
                 .map((location) => (
@@ -202,18 +216,16 @@ const SettingsComponent: React.FC = () => {
           </div>
 
           {/* Right - Details */}
-          <div className="flex-1 p-6 w-[70%] text-gray-800 dark:text-gray-100">
+          <div className="flex-1 p-6 w-full md:w-[70%] text-gray-800 dark:text-gray-100">
             {selectedLocation ? (
               <>
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-1">Address</h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k3")}</h3>
                   <p className="text-sm">{selectedLocation.address}</p>
                 </div>
 
                 <div className="mb-4">
-                  <h3 className="text-sm font-medium mb-1">
-                    Current Selected Time
-                  </h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k4")}</h3>
                   <p className="text-sm">
                     {selectedLocation.report_time
                       ? formattedTime(selectedLocation.report_time!)
@@ -222,7 +234,7 @@ const SettingsComponent: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-1">Report Time</h3>
+                  <h3 className="text-sm font-medium mb-1">{t("CT_k5")}</h3>
                   <div className="relative">
                     <TimeSelector
                       key={selectedLocation?.title! || "-"}
@@ -256,12 +268,12 @@ const SettingsComponent: React.FC = () => {
                         Updating...
                       </>
                     ) : (
-                      "Update Time"
+                      t("CT_k6")
                     )}
                   </button>
 
                   <button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    Reset
+                    {t("CT_k7")}
                   </button>
                 </div>
               </>
