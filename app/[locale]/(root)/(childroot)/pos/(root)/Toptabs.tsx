@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBasket, UsersIcon, Handshake } from "lucide-react";
+import { ShoppingBasket, UsersIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 
@@ -19,11 +19,6 @@ const TopTabs = () => {
       title: "POS-Sales_k2",
       url: "patients",
       icon: UsersIcon,
-    },
-    {
-      title: "Fulfillment",
-      url: "fulfillment",
-      icon: Handshake,
     },
   ];
 
@@ -54,7 +49,7 @@ const TopTabs = () => {
                       isActive ? "text-white" : "text-gray-400"
                     }`}
                   />
-                  {menuItem.title === "Fulfillment" ? menuItem.title : t(menuItem.title)}
+                  {t(menuItem.title)}
                 </Link>
               </li>
             );

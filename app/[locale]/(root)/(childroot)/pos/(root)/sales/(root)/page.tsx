@@ -3,8 +3,9 @@ import React, { FC, useContext, useEffect, useState, useMemo } from "react";
 import { Quantity_Field } from "@/components/Quantity_Field";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
+import { Select } from "flowbite-react";
 import { PiCaretCircleRightFill } from "react-icons/pi";
-
+import { FaHandshake, FaSearch, FaCheckCircle, FaClock } from "react-icons/fa";
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,6 @@ import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
-import SplitToLocationModal from "@/components/SplitToLocationModal";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -166,7 +166,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             </dd>
             {isOtherLocation && (
               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
-                Fulfillment at: {fulfillment_location_name}
+                Fulfilled at: {fulfillment_location_name}
               </dd>
             )}
           </dl>
@@ -213,6 +213,14 @@ const Orders = () => {
 
   // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
+
+  const [showFulfillmentModal, setShowFulfillmentModal] = useState(false);
+  const [fulfillmentOrderRef, setFulfillmentOrderRef] = useState('');
+  const [fulfillmentToken, setFulfillmentToken] = useState('');
+  const [fulfillmentResults, setFulfillmentResults] = useState<any[]>([]);
+  const [fulfillmentLoading, setFulfillmentLoading] = useState(false);
+  const [fulfilledId, setFulfilledId] = useState<number | null>(null);
+
 
   // Add these at the top (state hooks):
   const [cashInput, setCashInput] = useState('');
@@ -435,31 +443,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
     }
   };
 
-  const handleAddFromSplitModal = (product: any, location: any, quantity: number) => {
-    const findCategory: any = categories.find(({ category_id }: any) => +product.category_id === +category_id);
-    let addProduct: CartArrayInterface | null = null;
-    if (findCategory) {
-      addProduct = {
-        product_id: product.product_id,
-        product_name: product.product_name,
-        quantity: quantity,
-        category_name: findCategory.category_name,
-        category_id: findCategory.category_id,
-        quantity_available: product.quantity_available,
-        price: product.price,
-        fulfillment_location_id: location.location_id,
-        fulfillment_location_name: location.location_name,
-      };
-      if (addProduct) {
-        // Add to cart as a separate item (even if same product from different location)
-        cartArray.push(addProduct);
-        setCartArray([...cartArray]);
-        setShowSplitModal(false);
-        toast.success(`Added ${quantity} ${product.product_name} from ${location.location_name}`);
-      }
-    }
-  };
-
   const controllProductQtyHandle = (
     product_id: number,
     qty: number,
@@ -546,7 +529,8 @@ const [addAmountInput, setAddAmountInput] = useState("");
       matchCase: [{ key: "id", value: selectedLocation.id }],
       selectParam: "balance,credit_limit",
     });
-
+     
+    //@ts-ignore
     const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
 
     if (updatedLocation && updatedLocation.length > 0) {
@@ -709,6 +693,33 @@ const [addAmountInput, setAddAmountInput] = useState("");
 
   const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
+  const handleFulfillmentSearch = async () => {
+    if (!fulfillmentOrderRef || !fulfillmentToken) return;
+    setFulfillmentLoading(true);
+    try {
+      const response = await fetch('/api/fulfillment/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderRef: fulfillmentOrderRef,
+          token: fulfillmentToken,
+          location_id: selectedLocation.id
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFulfillmentResults(data.data);
+      } else {
+        toast.error(data.message || 'No fulfillment requests found');
+        setFulfillmentResults([]);
+      }
+    } catch (error) {
+      toast.error('Error searching fulfillment requests');
+      setFulfillmentResults([]);
+    } finally {
+      setFulfillmentLoading(false);
+    }
+  };
 
   const isValidPayment = () => {
     if (!selectedLocation || cartArray.length === 0) return false;
@@ -731,6 +742,29 @@ const [addAmountInput, setAddAmountInput] = useState("");
 
 
   
+  const handleFulfillmentMarkAsFulfilled = async (requestId: number) => {
+    setFulfillmentLoading(true);
+    try {
+      const response = await fetch('/api/fulfillment/fulfill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId })
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Request marked as fulfilled');
+        setFulfilledId(requestId);
+        // Refresh results
+        handleFulfillmentSearch();
+      } else {
+        toast.error(data.message || 'Failed to mark as fulfilled');
+      }
+    } catch (error) {
+      toast.error('Error marking as fulfilled');
+    } finally {
+      setFulfillmentLoading(false);
+    }
+  };
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
@@ -752,14 +786,15 @@ const [addAmountInput, setAddAmountInput] = useState("");
                   </h2>
                   <div className="flex items-center gap-2">
                     <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                      onClick={openOtherLocationModal}
+                      className="flex items-center gap-2 px-4 py-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
+                      onClick={() => setShowFulfillmentModal(true)}
                       type="button"
                     >
-                      Add from Other Location
+                      <FaHandshake className="text-sm" />
+                      <span className="font-medium">Fulfillment Pickup</span>
                     </button>
                     <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      className="ml-2 px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
                       onClick={() => setIsAddBalanceModalOpen(true)}
                       disabled={!selectedPatient}
                       type="button"
@@ -954,7 +989,7 @@ const [addAmountInput, setAddAmountInput] = useState("");
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex">
                 <button
                   disabled={!productQty}
                   onClick={addToCartHandle}
@@ -963,10 +998,11 @@ const [addAmountInput, setAddAmountInput] = useState("");
                 >
                   {t("POS-Sales_k8")}
                 </button>
+              </div>
+              <div className="mb-2">
                 <button
-                  disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
-                  onClick={() => setShowSplitModal(true)}
-                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                  onClick={openOtherLocationModal}
                   type="button"
                 >
                   Add from Other Location
@@ -1426,8 +1462,62 @@ const [addAmountInput, setAddAmountInput] = useState("");
           </div>
         </div>
       </Modal>
+      <Modal show={showFulfillmentModal} onClose={() => setShowFulfillmentModal(false)} size="2xl">
+        <Modal.Header className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+          <div className="flex items-center gap-3">
+            <FaHandshake className="text-xl" />
+            <h3 className="text-xl font-semibold">Fulfillment Pickup Portal</h3>
+          </div>
+        </Modal.Header>
+        <Modal.Body className="p-6">
+          {/* Search Section */}
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h4 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white flex items-center gap-2">
+              <FaSearch className="text-blue-500" />
+              Search Pickup Request
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Reference</label>
+                <input
+                  className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter order #"
+                  value={fulfillmentOrderRef}
+                  onChange={e => setFulfillmentOrderRef(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pickup Token</label>
+                <input
+                  className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  placeholder="Enter token"
+                  value={fulfillmentToken}
+                  onChange={e => setFulfillmentToken(e.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
+                  onClick={handleFulfillmentSearch}
+                  disabled={fulfillmentLoading || !fulfillmentOrderRef || !fulfillmentToken}
+                >
+                  {fulfillmentLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Searching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaSearch />
+                      <span>Search</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
 
-      <SplitToLocationModal
+          {/* <SplitToLocationModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
@@ -1436,7 +1526,94 @@ const [addAmountInput, setAddAmountInput] = useState("");
         )}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
-      />
+      /> */}
+
+          {/* Results Section */}
+          <div>
+            <h4 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Pickup Requests</h4>
+            {fulfillmentResults.length === 0 && !fulfillmentLoading && (
+              <div className="text-center py-8">
+                <FaSearch className="mx-auto text-4xl text-gray-400 mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No pickup requests found. Search by order reference and token.</p>
+              </div>
+            )}
+            {fulfillmentResults.map(req => (
+              <div key={req.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Order Reference</span>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">#{req.main_order_id}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Pickup Token</span>
+                        <p className="text-lg font-mono font-bold text-blue-600 dark:text-blue-400">{req.token}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Product</span>
+                        <p className="text-gray-900 dark:text-white">{req.product_name}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Quantity</span>
+                        <p className="text-gray-900 dark:text-white">{req.quantity} units</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Status:</span>
+                      {req.status === 'pending' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full text-sm font-medium">
+                          <FaClock className="text-xs" />
+                          Pending
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
+                          <FaCheckCircle className="text-xs" />
+                          Fulfilled
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {req.status === 'pending' && (
+                    <button
+                      className="ml-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
+                      onClick={() => handleFulfillmentMarkAsFulfilled(req.id)}
+                      disabled={fulfillmentLoading || fulfilledId === req.id}
+                    >
+                      {fulfilledId === req.id ? (
+                        <>
+                          <FaCheckCircle />
+                          <span>Fulfilled</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaHandshake />
+                          <span>Mark as Fulfilled</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {req.status === 'fulfilled' && (
+                    <div className="ml-4 flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <FaCheckCircle className="text-xl" />
+                      <span className="font-semibold">✓ Fulfilled</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="bg-gray-50 dark:bg-gray-800">
+          <button
+            className="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+            onClick={() => setShowFulfillmentModal(false)}
+            type="button"
+          >
+            Close
+          </button>
+        </Modal.Footer>
+      </Modal>
     </main>
   );
 };
