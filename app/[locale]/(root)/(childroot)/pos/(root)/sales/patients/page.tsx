@@ -587,7 +587,6 @@ const Patients = () => {
               );
             })}
 
-            {/* Pagination Controls */}
             {dataList.length > cardsPerPage && (
               <div className="flex justify-center items-center gap-2 mt-4">
                 <button
@@ -617,7 +616,6 @@ const Patients = () => {
             )}
           </div>
 
-          {/* Desktop Table View - Unchanged */}
           <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
               {dataList.map((elem, ind) => {
@@ -705,7 +703,6 @@ const Patients = () => {
         </div>
       </div>
 
-      {/* Add Patient Modal */}
       <Dialog open={addPatientModalOpen} onOpenChange={setAddPatientModalOpen}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
           <DialogHeader>
@@ -724,7 +721,7 @@ const Patients = () => {
                   }
                   label={t("POS-Sales_k19")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your full name"
+                  placeholder={t("POS-Sales_k86")}
                 />
               </div>
 
@@ -736,7 +733,7 @@ const Patients = () => {
                   }
                   label={t("POS-Sales_k20")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your last name"
+                  placeholder={t("POS-Sales_k87")}
                 />
               </div>
 
@@ -745,7 +742,7 @@ const Patients = () => {
                   value={createActionData.gender}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
-                  options_arr={["Male", "Female"].map((gender) => ({
+                  options_arr={["Male", "Female", "Other"].map((gender) => ({
                     value: gender,
                     label: gender,
                   }))}
@@ -764,7 +761,7 @@ const Patients = () => {
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your email"
+                  placeholder={t("POS-Sales_k88")}
                 />
               </div>
 

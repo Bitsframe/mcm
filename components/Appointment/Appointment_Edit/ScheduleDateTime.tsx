@@ -5,6 +5,88 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 
+// Custom styles for ReactDatePicker dark mode
+const customDatePickerStyles = `
+  .react-datepicker {
+    background-color: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+  }
+  
+  .dark .react-datepicker {
+    background-color: #122136 !important;
+    border: 1px solid #374151 !important;
+    color: white !important;
+  }
+  
+  .react-datepicker__header {
+    background-color: #f9fafb !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  
+  .dark .react-datepicker__header {
+    background-color: #1f2937 !important;
+    border-bottom: 1px solid #374151 !important;
+  }
+  
+  .react-datepicker__current-month,
+  .react-datepicker__day-name,
+  .react-datepicker__day {
+    color: #111827 !important;
+  }
+  
+  .dark .react-datepicker__current-month,
+  .dark .react-datepicker__day-name,
+  .dark .react-datepicker__day {
+    color: white !important;
+  }
+  
+  .react-datepicker__day:hover {
+    background-color: #f3f4f6 !important;
+  }
+  
+  .dark .react-datepicker__day:hover {
+    background-color: #374151 !important;
+  }
+  
+  .react-datepicker__day--selected {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+  
+  .dark .react-datepicker__day--selected {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+  
+  .react-datepicker__day--keyboard-selected {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+  }
+  
+  .dark .react-datepicker__day--keyboard-selected {
+    background-color: #1e3a8a !important;
+    color: white !important;
+  }
+  
+  .react-datepicker__navigation {
+    color: #6b7280 !important;
+  }
+  
+  .dark .react-datepicker__navigation {
+    color: #9ca3af !important;
+  }
+  
+  .react-datepicker__navigation:hover {
+    color: #374151 !important;
+  }
+  
+  .dark .react-datepicker__navigation:hover {
+    color: #d1d5db !important;
+  }
+`;
+
 export type DayTimings = {
   mon_timing: string;
   tuesday_timing: string;
@@ -109,19 +191,23 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
   };
 
   const splitDateAndTime = (returnType: string) => {
-    if (default_data_time) {
-      const str = default_data_time.split("|")[1].split(" - ");
-      const date = str[0];
-      const time = str[1];
-      if (returnType === "date") {
-        return new Date(moment(date, "DD-MM-YYYY").format("YYYY-MM-DD"));
+    if (default_data_time && default_data_time.includes("|")) {
+      const parts = default_data_time.split("|");
+      if (parts.length > 1) {
+        const str = parts[1].split(" - ");
+        if (str.length > 1) {
+          const date = str[0];
+          const time = str[1];
+          if (returnType === "date") {
+            return new Date(moment(date, "DD-MM-YYYY").format("YYYY-MM-DD"));
+          }
+          if (returnType === "time") {
+            return time;
+          }
+        }
       }
-      if (returnType === "time") {
-        return time;
-      }
-    } else {
-      return "";
     }
+    return "";
   };
 
   useEffect(() => {
@@ -139,7 +225,9 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
   return (
-    <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: customDatePickerStyles }} />
+      <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">
       <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
         <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
           {t("Appoinments_k56")}
@@ -150,7 +238,14 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
             onChange={dateTimeChangeHandle}
             placeholderText="Select Schedule date"
             dateFormat="MM-dd-yyyy"
-            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-gray-200 placeholder:text-customGray placeholder:text-opacity-50 dark:placeholder:text-gray-400 px-5 bg-transparent dark:bg-[#080e16] outline-none rounded-[10px]"
+            className="w-full h-[46px] text-[16px] text-black dark:text-white placeholder:text-customGray placeholder:text-opacity-50 dark:placeholder:text-gray-400 px-5 bg-[#f1f4f9] dark:bg-[#122136] outline-none rounded-[10px]"
+            calendarClassName="bg-white dark:bg-[#122136] border border-gray-200 dark:border-gray-700 shadow-lg"
+            dayClassName={(date) => "text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"}
+            //@ts-ignore
+            monthClassName="text-black dark:text-white"
+            //@ts-ignore
+            yearClassName="text-black dark:text-white"
+            headerClassName="text-black dark:text-white"
           />
         </span>
       </div>
@@ -161,36 +256,37 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
         <select
           value={selectedSlot}
           onChange={(e) => selectSlotHandle(e.target.value)}
-          className="w-full h-[46px] border-[1px] border-[#000000] dark:border-gray-500 text-[16px] text-[#000000] dark:text-gray-200 placeholder:text-customGray placeholder:text-opacity-50 dark:placeholder:text-gray-400 px-5 bg-transparent dark:bg-[#080e16] outline-none rounded-[10px]"
+          className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
           disabled={isClosed}
         >
           {isClosed ? (
-            <option value="" className="dark:bg-gray-800 dark:text-gray-200">
+            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
               Closed
             </option>
           ) : availableTimes.length > 0 ? (
             <>
-              <option value="" className="dark:bg-gray-800 dark:text-gray-200">
+              <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
                 Select Slot
               </option>
               {availableTimes.map((time, index) => (
                 <option
                   key={index}
                   value={time}
-                  className="dark:bg-gray-800 dark:text-gray-200"
+                  className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   {time}
                 </option>
               ))}
             </>
           ) : (
-            <option value="" className="dark:bg-gray-800 dark:text-gray-200">
+            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
               No available times
             </option>
           )}
         </select>
       </div>
     </div>
+    </>
   );
 };
 

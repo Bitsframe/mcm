@@ -101,34 +101,27 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 <select
                     value={selectedSlot}
                     onChange={(e) => selectSlotHandle(e.target.value)}
-                    className='w-full h-[46px] text-[16px] text-[#000000] dark:text-white placeholder:text-customGray placeholder:text-opacity-50 px-5 outline-none rounded-[10px]'
+                    className='w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2'
                     style={{
                         backgroundColor: document.documentElement.classList.contains('dark') ? '#122136' : '#f1f4f9',
                         border: 'none',
                         outline: 'none'
                     }}
-                    onFocus={(e) => {
-                        const isDark = document.documentElement.classList.contains('dark') || 
-                                       window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        e.target.style.backgroundColor = isDark ? '#122136' : '#f1f4f9';
-                        e.target.style.border = 'none';
-                        e.target.style.outline = 'none';
-                    }}
                     disabled={isClosed}
                 >
                     {isClosed ? (
-                        <option value="">Closed</option>
+                        <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">Closed</option>
                     ) : (
-                        availableTimes.length > 0 ? <> <option value=''>
+                        availableTimes.length > 0 ? <> <option value='' className="bg-white dark:bg-[#122136] text-black dark:text-white">
                             Select Slot
                         </option> {
                                 availableTimes.map((time, index) => (
-                                    <option key={index} value={time}>
+                                    <option key={index} value={time} className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                                         {time}
                                     </option>
                                 ))
                             }</> : (
-                            <option value="">No available times</option>
+                            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">No available times</option>
                         )
                     )}
                 </select>
