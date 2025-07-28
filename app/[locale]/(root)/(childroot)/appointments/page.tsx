@@ -459,7 +459,6 @@ const Appointments = () => {
         updateReflectOnCloseModal={newAddedRow}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={cancelDelete}

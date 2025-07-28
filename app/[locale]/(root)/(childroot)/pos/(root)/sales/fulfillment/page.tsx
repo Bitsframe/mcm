@@ -28,7 +28,7 @@ interface FulfillmentRequest {
   fulfilled_at?: string;
   patient_name?: string;
   patient_email?: string;
-  category_name?: string; // Added property
+  category_name?: string;
 }
 
 interface StatsCardProps {
@@ -151,9 +151,9 @@ const FulfillmentPage = () => {
       const data = await response.json();
       if (data.success) {
         toast.success(t("POS-Sales_k71"));
-        fetchFulfillmentRequests(); // Refresh the list
+        fetchFulfillmentRequests();
         setSearchResults([]);
-        setShowSearchModal(false); // Clear search results
+        setShowSearchModal(false);
       } else {
         toast.error(data.message || t("POS-Sales_k72"));
       }

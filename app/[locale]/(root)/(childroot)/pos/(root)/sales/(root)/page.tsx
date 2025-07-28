@@ -38,6 +38,8 @@ import { Modal } from "flowbite-react";
 import SplitToLocationModal from "@/components/SplitToLocationModal";
 import { BsCashCoin } from "react-icons/bs";
 import { FaCreditCard } from "react-icons/fa6";
+import { FiMinus, FiPlus } from "react-icons/fi";
+import { FaArrowsAltV } from "react-icons/fa";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -204,14 +206,14 @@ const Orders = () => {
     []
   );
 
-  // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
 
-  // Add these at the top (state hooks):
   const [cashInput, setCashInput] = useState("");
   const [cardInput, setCardInput] = useState("");
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+
+  const [isPanelShrunk, setIsPanelShrunk] = useState(false);
 
   const {
     selectedCategory,
@@ -297,20 +299,19 @@ const Orders = () => {
             matchCase: [{ key: "patient_id", value: selectedPatient.id }],
             selectParam: "balance",
           });
-          // Assuming data contains at most one entry for a given patient_id
           const totalCredit = data && data.length > 0 ? data[0]?.balance : 0;
           setCreditAmount(totalCredit);
         } catch (error) {
           console.error("Error fetching credit balance:", error);
-          setCreditAmount(0); // Set to 0 on error
+          setCreditAmount(0);
         }
       } else {
-        setCreditAmount(0); // Reset credit if no patient is selected
+        setCreditAmount(0);
       }
     };
 
     fetchCreditBalance();
-  }, [selectedPatient]); // Fetch credit when selectedPatient changes
+  }, [selectedPatient]);
 
   const quantityHandle = (qty: number) => {
     setProductQty(qty);
@@ -347,7 +348,6 @@ const Orders = () => {
     }
   };
 
-  // Add from other location logic
   const openOtherLocationModal = () => {
     setShowOtherLocationModal(true);
     setOtherLocationId(null);
@@ -360,7 +360,6 @@ const Orders = () => {
 
   const handleOtherLocationChange = (locId: number) => {
     setOtherLocationId(locId);
-    // Fetch categories for this location
     fetch_content_service({ table: "categories" }).then((cats: any[]) => {
       setOtherLocationCategories(cats);
       setOtherLocationCategoryId(null);
@@ -476,7 +475,6 @@ const Orders = () => {
       };
 
       if (addProduct) {
-        // Add to cart as a separate item (even if same product from different location)
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
         setShowSplitModal(false);
@@ -531,7 +529,6 @@ const Orders = () => {
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // ✅ Use external balance calculator
       const { totalAfterDiscount, totalPaid, newBalance, overpaid } =
         calculateNewBalance({
           cartArray,
@@ -580,7 +577,6 @@ const Orders = () => {
         // console.log("📥 Refreshed Location Balance & Limit from DB:", updatedLocation[0]);
       }
 
-      // Reset UI
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
@@ -662,16 +658,14 @@ const Orders = () => {
   const finalCredit = useMemo(() => {
     const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
     const totalPaid = receivedAmount + cardAmount;
-    return totalDue - totalPaid; // This is the new balance (amount owed)
+    return totalDue - totalPaid;
   }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
 
-  // Handler to add balance
   const handleAddBalance = async () => {
     if (!selectedPatient?.id || isNaN(addAmount) || addAmount === 0) return;
 
     setAddBalanceLoading(true);
     try {
-      // Fetch current credit (to avoid race conditions)
       const data: any = await fetch_content_service({
         table: "credit_audit",
         matchCase: [{ key: "patient_id", value: selectedPatient.id }],
@@ -684,20 +678,17 @@ const Orders = () => {
       if (data && data.length > 0) {
         newBalance = Number(data[0].balance) - Number(addAmount);
         creditAuditId = data[0].id;
-        // Update existing
         await update_content_service({
           table: "credit_audit",
           post_data: { id: creditAuditId, balance: newBalance },
         });
       } else {
-        // Insert new
         await create_content_service({
           table: "credit_audit",
           post_data: { patient_id: selectedPatient.id, balance: newBalance },
         });
       }
 
-      // Add to transaction_history
       await create_content_service({
         table: "transaction_history",
         post_data: {
@@ -724,7 +715,6 @@ const Orders = () => {
   useEffect(() => {
     if (payWithCash && !payWithCard) setCardAmount(0);
     if (payWithCard && !payWithCash) setReceivedAmount(0);
-    // Prevent both from being unchecked
     if (!payWithCash && !payWithCard) setPayWithCash(true);
   }, [payWithCash, payWithCard]);
 
@@ -816,13 +806,11 @@ const Orders = () => {
                         value={addAmountInput}
                         onChange={(e) => {
                           const raw = e.target.value;
-                          // Allow only valid float input (digits and optional one decimal point)
                           if (/^\d*\.?\d{0,2}$/.test(raw)) {
-                            setAddAmountInput(raw); // update display text
+                            setAddAmountInput(raw);
                             const parsed = Number.parseFloat(raw);
-                            setAddAmount(isNaN(parsed) ? 0 : parsed); // store numeric value
+                            setAddAmount(isNaN(parsed) ? 0 : parsed); 
                           }
-                          // Clear state if input is empty
                           if (raw === "") {
                             setAddAmountInput("");
                             setAddAmount(0);
@@ -1059,8 +1047,20 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b">
-            <div className="p-2 space-y-2 rounded dark:bg-[#0E1725]">
+          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b relative">
+            <div
+              className={`p-2 space-y-2 rounded dark:bg-[#0E1725] transition-all duration-300 ${
+                isPanelShrunk ? "max-h-12 overflow-hidden" : "max-h-none"
+              }`}
+            >
+              <button
+                onClick={() => setIsPanelShrunk(!isPanelShrunk)}
+                className="absolute -top-3 right-2 z-10 p-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200 border-2 border-white dark:border-gray-700"
+                type="button"
+              >
+                {isPanelShrunk ? <FaArrowsAltV /> : <FaArrowsAltV /> }
+              </button>
+
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
@@ -1119,15 +1119,12 @@ const Orders = () => {
                         value={discountInput}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Allow empty value
                           if (value === "") {
                             setDiscountInput("");
                             return;
                           }
-                          // Allow only numeric input with optional decimal
                           if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
                             const num = Number.parseFloat(value);
-                            // Restrict max to 100
                             if (num <= 100) {
                               setDiscountInput(value);
                             }
@@ -1207,8 +1204,8 @@ const Orders = () => {
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <span
                     className={`w-4 h-4 flex items-center justify-center rounded-sm 
-        ${payWithCash ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
-        transition-colors`}
+${payWithCash ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+transition-colors`}
                   >
                     <input
                       type="checkbox"
@@ -1228,8 +1225,8 @@ const Orders = () => {
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <span
                     className={`w-4 h-4 flex items-center justify-center rounded-sm 
-        ${payWithCard ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
-        transition-colors`}
+${payWithCard ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+transition-colors`}
                   >
                     <input
                       type="checkbox"
@@ -1478,19 +1475,6 @@ const Orders = () => {
                 Quantity
               </label>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-lg font-bold text-gray-700 dark:text-gray-200 disabled:opacity-50"
-                  onClick={() =>
-                    setOtherLocationProductQty((qty) => Math.max(1, qty - 1))
-                  }
-                  disabled={otherLocationProductQty <= 1}
-                >
-                  -
-                </button>
-                <span className="px-3 py-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded text-gray-900 dark:text-gray-100 min-w-[40px] text-center">
-                  {otherLocationProductQty}
-                </span>
                 <button
                   type="button"
                   className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-lg font-bold text-gray-700 dark:text-gray-200 disabled:opacity-50"

@@ -142,18 +142,16 @@ export const Add_Appointment_Modal = ({
   const open_handle = () => {
     setOpen(true);
   };
-  // Email validation helper function
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   const select_change_handle = (key: string, val: string | number) => {
-    // Validate date of birth to prevent future dates
     if (key === "dob" && typeof val === "string") {
       const selectedDate = new Date(val);
       const today = new Date();
-      today.setHours(23, 59, 59, 999); // Set to end of today
+      today.setHours(23, 59, 59, 999);
       
       if (selectedDate > today) {
         toast.error(t("Appoinments_k63"));
@@ -161,10 +159,8 @@ export const Add_Appointment_Modal = ({
       }
     }
 
-    // Validate email format (only show error on blur or form submission, not while typing)
     if (key === "email_address" && typeof val === "string") {
-      // Allow typing but don't show error immediately
-      // Error will be shown only during form submission
+     
     }
     
     setFormData((pre: any) => {
@@ -243,7 +239,6 @@ export const Add_Appointment_Modal = ({
       }
     }
 
-    // Additional email validation before submission
     if (!isValidEmail(email_address)) {
       toast.error(t("Appoinments_k64"));
       setLoading(false);
@@ -491,7 +486,7 @@ export const Add_Appointment_Modal = ({
                   placeholder="Enter mm/dd/yyyy"
                   bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                   //@ts-ignore
-                  max={new Date().toISOString().split('T')[0]} // Prevents future dates
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
 

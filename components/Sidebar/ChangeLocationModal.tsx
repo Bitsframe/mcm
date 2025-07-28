@@ -3,6 +3,8 @@ import { MdClose } from "react-icons/md";
 import React, { useState } from "react";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { RiCheckboxBlankFill, RiCheckboxBlankLine } from "react-icons/ri";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 const ChangeLocationModal = () => {
   const [open, setOpen] = useState(false);
@@ -31,6 +33,8 @@ const ChangeLocationModal = () => {
     setSelectedId(id);
   };
 
+  const { t } = useTranslation(translationConstant.SIDEBAR);
+
   return (
     <div>
       <button onClick={handleOpen} className="text-white text-xs text-start">
@@ -56,7 +60,7 @@ const ChangeLocationModal = () => {
           <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 w-full max-w-[650px] mx-2 max-h-[90vh] h-auto overflow-y-auto relative">
             <div className="flex items-center space-x-2 justify-between">
               <h2 id="date-range-modal-title" className="font-bold text-lg sm:text-xl">
-                Change Location
+                {t("Sidebar_k28")}
               </h2>
               <button onClick={handleClose}>
                 <MdClose size={22} className="text-black dark:text-white" />
@@ -94,7 +98,7 @@ const ChangeLocationModal = () => {
                 onClick={applyChangeHandle}
                 className="bg-[#0066ff] text-white w-full sm:w-36 py-2 rounded-md text-sm sm:text-base"
               >
-                Apply
+                {t("Sidebar_k29")}
               </button>
             </div>
           </div>

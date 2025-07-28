@@ -442,10 +442,8 @@ const Patients = () => {
   return (
     <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
       <div className="w-full">
-        {/* Patients List Section - Now Full Width */}
         <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
           <div className="p-4">
-            {/* First Row - Title and Add Button */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4 md:mb-0">
                 {t("POS-Sales_k35")}
@@ -496,7 +494,7 @@ const Patients = () => {
 
           {/* Mobile Cards View - Showing only 2 cards per page */}
           <div className="block md:hidden p-4 space-y-3">
-            {currentCards.map((elem, ind) => {
+            {currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
               const formattedDateTime = moment
                 .utc(updated_at, "YYYY-MM-DD h:mm s")

@@ -40,7 +40,6 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         let startHour = parseInt(start.split(':')[0]);
         let endHour = parseInt(end.split(':')[0]);
 
-        // Convert 12-hour time format to 24-hour format for comparison
         if (start.includes("pm") && startHour !== 12) startHour += 12;
         if (end.includes("pm") && endHour !== 12) endHour += 12;
         if (start.includes("am") && startHour === 12) startHour = 0;
