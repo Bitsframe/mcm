@@ -100,5 +100,8 @@
   "POS-Sales_k100": "Total pagado",
   "POS-Sales_k101": "Cumplimiento confirmado",
   "POS-Sales_k102": "Ingrese token",
-  "POS-Sales_k103": "Ingrese pedido"
+  "POS-Sales_k103": "Ingrese pedido",
+  "POS-Sales_k104": "Última actualización",
+  "POS-Sales_k105": "Buscar por"
+
 }

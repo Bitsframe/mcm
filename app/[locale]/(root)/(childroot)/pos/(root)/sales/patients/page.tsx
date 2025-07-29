@@ -44,6 +44,7 @@ import { Search } from "lucide-react";
 import axios from "axios";
 
 interface PatientDetailsInterface {
+  id: number;
   firstname: string;
   lastname: string;
   phone: string;
@@ -214,6 +215,14 @@ const Patients = () => {
   const [activeFilterBtn, setActiveFilterBtn] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const cardsPerPage = 2;
+  const [searchType, setSearchType] = useState<"all" | "name" | "email" | "phone">("all");
+  const [emailError, setEmailError] = useState("");
+  const [modalEmailError, setModalEmailError] = useState("");
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const category_change_handle = () => { };
 
@@ -240,7 +249,7 @@ const Patients = () => {
     setDataList(fetched_data);
     setAllData(fetched_data);
     setLoading(false);
-    setCurrentPage(1); // Reset to first page when data changes
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -268,6 +277,7 @@ const Patients = () => {
     setActionData({});
     setActiveModalMode("");
     setCanModalSubmit(false);
+    setModalEmailError("");
   };
 
   const editHandle = (data: any) => {
@@ -289,10 +299,24 @@ const Patients = () => {
   };
 
   const modalInputChangeHandle = (e: any, id: string) => {
+    if (id === "email") {
+      if (e && !isValidEmail(e)) {
+        setModalEmailError("Please enter a valid email format");
+      } else {
+        setModalEmailError("");
+      }
+    }
     setActionData((pre: any) => ({ ...pre, [id]: e }));
     setCanModalSubmit(true);
   };
   const addPatientFieldsChange = (e: any, id: string) => {
+    if (id === "email") {
+      if (e && !isValidEmail(e)) {
+        setEmailError("Please enter a valid email format");
+      } else {
+        setEmailError("");
+      }
+    }
     setCreateActionData((pre: any) => ({ ...pre, [id]: e }));
   };
 
@@ -304,15 +328,26 @@ const Patients = () => {
       const filteredData = allData.filter(({ firstname, lastname, email, phone }) => {
         const concatName = `${firstname} ${lastname}`.toLowerCase();
         const searchTerm = val.toLowerCase();
-        return (
-          concatName.includes(searchTerm) ||
-          email.toLowerCase().includes(searchTerm) ||
-          phone.includes(searchTerm)
-        );
+        
+        switch (searchType) {
+          case "name":
+            return concatName.includes(searchTerm);
+          case "email":
+            return email.toLowerCase().includes(searchTerm);
+          case "phone":
+            return phone.includes(searchTerm);
+          case "all":
+          default:
+            return (
+              concatName.includes(searchTerm) ||
+              email.toLowerCase().includes(searchTerm) ||
+              phone.includes(searchTerm)
+            );
+        }
       });
       setDataList([...filteredData]);
     }
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const deleteDataHandle = async () => {
@@ -336,6 +371,11 @@ const Patients = () => {
   };
 
   const editDataHandle = async () => {
+    if (actionData.email && !isValidEmail(actionData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     setModalLoading(true);
     try {
       const data = await update_content_service({
@@ -403,6 +443,11 @@ const Patients = () => {
       return;
     }
 
+    if (createActionData.email && !isValidEmail(createActionData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     const postData = {
       ...createActionData,
       locationid: selectedLocation?.id || "",
@@ -420,6 +465,7 @@ const Patients = () => {
       if (response) {
         toast.success("Patient successfully added!");
         setCreateActionData({});
+        setEmailError("");
         fetch_handle(selectedLocation?.id);
       }
     } catch (error) {
@@ -456,16 +502,31 @@ const Patients = () => {
               </button>
             </div>
 
-            {/* Second Row - Search and Filter Tabs */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
-              <div className="w-full md:w-60">
-                <div className="relative">
+              <div className="flex items-center gap-2 w-full md:w-[500px]">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                {t("POS-Sales_k105")}:
+                </span>
+                <Select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value as "all" | "name" | "email" | "phone")}
+                  className="w-[100px] bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All</option>
+                  <option value="name">Name</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone</option>
+                </Select>
+                <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                  =
+                </span>
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   <input
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("POS-Sales_k15")}
-                    className="pl-10 pr-4 py-2 w-full text-sm rounded-md focus:outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -492,7 +553,6 @@ const Patients = () => {
             </div>
           </div>
 
-          {/* Mobile Cards View - Showing only 2 cards per page */}
           <div className="block md:hidden p-4 space-y-3">
             {currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
@@ -616,47 +676,70 @@ const Patients = () => {
 
           <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
+              <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
+                <div className="col-span-1">ID</div>
+                <div className="col-span-1">{t("POS-Sales_k41")}</div>
+                <div className="col-span-1">{t("POS-Sales_k22")}</div>
+                <div className="col-span-1">{t("POS-Sales_k37")}</div>
+                <div className="col-span-1">{t("POS-Sales_k104")}</div>
+                <div className="col-span-1 text-center">{t("POS-Sales_k59")}</div>
+              </div>
+              
               {dataList.map((elem, ind) => {
-                const { firstname, lastname, phone, updated_at } = elem;
+                const { id, firstname, lastname, phone, updated_at, email } = elem;
                 const formattedDateTime = moment
                   .utc(updated_at, "YYYY-MM-DD h:mm s")
                   .local()
                   .format("DD/MM/YYYY h:mm A");
 
+                const truncateEmail = (email: string) => {
+                  if (!email) return "";
+                  const atIndex = email.indexOf('@');
+                  if (atIndex === -1) return email;
+                  const beforeAt = email.substring(0, atIndex);
+                  const afterAt = email.substring(atIndex);
+                  return beforeAt.length > 8 ? `${beforeAt.substring(0, 8)}...${afterAt}` : email;
+                };
+
                 return (
                   <div
                     key={ind}
-                    className="border-b border-gray-300 dark:border-gray-700 py-4 flex items-center justify-between"
+                    className="grid grid-cols-6 gap-4 py-4 border-b border-gray-300 dark:border-gray-700 items-center"
                   >
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t("POS-Sales_k41")}
+                    <div className="col-span-1">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        {id}
                       </p>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{`${firstname} ${lastname}`}</p>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t("POS-Sales_k37")}
+                    <div className="col-span-1">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                        {`${firstname} ${lastname}`}
                       </p>
+                    </div>
+
+                    <div className="col-span-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 truncate" title={email}>
+                        {truncateEmail(email)}
+                      </p>
+                    </div>
+
+                    <div className="col-span-1">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t("POS-Sales_k38")}
-                      </p>
+                    <div className="col-span-1">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formattedDateTime}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="col-span-1 flex items-center gap-2 justify-center">
                       <button
                         onClick={() => editHandle(elem)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-blue-700 transition-colors"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -675,7 +758,7 @@ const Patients = () => {
                       </button>
                       <button
                         onClick={() => selectHandle(elem)}
-                        className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -701,7 +784,12 @@ const Patients = () => {
         </div>
       </div>
 
-      <Dialog open={addPatientModalOpen} onOpenChange={setAddPatientModalOpen}>
+      <Dialog open={addPatientModalOpen} onOpenChange={(open) => {
+        setAddPatientModalOpen(open);
+        if (!open) {
+          setEmailError("");
+        }
+      }}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
           <DialogHeader>
             <DialogTitle className="text-xl font-medium text-gray-800 dark:text-gray-200">
@@ -760,6 +848,8 @@ const Patients = () => {
                   label={t("POS-Sales_k22")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k88")}
+                  hasError={!!emailError}
+                  errorMessage={emailError}
                 />
               </div>
 
@@ -856,6 +946,8 @@ const Patients = () => {
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "email")}
                 label={t("POS-Sales_k93")}
+                hasError={!!modalEmailError}
+                errorMessage={modalEmailError}
               />
             </div>
 
