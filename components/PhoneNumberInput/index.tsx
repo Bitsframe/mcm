@@ -1,7 +1,7 @@
-"use client"
-import { useEffect, useState } from "react"
-import PhoneInput from "react-phone-input-2"
-import "react-phone-input-2/lib/style.css"
+"use client";
+import { useEffect, useState } from "react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const PhoneNumberInput = ({
   required = false,
@@ -13,51 +13,50 @@ const PhoneNumberInput = ({
   type = "text",
   onChange,
 }: {
-  required?: boolean
-  className?: string
-  label?: string
-  placeholder?: string
-  breakpoint: boolean
-  value: string
-  type?: string
-  onChange: (value: string) => void
+  required?: boolean;
+  className?: string;
+  label?: string;
+  placeholder?: string;
+  breakpoint: boolean;
+  value: string;
+  type?: string;
+  onChange: (value: string) => void;
 }) => {
-  const [isTouched, setIsTouched] = useState(false)
-  const isValid = !required || (required && value.trim() !== "")
+  const [isTouched, setIsTouched] = useState(false);
+  const isValid = !required || (required && value.trim() !== "");
 
   useEffect(() => {
-    const style = document.createElement("style")
+    const style = document.createElement("style");
     style.textContent = `
-      /* Dark mode styles */
       .dark .react-tel-input .country-list {
         background-color: #374151 !important;
         border-color: #4B5563 !important;
       }
-            
+
       .dark .react-tel-input .country-list .country:hover {
         background-color: #4B5563 !important;
       }
-            
+
       .dark .react-tel-input .country-list .country.highlight {
         background-color: #4B5563 !important;
       }
-            
+
       .dark .react-tel-input .country-list .country {
         color: white !important;
       }
-            
+
       .dark .react-tel-input .country-list .country .country-name {
         color: white !important;
       }
-            
+
       .dark .react-tel-input .country-list .country .dial-code {
         color: #9CA3AF !important;
       }
-            
+
       .dark .react-tel-input .selected-flag:hover {
         background-color: #4B5563 !important;
       }
-            
+
       .dark .react-tel-input .selected-flag {
         background-color: #374151 !important;
       }
@@ -84,7 +83,6 @@ const PhoneNumberInput = ({
         background-color: #4B5563 !important;
       }
 
-      /* Light mode styles */
       .react-tel-input .selected-flag {
         background-color: #f1f4f9 !important;
         border-color: #d1d5db !important;
@@ -116,7 +114,6 @@ const PhoneNumberInput = ({
         background-color: #e5e7eb !important;
       }
 
-      /* Country list dropdown styles for light mode */
       .react-tel-input .country-list {
         background-color: white !important;
         border: 1px solid #d1d5db !important;
@@ -144,43 +141,42 @@ const PhoneNumberInput = ({
         color: #6b7280 !important;
       }
 
-      /* Dark mode country list */
       .dark .react-tel-input .country-list {
         background-color: #374151 !important;
         border: 1px solid #4B5563 !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
       }
-    `
-
-    document.head.appendChild(style)
+    `;
+    document.head.appendChild(style);
 
     return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const handlePhoneChange = (phone: string) => {
-    if (!isTouched) setIsTouched(true)
-    if (!phone.startsWith("+1") && phone !== "") {
-      if (phone.startsWith("1")) {
-        onChange("+" + phone)
-      } else {
-        onChange("+1" + phone.replace(/^\+/, ""))
-      }
-    } else {
-      onChange(phone)
-    }
-  }
+    if (!isTouched) setIsTouched(true);
+
+    const cleaned = phone.replace(/[^\d]/g, "");
+    const final = cleaned.startsWith("1") ? "+" + cleaned : "+1" + cleaned;
+    onChange(final);
+  };
 
   const handleBlur = () => {
-    setIsTouched(true)
-  }
+    setIsTouched(true);
+  };
 
   return (
-    <div className={`flex ${breakpoint ? "sm:flex-row" : "flex-col"} items-start w-full ${className}`}>
+    <div
+      className={`flex ${
+        breakpoint ? "sm:flex-row" : "flex-col"
+      } items-start w-full ${className}`}
+    >
       {label && (
         <label
-          className={`text-[14px] text-customGray font-poppins font-bold mb-1 ${!isValid && isTouched ? "text-red-500" : ""}`}
+          className={`text-[14px] text-customGray font-poppins font-bold mb-1 ${
+            !isValid && isTouched ? "text-red-500" : ""
+          }`}
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
@@ -189,38 +185,35 @@ const PhoneNumberInput = ({
         <PhoneInput
           country={"us"}
           onlyCountries={["us"]}
+          disableDropdown={true}
+          countryCodeEditable={false}
           value={value}
           onChange={handlePhoneChange}
           onBlur={handleBlur}
           placeholder={placeholder}
           inputClass={`!w-full !h-[36px] !text-[13px] !rounded-md dark:!bg-[#122136] dark:!text-white !bg-[#f1f4f9] !text-black !border ${
-            !isValid && isTouched ? "!border-red-500" : "!border-gray-300 dark:!border-gray-600"
+            !isValid && isTouched
+              ? "!border-red-500"
+              : "!border-gray-300 dark:!border-gray-600"
           }`}
           buttonClass={`!rounded-l-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
-            !isValid && isTouched ? "!border-red-500" : "!border-gray-300 dark:!border-gray-600"
+            !isValid && isTouched
+              ? "!border-red-500"
+              : "!border-gray-300 dark:!border-gray-600"
           } !h-[36px]`}
           containerClass={`!w-full !rounded-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
-            !isValid && isTouched ? "!border-red-500" : "!border-gray-300 dark:!border-gray-600"
+            !isValid && isTouched
+              ? "!border-red-500"
+              : "!border-gray-300 dark:!border-gray-600"
           }`}
           dropdownClass="dark:!bg-[#374151] !bg-white !text-black dark:!text-white"
-          dropdownStyle={
-            typeof window !== "undefined" && document.documentElement.classList.contains("dark")
-              ? {
-                  backgroundColor: "#374151",
-                  color: "white",
-                  borderColor: "#4B5563",
-                }
-              : {
-                  backgroundColor: "white",
-                  color: "#374151",
-                  borderColor: "#d1d5db",
-                }
-          }
         />
-        {!isValid && isTouched && <p className="mt-1 text-xs text-red-500">This field is required</p>}
+        {!isValid && isTouched && (
+          <p className="mt-1 text-xs text-red-500">This field is required</p>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PhoneNumberInput
+export default PhoneNumberInput;

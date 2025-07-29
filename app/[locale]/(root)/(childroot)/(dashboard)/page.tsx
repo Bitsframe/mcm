@@ -157,7 +157,7 @@ const SSLSection = memo(({ ssl }: { ssl: SSL }) => {
   const expiresAt = moment(ssl.expires_at);
   const now = moment();
   const progress = Math.min(
-    Math.max(((now.diff(issuedAt) / expiresAt.diff(issuedAt)) * 100, 0), 100)
+    Math.max(((now.diff(issuedAt) / expiresAt.diff(issuedAt)) * 100, 0), 85)
   );
   const daysLeft = expiresAt.diff(now, "days");
 

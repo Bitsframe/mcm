@@ -139,6 +139,27 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     note: "",
   });
 
+  const [emailError, setEmailError] = useState("");
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setPatientData({
+      ...patientData,
+      email: email,
+    });
+    
+    if (email && !isValidEmail(email)) {
+      setEmailError("Please enter a valid email format");
+    } else {
+      setEmailError("");
+    }
+  };
+
   const [sortConfig, setSortConfig] = useState({
     key: "",
     direction: -1,
@@ -724,14 +745,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       id="email"
                       type="email"
                       placeholder={t("Patients_k47")}
-                      onChange={(e) =>
-                        setPatientData({
-                          ...patientData,
-                          email: e.target.value,
-                        })
-                      }
-                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                      onChange={handleEmailChange}
+                      className={`w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white ${
+                        emailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                      }`}
                     />
+                    {emailError && (
+                      <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                    )}
                   </div>
                 </div>
 
@@ -876,11 +897,11 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         {/* Desktop Table View - Hidden on small screens */}
         <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-hidden dark:bg-[#0E1725] dark:border-gray-800">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-[#0E1725]">
-                  <TableHead className="w-[50px] py-3 dark:border-gray-800 min-w-[40px]"></TableHead>
-                  <TableHead className="py-3 font-medium w-72 text-gray-700 dark:text-gray-300">
+                  <TableHead className="w-[30px] py-3 dark:border-gray-800 min-w-[30px]"></TableHead>
+                  <TableHead className="py-3 font-medium w-32 pl-0 text-gray-700 dark:text-gray-300">
                     {t("Patients_k4")}
                     <button
                       onClick={() => handleSort("id")}
@@ -895,7 +916,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       />
                     </button>
                   </TableHead>
-                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                  <TableHead className="py-3 w-32 text-center font-medium text-gray-700 dark:text-gray-300">
                     {t("Patients_k5")}
                     <button
                       onClick={() => handleSort("name")}
@@ -910,7 +931,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       />
                     </button>
                   </TableHead>
-                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                  <TableHead className="py-3 w-32 pl-6 text-center font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k19")}
+                  </TableHead>
+                  <TableHead className="py-3 w-32 text-center font-medium text-gray-700 dark:text-gray-300">
+                    {t("Patients_k20")}
+                  </TableHead>
+                  <TableHead className="py-3 w-32 text-center font-medium text-gray-700 dark:text-gray-300">
                     {t("Patients_k6")}
                     <button
                       onClick={() => handleSort("date")}
@@ -925,10 +952,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       />
                     </button>
                   </TableHead>
-                  <TableHead className="py-3 w-72 text-center font-medium text-gray-700 dark:text-gray-300">
+                  <TableHead className="py-3 w-32 text-center font-medium text-gray-700 dark:text-gray-300">
                     {t("Patients_k24")}
                   </TableHead>
-                  <TableHead className=" text-right py-3 w-72 font-medium text-gray-700 dark:text-gray-300">
+                  <TableHead className=" text-right py-3 w-32 font-medium text-gray-700 dark:text-gray-300">
                     {t("Patients_k23")}
                   </TableHead>
                 </TableRow>
@@ -937,12 +964,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
 
           <div className="max-h-[calc(100vh-420px)] md:min-h-[341px] overflow-y-auto">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableBody>
                 {loading ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       className="h-40 dark:border-gray-800"
                     >
                       <div className="flex justify-center items-center h-full">
@@ -956,20 +983,34 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       key={patient.id}
                       className="hover:bg-gray-50 border-b border-gray-200 dark:hover:bg-gray-800 dark:border-gray-800"
                     >
-                      <TableCell className="w-[50px] dark:border-gray-800"></TableCell>
-                      <TableCell className="font-medium w-72 text-gray-900 dark:text-white">
+                      <TableCell className="w-[30px] dark:border-gray-800"></TableCell>
+                      <TableCell className="font-medium w-32 text-gray-900 dark:text-white">
                         {patient.id}
                       </TableCell>
-                      <TableCell className="font-medium w-72 text-center text-gray-900 dark:text-white">
+                      <TableCell className="font-medium w-32 text-center text-gray-900 dark:text-white">
                         {patient.firstname} {patient.lastname}
                       </TableCell>
-                      <TableCell className="text-gray-700 w-72 text-center dark:text-gray-300">
+                      <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
+                        {formatPhoneNumber(patient.phone)}
+                      </TableCell>
+                      <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
+                        <div className="break-words whitespace-normal">
+                          {patient.email ? 
+                            patient.email.split('@')[0] + '@' + (patient.email.includes('@') ? '...' : '')
+                            : "-"
+                          }
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
                         {formatDate(patient.created_at)}
                       </TableCell>
-                      <TableCell className="text-gray-700 w-72 text-center dark:text-gray-300">
-                        {patient.note || "-"}
+                      <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
+                        {patient.note ? 
+                          patient.note.split(' ').slice(0, 1).join(' ') + (patient.note.split(' ').length > 1 ? '...' : '')
+                          : "-"
+                        }
                       </TableCell>
-                      <TableCell className="w-72 dark:border-gray-800">
+                      <TableCell className="w-32 dark:border-gray-800">
                         <div className="flex justify-end gap-3">
                           <Button
                             variant="ghost"
@@ -1037,7 +1078,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       className="h-40 dark:border-gray-800"
                     >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
@@ -1215,6 +1256,26 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = useState<Patient>(editPatientData);
+  const [emailError, setEmailError] = useState("");
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData({
+      ...formData,
+      email: email,
+    });
+    
+    if (email && !isValidEmail(email)) {
+      setEmailError("Please enter a valid email format");
+    } else {
+      setEmailError("");
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -1296,9 +1357,14 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           <Input
             name="email"
             value={formData.email}
-            onChange={handleChange}
-            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+            onChange={handleEmailChange}
+            className={`w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
+              emailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+            }`}
           />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1">{emailError}</p>
+          )}
         </div>
       </div>
 
@@ -1558,6 +1624,26 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
   const [loading, setLoading] = useState(false);
   const { selectedLocation } = useContext(LocationContext);
   const [errorMessage, setErrorMessage] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setPatientData({
+      ...patientData,
+      email: email,
+    });
+    
+    if (email && !isValidEmail(email)) {
+      setEmailError("Please enter a valid email format");
+    } else {
+      setEmailError("");
+    }
+  };
 
   useEffect(() => {
     if (patientDetails) {
@@ -1682,9 +1768,14 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="email"
                 name="email"
                 value={patientData.email}
-                onChange={handleChange}
-                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+                onChange={handleEmailChange}
+                className={`w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
+                  emailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                }`}
               />
+              {emailError && (
+                <p className="text-red-500 text-sm mt-1">{emailError}</p>
+              )}
             </div>
           </div>
 

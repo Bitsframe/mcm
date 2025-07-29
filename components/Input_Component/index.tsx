@@ -25,6 +25,8 @@ interface InputComponentProps {
   passwordEye?: boolean;
   isDate?: boolean;
   darkMode?: boolean;
+  hasError?: boolean;
+  errorMessage?: string;
 }
 
 export const Input_Component: React.FC<InputComponentProps> = ({
@@ -42,11 +44,12 @@ export const Input_Component: React.FC<InputComponentProps> = ({
   disabled = false,
   isDate = false,
   darkMode,
+  hasError = false,
+  errorMessage = "",
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   
-  // Check if dark mode is active (either from prop or system theme)
   const isDark = darkMode || (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const togglePassHandle = () => {
@@ -163,7 +166,7 @@ export const Input_Component: React.FC<InputComponentProps> = ({
               onChange={(e) => onChange(e.target.value)}
               type={passwordEye && type === "password" ? (showPassword ? "text" : "password") : type}
               placeholder={placeholder}
-              className={`w-full h-auto p-3 rounded-lg ${bg_color} ${py} px-3 ${passwordEye && type === "password" ? "pr-12" : ""} disabled:opacity-65 disabled:cursor-not-allowed text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              className={`w-full h-auto p-3 rounded-lg ${bg_color} ${py} px-3 ${passwordEye && type === "password" ? "pr-12" : ""} disabled:opacity-65 disabled:cursor-not-allowed text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 border ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}`}
               id="section"
             />
             {passwordEye && type === "password" ? (
@@ -178,6 +181,9 @@ export const Input_Component: React.FC<InputComponentProps> = ({
           </div>
         )}
       </div>
+      {hasError && errorMessage && (
+        <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
+      )}
     </div>
   );
 };

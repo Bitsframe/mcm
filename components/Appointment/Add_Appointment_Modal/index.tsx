@@ -130,9 +130,11 @@ export const Add_Appointment_Modal = ({
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const close_handle = () => {
     setOpen(false);
+    setEmailError("");
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
@@ -160,7 +162,12 @@ export const Add_Appointment_Modal = ({
     }
 
     if (key === "email_address" && typeof val === "string") {
-     
+      // Email validation
+      if (val && !isValidEmail(val)) {
+        setEmailError("Please enter a valid email format");
+      } else {
+        setEmailError("");
+      }
     }
     
     setFormData((pre: any) => {
@@ -411,7 +418,6 @@ export const Add_Appointment_Modal = ({
                   {t("Appoinments_k13")}
                 </Label>
                 <Input_Component_Appointment
-                  type="email"
                   required
                   onChange={(e: string) =>
                     select_change_handle("first_name", e)
@@ -451,7 +457,11 @@ export const Add_Appointment_Modal = ({
                   bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                   title="Please enter a valid email address (e.g., user@example.com)"
+                  hasError={!!emailError}
                 />
+                {emailError && (
+                  <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">

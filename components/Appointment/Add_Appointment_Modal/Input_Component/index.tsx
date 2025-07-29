@@ -12,6 +12,7 @@ interface Props {
     bg_color?: string;
     pattern?: string;
     title?: string;
+    hasError?: boolean;
 }
 
 export const Input_Component_Appointment: FC<Props> = ({
@@ -24,7 +25,8 @@ export const Input_Component_Appointment: FC<Props> = ({
     required = false,
     bg_color = "",
     pattern,
-    title
+    title,
+    hasError = false
 }) => {
     return (
         <div className='w-full flex flex-1 flex-col space-y-1'>
@@ -46,7 +48,7 @@ export const Input_Component_Appointment: FC<Props> = ({
                     pattern={pattern}
                     title={title}
                     className={`w-full h-auto rounded-lg py-2 px-3 outline-none
-                        ${bg_color}`}
+                        ${bg_color} ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                     id="section"
                     value={value}
                 />
