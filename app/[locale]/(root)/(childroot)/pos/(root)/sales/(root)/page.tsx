@@ -1,10 +1,15 @@
 "use client";
-import React, { FC, useContext, useEffect, useState, useMemo } from "react";
+import React, {
+  type FC,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+} from "react";
 import { Quantity_Field } from "@/components/Quantity_Field";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
 import { PiCaretCircleRightFill } from "react-icons/pi";
-
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
@@ -13,13 +18,13 @@ import { currencyFormatHandle } from "@/helper/common_functions";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
-import { PromoCodeDataInterface } from "@/types/typesInterfaces";
+import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
-import { calculateNewBalance,grandTotalHandle } from '@/utils/cart/cart';
+import { calculateNewBalance, grandTotalHandle } from "@/utils/cart/cart";
 import {
   fetch_content_service,
   update_content_service,
@@ -31,6 +36,10 @@ import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
 import SplitToLocationModal from "@/components/SplitToLocationModal";
+import { BsCashCoin } from "react-icons/bs";
+import { FaCreditCard } from "react-icons/fa6";
+import { FiMinus, FiPlus } from "react-icons/fi";
+import { FaArrowsAltV } from "react-icons/fa";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -42,6 +51,7 @@ interface CartItemComponentInterface {
     index: number
   ) => void;
 }
+
 interface CartArrayInterface {
   product_id: number;
   quantity: number;
@@ -75,14 +85,6 @@ const render_details = [
   },
 ];
 
-
-
-
-
-
-
-
-
 const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
@@ -102,12 +104,8 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     fulfillment_location_id,
     fulfillment_location_name,
   } = data;
+
   const { selectedLocation } = useContext(LocationContext);
-
-
-
-
-  
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
 
   const qtyHandle = (type: string) => {
@@ -189,9 +187,6 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   );
 };
 
-
-
-
 const Orders = () => {
   const { categories } = useCategoriesClinica(true);
   const { selectedLocation } = useContext(LocationContext);
@@ -207,19 +202,19 @@ const Orders = () => {
   const [otherLocationProductQty, setOtherLocationProductQty] =
     useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
-  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
+  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>(
+    []
+  );
 
-  
-
-  // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
 
-  // Add these at the top (state hooks):
-  const [cashInput, setCashInput] = useState('');
-  const [cardInput, setCardInput] = useState('');
-
+  const [cashInput, setCashInput] = useState("");
+  const [cardInput, setCardInput] = useState("");
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+
+  const [isPanelShrunk, setIsPanelShrunk] = useState(false);
+
   const {
     selectedCategory,
     products,
@@ -228,6 +223,7 @@ const Orders = () => {
     selectedProduct,
     selectProductHandle,
   } = useProductsClinica();
+
   const [fetchingDataLoading, setfetchingDataLoading] = useState(true);
   const [cartArray, setCartArray] = useState<CartArrayInterface[]>([]);
   const [productQty, setProductQty] = useState<number>(0);
@@ -248,7 +244,7 @@ const Orders = () => {
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountInput, setDiscountInput] = useState<string>("");
   const [addAmount, setAddAmount] = useState(0);
-const [addAmountInput, setAddAmountInput] = useState("");
+  const [addAmountInput, setAddAmountInput] = useState("");
 
   const router = useRouter();
 
@@ -267,12 +263,10 @@ const [addAmountInput, setAddAmountInput] = useState("");
   useEffect(() => {
     setfetchingDataLoading(true);
     const storedData = localStorage.getItem("@pos-patient") || null;
-
     if (storedData) {
       const data = JSON.parse(storedData);
       setSelectedPatient(data);
     }
-
     setTimeout(() => {
       setfetchingDataLoading(false);
     }, 2000);
@@ -303,36 +297,33 @@ const [addAmountInput, setAddAmountInput] = useState("");
           const data: any = await fetch_content_service({
             table: "credit_audit",
             matchCase: [{ key: "patient_id", value: selectedPatient.id }],
-            selectParam: "balance"
+            selectParam: "balance",
           });
-          // Assuming data contains at most one entry for a given patient_id
           const totalCredit = data && data.length > 0 ? data[0]?.balance : 0;
           setCreditAmount(totalCredit);
-
         } catch (error) {
           console.error("Error fetching credit balance:", error);
-          setCreditAmount(0); // Set to 0 on error
+          setCreditAmount(0);
         }
       } else {
-        setCreditAmount(0); // Reset credit if no patient is selected
+        setCreditAmount(0);
       }
     };
 
     fetchCreditBalance();
-  }, [selectedPatient]); // Fetch credit when selectedPatient changes
+  }, [selectedPatient]);
 
   const quantityHandle = (qty: number) => {
     setProductQty(qty);
   };
 
-
-
-  
   const addToCartHandle = () => {
     const findCategory: any = categories.find(
       ({ category_id }: any) => +selectedProduct.category_id === +category_id
     );
+
     let addProduct: CartArrayInterface | null = null;
+
     if (findCategory && selectedLocation) {
       addProduct = {
         product_id: selectedProduct.product_id,
@@ -343,8 +334,10 @@ const [addAmountInput, setAddAmountInput] = useState("");
         quantity_available: selectedProduct.quantity_available,
         price: selectedProduct.price,
         fulfillment_location_id: selectedLocation.id,
-        fulfillment_location_name: selectedLocation.title || selectedLocation.name || "Unknown",
+        fulfillment_location_name:
+          selectedLocation.title || selectedLocation.name || "Unknown",
       };
+
       if (addProduct) {
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
@@ -355,7 +348,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
     }
   };
 
-  // Add from other location logic
   const openOtherLocationModal = () => {
     setShowOtherLocationModal(true);
     setOtherLocationId(null);
@@ -368,8 +360,7 @@ const [addAmountInput, setAddAmountInput] = useState("");
 
   const handleOtherLocationChange = (locId: number) => {
     setOtherLocationId(locId);
-    // Fetch categories for this location
-    fetch_content_service({ table: 'categories' }).then((cats: any[]) => {
+    fetch_content_service({ table: "categories" }).then((cats: any[]) => {
       setOtherLocationCategories(cats);
       setOtherLocationCategoryId(null);
       setOtherLocationProductId(null);
@@ -381,40 +372,62 @@ const [addAmountInput, setAddAmountInput] = useState("");
     setOtherLocationCategoryId(catId);
     // Fetch products for this location/category
     fetch_content_service({
-      table: 'inventory',
+      table: "inventory",
       matchCase: [
-        { key: 'products.category_id', value: catId },
-        { key: 'location_id', value: otherLocationId! },
-        { key: 'archived', value: false },
-        { key: 'products.archived', value: false }
+        { key: "products.category_id", value: catId },
+        { key: "location_id", value: otherLocationId! },
+        { key: "archived", value: false },
+        { key: "products.archived", value: false },
       ],
-      selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+      selectParam:
+        ",products(price,category_id, product_name,archived, unlimited)",
       filterOptions: [
-        { operator: 'not', column: 'products', value: null },
-        { operator: 'neq', column: 'products.price', value: 0 }
-      ]
+        { operator: "not", column: "products", value: null },
+        { operator: "neq", column: "products.price", value: 0 },
+      ],
     }).then((data: any[]) => {
-      const formattedData = data.filter((elem) => elem.quantity > 0 || (elem.products.unlimited && elem.products.price > 0)).map(({ quantity, inventory_id, product_id, products: { price, product_name, category_id, unlimited } }: any) => {
-        return {
-          product_id: inventory_id,
-          category_id,
-          product_name: product_name,
-          price,
-          quantity_available: quantity,
-          unlimited,
-          main_product_id: product_id,
-        }
-      });
+      const formattedData = data
+        .filter(
+          (elem) =>
+            elem.quantity > 0 ||
+            (elem.products.unlimited && elem.products.price > 0)
+        )
+        .map(
+          ({
+            quantity,
+            inventory_id,
+            product_id,
+            products: { price, product_name, category_id, unlimited },
+          }: any) => {
+            return {
+              product_id: inventory_id,
+              category_id,
+              product_name: product_name,
+              price,
+              quantity_available: quantity,
+              unlimited,
+              main_product_id: product_id,
+            };
+          }
+        );
       setOtherLocationProducts(formattedData);
       setOtherLocationProductId(null);
     });
   };
 
   const handleAddOtherLocationProduct = () => {
-    const findCategory: any = otherLocationCategories.find(({ category_id }: any) => +otherLocationCategoryId! === +category_id);
-    const selectedProduct = otherLocationProducts.find((p: any) => p.product_id === otherLocationProductId);
-    const fulfillmentLocation = locations.find((loc: any) => loc.id === otherLocationId);
+    const findCategory: any = otherLocationCategories.find(
+      ({ category_id }: any) => +otherLocationCategoryId! === +category_id
+    );
+    const selectedProduct = otherLocationProducts.find(
+      (p: any) => p.product_id === otherLocationProductId
+    );
+    const fulfillmentLocation = locations.find(
+      (loc: any) => loc.id === otherLocationId
+    );
+
     let addProduct: CartArrayInterface | null = null;
+
     if (findCategory && fulfillmentLocation && selectedProduct) {
       addProduct = {
         product_id: selectedProduct.product_id,
@@ -425,8 +438,10 @@ const [addAmountInput, setAddAmountInput] = useState("");
         quantity_available: selectedProduct.quantity_available,
         price: selectedProduct.price,
         fulfillment_location_id: fulfillmentLocation.id,
-        fulfillment_location_name: fulfillmentLocation.title || fulfillmentLocation.name || "Unknown",
+        fulfillment_location_name:
+          fulfillmentLocation.title || fulfillmentLocation.name || "Unknown",
       };
+
       if (addProduct) {
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
@@ -435,9 +450,17 @@ const [addAmountInput, setAddAmountInput] = useState("");
     }
   };
 
-  const handleAddFromSplitModal = (product: any, location: any, quantity: number) => {
-    const findCategory: any = categories.find(({ category_id }: any) => +product.category_id === +category_id);
+  const handleAddFromSplitModal = (
+    product: any,
+    location: any,
+    quantity: number
+  ) => {
+    const findCategory: any = categories.find(
+      ({ category_id }: any) => +product.category_id === +category_id
+    );
+
     let addProduct: CartArrayInterface | null = null;
+
     if (findCategory) {
       addProduct = {
         product_id: product.product_id,
@@ -450,12 +473,14 @@ const [addAmountInput, setAddAmountInput] = useState("");
         fulfillment_location_id: location.location_id,
         fulfillment_location_name: location.location_name,
       };
+
       if (addProduct) {
-        // Add to cart as a separate item (even if same product from different location)
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
         setShowSplitModal(false);
-        toast.success(`Added ${quantity} ${product.product_name} from ${location.location_name}`);
+        toast.success(
+          `Added ${quantity} ${product.product_name} from ${location.location_name}`
+        );
       }
     }
   };
@@ -475,109 +500,105 @@ const [addAmountInput, setAddAmountInput] = useState("");
   };
 
   const placeOrderHandle = async () => {
-  try {
-    setPlaceOrderLoading(true);
-    setIsBalanceLoading(true);
+    try {
+      setPlaceOrderLoading(true);
+      setIsBalanceLoading(true);
 
-    if (!selectedPatient || !cartArray.length) return;
+      if (!selectedPatient || !cartArray.length) return;
 
-    
-    const { data } = await axios.post('/api/orders', {
-      patient_id: selectedPatient.id,
-      cartArray,
-      appliedDiscount,
-      creditAmount,
-      cashAmount: payWithCash ? receivedAmount : 0,
-      cardAmount: payWithCard ? cardAmount : 0,
-      creditUsed,
-      promoCodeData,
-      selectedPatient,
-      selectedLocation,
-    });
+      const { data } = await axios.post("/api/orders", {
+        patient_id: selectedPatient.id,
+        cartArray,
+        appliedDiscount,
+        creditAmount,
+        cashAmount: payWithCash ? receivedAmount : 0,
+        cardAmount: payWithCard ? cardAmount : 0,
+        creditUsed,
+        promoCodeData,
+        selectedPatient,
+        selectedLocation,
+      });
 
-    toast.success(data.message, {
-      style: {
-        background: "white",
-        color: "var(--foreground)",
-        border: "1px solid var(--border)",
-      },
-    });
+      toast.success(data.message, {
+        style: {
+          background: "white",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+        },
+      });
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // ✅ Use external balance calculator
-    const {
-      totalAfterDiscount,
-      totalPaid,
-      newBalance,
-      overpaid
-    } = calculateNewBalance({
-      cartArray,
-      appliedDiscount,
-      payWithCash,
-      receivedAmount,
-      payWithCard,
-      cardAmount,
-      creditUsed,
-      selectedLocation,
-    });
+      const { totalAfterDiscount, totalPaid, newBalance, overpaid } =
+        calculateNewBalance({
+          cartArray,
+          appliedDiscount,
+          payWithCash,
+          receivedAmount,
+          payWithCard,
+          cardAmount,
+          creditUsed,
+          selectedLocation,
+        });
 
-    // console.log("🧮 Total After Discount:", totalAfterDiscount);
-    // console.log("💰 Total Paid:", totalPaid);
-    // console.log(
-    //   overpaid
-    //     ? `📉 Overpaid — Reducing balance by: ${totalPaid - totalAfterDiscount}`
-    //     : `📈 Underpaid — Increasing balance by credit used: ${totalAfterDiscount - totalPaid}`
-    // );
-    // console.log("🧾 New Location Balance (before DB update):", newBalance);
+      // console.log("🧮 Total After Discount:", totalAfterDiscount);
+      // console.log("💰 Total Paid:", totalPaid);
+      // console.log(
+      //   overpaid
+      //     ? `📉 Overpaid — Reducing balance by: ${totalPaid - totalAfterDiscount}`
+      //     : `📈 Underpaid — Increasing balance by credit used: ${totalAfterDiscount - totalPaid}`
+      // );
+      // console.log("🧾 New Location Balance (before DB update):", newBalance);
 
-    await update_content_service({
-      table: "Locations",
-      post_data: {
-        id: selectedLocation.id,
-        balance: newBalance,
-      },
-    });
+      await update_content_service({
+        table: "Locations",
+        post_data: {
+          id: selectedLocation.id,
+          balance: newBalance,
+        },
+      });
 
-    selectedLocation.balance = newBalance;
+      selectedLocation.balance = newBalance;
 
-    const response = await fetch_content_service({
-      table: "Locations",
-      matchCase: [{ key: "id", value: selectedLocation.id }],
-      selectParam: "balance,credit_limit",
-    });
+      const response = await fetch_content_service({
+        table: "Locations",
+        matchCase: [{ key: "id", value: selectedLocation.id }],
+        selectParam: "balance,credit_limit",
+      });
 
-    const updatedLocation = response as Array<{ balance: number; credit_limit: number }>;
+      const updatedLocation = response as Array<{
+        balance: number;
+        credit_limit: number;
+      }>;
 
-    if (updatedLocation && updatedLocation.length > 0) {
-      selectedLocation.balance = updatedLocation[0].balance;
-      selectedLocation.credit_limit = updatedLocation[0].credit_limit;
-      // console.log("📥 Refreshed Location Balance & Limit from DB:", updatedLocation[0]);
+      if (updatedLocation && updatedLocation.length > 0) {
+        selectedLocation.balance = updatedLocation[0].balance;
+        selectedLocation.credit_limit = updatedLocation[0].credit_limit;
+        // console.log("📥 Refreshed Location Balance & Limit from DB:", updatedLocation[0]);
+      }
+
+      setCartArray([]);
+      localStorage.removeItem("@pos-patient");
+      setSelectedPatient(null);
+      setCreditAmount(0);
+      setReceivedAmount(0);
+      setCardAmount(0);
+      setCardInput("");
+      setCashInput("");
+    } catch (err: any) {
+      console.error("❌ Order placement failed:", err);
+      toast.error(err.response?.data?.message || err.message, {
+        style: {
+          background: "var(--background)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+        },
+      });
+    } finally {
+      setPlaceOrderLoading(false);
+      setIsBalanceLoading(false);
     }
-
-    // Reset UI
-    setCartArray([]);
-    localStorage.removeItem("@pos-patient");
-    setSelectedPatient(null);
-    setCreditAmount(0);
-    setReceivedAmount(0);
-    setCardAmount(0);
-    setCardInput('');
-    setCashInput('');
-  } catch (err: any) {
-    console.error("❌ Order placement failed:", err);
-    toast.error(err.response?.data?.message || err.message, {
-      style: {
-        background: "var(--background)",
-        color: "var(--foreground)",
-        border: "1px solid var(--border)",
-      },
-    });
-  } finally {
-    setPlaceOrderLoading(false);
-    setIsBalanceLoading(false);
-  }
-};
+  };
 
   const applyDiscountHandle = (
     codeData: PromoCodeDataInterface | null,
@@ -593,91 +614,81 @@ const [addAmountInput, setAddAmountInput] = useState("");
     setActiveTitle("Sidebar_k19");
   }, []);
 
-  const subtotal = grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
+  const subtotal =
+    grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
   // console.log("🔢 Subtotal:", subtotal);
-
-
 
   const creditAvailable = React.useMemo(() => {
     if (!selectedLocation || selectedLocation.balance === undefined) {
       return 0;
     }
-  
     return selectedLocation.balance;
   }, [selectedLocation]);
-  
-
-  
 
   const creditUsed = useMemo(() => {
     const userStartedPaying = cashInput !== "" || cardInput !== "";
-  
     if (!userStartedPaying) return 0;
-  
+
     const paid = receivedAmount + cardAmount;
-    const productTotalAfterDiscount = grandTotalHandle(cartArray, appliedDiscount).amount;
-  
+    const productTotalAfterDiscount = grandTotalHandle(
+      cartArray,
+      appliedDiscount
+    ).amount;
     const creditNeeded = productTotalAfterDiscount - paid;
     const allowedCredit = Math.min(creditNeeded, creditAvailable);
-  
+
     return Math.max(0, allowedCredit);
-  }, [cashInput, cardInput, receivedAmount, cardAmount, creditAvailable, cartArray, appliedDiscount]);
-  
+  }, [
+    cashInput,
+    cardInput,
+    receivedAmount,
+    cardAmount,
+    creditAvailable,
+    cartArray,
+    appliedDiscount,
+  ]);
 
-
-
-  
   const displayedBalanceLimit = React.useMemo(() => {
     if (!selectedLocation || selectedLocation.balance === undefined) {
       return 0;
     }
-  
     return Math.max(0, selectedLocation.balance - creditUsed);
   }, [selectedLocation, creditUsed]);
-  
-
-
-
 
   const finalCredit = useMemo(() => {
     const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
     const totalPaid = receivedAmount + cardAmount;
-    return totalDue - totalPaid; // This is the new balance (amount owed)
+    return totalDue - totalPaid;
   }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
 
-
- 
-
-
-  // Handler to add balance
   const handleAddBalance = async () => {
     if (!selectedPatient?.id || isNaN(addAmount) || addAmount === 0) return;
+
     setAddBalanceLoading(true);
     try {
-      // Fetch current credit (to avoid race conditions)
       const data: any = await fetch_content_service({
         table: "credit_audit",
         matchCase: [{ key: "patient_id", value: selectedPatient.id }],
-        selectParam: "balance,id"
+        selectParam: "balance,id",
       });
+
       let newBalance = addAmount;
       let creditAuditId = null;
+
       if (data && data.length > 0) {
         newBalance = Number(data[0].balance) - Number(addAmount);
         creditAuditId = data[0].id;
-        // Update existing
         await update_content_service({
           table: "credit_audit",
           post_data: { id: creditAuditId, balance: newBalance },
         });
       } else {
-        // Insert new
         await create_content_service({
           table: "credit_audit",
           post_data: { patient_id: selectedPatient.id, balance: newBalance },
         });
       }
-      // Add to transaction_history
+
       await create_content_service({
         table: "transaction_history",
         post_data: {
@@ -687,6 +698,7 @@ const [addAmountInput, setAddAmountInput] = useState("");
           type: "topup",
         },
       });
+
       setCreditAmount(newBalance);
       setAddAmount(0);
       setIsAddBalanceModalOpen(false);
@@ -703,20 +715,19 @@ const [addAmountInput, setAddAmountInput] = useState("");
   useEffect(() => {
     if (payWithCash && !payWithCard) setCardAmount(0);
     if (payWithCard && !payWithCash) setReceivedAmount(0);
-    // Prevent both from being unchecked
     if (!payWithCash && !payWithCard) setPayWithCash(true);
   }, [payWithCash, payWithCard]);
 
-  const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
-
+  const totalPaid =
+    (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
   const isValidPayment = () => {
     if (!selectedLocation || cartArray.length === 0) return false;
-  
+
     const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
     const totalPaid = receivedAmount + cardAmount;
     const patientBalance = selectedLocation.balance;
-  
+
     if (totalPaid > totalDue) {
       const overpay = totalPaid - totalDue;
       const resultBalance = patientBalance - overpay;
@@ -727,144 +738,146 @@ const [addAmountInput, setAddAmountInput] = useState("");
       return resultBalance >= 0;
     }
   };
-  
-
-
-  
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-            {/* Header with fulfillment button */}
-            {fetchingDataLoading ? (
-              <div className="w-full flex flex-col justify-center h-full space-y-1">
-                <CircularProgress size={16} className="dark:text-white" />
-                <h1 className="text-xs text-gray-400 dark:text-gray-300">
-                  Fetching patient details
-                </h1>
-              </div>
-            ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                    {t("POS-Sales_k3")}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                      onClick={openOtherLocationModal}
-                      type="button"
-                    >
-                      Add from Other Location
-                    </button>
-                    <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                      onClick={() => setIsAddBalanceModalOpen(true)}
-                      disabled={!selectedPatient}
-                      type="button"
-                    >
-                      Add Balance
-                    </button>
-                  </div>
-                  <Custom_Modal
-                    is_open={isAddBalanceModalOpen}
-                    close_handle={() => setIsAddBalanceModalOpen(false)}
-                    create_new_handle={handleAddBalance}
-                    loading={addBalanceLoading}
-                    Title="Add Balance"
-                    buttonLabel="Add"
-                    submit_button_color="blue"
-                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
+          {/* Header with fulfillment button */}
+          {fetchingDataLoading ? (
+            <div className="w-full flex flex-col justify-center h-full space-y-1">
+              <CircularProgress size={16} className="dark:text-white" />
+              <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                Fetching patient details
+              </h1>
+            </div>
+          ) : (
+            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                  {t("POS-Sales_k3")}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                    onClick={openOtherLocationModal}
+                    type="button"
                   >
-                    <div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Current Balance</label>
-                        <div className="p-2 rounded font-bold">{creditAmount}</div>
-                      </div>
-                      <div>
-                      <label className="block text-sm font-medium mb-1">Add Amount</label>
-<Input
-  type="text"
-  inputMode="decimal"
-  value={addAmountInput}
-  onChange={(e) => {
-    const raw = e.target.value;
+                    {t("POS-Sales_k82")}
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                    onClick={() => setIsAddBalanceModalOpen(true)}
+                    disabled={!selectedPatient}
+                    type="button"
+                  >
+                    {t("POS-Sales_k83")}
+                  </button>
+                </div>
 
-    // Allow only valid float input (digits and optional one decimal point)
-    if (/^\d*\.?\d{0,2}$/.test(raw)) {
-      setAddAmountInput(raw); // update display text
-      const parsed = parseFloat(raw);
-      setAddAmount(isNaN(parsed) ? 0 : parsed); // store numeric value
-    }
-
-    // Clear state if input is empty
-    if (raw === "") {
-      setAddAmountInput("");
-      setAddAmount(0);
-    }
-  }}
-  placeholder="Enter amount"
-  className="w-full border border-black"
-/>
-
-</div>
-
-                      <div className="mb-2">
-                        <label className="block text-sm font-medium mb-1">New Balance</label>
-                        <div
-                          className={`
-                            p-3 rounded font-bold text-lg 
-                            ${creditAmount + (addAmount || 0) >= 0
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"}
-                          `}
-                        >
-                          
-                          { Math.max(0, creditAmount - (addAmount || 0)).toFixed(2) }
-                        </div>
+                <Custom_Modal
+                  is_open={isAddBalanceModalOpen}
+                  close_handle={() => setIsAddBalanceModalOpen(false)}
+                  create_new_handle={handleAddBalance}
+                  loading={addBalanceLoading}
+                  Title="Add Balance"
+                  buttonLabel="Add"
+                  submit_button_color="blue"
+                  disabled={
+                    addBalanceLoading || !addAmount || addAmount > creditAmount
+                  }
+                >
+                  <div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">
+                        Current Balance
+                      </label>
+                      <div className="p-2 rounded font-bold">
+                        {creditAmount}
                       </div>
                     </div>
-                  </Custom_Modal>
-
-
-                </div>
-                {selectedPatient ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {render_details.map(({ label, key, render_value }, ind) => {
-                      const extracted_val = render_value
-                        ? render_value(selectedPatient)
-                        : selectedPatient[key];
-                      return (
-                        <div
-                          key={ind}
-                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
-                        >
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {label}
-                          </p>
-                          <p className="text-sm font-medium dark:text-white">
-                            {extracted_val}
-                          </p>
-                        </div>
-                      );
-                    })}
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Add Amount
+                      </label>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={addAmountInput}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (/^\d*\.?\d{0,2}$/.test(raw)) {
+                            setAddAmountInput(raw);
+                            const parsed = Number.parseFloat(raw);
+                            setAddAmount(isNaN(parsed) ? 0 : parsed); 
+                          }
+                          if (raw === "") {
+                            setAddAmountInput("");
+                            setAddAmount(0);
+                          }
+                        }}
+                        placeholder="Enter amount"
+                        className="w-full border border-black"
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium mb-1">
+                        New Balance
+                      </label>
+                      <div
+                        className={`
+                            p-3 rounded font-bold text-lg
+                             ${
+                               creditAmount + (addAmount || 0) >= 0
+                                 ? "bg-green-100 text-green-700"
+                                 : "bg-red-100 text-red-700"
+                             }
+                          `}
+                      >
+                        {Math.max(0, creditAmount - (addAmount || 0)).toFixed(
+                          2
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div>
-                    <h1 className="text-red-600 dark:text-red-400 text-xs">
-                      {t("POS-Sales_k4")}
-                    </h1>
-                  </div>
-                )}
+                </Custom_Modal>
               </div>
-            )}
+
+              {selectedPatient ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {render_details.map(({ label, key, render_value }, ind) => {
+                    const extracted_val = render_value
+                      ? render_value(selectedPatient)
+                      : selectedPatient[key];
+                    return (
+                      <div
+                        key={ind}
+                        className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                      >
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {label}
+                        </p>
+                        <p className="text-sm font-medium dark:text-white">
+                          {extracted_val}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div>
+                  <h1 className="text-red-600 dark:text-red-400 text-xs">
+                    {t("POS-Sales_k4")}
+                  </h1>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
             <h2 className="text-sm font-semibold mb-2 dark:text-white">
               {t("POS-Sales_k5")}
             </h2>
-
             <div className="space-y-2">
               <div>
                 <Searchable_Dropdown
@@ -885,7 +898,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
                   label="POS-Sales_k6"
                 />
               </div>
-
               <div>
                 {loadingProducts ? (
                   <div className="text-xs text-black dark:text-white">
@@ -911,7 +923,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
                   />
                 )}
               </div>
-
               <div>
                 <div className="space-y-0.5">
                   <Quantity_Field
@@ -923,19 +934,16 @@ const [addAmountInput, setAddAmountInput] = useState("");
                     quantityHandle={quantityHandle}
                     unlimited={selectedProduct?.unlimited}
                   />
-
                   {selectedProduct ? (
                     <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
                       <div className="text-xs flex items-center space-x-3">
                         <p>
-                          {currencyFormatHandle(
-                            (selectedProduct?.price || 0)
-                          )}
+                          {currencyFormatHandle(selectedProduct?.price || 0)}
                           /unit
                         </p>
-
                         <p>
-                          Total Cost {currencyFormatHandle(
+                          Total Cost{" "}
+                          {currencyFormatHandle(
                             (selectedProduct?.price || 0) * productQty
                           )}
                         </p>
@@ -953,7 +961,6 @@ const [addAmountInput, setAddAmountInput] = useState("");
                   ) : null}
                 </div>
               </div>
-
               <div className="flex gap-2">
                 <button
                   disabled={!productQty}
@@ -964,12 +971,16 @@ const [addAmountInput, setAddAmountInput] = useState("");
                   {t("POS-Sales_k8")}
                 </button>
                 <button
-                  disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
+                  disabled={
+                    !selectedProduct ||
+                    selectedProduct.quantity_available - productQty > 0 ||
+                    selectedProduct?.unlimited
+                  }
                   onClick={() => setShowSplitModal(true)}
-                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="bg-blue-600 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
                   type="button"
                 >
-                  Add from Other Location
+                  {t("POS-Sales_k82")}
                 </button>
               </div>
             </div>
@@ -986,27 +997,36 @@ const [addAmountInput, setAddAmountInput] = useState("");
                 {t("POS-Sales_k10")} # --
               </p>
             </div>
-
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h1 className="text-[11px] text-gray-700 dark:text-gray-300 ">
-                  {t("POS-Sales_k30")}: <span className={`font-bold`}>
+                  {t("POS-Sales_k30")}:{" "}
+                  <span className={`font-bold`}>
                     {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
                     {/* Display calculated adjusted Balance Limit */}
-                    {`$${selectedLocation?.credit_limit?.toFixed(2)}`}
+                    {`${selectedLocation?.credit_limit?.toFixed(2)}`}
                   </span>
                 </h1>
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                {t("POS-Sales_k29")}: <span className={`font-bold ${displayedBalanceLimit < 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
+                  {t("POS-Sales_k29")}:{" "}
+                  <span
+                    className={`font-bold ${
+                      displayedBalanceLimit < 0
+                        ? "text-red-500 dark:text-red-400"
+                        : ""
+                    }`}
+                  >
                     {isBalanceLoading ? (
                       <div className="inline-flex items-center">
                         {/* <CircularProgress size={14} className="mr-1" /> */}
-                        <span className="text-xs opacity-35 font-light">Updating...</span>
+                        <span className="text-xs opacity-35 font-light">
+                          Updating...
+                        </span>
                       </div>
                     ) : (
-                      `$${displayedBalanceLimit.toFixed(2)}`
+                      `${displayedBalanceLimit.toFixed(2)}`
                     )}
                   </span>
                 </h1>
@@ -1027,299 +1047,357 @@ const [addAmountInput, setAddAmountInput] = useState("");
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b">
-            <div className="p-2 space-y-2 rounded dark:bg-[#0E1725]">
+          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b relative">
+            <div
+              className={`p-2 space-y-2 rounded dark:bg-[#0E1725] transition-all duration-300 ${
+                isPanelShrunk ? "max-h-12 overflow-hidden" : "max-h-none"
+              }`}
+            >
+              <button
+                onClick={() => setIsPanelShrunk(!isPanelShrunk)}
+                className="absolute -top-3 right-2 z-10 p-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200 border-2 border-white dark:border-gray-700"
+                type="button"
+              >
+                {isPanelShrunk ? <FaArrowsAltV /> : <FaArrowsAltV /> }
+              </button>
+
               <PromoCodeComponent
                 patientId={selectedPatient?.id}
                 applyDiscountHandle={applyDiscountHandle}
               />
 
-
-<div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Product Total
+                  {t("POS-Sales_k76")}
                 </h1>
                 <p className="text-xs">
                   ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
                 </p>
               </div>
 
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  {t("POS-Sales_k13")} %
+                </h1>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs">
+                    {appliedDiscount
+                      ? `${Math.abs(
+                          grandTotalHandle(cartArray, appliedDiscount)
+                            .discountAmount
+                        ).toFixed(2)} (${appliedDiscount}%)`
+                      : "NILL"}
+                  </p>
+                  <button
+                    className={`text-xs px-2 py-0.5 rounded ${
+                      cartArray.length === 0
+                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : "bg-blue-500 text-white"
+                    }`}
+                    disabled={cartArray.length === 0}
+                    onClick={() => {
+                      setDiscountInput(
+                        appliedDiscount !== 0 ? String(appliedDiscount) : ""
+                      );
+                      setIsDiscountModalOpen(true);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
 
- <div className="flex items-center justify-between">
-  <h1 className="text-xs text-gray-700 dark:text-gray-300">Discount %</h1>
-  <div className="flex items-center gap-2">
-        <p className="text-xs">
-        {appliedDiscount
-          ? `$${Math.abs(grandTotalHandle(cartArray, appliedDiscount).discountAmount).toFixed(2)} (${appliedDiscount}%)`
-          : "NILL"}
-      </p>
-    <button
-      className={`text-xs px-2 py-0.5 rounded ${
-        cartArray.length === 0
-          ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-          : 'bg-blue-500 text-white'
-      }`}
-      disabled={cartArray.length === 0}
-      onClick={() => {
-        setDiscountInput(appliedDiscount !== 0 ? String(appliedDiscount) : "");
-        setIsDiscountModalOpen(true);
-      }}
-      
-    >
-      Add
-    </button>
-  </div>
-</div>
-
-
-      {isDiscountModalOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
-      <div>
-        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-          Enter Discount % (0 - 100)
-        </h2>
-        <input
-  type="text"
-  value={discountInput}
-  onChange={(e) => {
-    const value = e.target.value;
-
-    // Allow empty value
-    if (value === "") {
-      setDiscountInput("");
-      return;
-    }
-
-    // Allow only numeric input with optional decimal
-    if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
-      const num = parseFloat(value);
-
-      // Restrict max to 100
-      if (num <= 100) {
-        setDiscountInput(value);
-      }
-    }
-  }}
-  placeholder="Enter % of discount"
-   className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
-/>
-
-
-
-      </div>
-      <div className="flex justify-end gap-2 mt-4">
-        <button
-          className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
-          onClick={() => setIsDiscountModalOpen(false)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
-          onClick={() => {
-            const numValue = typeof discountInput === 'string' ? parseFloat(discountInput) : discountInput;
-            if (numValue >= 0 && numValue <= 100) {
-              setAppliedDiscount(numValue);
-              setIsDiscountModalOpen(false);
-            } else {
-              toast.error("Discount must be between 0 and 100%");
-            }
-          }}
-        >
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
-              
-        <div className="flex items-center justify-between">
-          <h1 className="text-xs text-gray-700 dark:text-gray-300">
-            Product Total After Discount
-          </h1>
-          <p className="text-xs">
-            ${grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(2)}
-          </p>
-        </div>
-
-
-
+              {isDiscountModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
+                    <div>
+                      <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+                        Enter Discount % (0 - 100)
+                      </h2>
+                      <input
+                        type="text"
+                        value={discountInput}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "") {
+                            setDiscountInput("");
+                            return;
+                          }
+                          if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+                            const num = Number.parseFloat(value);
+                            if (num <= 100) {
+                              setDiscountInput(value);
+                            }
+                          }
+                        }}
+                        placeholder="Enter % of discount"
+                        className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <button
+                        className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
+                        onClick={() => setIsDiscountModalOpen(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+                        onClick={() => {
+                          const numValue =
+                            typeof discountInput === "string"
+                              ? Number.parseFloat(discountInput)
+                              : discountInput;
+                          if (numValue >= 0 && numValue <= 100) {
+                            setAppliedDiscount(numValue);
+                            setIsDiscountModalOpen(false);
+                          } else {
+                            toast.error("Discount must be between 0 and 100%");
+                          }
+                        }}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Patient Balance
+                  {t("POS-Sales_k78")}
                 </h1>
                 <p className="text-xs">
-                  {creditAmount < 0 ? `-$${Math.abs(creditAmount).toFixed(2)}` : `$${creditAmount.toFixed(2)}`}
+                  $
+                  {grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(
+                    2
+                  )}
                 </p>
               </div>
+
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Sub total
+                  {t("POS-Sales_k32")}
+                </h1>
+                <p className="text-xs">
+                  {creditAmount < 0
+                    ? `-${Math.abs(creditAmount).toFixed(2)}`
+                    : `${creditAmount.toFixed(2)}`}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                  {t("POS-Sales_k42")}
                 </h1>
                 <p className="text-xs">
                   {/* ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)} */}
-                  ${(grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount).toFixed(2)}
+                  $
+                  {(
+                    grandTotalHandle(cartArray, appliedDiscount).amount +
+                    creditAmount
+                  ).toFixed(2)}
                 </p>
               </div>
 
               <div className="flex items-center mb-2 space-x-4">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={payWithCash}
-                    onChange={() => {
-                      setPayWithCash((prev) => !prev);
-                      if (payWithCash && !payWithCard) setCardAmount(0); // If unchecking last, keep at least one
-                    }}
-                    className="mr-1"
-                  />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">Cash</span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <span
+                    className={`w-4 h-4 flex items-center justify-center rounded-sm 
+${payWithCash ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+transition-colors`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={payWithCash}
+                      onChange={() => {
+                        setPayWithCash((prev) => !prev);
+                        if (payWithCash && !payWithCard) setCardAmount(0);
+                      }}
+                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                    />
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                    {t("POS-Sales_k90")}
+                  </span>
                 </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={payWithCard}
-                    onChange={() => {
-                      setPayWithCard((prev) => !prev);
-                      if (payWithCard && !payWithCash) setReceivedAmount(0); // If unchecking last, keep at least one
-                    }}
-                    className="mr-1"
-                  />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">Card</span>
+
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <span
+                    className={`w-4 h-4 flex items-center justify-center rounded-sm 
+${payWithCard ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+transition-colors`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={payWithCard}
+                      onChange={() => {
+                        setPayWithCard((prev) => !prev);
+                        if (payWithCard && !payWithCash) setReceivedAmount(0);
+                      }}
+                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                    />
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                    {t("POS-Sales_k91")}
+                  </span>
                 </label>
               </div>
 
+              {/* Modified payment input section - Receivables on left, inputs on right */}
+              {(payWithCash || payWithCard) && (
+                <div className="flex items-center justify-between gap-2 mt-1">
+                  <span className="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    {t("POS-Sales_k99")}:
+                  </span>
 
-              {payWithCash && (
-  <div className="flex items-center justify-between mt-1">
-    <h1 className="text-xs text-gray-700 dark:text-gray-300">Cash Amount</h1>
-    <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
-      <input
-        type="text"
-        value={cashInput}
-        onChange={(e) => {
-          const raw = e.target.value;
-          // Only allow numbers and decimal (no letters)
-          if (/^\d*\.?\d*$/.test(raw)) {
-            const normalized = raw.replace(/^0+(?!\.)/, raw === '0' ? '0' : '');
-            setCashInput(normalized);
-            setReceivedAmount(parseFloat(normalized) || 0);
-          }
-        }}
-        placeholder="Enter amount"
-         className="w-40 border border-gray-50 rounded-md text-lg focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-left text-black p-1"
-      />
-    </div>
-  </div>
-)}
+                  <div className="flex items-center gap-2">
+                    {payWithCash && (
+                      <div className="relative flex items-center">
+                        <BsCashCoin
+                          className="absolute left-2 text-gray-500 dark:text-gray-400"
+                          size={14}
+                        />
+                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                          $
+                        </span>
+                        <input
+                          type="text"
+                          value={cashInput}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (/^\d*\.?\d*$/.test(raw)) {
+                              const normalized = raw.replace(
+                                /^0+(?!\.)/,
+                                raw === "0" ? "0" : ""
+                              );
+                              setCashInput(normalized);
+                              setReceivedAmount(
+                                Number.parseFloat(normalized) || 0
+                              );
+                            }
+                          }}
+                          placeholder="0.00"
+                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                        />
+                      </div>
+                    )}
 
-{payWithCard && (
-  <div className="flex items-center justify-between mt-1">
-    <h1 className="text-xs text-gray-700 dark:text-gray-300">Card Amount</h1>
-    <div className="border border-gray-400 dark:border-blue-400 rounded-md text-xl font-bold focus:outline-none dark:bg-[#122136] dark:text-white text-black">
-      <input
-        type="text"
-        value={cardInput}
-        onChange={(e) => {
-          const raw = e.target.value;
-          // Only allow numbers and decimal (no letters)
-          if (/^\d*\.?\d*$/.test(raw)) {
-            const normalized = raw.replace(/^0+(?!\.)/, raw === '0' ? '0' : '');
+                    {payWithCash && payWithCard && (
+                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                        +
+                      </span>
+                    )}
 
-            setCardInput(normalized);
-            setCardAmount(parseFloat(normalized) || 0);
-          }
-        }}
-        placeholder="Enter amount"
-        className="w-40 border-gray-500 dark:border-blue-400 rounded-md text-lg focus:outline-none dark:bg-[#122136] dark:text-white bg-white text-left text-black p-1"
-/>
-    </div>
-  </div>
-)}
+                    {payWithCard && (
+                      <div className="relative flex items-center">
+                        <FaCreditCard
+                          className="absolute left-2 text-gray-500 dark:text-gray-400"
+                          size={14}
+                        />
+                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                          $
+                        </span>
+                        <input
+                          type="text"
+                          value={cardInput}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (/^\d*\.?\d*$/.test(raw)) {
+                              const normalized = raw.replace(
+                                /^0+(?!\.)/,
+                                raw === "0" ? "0" : ""
+                              );
+                              setCardInput(normalized);
+                              setCardAmount(Number.parseFloat(normalized) || 0);
+                            }
+                          }}
+                          placeholder="0.00"
+                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-
-
-
-
-
-
-
-
-
-<div className="flex items-center justify-between mt-1">
+              <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Credit Used
+                  {t("POS-Sales_k80")}
                 </h1>
                 <p className="text-xs text-gray-900 dark:text-white">
-                  {creditUsed < 0 ? `-$${Math.abs(creditUsed).toFixed(2)}` : `$${creditUsed.toFixed(2)}`}
+                  {creditUsed < 0
+                    ? `-${Math.abs(creditUsed).toFixed(2)}`
+                    : `${creditUsed.toFixed(2)}`}
                 </p>
               </div>
 
               <div className="flex items-center justify-between mt-1">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  Total Paid
+                  {t("POS-Sales_k100")}
                 </h1>
-                <p className="text-xs text-gray-900 dark:text-white">
-                  {`$${totalPaid.toFixed(2)}`}
-                </p>
+                <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
+                  2
+                )}`}</p>
               </div>
 
               <div className="flex justify-end pt-0.5">
-             <button
-    onClick={placeOrderHandle}
-    disabled={
-      !cartArray.length ||
-      totalPaid > subtotal ||
-      creditUsed > (selectedLocation?.balance ?? 0) ||
-      ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
-    }
-    className={`
-      rounded py-1 px-3 text-white w-1/2 
-      flex justify-between items-center text-sm
-      ${
-        (!cartArray.length ||
-          totalPaid > subtotal ||
-          creditUsed > (selectedLocation?.balance ?? 0) ||
-          ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0))
-          ? 'bg-red-600'
-          : 'bg-blue-600'
-      }
-      ${
-        (!cartArray.length ||
-          totalPaid > subtotal ||
-          creditUsed > (selectedLocation?.balance ?? 0) ||
-          ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0))
-          ? 'opacity-50'
-          : ''
-      }
-    `}
-  >
-    {placeOrderLoading ? (
-      <CircularProgress size={14} color="secondary" />
-    ) : (
-      <>
-        <span className="font-medium">{`$${totalPaid.toFixed(2)}`}</span>
-        <PiCaretCircleRightFill size={16} />
-      </>
-    )}
-  </button>
-
-                
+                <button
+                  onClick={placeOrderHandle}
+                  disabled={
+                    !cartArray.length ||
+                    totalPaid > subtotal ||
+                    creditUsed > (selectedLocation?.balance ?? 0) ||
+                    ((payWithCash || payWithCard) &&
+                      totalPaid === 0 &&
+                      creditUsed === 0)
+                  }
+                  className={`      rounded py-1 px-3 text-white w-1/2       flex justify-between items-center text-sm      ${
+                    !cartArray.length ||
+                    totalPaid > subtotal ||
+                    creditUsed > (selectedLocation?.balance ?? 0) ||
+                    ((payWithCash || payWithCard) &&
+                      totalPaid === 0 &&
+                      creditUsed === 0)
+                      ? "bg-blue-600"
+                      : "bg-blue-600"
+                  }      ${
+                    !cartArray.length ||
+                    totalPaid > subtotal ||
+                    creditUsed > (selectedLocation?.balance ?? 0) ||
+                    ((payWithCash || payWithCard) &&
+                      totalPaid === 0 &&
+                      creditUsed === 0)
+                      ? "opacity-50"
+                      : ""
+                  }    `}
+                >
+                  {placeOrderLoading ? (
+                    <CircularProgress size={14} color="secondary" />
+                  ) : (
+                    <>
+                      <span className="font-medium">{`${totalPaid.toFixed(
+                        2
+                      )}`}</span>
+                      <PiCaretCircleRightFill size={16} />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <Modal show={showOtherLocationModal} onClose={() => setShowOtherLocationModal(false)}>
+
+      <Modal
+        show={showOtherLocationModal}
+        onClose={() => setShowOtherLocationModal(false)}
+      >
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4">
           <div className="mb-2">
-            <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">Select Location</label>
+            <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+              Select Location
+            </label>
             <select
               className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
               value={String(otherLocationId ?? "")}
@@ -1329,67 +1407,92 @@ const [addAmountInput, setAddAmountInput] = useState("");
             >
               <option value="">Select Location</option>
               {locations.map((loc: any) => (
-                <option key={String(loc.id)} value={String(loc.id)} disabled={loc.id === selectedLocation?.id}>
+                <option
+                  key={String(loc.id)}
+                  value={String(loc.id)}
+                  disabled={loc.id === selectedLocation?.id}
+                >
                   {loc.title || loc.name}
-                  {loc.id === selectedLocation?.id ? ' (Current Location)' : ''}
+                  {loc.id === selectedLocation?.id ? " (Current Location)" : ""}
                 </option>
               ))}
             </select>
           </div>
+
           {otherLocationId && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">Select Category</label>
+              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+                Select Category
+              </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
-                value={String(otherLocationCategoryId ?? '')}
-                onChange={e => handleOtherLocationCategoryChange(Number(e.target.value))}
+                value={String(otherLocationCategoryId ?? "")}
+                onChange={(e) =>
+                  handleOtherLocationCategoryChange(Number(e.target.value))
+                }
               >
                 <option value="">Select Category</option>
                 {otherLocationCategories.map((cat: any) => (
-                  <option key={String(cat.category_id)} value={String(cat.category_id)}>{cat.category_name}</option>
+                  <option
+                    key={String(cat.category_id)}
+                    value={String(cat.category_id)}
+                  >
+                    {cat.category_name}
+                  </option>
                 ))}
               </select>
             </div>
           )}
+
           {otherLocationCategoryId && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">Select Product</label>
+              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+                Select Product
+              </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
-                value={String(otherLocationProductId ?? '')}
-                onChange={e => setOtherLocationProductId(Number(e.target.value))}
+                value={String(otherLocationProductId ?? "")}
+                onChange={(e) =>
+                  setOtherLocationProductId(Number(e.target.value))
+                }
               >
                 <option value="">Select Product</option>
                 {otherLocationProducts.map((prod: any) => (
-                  <option key={String(prod.product_id)} value={String(prod.product_id)}>{prod.product_name}</option>
+                  <option
+                    key={String(prod.product_id)}
+                    value={String(prod.product_id)}
+                  >
+                    {prod.product_name}
+                  </option>
                 ))}
               </select>
             </div>
           )}
+
           {otherLocationProductId !== null && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">Quantity</label>
+              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+                Quantity
+              </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-lg font-bold text-gray-700 dark:text-gray-200 disabled:opacity-50"
-                  onClick={() => setOtherLocationProductQty(qty => Math.max(1, qty - 1))}
-                  disabled={otherLocationProductQty <= 1}
-                >
-                  -
-                </button>
-                <span className="px-3 py-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded text-gray-900 dark:text-gray-100 min-w-[40px] text-center">
-                  {otherLocationProductQty}
-                </span>
-                <button
-                  type="button"
-                  className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-lg font-bold text-gray-700 dark:text-gray-200 disabled:opacity-50"
-                  onClick={() => setOtherLocationProductQty(qty => Math.min(
-                    otherLocationProducts.find((p: any) => p.product_id === otherLocationProductId)?.quantity_available || 1,
-                    qty + 1
-                  ))}
+                  onClick={() =>
+                    setOtherLocationProductQty((qty) =>
+                      Math.min(
+                        otherLocationProducts.find(
+                          (p: any) => p.product_id === otherLocationProductId
+                        )?.quantity_available || 1,
+                        qty + 1
+                      )
+                    )
+                  }
                   disabled={
-                    otherLocationProductQty >= (otherLocationProducts.find((p: any) => p.product_id === otherLocationProductId)?.quantity_available || 1)
+                    otherLocationProductQty >=
+                    (otherLocationProducts.find(
+                      (p: any) => p.product_id === otherLocationProductId
+                    )?.quantity_available || 1)
                   }
                 >
                   +
@@ -1403,6 +1506,7 @@ const [addAmountInput, setAddAmountInput] = useState("");
               </div>
             </div>
           )}
+
           <div className="flex justify-end gap-2 mt-4">
             <button
               className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"

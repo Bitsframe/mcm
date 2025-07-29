@@ -39,6 +39,28 @@ interface AppointmentsTableProps {
 const DESKTOP_ITEMS_PER_PAGE = 4
 const MOBILE_ITEMS_PER_PAGE = 1
 
+// Helper function to safely extract date and time from date_and_time string
+const extractDateTime = (dateAndTime: string | undefined) => {
+  if (!dateAndTime || !dateAndTime.includes("|")) {
+    return { date: "-", time: "-" }
+  }
+  
+  const parts = dateAndTime.split("|")
+  if (parts.length < 2) {
+    return { date: "-", time: "-" }
+  }
+  
+  const dateTimeParts = parts[1].split(" - ")
+  if (dateTimeParts.length < 2) {
+    return { date: "-", time: "-" }
+  }
+  
+  return {
+    date: renderFormattedDate(dateTimeParts[0]),
+    time: dateTimeParts[1]
+  }
+}
+
 const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   appointments,
   appointLoading,
@@ -267,22 +289,21 @@ const MemoizedTableRow = memo(
       }
     }
 
-    const date = renderFormattedDate(appointment.date_and_time?.split("|")[1]?.split(" - ")[0])
-    const time = appointment.date_and_time?.split(" - ")?.[1]
+    const { date, time } = extractDateTime(appointment.date_and_time)
 
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
         className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm"
       >
-        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-4 sm:py-3">
+        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-2 sm:py-3">
           {appointment.first_name} {appointment.last_name}
         </TableCell>
-        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{appointment.sex}</TableCell>
-        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{appointment.service}</TableCell>
-        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{date}</TableCell>
-        <TableCell className="p-2 sm:p-4 dark:text-gray-300">{time}</TableCell>
-        <TableCell className="p-2 sm:p-4 dark:border-gray-700">
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.sex}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.service}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{date}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{time}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:border-gray-700">
           {isUnapproved ? (
             <button
               className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
@@ -360,8 +381,7 @@ const MemoizedAppointmentCard = memo(
       }
     }
 
-    const date = renderFormattedDate(appointment.date_and_time?.split("|")[1]?.split(" - ")[0])
-    const time = appointment.date_and_time?.split(" - ")?.[1]
+    const { date, time } = extractDateTime(appointment.date_and_time)
 
     return (
       <Card

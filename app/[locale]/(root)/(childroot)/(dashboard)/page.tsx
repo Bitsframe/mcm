@@ -286,7 +286,7 @@ const MonitorDetails = memo(
               <DataField
                 icon={<RefreshCcw size={15} />}
                 label={t("Dashboard_k13")}
-                value={schedule}
+                value={t(schedule)}
                 iconPosition="right"
               />
               <DataField

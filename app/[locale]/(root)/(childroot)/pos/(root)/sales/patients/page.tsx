@@ -442,10 +442,8 @@ const Patients = () => {
   return (
     <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
       <div className="w-full">
-        {/* Patients List Section - Now Full Width */}
         <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
           <div className="p-4">
-            {/* First Row - Title and Add Button */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
               <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4 md:mb-0">
                 {t("POS-Sales_k35")}
@@ -496,7 +494,7 @@ const Patients = () => {
 
           {/* Mobile Cards View - Showing only 2 cards per page */}
           <div className="block md:hidden p-4 space-y-3">
-            {currentCards.map((elem, ind) => {
+            {currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
               const formattedDateTime = moment
                 .utc(updated_at, "YYYY-MM-DD h:mm s")
@@ -587,7 +585,6 @@ const Patients = () => {
               );
             })}
 
-            {/* Pagination Controls */}
             {dataList.length > cardsPerPage && (
               <div className="flex justify-center items-center gap-2 mt-4">
                 <button
@@ -617,7 +614,6 @@ const Patients = () => {
             )}
           </div>
 
-          {/* Desktop Table View - Unchanged */}
           <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
               {dataList.map((elem, ind) => {
@@ -705,7 +701,6 @@ const Patients = () => {
         </div>
       </div>
 
-      {/* Add Patient Modal */}
       <Dialog open={addPatientModalOpen} onOpenChange={setAddPatientModalOpen}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
           <DialogHeader>
@@ -724,7 +719,7 @@ const Patients = () => {
                   }
                   label={t("POS-Sales_k19")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your full name"
+                  placeholder={t("POS-Sales_k86")}
                 />
               </div>
 
@@ -736,7 +731,7 @@ const Patients = () => {
                   }
                   label={t("POS-Sales_k20")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your last name"
+                  placeholder={t("POS-Sales_k87")}
                 />
               </div>
 
@@ -745,7 +740,7 @@ const Patients = () => {
                   value={createActionData.gender}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   start_empty={true}
-                  options_arr={["Male", "Female"].map((gender) => ({
+                  options_arr={["Male", "Female", "Other"].map((gender) => ({
                     value: gender,
                     label: gender,
                   }))}
@@ -764,7 +759,7 @@ const Patients = () => {
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Enter your email"
+                  placeholder={t("POS-Sales_k88")}
                 />
               </div>
 
