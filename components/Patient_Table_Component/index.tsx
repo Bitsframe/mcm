@@ -823,7 +823,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       {t("Patients_k36")}
                     </Label>
                     <RadioGroup
-                      defaultValue="true"
+                      defaultValue={renderType === "all" ? "true" : renderType === "onsite" ? "true" : "false"}
                       className="flex gap-3"
                       onValueChange={(value) =>
                         setPatientData({
@@ -832,18 +832,38 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                         })
                       }
                     >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="onsite" />
-                        <Label htmlFor="onsite" className="dark:text-gray-300">
-                          {t("Patients_k43")}
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="offsite" />
-                        <Label htmlFor="offsite" className="dark:text-gray-300">
-                          {t("Patients_k44")}
-                        </Label>
-                      </div>
+                      {renderType === "all" && (
+                        <>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="true" id="onsite" />
+                            <Label htmlFor="onsite" className="dark:text-gray-300">
+                              {t("Patients_k43")}
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="false" id="offsite" />
+                            <Label htmlFor="offsite" className="dark:text-gray-300">
+                              {t("Patients_k44")}
+                            </Label>
+                          </div>
+                        </>
+                      )}
+                      {renderType === "onsite" && (
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="true" id="onsite" />
+                          <Label htmlFor="onsite" className="dark:text-gray-300">
+                            {t("Patients_k43")}
+                          </Label>
+                        </div>
+                      )}
+                      {renderType === "offsite" && (
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="false" id="offsite" />
+                          <Label htmlFor="offsite" className="dark:text-gray-300">
+                            {t("Patients_k44")}
+                          </Label>
+                        </div>
+                      )}
                     </RadioGroup>
                   </div>
                 </div>
@@ -1212,6 +1232,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     serviceList={serviceList}
                     onSave={() => setIsEditing(false)}
                     onCancel={() => setIsEditing(false)}
+                    renderType={renderType}
                   />
                 ) : (
                   <PatientDetails
@@ -1245,6 +1266,7 @@ interface EditPatientFormProps {
   serviceList: { title: string }[];
   onSave: () => void;
   onCancel: () => void;
+  renderType: Props["renderType"];
 }
 
 const EditPatientForm: FC<EditPatientFormProps> = ({
@@ -1254,7 +1276,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   serviceList,
   onSave,
   onCancel,
+  renderType,
 }) => {
+  const { t } = useTranslation(translationConstant.PATIENTS);
   const [formData, setFormData] = useState<Patient>(editPatientData);
   const [emailError, setEmailError] = useState("");
 
@@ -1310,7 +1334,6 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
     }
   };
 
-  const { t } = useTranslation(translationConstant.PATIENTS);
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -1455,18 +1478,38 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             }
             className="flex gap-3"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="edit-onsite" />
-              <Label htmlFor="edit-onsite" className="dark:text-gray-300">
-                {t("Patients_k43")}
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="edit-offsite" />
-              <Label htmlFor="edit-offsite" className="dark:text-gray-300">
-                {t("Patients_k44")}
-              </Label>
-            </div>
+            {renderType === "all" && (
+              <>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="edit-onsite" />
+                  <Label htmlFor="edit-onsite" className="dark:text-gray-300">
+                    {t("Patients_k43")}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="false" id="edit-offsite" />
+                  <Label htmlFor="edit-offsite" className="dark:text-gray-300">
+                    {t("Patients_k44")}
+                  </Label>
+                </div>
+              </>
+            )}
+            {renderType === "onsite" && (
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="edit-onsite" />
+                <Label htmlFor="edit-onsite" className="dark:text-gray-300">
+                  {t("Patients_k43")}
+                </Label>
+              </div>
+            )}
+            {renderType === "offsite" && (
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="edit-offsite" />
+                <Label htmlFor="edit-offsite" className="dark:text-gray-300">
+                  {t("Patients_k44")}
+                </Label>
+              </div>
+            )}
           </RadioGroup>
         </div>
       </div>
