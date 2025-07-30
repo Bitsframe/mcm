@@ -519,7 +519,7 @@ const Products = () => {
                 className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-green-600 hover:bg-green-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-green-700 dark:hover:bg-green-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
-                <span>{t("Inventory_k34")}</span>
+                <span>{t("Inventory_k44")}</span>
               </button>
             </div>
 
@@ -1065,7 +1065,7 @@ const Products = () => {
                 htmlFor="unlimited"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                {t("Inventory_k28")}
+                {t("Inventory_k43")}
               </label>
             </div>
           </div>

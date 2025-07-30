@@ -554,7 +554,14 @@ const Patients = () => {
           </div>
 
           <div className="block md:hidden p-4 space-y-3">
-            {currentCards.map((elem: any, ind: any) => {
+            {activeFilterBtn === 0 && dataList.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400 text-lg">
+                  {t("POS-Sales_k106")}
+                </p>
+              </div>
+            ) : (
+              currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
               const formattedDateTime = moment
                 .utc(updated_at, "YYYY-MM-DD h:mm s")
@@ -643,8 +650,10 @@ const Patients = () => {
                   </div>
                 </div>
               );
-            })}
+            }))}
 
+          
+          
             {dataList.length > cardsPerPage && (
               <div className="flex justify-center items-center gap-2 mt-4">
                 <button
@@ -676,16 +685,24 @@ const Patients = () => {
 
           <div className="hidden md:block overflow-auto max-h-[500px]">
             <div className="px-4 pb-4">
-              <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
-                <div className="col-span-1">ID</div>
-                <div className="col-span-1">{t("POS-Sales_k41")}</div>
-                <div className="col-span-1">{t("POS-Sales_k22")}</div>
-                <div className="col-span-1">{t("POS-Sales_k37")}</div>
-                <div className="col-span-1">{t("POS-Sales_k104")}</div>
-                <div className="col-span-1 text-center">{t("POS-Sales_k59")}</div>
-              </div>
-              
-              {dataList.map((elem, ind) => {
+              {activeFilterBtn === 0 && dataList.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">
+                    {t("POS-Sales_k106")}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
+                    <div className="col-span-1">ID</div>
+                    <div className="col-span-1">{t("POS-Sales_k41")}</div>
+                    <div className="col-span-1">{t("POS-Sales_k22")}</div>
+                    <div className="col-span-1">{t("POS-Sales_k37")}</div>
+                    <div className="col-span-1">{t("POS-Sales_k104")}</div>
+                    <div className="col-span-1 text-center">{t("POS-Sales_k59")}</div>
+                  </div>
+                  
+                  {dataList.map((elem, ind) => {
                 const { id, firstname, lastname, phone, updated_at, email } = elem;
                 const formattedDateTime = moment
                   .utc(updated_at, "YYYY-MM-DD h:mm s")
@@ -779,6 +796,8 @@ const Patients = () => {
                   </div>
                 );
               })}
+                </>
+              )}
             </div>
           </div>
         </div>

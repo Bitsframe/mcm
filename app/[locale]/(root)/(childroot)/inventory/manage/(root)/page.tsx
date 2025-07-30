@@ -424,7 +424,7 @@ const Inventory = () => {
         >
           <Filter className="w-4 h-4" />
           <span className="hidden lg:inline">{t("Inventory_k21")}</span>
-          <span className="lg:hidden">Filter 0</span>
+          <span className="lg:hidden">{t("Inventory_k21")}</span>
         </button>
       </div>
     ),
