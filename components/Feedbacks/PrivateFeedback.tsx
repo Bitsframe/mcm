@@ -84,13 +84,20 @@ const PrivateFeedbackComponent: FC = () => {
 
   const fetch_handle = useCallback(async () => {
     setLoading(true);
-    const fetched_data: any = await fetch_content_service({
-      table: "feedback",
-      selectParam: ", pos(firstname,lastname)",
-    });
-    setDataList(fetched_data);
-    setAllData(fetched_data);
-    setLoading(false);
+    try {
+      const fetched_data: any = await fetch_content_service({
+        table: "feedback",
+        selectParam: ", pos(firstname,lastname)",
+      });
+      setDataList(fetched_data || []);
+      setAllData(fetched_data || []);
+    } catch (error) {
+      console.error("Error fetching feedback data:", error);
+      setDataList([]);
+      setAllData([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -237,7 +244,7 @@ const PrivateFeedbackComponent: FC = () => {
                   })
               ) : (
                 <div className="flex h-40 flex-1 py-2 text-base justify-center items-center text-gray-500 dark:text-gray-400">
-                  <h1>{t("Privatefeedback_k5")}</h1>
+                  <h1>{t("Privatefeedback_k9")}</h1>
                 </div>
               )}
             </div>
@@ -370,7 +377,7 @@ const PrivateFeedbackComponent: FC = () => {
                       className="bg-white dark:bg-gray-900"
                     >
                       <div className="flex h-full flex-1 py-2 text-base justify-center items-center text-gray-500 dark:text-gray-400">
-                        <h1>{t("Privatefeedback_k5")}</h1>
+                        <h1>{t("Privatefeedback_k9")}</h1>
                       </div>
                     </TableCell>
                   </TableRow>
