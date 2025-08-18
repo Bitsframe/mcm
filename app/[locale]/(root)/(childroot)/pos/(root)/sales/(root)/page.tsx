@@ -11,6 +11,7 @@ import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
 import { Select } from "flowbite-react";
 import { PiCaretCircleRightFill } from "react-icons/pi";
+
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
@@ -37,10 +38,6 @@ import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
 import SplitToLocationModal from "@/components/SplitToLocationModal";
-import { BsCashCoin } from "react-icons/bs";
-import { FaCreditCard } from "react-icons/fa6";
-import { FiMinus, FiPlus } from "react-icons/fi";
-import { FaArrowsAltV } from "react-icons/fa";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -203,10 +200,9 @@ const Orders = () => {
   const [otherLocationProductQty, setOtherLocationProductQty] =
     useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
-  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>(
-    []
-  );
+  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
 
+  // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
 
   const [cashInput, setCashInput] = useState("");
@@ -451,17 +447,9 @@ const Orders = () => {
     }
   };
 
-  const handleAddFromSplitModal = (
-    product: any,
-    location: any,
-    quantity: number
-  ) => {
-    const findCategory: any = categories.find(
-      ({ category_id }: any) => +product.category_id === +category_id
-    );
-
+  const handleAddFromSplitModal = (product: any, location: any, quantity: number) => {
+    const findCategory: any = categories.find(({ category_id }: any) => +product.category_id === +category_id);
     let addProduct: CartArrayInterface | null = null;
-
     if (findCategory) {
       addProduct = {
         product_id: product.product_id,
@@ -474,14 +462,12 @@ const Orders = () => {
         fulfillment_location_id: location.location_id,
         fulfillment_location_name: location.location_name,
       };
-
       if (addProduct) {
+        // Add to cart as a separate item (even if same product from different location)
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
         setShowSplitModal(false);
-        toast.success(
-          `Added ${quantity} ${product.product_name} from ${location.location_name}`
-        );
+        toast.success(`Added ${quantity} ${product.product_name} from ${location.location_name}`);
       }
     }
   };
@@ -722,158 +708,116 @@ const Orders = () => {
   const totalPaid =
     (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
-  const isValidPayment = () => {
-    if (!selectedLocation || cartArray.length === 0) return false;
 
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const totalPaid = receivedAmount + cardAmount;
-    const patientBalance = selectedLocation.balance;
-
-    if (totalPaid > totalDue) {
-      const overpay = totalPaid - totalDue;
-      const resultBalance = patientBalance - overpay;
-      return resultBalance >= 0;
-    } else {
-      const creditShort = totalDue - totalPaid;
-      const resultBalance = patientBalance + creditUsed + creditShort;
-      return resultBalance >= 0;
-    }
-  };
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-          {/* Header with fulfillment button */}
-          {fetchingDataLoading ? (
-            <div className="w-full flex flex-col justify-center h-full space-y-1">
-              <CircularProgress size={16} className="dark:text-white" />
-              <h1 className="text-xs text-gray-400 dark:text-gray-300">
-                Fetching patient details
-              </h1>
-            </div>
-          ) : (
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  {t("POS-Sales_k3")}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={openOtherLocationModal}
-                    type="button"
-                  >
-                    {t("POS-Sales_k82")}
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={() => setIsAddBalanceModalOpen(true)}
-                    disabled={!selectedPatient}
-                    type="button"
-                  >
-                    {t("POS-Sales_k83")}
-                  </button>
-                </div>
-
-                <Custom_Modal
-                  is_open={isAddBalanceModalOpen}
-                  close_handle={() => setIsAddBalanceModalOpen(false)}
-                  create_new_handle={handleAddBalance}
-                  loading={addBalanceLoading}
-                  Title="Add Balance"
-                  buttonLabel="Add"
-                  submit_button_color="blue"
-                  disabled={
-                    addBalanceLoading || !addAmount || addAmount > creditAmount
-                  }
-                >
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
-                        Current Balance
-                      </label>
-                      <div className="p-2 rounded font-bold">
-                        {creditAmount}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Add Amount
-                      </label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={addAmountInput}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (/^\d*\.?\d{0,2}$/.test(raw)) {
-                            setAddAmountInput(raw);
-                            const parsed = Number.parseFloat(raw);
-                            setAddAmount(isNaN(parsed) ? 0 : parsed); 
-                          }
-                          if (raw === "") {
-                            setAddAmountInput("");
-                            setAddAmount(0);
-                          }
-                        }}
-                        placeholder="Enter amount"
-                        className="w-full border border-black"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="block text-sm font-medium mb-1">
-                        New Balance
-                      </label>
-                      <div
-                        className={`
-                            p-3 rounded font-bold text-lg
-                             ${
-                               creditAmount + (addAmount || 0) >= 0
-                                 ? "bg-green-100 text-green-700"
-                                 : "bg-red-100 text-red-700"
-                             }
-                          `}
-                      >
-                        {Math.max(0, creditAmount - (addAmount || 0)).toFixed(
-                          2
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Custom_Modal>
+            {/* Header with fulfillment button */}
+            {fetchingDataLoading ? (
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                  Fetching patient details
+                </h1>
               </div>
-
-              {selectedPatient ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {render_details.map(({ label, key, render_value }, ind) => {
-                    const extracted_val = render_value
-                      ? render_value(selectedPatient)
-                      : selectedPatient[key];
-                    return (
-                      <div
-                        key={ind}
-                        className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
-                      >
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {label}
-                        </p>
-                        <p className="text-sm font-medium dark:text-white">
-                          {extracted_val}
-                        </p>
+            ) : (
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                    {t("POS-Sales_k3")}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={openOtherLocationModal}
+                      type="button"
+                    >
+                      Add from Other Location
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={() => setIsAddBalanceModalOpen(true)}
+                      disabled={!selectedPatient}
+                      type="button"
+                    >
+                      Add Balance
+                    </button>
+                  </div>
+                  <Custom_Modal
+                    is_open={isAddBalanceModalOpen}
+                    close_handle={() => setIsAddBalanceModalOpen(false)}
+                    create_new_handle={handleAddBalance}
+                    loading={addBalanceLoading}
+                    Title="Add Balance"
+                    buttonLabel="Add"
+                    submit_button_color="blue"
+                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
+                  >
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
-                    );
-                  })}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={addAmount}
+                          onChange={e => setAddAmount(Number(e.target.value))}
+                          className="w-full border border-black"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <div
+                          className={`
+                          p-3 rounded font-bold text-lg 
+                          ${creditAmount + (addAmount || 0) >= 0
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"}
+                        `}
+                        >
+
+                          {Math.max(0, creditAmount - (addAmount || 0)).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </Custom_Modal>
+
                 </div>
-              ) : (
-                <div>
-                  <h1 className="text-red-600 dark:text-red-400 text-xs">
-                    {t("POS-Sales_k4")}
-                  </h1>
-                </div>
-              )}
-            </div>
-          )}
+                {selectedPatient ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {render_details.map(({ label, key, render_value }, ind) => {
+                      const extracted_val = render_value
+                        ? render_value(selectedPatient)
+                        : selectedPatient[key];
+                      return (
+                        <div
+                          key={ind}
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                        >
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {label}
+                          </p>
+                          <p className="text-sm font-medium dark:text-white">
+                            {extracted_val}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div>
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
+                      {t("POS-Sales_k4")}
+                    </h1>
+                  </div>
+                )}
+              </div>
+            )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
             <h2 className="text-sm font-semibold mb-2 dark:text-white">
@@ -962,6 +906,7 @@ const Orders = () => {
                   ) : null}
                 </div>
               </div>
+
               <div className="flex gap-2">
                 <button
                   disabled={!productQty}
@@ -974,13 +919,9 @@ const Orders = () => {
               </div>
               <div className="mb-2">
                 <button
-                  disabled={
-                    !selectedProduct ||
-                    selectedProduct.quantity_available - productQty > 0 ||
-                    selectedProduct?.unlimited
-                  }
+                  disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
                   onClick={() => setShowSplitModal(true)}
-                  className="bg-blue-600 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
                   type="button"
                 >
                   {t("POS-Sales_k82")}
@@ -1538,9 +1479,7 @@ transition-colors`}
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
-        selectedCategory={categories.find(
-          (cat: any) => cat.category_id === selectedCategory
-        )}
+        selectedCategory={categories.find((cat: any) => cat.category_id === selectedCategory)}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
       />
