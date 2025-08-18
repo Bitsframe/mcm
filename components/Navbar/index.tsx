@@ -21,7 +21,7 @@ export const Navbar = ({ width }: { width: string }) => {
   const pathname = usePathname();
 
   const locale = useLocale();
-  const { t } = useTranslation(translationConstant.SIDEBAR);
+  const { t } = useTranslation(translationConstant.DASHBOARD);
 
   useEffect(() => {
     i18n.changeLanguage(locale);
@@ -62,8 +62,8 @@ export const Navbar = ({ width }: { width: string }) => {
           <div className="text-[16px] font-[700] ml-2">
           <div>
             <span className="text-[#79808B] dark:text-gray-400">
-              Welcome Back,
-            </span>{" "}
+             {t("Dashboard_k27")}{" "}
+            </span>
             {userProfile?.full_name}
           </div>
         </div>

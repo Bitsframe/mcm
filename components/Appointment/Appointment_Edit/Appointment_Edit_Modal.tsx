@@ -42,7 +42,7 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
       
       if (!error) {
         const [dateStr, timeStr] = selectedVal.split('|')[1].split(' - ');
-        const [oldDateStr, oldTimeStr] = appointmentDetails.date_and_time
+        const [oldDateStr, oldTimeStr] = appointmentDetails.date_and_time && appointmentDetails.date_and_time.includes('|')
           ? appointmentDetails.date_and_time.split('|')[1].split(' - ')
           : ['-', '-'];
 

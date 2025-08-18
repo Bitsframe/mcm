@@ -23,6 +23,7 @@ import { TabContext } from "@/context"
 import { Calendar, CheckCircle, UserPlus, Hourglass, CalendarPlus, CheckCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import DeleteConfirmationModal from "@/components/Appointment/DeleteConfirmationModal"
 
 const Appointments = () => {
   const { locations } = useLocationClinica()
@@ -30,6 +31,8 @@ const Appointments = () => {
   const [unapprovedAppointments, setUnapprovedAppointments] = useState<Appointment[]>([])
   const [filteredApproved, setFilteredApproved] = useState<Appointment[]>([])
   const [filteredUnapproved, setFilteredUnapproved] = useState<Appointment[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [searchType, setSearchType] = useState("all")
   const [appointLoading, setAppointLoading] = useState(true)
   const [appointmentDetails, setAppointmentDetails] = useState<Appointment | null>(null)
   const [sortColumn, setSortColumn] = useState<string>("")
@@ -37,6 +40,9 @@ const Appointments = () => {
   const [isSheetopen, setisSheetopen] = useState(false)
   const [editAppointment, setEditAppointment] = useState<Appointment | null>(null)
   const [selectedAppointments, setSelectedAppointments] = useState<number[]>([])
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [appointmentToDelete, setAppointmentToDelete] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const originalApprovedRef = useRef<Appointment[]>([])
   const originalUnapprovedRef = useRef<Appointment[]>([])
@@ -113,51 +119,108 @@ const Appointments = () => {
     setisSheetopen(false)
   }, [])
 
+  const handleDeleteClick = useCallback((delId: number) => {
+    setAppointmentToDelete(delId)
+    setShowDeleteModal(true)
+  }, [])
+
   const deleteAppointmentsHandle = useCallback(async (delId: number) => {
-    const { error } = await delete_appointment_service(Number(delId))
-    if (!error) {
-      const updateState = (prev: Appointment[]) => prev.filter((appoint) => appoint.id !== delId)
-      setApprovedAppointments(updateState)
-      setFilteredApproved(updateState)
-      setUnapprovedAppointments(updateState)
-      setFilteredUnapproved(updateState)
+    setIsDeleting(true)
+    try {
+      const { error } = await delete_appointment_service(Number(delId))
+      if (!error) {
+        const updateState = (prev: Appointment[]) => prev.filter((appoint) => appoint.id !== delId)
+        setApprovedAppointments(updateState)
+        setFilteredApproved(updateState)
+        setUnapprovedAppointments(updateState)
+        setFilteredUnapproved(updateState)
 
-      // Update original refs as well
-      originalApprovedRef.current = updateState(originalApprovedRef.current)
-      originalUnapprovedRef.current = updateState(originalUnapprovedRef.current)
+        originalApprovedRef.current = updateState(originalApprovedRef.current)
+        originalUnapprovedRef.current = updateState(originalUnapprovedRef.current)
 
-      toast.success("Deleted successfully")
-      setAppointmentDetails(null)
-    } else {
-      toast.error(error.message)
+        toast.success("Deleted successfully")
+        setAppointmentDetails(null)
+        setShowDeleteModal(false)
+        setAppointmentToDelete(null)
+      } else {
+        toast.error(error.message)
+      }
+    } catch (error) {
+      toast.error("Failed to delete appointment")
+    } finally {
+      setIsDeleting(false)
     }
+  }, [])
+
+  const confirmDelete = useCallback(() => {
+    if (appointmentToDelete) {
+      deleteAppointmentsHandle(appointmentToDelete)
+    }
+  }, [appointmentToDelete, deleteAppointmentsHandle])
+
+  const cancelDelete = useCallback(() => {
+    setShowDeleteModal(false)
+    setAppointmentToDelete(null)
+    setIsDeleting(false)
   }, [])
 
   const filterHandle = useCallback(
     (e: moment.Moment | null) => {
-      if (e) {
-        const dateToMoment = moment(e.toString()).format("YYYY-MM-DD")
-        const filterByDate = (appointments: Appointment[]) => {
-          return appointments.filter((appoint) => {
-            if (appoint.date_and_time) {
-              const cleanedStr = appoint.date_and_time.replace(/^\d+\|/, "")
-              const dateStr = cleanedStr.split(" - ")[0]
-              const formattedDate = moment(dateStr, "DD-MM-YYYY").format("YYYY-MM-DD")
-              return formattedDate === dateToMoment
+      let tempApproved = [...originalApprovedRef.current]
+      let tempUnapproved = [...originalUnapprovedRef.current]
+
+      if (searchTerm && searchTerm.trim() !== '') {
+        const searchValue = searchTerm.toLowerCase().trim()
+        
+        const searchInAppointments = (appointments: Appointment[]) => {
+          return appointments.filter((appointment) => {
+            const name = `${appointment.first_name || ''} ${appointment.last_name || ''}`.toLowerCase()
+            const phone = (appointment.phone || '').toLowerCase()
+            const email = (appointment.email_address || '').toLowerCase()
+
+            if (searchType === 'name') {
+              return name.includes(searchValue)
+            } else if (searchType === 'phone') {
+              return phone.includes(searchValue)
+            } else if (searchType === 'email') {
+              return email.includes(searchValue)
+            } else {
+              return (
+                name.includes(searchValue) ||
+                phone.includes(searchValue) ||
+                email.includes(searchValue))
             }
-            return false
           })
         }
 
-        setFilteredApproved(filterByDate(approvedAppointments))
-        setFilteredUnapproved(filterByDate(unapprovedAppointments))
-      } else {
-        setFilteredApproved(approvedAppointments)
-        setFilteredUnapproved(unapprovedAppointments)
+        tempApproved = searchInAppointments(tempApproved)
+        tempUnapproved = searchInAppointments(tempUnapproved)
       }
+
+      if (e) {
+        const dateToMoment = moment(e.toString()).format("YYYY-MM-DD")
+        const filterByDate = (appoint: Appointment) => {
+          if (appoint.date_and_time && appoint.date_and_time.includes("|")) {
+            const cleanedStr = appoint.date_and_time.replace(/^\d+\|/, "")
+            const dateParts = cleanedStr.split(" - ")
+            if (dateParts.length > 0) {
+              const dateStr = dateParts[0]
+              const formattedDate = moment(dateStr, "DD-MM-YYYY").format("YYYY-MM-DD")
+              return formattedDate === dateToMoment
+            }
+          }
+          return false
+        }
+        
+        tempApproved = tempApproved.filter(filterByDate)
+        tempUnapproved = tempUnapproved.filter(filterByDate)
+      }
+
+      setFilteredApproved(tempApproved)
+      setFilteredUnapproved(tempUnapproved)
       setAppointmentDetails(null)
     },
-    [approvedAppointments, unapprovedAppointments],
+    [searchTerm, searchType],
   )
 
   const sortHandle = useCallback(
@@ -227,7 +290,7 @@ const Appointments = () => {
       </h1>
 
       <div className="grid grid-cols-2 gap-2 px-0 sm:px-4 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-6">
-      <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
+        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
           <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
             <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
               <Calendar className="h-4 w-4 sm:h-6 sm:w-6" />
@@ -278,10 +341,38 @@ const Appointments = () => {
         </Card>
       </div>
 
-      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725] ">
-        <div className="flex flex-col gap-4 mb-4 sm:mb-6 md:flex-row md:items-center md:gap-4 md:justify-between">
-          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 md:gap-4 md:items-center">
-            <div className="w-full md:w-56 min-w-0">
+      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725]">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between w-full flex-wrap md:flex-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{t("Appoinments_k65")}:</span>
+              <select
+                value={searchType}
+                onChange={(e) => {
+                  setSearchType(e.target.value)
+                  filterHandle(null)
+                }}
+                className="min-w-[100px] border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              >
+                <option value="all">All</option>
+                <option value="name">Name</option>
+                <option value="phone">Phone</option>
+                <option value="email">Email</option>
+              </select>
+              <span className="text-gray-500">=</span>
+              <input
+                type="text"
+                placeholder={t("Appoinments_k66")}
+                value={searchTerm}
+                onChange={(e) => {
+                  const newValue = e.target.value
+                  setSearchTerm(newValue)
+                  setTimeout(() => filterHandle(null), 0)
+                }}
+                className="w-56 border bg-[#f1f4f9] border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+            <div className="md:w-56 ml-auto">
               <ConfigProvider
                 theme={{
                   algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
@@ -296,18 +387,16 @@ const Appointments = () => {
               >
                 <DatePicker
                   onChange={filterHandle}
-                  className="w-full border border-gray-300 rounded-lg p-2 text-sm sm:text-base text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
-                  placeholder="Filter by date"
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
+                  placeholder={t("Appoinments_k59")}
                   suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
                 />
               </ConfigProvider>
             </div>
-            <div className="flex-shrink-0">
-              <Add_Appointment_Modal newAddedRow={newAddedRow} />
-            </div>
           </div>
-          <div className="w-full md:w-auto md:ml-auto">
-            <Tabs className="w-full" value={activeTab} onValueChange={setActiveTab}>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <Tabs className="w-full sm:w-auto order-2 sm:order-1" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16] w-full flex-nowrap">
                 <TabsTrigger
                   value="approved"
@@ -327,6 +416,9 @@ const Appointments = () => {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            <div className="order-1 sm:order-2">
+              <Add_Appointment_Modal newAddedRow={newAddedRow} />
+            </div>
           </div>
         </div>
 
@@ -351,7 +443,7 @@ const Appointments = () => {
         sortHandle={sortHandle}
         sortColumn={sortColumn}
         //@ts-ignore
-        onDelete={deleteAppointmentsHandle}
+        onDelete={handleDeleteClick}
         //@ts-ignore
         selectedAppointments={selectedAppointments}
         //@ts-ignore
@@ -362,9 +454,16 @@ const Appointments = () => {
       <AppointmentDetailsPanel
         isSheetopen={isSheetopen}
         appointmentDetails={appointmentDetails}
-        onDelete={deleteAppointmentsHandle}
+        onDelete={handleDeleteClick}
         findLocations={findLocations}
         updateReflectOnCloseModal={newAddedRow}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
       />
     </main>
   )

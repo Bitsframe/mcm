@@ -48,7 +48,7 @@ export const cronitorSampleData: CronitorData = {
             issued_to: "new.clinicsanmiguel.com",
             issued_by: "R11",
             issued_at: "2024-08-03T20:26:54Z",
-            expires_at: "2024-11-01T20:26:53Z",
+            expires_at: "2025-11-01T20:26:53Z",
           },
           dns: {
             name: "CLINICSANMIGUEL.COM",
@@ -92,7 +92,7 @@ export const cronitorSampleData: CronitorData = {
       notify: ["default"],
       passing: true,
       paused: false,
-      platform: "http",
+      platform: "https",
       realert_interval: "Dashboard_k26",
       request: {
         url: "https://new.clinicsanmiguel.com/",

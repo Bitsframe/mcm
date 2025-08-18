@@ -301,8 +301,7 @@ const Categories = () => {
                   <Table className="min-w-full">
                     <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700 sticky top-0 z-10">
                       <TableRow className="flex hover:bg-transparent">
-                        <TableHead className="w-12 p-3">
-                        </TableHead>
+                        <TableHead className="w-12 p-3"></TableHead>
                         {tableHeader.map(({ label, align }, index) => (
                           <TableHead
                             key={index}
@@ -343,8 +342,7 @@ const Categories = () => {
                             key={index}
                             className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
                           >
-                            <TableCell className="w-12 p-0">
-                            </TableCell>
+                            <TableCell className="w-12 p-0"></TableCell>
                             {tableHeader.map(
                               ({ id, Render_Value, align }, ind) => {
                                 const content = Render_Value ? (
@@ -436,23 +434,27 @@ const Categories = () => {
               {/* Pagination */}
               <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
                 <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                  Rows {dataList.length === 0 ? 0 : startIndex + 1}-{endIndex}{" "}
-                  of {dataList.length}
+                  {dataList.length === 0
+                    ? `${t("Inventory_k27")} 0 ${t("Inventory_k29")} 0`
+                    : `${t("Inventory_k27")} ${startIndex + 1} ${t(
+                        "Inventory_k28"
+                      )} ${endIndex} ${t("Inventory_k29")} ${dataList.length}`}
                 </div>
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1}
-                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm text-gray-800 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    {t("Inventory_k23")}
+                    {t("Inventory_k23") || "Previous"}
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page === totalPages}
-                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm text-gray-800 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    {t("Inventory_k22")}
+                    {t("Inventory_k22") || "Next"}
                   </button>
                 </div>
               </div>
@@ -483,41 +485,48 @@ const Categories = () => {
 
       {activeDeleteId ? (
         <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-50">
-          <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-              <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
-                Confirmation
-              </h1>
-              <p className="text-lg text-black dark:text-white">
-                Do you really want to
-                {getDataArchiveType ? "Unarchive" : "Archive"} this category
-              </p>
-              <p className="text-sm text-gray-800 dark:text-white">
-                Remember All of the associated products will also be
-                {getDataArchiveType ? "Unarchive" : "Archive"} with the category
-              </p>
-
-              <div className="mt-4 flex items-center space-x-3 justify-end">
-                <Button
-                  disabled={deleteLoading}
-                  onClick={() => setActiveDeleteId(0)}
-                  color="gray"
-                  className="bg-white text-black"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  isProcessing={deleteLoading}
-                  color={"failure"}
-                  onClick={deleteHandle}
-                  className="bg-red-700 hover:bg-red-800"
-                >
-                  {getDataArchiveType ? "Unarchive" : "Archive"}
-                </Button>
-              </div>
+        <div className="flex justify-center items-center w-full h-full">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
+            <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
+              {t("Inventory_k10")}
+            </h1>
+      
+            <p className="text-lg text-black dark:text-white">
+              {t("Inventory_k11").replace(
+                "Archive",
+                t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
+              ).trim()}
+            </p>
+      
+            <p className="text-sm text-gray-800 dark:text-white">
+              {t("Inventory_k12").replace(
+                "Archive",
+                t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
+              ).trim()}
+            </p>
+      
+            <div className="mt-4 flex items-center space-x-3 justify-end">
+              <Button
+                disabled={deleteLoading}
+                onClick={() => setActiveDeleteId(0)}
+                color="gray"
+                className="bg-white text-black"
+              >
+                {t("Inventory_k13")}
+              </Button>
+              <Button
+                isProcessing={deleteLoading}
+                color="failure"
+                onClick={deleteHandle}
+                className="bg-red-700 hover:bg-red-800"
+              >
+                {t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")}
+              </Button>
             </div>
           </div>
         </div>
+      </div>
+      
       ) : null}
     </main>
   );

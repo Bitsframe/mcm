@@ -159,7 +159,7 @@ const SettingsComponent: React.FC = () => {
       <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
         <div className="p-4 border-b dark:border-gray-700">
           <h1 className="text-lg font-medium text-gray-900 dark:text-white">
-            Reporting Time
+          {t("CT_k29")}
           </h1>
         </div>
 
@@ -173,7 +173,7 @@ const SettingsComponent: React.FC = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search locations"
+                  placeholder={t("CT_k30")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"

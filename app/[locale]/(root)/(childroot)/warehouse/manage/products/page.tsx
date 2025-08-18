@@ -186,7 +186,8 @@ const Products = () => {
 
   const isAssignValid = useCallback(() => {
     if (!assignModalData.location_ids?.length) return false;
-    if (!assignModalData.quantity || assignModalData.quantity <= 0) return false;
+    if (!assignModalData.quantity || assignModalData.quantity <= 0)
+      return false;
     if (!modalData.unlimited) {
       const totalAssigned = calculateTotalAssigned();
       if (totalAssigned > modalData.stock) return false;
@@ -356,10 +357,13 @@ const Products = () => {
 
   const handleQuantityChange = (value: string) => {
     const newQuantity = parseInt(value) || 0;
-    const totalAssigned = newQuantity * (assignModalData.location_ids?.length || 0);
+    const totalAssigned =
+      newQuantity * (assignModalData.location_ids?.length || 0);
 
     if (!modalData.unlimited && totalAssigned > modalData.stock) {
-      toast.error(`Cannot assign more than available stock (${modalData.stock})`);
+      toast.error(
+        `Cannot assign more than available stock (${modalData.stock})`
+      );
       return;
     }
 
@@ -379,7 +383,9 @@ const Products = () => {
 
     const totalAssigned = calculateTotalAssigned();
     if (!modalData.unlimited && totalAssigned > modalData.stock) {
-      toast.error(`Cannot assign more than available stock (${modalData.stock})`);
+      toast.error(
+        `Cannot assign more than available stock (${modalData.stock})`
+      );
       return;
     }
 
@@ -400,7 +406,9 @@ const Products = () => {
       fetch_handle(getDataArchiveType);
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || error?.message || "Something went wrong!"
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong!"
       );
     } finally {
       setModalEventLoading(false);
@@ -511,7 +519,7 @@ const Products = () => {
                 className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-green-600 hover:bg-green-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-green-700 dark:hover:bg-green-800 mt-2 sm:mt-0"
               >
                 <CirclePlus className="w-6 h-6" />
-                <span>Transfer Units</span>
+                <span>{t("Inventory_k44")}</span>
               </button>
             </div>
 
@@ -537,7 +545,7 @@ const Products = () => {
                   }`}
                 >
                   <Archive className="w-4 h-4" />
-                  <span>{t("Inventory_k6")}</span>
+                  <span>{t("Inventory_k33")}</span>
                 </button>
               </div>
             </div>
@@ -551,39 +559,48 @@ const Products = () => {
                   <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
                     <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
                       <TableHead className="w-8 p-2"></TableHead>
-                      {tableHeader.map(({ label, align, can_sort, id }, index) => (
-                        <TableHead
-                          key={index}
-                          className={`${
-                            id === "category" ? "w-[20%]" :
-                            id === "product_name" ? "w-[25%]" :
-                            id === "price" || id === "stock" ? "w-[12%]" :
-                            id === "actions" ? "w-[31%]" : "flex-1"
-                          } ${
-                            id === "price" || id === "stock" || id === "actions"
-                              ? "text-center"
-                              : "text-start"
-                          } text-base text-[#71717A] font-normal p-2 dark:text-gray-400 truncate`}
-                        >
-                          <div className="flex items-center justify-between">
-                            {t(label)}
-                            {can_sort && (
-                              <button
-                                onClick={() => sortHandle(id)}
-                                className="active:opacity-50 ml-1"
-                              >
-                                <PiCaretUpDownBold
-                                  className={`inline ${
-                                    sortColumn === id
-                                      ? "text-blue-600 dark:text-blue-400"
-                                      : "text-gray-400 dark:text-gray-500"
-                                  } hover:text-gray-600 dark:hover:text-gray-300`}
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </TableHead>
-                      ))}
+                      {tableHeader.map(
+                        ({ label, align, can_sort, id }, index) => (
+                          <TableHead
+                            key={index}
+                            className={`${
+                              id === "category"
+                                ? "w-[20%]"
+                                : id === "product_name"
+                                ? "w-[25%]"
+                                : id === "price" || id === "stock"
+                                ? "w-[12%]"
+                                : id === "actions"
+                                ? "w-[31%]"
+                                : "flex-1"
+                            } ${
+                              id === "price" ||
+                              id === "stock" ||
+                              id === "actions"
+                                ? "text-center"
+                                : "text-start"
+                            } text-base text-[#71717A] font-normal p-2 dark:text-gray-400 truncate`}
+                          >
+                            <div className="flex items-center justify-between">
+                              {t(label)}
+                              {can_sort && (
+                                <button
+                                  onClick={() => sortHandle(id)}
+                                  className="active:opacity-50 ml-1"
+                                >
+                                  <PiCaretUpDownBold
+                                    className={`inline ${
+                                      sortColumn === id
+                                        ? "text-blue-600 dark:text-blue-400"
+                                        : "text-gray-400 dark:text-gray-500"
+                                    } hover:text-gray-600 dark:hover:text-gray-300`}
+                                  />
+                                </button>
+                              )}
+                            </div>
+                          </TableHead>
+                        )
+                      )}
                     </TableRow>
                   </TableHeader>
 
@@ -608,8 +625,13 @@ const Products = () => {
                         >
                           <TableCell className="w-8 p-2"></TableCell>
                           {tableHeader.map((element, ind) => {
-                            const { id, Render_Value, align, width, render_value } =
-                              element;
+                            const {
+                              id,
+                              Render_Value,
+                              align,
+                              width,
+                              render_value,
+                            } = element;
                             const content = Render_Value ? (
                               <Render_Value
                                 getDataArchiveType={getDataArchiveType}
@@ -619,7 +641,9 @@ const Products = () => {
                               />
                             ) : (
                               <div
-                                className={width === 1 ? "w-1/2 truncate" : "truncate"}
+                                className={
+                                  width === 1 ? "w-1/2 truncate" : "truncate"
+                                }
                                 title={elem[id]}
                               >
                                 {render_value
@@ -650,7 +674,11 @@ const Products = () => {
                                       onClick={() =>
                                         buttonClickActionHandle("Delete", elem)
                                       }
-                                      label={getDataArchiveType ? t("Inventory_k6") : t("Inventory_k5")}
+                                      label={
+                                        getDataArchiveType
+                                          ? t("Inventory_k30")
+                                          : t("Inventory_k5")
+                                      }
                                       text_color={
                                         getDataArchiveType
                                           ? "text-[#0EA542] dark:text-green-400"
@@ -686,9 +714,13 @@ const Products = () => {
                               <TableCell
                                 key={ind}
                                 className={`${
-                                  id === "category" ? "w-[20%]" :
-                                  id === "product_name" ? "w-[25%]" :
-                                  id === "price" || id === "stock" ? "w-[12%]" : "flex-1"
+                                  id === "category"
+                                    ? "w-[20%]"
+                                    : id === "product_name"
+                                    ? "w-[25%]"
+                                    : id === "price" || id === "stock"
+                                    ? "w-[12%]"
+                                    : "flex-1"
                                 } ${
                                   id === "price" || id === "stock"
                                     ? "text-center"
@@ -760,7 +792,9 @@ const Products = () => {
                           <div className="flex flex-wrap justify-end gap-2 mt-3">
                             <Action_Button
                               icon={<RefreshCcw size={16} />}
-                              onClick={() => buttonClickActionHandle("Update", elem)}
+                              onClick={() =>
+                                buttonClickActionHandle("Update", elem)
+                              }
                               label="Update"
                               text_color="text-[#0066ff] dark:text-blue-400"
                               bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
@@ -768,8 +802,12 @@ const Products = () => {
                             />
                             <Action_Button
                               icon={<Archive size={16} />}
-                              onClick={() => buttonClickActionHandle("Delete", elem)}
-                              label={getDataArchiveType ? "Unarchive" : "Archive"}
+                              onClick={() =>
+                                buttonClickActionHandle("Delete", elem)
+                              }
+                              label={
+                                getDataArchiveType ? "Unarchive" : "Archive"
+                              }
                               text_color={
                                 getDataArchiveType
                                   ? "text-[#0EA542] dark:text-green-400"
@@ -788,7 +826,9 @@ const Products = () => {
                             />
                             <Action_Button
                               icon={<CirclePlus size={16} />}
-                              onClick={() => buttonClickActionHandle("Assign", elem)}
+                              onClick={() =>
+                                buttonClickActionHandle("Assign", elem)
+                              }
                               label="Assign"
                               text_color="text-[#0EA542] dark:text-green-400"
                               bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
@@ -804,23 +844,30 @@ const Products = () => {
 
               <div className="flex items-center justify-between p-4 border-t dark:border-gray-700">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, dataList.length)} of {dataList.length} row(s)
+                  {dataList.length === 0
+                    ? `${t("Inventory_k27")} 0 ${t("Inventory_k29")} 0`
+                    : `${t("Inventory_k27")} ${
+                        (currentPage - 1) * itemsPerPage + 1
+                      } ${t("Inventory_k28")} ${Math.min(
+                        currentPage * itemsPerPage,
+                        dataList.length
+                      )} ${t("Inventory_k29")} ${dataList.length}`}
                 </div>
+
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
-                    
-                    {t("Inventory_k23")}
+                    {t("Inventory_k23") || "Previous"}
                   </button>
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
                   >
-                    {t("Inventory_k22")}
+                    {t("Inventory_k22") || "Next"}
                   </button>
                 </div>
               </div>
@@ -836,7 +883,9 @@ const Products = () => {
         is_open={openModal}
         close_handle={closeModalHandle}
         create_new_handle={
-          modalState === modalStateEnum.ASSIGN ? assignSubmitHandle : modalSubmitHandle
+          modalState === modalStateEnum.ASSIGN
+            ? assignSubmitHandle
+            : modalSubmitHandle
         }
         buttonLabel={modalState}
         Trigger_Button={null}
@@ -844,7 +893,7 @@ const Products = () => {
       >
         {modalState === modalStateEnum.ASSIGN ? (
           <div className="w-full grid grid-cols-2 h-[300px] gap-4 dark:bg-[#0e1725]">
-            <div className="col-span-2 space-y-2" >
+            <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("Inventory_k29")}
@@ -853,7 +902,9 @@ const Products = () => {
                   <input
                     type="checkbox"
                     id="select-all-locations"
-                    checked={assignModalData.location_ids?.length === locations.length}
+                    checked={
+                      assignModalData.location_ids?.length === locations.length
+                    }
                     onChange={handleSelectAll}
                     className="h-5 w-5 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
                   />
@@ -861,7 +912,7 @@ const Products = () => {
                     htmlFor="select-all-locations"
                     className="text-sm text-gray-700 dark:text-gray-300"
                   >
-                     {t("Inventory_k30")}
+                    {t("Inventory_k41")}
                   </label>
                 </div>
               </div>
@@ -875,7 +926,9 @@ const Products = () => {
                       <input
                         type="checkbox"
                         id={`location-${location.id}`}
-                        checked={assignModalData.location_ids?.includes(location.id)}
+                        checked={assignModalData.location_ids?.includes(
+                          location.id
+                        )}
                         onChange={() => handleLocationSelect(location.id)}
                         className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
                       />
@@ -890,7 +943,7 @@ const Products = () => {
                 ))}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {assignModalData.location_ids?.length || 0} {t("Inventory_k32")}
+                {assignModalData.location_ids?.length || 0} {t("Inventory_k42")}
               </div>
             </div>
             <div className="col-span-2 space-y-4">
@@ -906,7 +959,9 @@ const Products = () => {
               </div>
               <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-[#0e1725]">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">{t("Inventory_k33")}:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                  {t("Inventory_k37")}
+                  </span>
                   <span className="font-medium dark:text-white">
                     {modalData.unlimited ? "Unlimited" : "Limited"}
                   </span>
@@ -915,7 +970,7 @@ const Products = () => {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k34")}:
+                      {t("Inventory_k38")}
                       </span>
                       <span className="font-medium dark:text-white">
                         {modalData.stock}
@@ -923,7 +978,7 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k35")}:
+                      {t("Inventory_k39")}
                       </span>
                       <span
                         className={`font-medium ${
@@ -937,11 +992,13 @@ const Products = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {t("Inventory_k36")}:
+                      {t("Inventory_k40")}
                       </span>
                       <span
                         className={`font-medium ${
-                          getRemainingStock() === 0 ? "text-red-500" : "dark:text-white"
+                          getRemainingStock() === 0
+                            ? "text-red-500"
+                            : "dark:text-white"
                         }`}
                       >
                         {getRemainingStock()}
@@ -999,14 +1056,16 @@ const Products = () => {
                 type="checkbox"
                 id="unlimited"
                 checked={modalData.unlimited}
-                onChange={(e) => modalInputChangeHandle("unlimited", e.target.checked)}
+                onChange={(e) =>
+                  modalInputChangeHandle("unlimited", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
               />
               <label
                 htmlFor="unlimited"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                {t("Inventory_k28")}
+                {t("Inventory_k43")}
               </label>
             </div>
           </div>
@@ -1018,15 +1077,15 @@ const Products = () => {
           <div className="flex justify-center items-center w-full h-full">
             <div className="bg-white w-full max-w-xl px-4 py-3 rounded-lg dark:bg-gray-800">
               <h1 className="font-bold text-xl text-black mb-5 dark:text-white">
-                Confirmation
+              {t("Inventory_k10")}
               </h1>
               <p className="text-lg dark:text-gray-300">
-                Do you really want to{" "}
-                {getDataArchiveType ? "Unarchive" : "Archive"} this product
+              {t("Inventory_k11")}{" "}
+                {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")} this product
               </p>
               <p className="text-sm dark:text-gray-400">
-                Remember All of the locations inventories will also be{" "}
-                {getDataArchiveType ? "Unarchive" : "Archive"} with the product
+              {t("Inventory_k35")}{" "}
+                {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")} {t("Inventory_k36")}
               </p>
 
               <div className="mt-4 flex items-center space-x-3 justify-end">

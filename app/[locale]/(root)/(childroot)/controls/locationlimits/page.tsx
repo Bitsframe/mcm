@@ -171,9 +171,9 @@ const LocationLimits = () => {
                           <Button
                             onClick={() => updateLocationLimit(location.id)}
                             disabled={updating === location.id || newLimits[location.id] === location.credit_limit}
-                            className="w-full max-w-[80px] dark:bg-blue-600 dark:hover:bg-blue-700 text-xs"
+                            className="w-full max-w-[80px] bg-blue-600 dark:hover:bg-blue-700 text-xs"
                           >
-                            {updating === location.id ? <CircularProgress size={16} color="inherit" /> : "Update"}
+                            {updating === location.id ? <CircularProgress size={16} color="inherit" /> : t("CT_k33")}
                           </Button>
                         </TableCell>
                       </TableRow>

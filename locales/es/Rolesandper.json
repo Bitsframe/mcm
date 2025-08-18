@@ -1,1 +1,21 @@
-{"RP_k1":"Permitir todo","RP_k2":"Permisos","RP_k3":"Introduzca el nombre del rol","RP_k4":"Cancelar","RP_k5":"Ahorrar","RP_k6":"Agregar nuevo rol","RP_k7":"Roles de usuario","RP_k8":"Actualizar", "RP_k9": "Herramientas / Roles de usuario", "RP_k10": "Anterior"}
+{
+    "RP_k1": "Permitir todo",
+    "RP_k2": "Permisos",
+    "RP_k3": "Ingresar nombre del rol",
+    "RP_k4": "Cancelar",
+    "RP_k5": "Guardar",
+    "RP_k6": "Agregar nuevo rol",
+    "RP_k7": "Roles de usuario",
+    "RP_k8": "Actualizar",
+    "RP_k9": "Herramientas / Roles de usuario",
+    "RP_k10": "Anterior",
+    "RP_k11": "Rol",
+    "RP_k12": "Siguiente",
+    "RP_k13": "Seleccionar roles",
+    "RP_k14": "Buscar roles...",
+    "RP_k15": "Mostrando",
+    "RP_k16": "de",
+    "RP_k17": "a",
+    "RP_k18": "Ingresar rol de usuario"
+  }
+  

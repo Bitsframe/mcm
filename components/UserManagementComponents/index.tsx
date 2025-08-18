@@ -60,7 +60,7 @@ const UserManagementComponent = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPageLarge = 6; 
+  const rowsPerPageLarge = 6;
   const rowsPerPageSmall = 3;
 
   const handleOpen = () => setOpen(true);
@@ -165,7 +165,6 @@ const UserManagementComponent = () => {
       await axios.post("/api/admin/users/actions/delete", { id });
       toast.success("User deleted successfully!");
       fetchUsers();
-      // Adjust current page if necessary
       if (dataList.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
@@ -226,12 +225,12 @@ const UserManagementComponent = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-3 dark:bg-[#0E1725]">
+    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-1 dark:bg-[#0E1725]">
       <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
         {/* Heading Section */}
         <div className="p-1 sm:px-3">
           <h1 className="text-xl font-bold dark:text-white">{t("UM_k17")}</h1>
-          <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {t("UM_k16")}
           </h1>
         </div>
@@ -433,23 +432,23 @@ const UserManagementComponent = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center pt-4 text-sm dark:text-white">
+          <div className="flex justify-between items-center pt-3 text-sm dark:text-white">
             <div className="text-gray-500 dark:text-gray-300">
               {dataList.length > 0
-                ? `${
+                ? `${t("UM_k21")} ${
                     (currentPage - 1) *
                       (window.innerWidth < 640
                         ? rowsPerPageSmall
                         : rowsPerPageLarge) +
                     1
-                  } - ${Math.min(
+                  }  ${t("UM_k22")} ${Math.min(
                     currentPage *
                       (window.innerWidth < 640
                         ? rowsPerPageSmall
                         : rowsPerPageLarge),
                     dataList.length
-                  )} of ${dataList.length} row(s)`
-                : "0 of 0 row(s)"}
+                  )} ${t("UM_k23")} ${dataList.length}`
+                :`${t("UM_k21")} 0 ${t("UM_k23")} 0`}
             </div>
             <div className="flex gap-2">
               <button

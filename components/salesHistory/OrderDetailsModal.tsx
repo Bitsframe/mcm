@@ -199,7 +199,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 <input
                   onChange={searchProductHandle}
                   type="text"
-                  placeholder="Search product..."
+                  placeholder={t("POS-Historyk33")}
                   className=" pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
                 />
               </div>
@@ -286,7 +286,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                   Page
                 </span> */}
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Showing {page} out of {totalPages}
+                {t("POS-Historyk29")} {page} {t("POS-Historyk30")} {totalPages}
                 </span>
                 <div className="flex justify-center gap-2 items-center">
                 <button
@@ -296,7 +296,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     page === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  Previous
+                  {t("POS-Historyk32")}
                   {/* <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
                 </button>
                 
@@ -307,7 +307,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     page === totalPages ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  Next
+                  {t("POS-Historyk31")}
                   {/* <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
                 </button>
                 </div>

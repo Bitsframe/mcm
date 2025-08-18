@@ -1,1 +1,33 @@
-{"EmailB_k1":"Seleccionar opción","EmailB_k10":"Nombre/Correo electrónico","EmailB_k11":"Género\n","EmailB_k2":"Plantilla 1","EmailB_k3":"Escribir Asunto","EmailB_k4":"Nombre","EmailB_k5":"Precio","EmailB_k6":"Entregar","EmailB_k7":"Seleccionar pacientes","EmailB_k8":"Buscar\n","EmailB_k9":"Buscar por correo electrónico", "EmailB_k12": "Difusión de correo electrónico", "EmailB_k13": "Herramientas / Difusión de correo electrónico", "EmailB_k14": "Pacientes objetivo", "EmailB_k15": "Plantilla de correo electrónico", "EmailB_k16": "Ejecutar correo electrónico", "EmailB_k17": "vista previa"}
+{
+    "EmailB_k1": "Seleccionar opción",
+    "EmailB_k10": "Nombre/Correo electrónico",
+    "EmailB_k11": "Género\n",
+    "EmailB_k2": "Plantilla 1",
+    "EmailB_k3": "Escribir asunto",
+    "EmailB_k4": "Nombre",
+    "EmailB_k5": "Precio",
+    "EmailB_k6": "Enviar",
+    "EmailB_k7": "Seleccionar pacientes",
+    "EmailB_k8": "Buscar\n",
+    "EmailB_k9": "Buscar por correo",
+    "EmailB_k12": "Difusión por correo",
+    "EmailB_k13": "Herramientas / Difusión por correo",
+    "EmailB_k14": "Pacientes objetivo",
+    "EmailB_k15": "Plantilla de correo",
+    "EmailB_k16": "Ejecutar correo",
+    "EmailB_k17": "Vista previa",
+    "EmailB_k18": "Precio",
+    "EmailB_k19": "Género",
+    "EmailB_k20": "Masculino",
+    "EmailB_k21": "Femenino",
+    "EmailB_k22": "Otro",
+    "EmailB_k23": "Tipo de tratamiento",
+    "EmailB_k24": "Tipo de visita",
+    "EmailB_k25": "Ubicación",
+    "EmailB_k26": "Restablecer",
+    "EmailB_k27": "Presencial",
+    "EmailB_k28": "Remoto",
+    "EmailB_k29": "Filtrar pacientes"
+
+  }
+  
