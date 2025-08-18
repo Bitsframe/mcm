@@ -6,11 +6,16 @@ import React, {
   useState,
   useMemo,
 } from "react";
+
 import { Quantity_Field } from "@/components/Quantity_Field";
+import { FaCreditCard } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
 import { Select } from "flowbite-react";
+
 import { PiCaretCircleRightFill } from "react-icons/pi";
+import { FaArrowsAltV } from "react-icons/fa";
+import { BsCashCoin } from "react-icons/bs";
 
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
@@ -20,6 +25,9 @@ import { currencyFormatHandle } from "@/helper/common_functions";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
+import DiscountModal from "@/components/modals/DiscountModal";
+// import SplitToLocationModal from "@/components/SplitToLocationModal";
+
 import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { useTranslation } from "react-i18next";
@@ -37,7 +45,6 @@ import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
-import SplitToLocationModal from "@/components/SplitToLocationModal";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -242,6 +249,9 @@ const Orders = () => {
   const [discountInput, setDiscountInput] = useState<string>("");
   const [addAmount, setAddAmount] = useState(0);
   const [addAmountInput, setAddAmountInput] = useState("");
+  const [discountPct, setDiscountPct] = useState<number>(0);
+const [discountModalOpen, setDiscountModalOpen] = useState(false);
+
 
   const router = useRouter();
 
@@ -314,36 +324,79 @@ const Orders = () => {
     setProductQty(qty);
   };
 
+  // const addToCartHandle = () => {
+  //   const findCategory: any = categories.find(
+  //     ({ category_id }: any) => +selectedProduct.category_id === +category_id
+  //   );
+
+  //   let addProduct: CartArrayInterface | null = null;
+
+  //   if (findCategory && selectedLocation) {
+  //     addProduct = {
+  //       product_id: selectedProduct.product_id,
+  //       product_name: selectedProduct.product_name,
+  //       quantity: productQty,
+  //       category_name: findCategory.category_name,
+  //       category_id: findCategory.category_id,
+  //       quantity_available: selectedProduct.quantity_available,
+  //       price: selectedProduct.price,
+  //       fulfillment_location_id: selectedLocation.id,
+  //       fulfillment_location_name:
+  //         selectedLocation.title || selectedLocation.name || "Unknown",
+  //     };
+
+  //     if (addProduct) {
+  //       cartArray.push(addProduct);
+  //       setCartArray([...cartArray]);
+  //       selectProductHandle(0);
+  //       setProductQty(0);
+  //       getCategoriesByLocationId(0);
+  //     }
+  //   }
+  // };
+
+
+
+
   const addToCartHandle = () => {
-    const findCategory: any = categories.find(
-      ({ category_id }: any) => +selectedProduct.category_id === +category_id
-    );
+  const findCategory: any = categories.find(
+    ({ category_id }: any) => +selectedProduct.category_id === +category_id
+  );
 
-    let addProduct: CartArrayInterface | null = null;
+  if (findCategory && selectedLocation) {
+    const basePrice = selectedProduct.price;
+    const finalUnitPrice = discountPct
+      ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
+      : basePrice;
 
-    if (findCategory && selectedLocation) {
-      addProduct = {
-        product_id: selectedProduct.product_id,
-        product_name: selectedProduct.product_name,
-        quantity: productQty,
-        category_name: findCategory.category_name,
-        category_id: findCategory.category_id,
-        quantity_available: selectedProduct.quantity_available,
-        price: selectedProduct.price,
-        fulfillment_location_id: selectedLocation.id,
-        fulfillment_location_name:
-          selectedLocation.title || selectedLocation.name || "Unknown",
-      };
+    const addProduct: CartArrayInterface = {
+      product_id: selectedProduct.product_id,
+      product_name: selectedProduct.product_name,
+      quantity: productQty,
+      category_name: findCategory.category_name,
+      category_id: findCategory.category_id,
+      quantity_available: selectedProduct.quantity_available,
+      // store discounted price
+      price: finalUnitPrice,
+      // optional metadata
+      original_price: basePrice,
+      discount_percent: discountPct,
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name:
+        selectedLocation.title || selectedLocation.name || "Unknown",
+    };
 
-      if (addProduct) {
-        cartArray.push(addProduct);
-        setCartArray([...cartArray]);
-        selectProductHandle(0);
-        setProductQty(0);
-        getCategoriesByLocationId(0);
-      }
-    }
-  };
+    cartArray.push(addProduct);
+    setCartArray([...cartArray]);
+
+    // reset after adding
+    selectProductHandle(0);
+    setProductQty(0);
+    setDiscountPct(0); // clear discount for next product
+    getCategoriesByLocationId(0);
+  }
+};
+
 
   const openOtherLocationModal = () => {
     setShowOtherLocationModal(true);
@@ -906,6 +959,36 @@ const Orders = () => {
                   ) : null}
                 </div>
               </div>
+
+                        {/* Discount row for selected product */}
+          <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 dark:text-gray-300">Discount</span>
+              {discountPct > 0 && (
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  {discountPct}% off
+                </span>
+                )}
+                </div>
+                <button
+                onClick={() => setDiscountModalOpen(true)}
+                className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+                >
+                {discountPct > 0 ? "Change discount" : "Add discount"}
+                </button>
+
+
+                <DiscountModal
+                isOpen={discountModalOpen}
+                initialValue={discountPct}
+                onApply={(pct) => {
+                setDiscountPct(pct);          // store per-product discount
+                setDiscountModalOpen(false);
+                }}
+                onClose={() => setDiscountModalOpen(false)}
+                />
+                </div>
+
 
               <div className="flex gap-2">
                 <button
@@ -1475,14 +1558,14 @@ transition-colors`}
         </div>
       </Modal>
 
-      <SplitToLocationModal
+      {/* <SplitToLocationModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
         selectedCategory={categories.find((cat: any) => cat.category_id === selectedCategory)}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
-      />
+      /> */}
     </main>
   );
 };

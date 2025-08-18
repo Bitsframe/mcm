@@ -94,6 +94,9 @@ const SalesHistory = () => {
   );
   const { selectedLocation } = useContext(LocationContext);
   const [preDefinedReasonList, setPreDefinedReasonList] = useState([]);
+  type SearchType = "all" | "order_id" | "name";
+const [searchType, setSearchType] = useState<SearchType>("all");
+
 
   const fetchReasonsList = useCallback(async () => {
     try {
@@ -165,18 +168,53 @@ const SalesHistory = () => {
     setSelectedOrder(null);
   }, []);
 
+  // const onChangeHandle = useCallback(
+  //   (e: any) => {
+  //     const val = e.target.value;
+  //     if (val === "") {
+  //       setDataList([...allData]);
+  //     } else {
+  //       const filteredData = allData.filter((elem) => elem.order_id === +val);
+  //       setDataList(filteredData);
+  //     }
+  //   },
+  //   [allData]
+  // );
+
+
   const onChangeHandle = useCallback(
-    (e: any) => {
-      const val = e.target.value;
-      if (val === "") {
-        setDataList([...allData]);
-      } else {
-        const filteredData = allData.filter((elem) => elem.order_id === +val);
-        setDataList(filteredData);
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value ?? "";
+    const q = val.trim().toLowerCase();
+
+    if (!q) {
+      setDataList([...allData]);
+      return;
+    }
+
+    const filtered = allData.filter((elem) => {
+      const idStr = String(elem?.order_id ?? "").toLowerCase();
+      const fullName = `${elem?.pos?.firstname ?? ""} ${elem?.pos?.lastname ?? ""}`
+        .trim()
+        .toLowerCase();
+
+      switch (searchType) {
+        case "order_id":
+          // exact or contains so "12" finds "1203"
+          return idStr === q || idStr.includes(q);
+        case "name":
+          return fullName.includes(q);
+        case "all":
+        default:
+          return idStr.includes(q) || fullName.includes(q);
       }
-    },
-    [allData]
-  );
+    });
+
+    setDataList(filtered);
+  },
+  [allData, searchType]
+);
+
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
 
@@ -202,19 +240,34 @@ const SalesHistory = () => {
         </div>
       </div>
 
-      <div className="w-full overflow-auto px-4">
-        <TableComponent
-          tableHeader={tableHeader}
-          loading={loading}
-          dataList={dataList}
-          openModal={openModal}
-          searchHandle={onChangeHandle}
-          searchInputplaceholder={t("POS-Historyk3")}
-          tableBodyHeight="h-[50dvh]"
-          tableHeight="h-[67dvh] md:h-[58dvh]"
-          itemPerPage={6}
-        />
-      </div>
+
+  {/* Search-by selector */}
+  <div className="flex items-center gap-2 mb-2">
+    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      {t("SearchBy") || "Search by"}
+    </span>
+    <select
+      className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#F1F4F9] dark:bg-[#122136] text-sm text-gray-900 dark:text-white"
+      value={searchType}
+      onChange={(e) => setSearchType(e.target.value as SearchType)}
+    >
+      <option value="all">{t("All") || "All"}</option>
+      <option value="order_id">{t("Order ID") || "Order ID"}</option>
+      <option value="name">{t("Name") || "Name"}</option>
+    </select>
+  </div>
+
+  <TableComponent
+    tableHeader={tableHeader}
+    loading={loading}
+    dataList={dataList}
+    openModal={openModal}
+    searchHandle={onChangeHandle}
+    searchInputplaceholder={t("POS-Historyk3")}
+    tableBodyHeight="h-[50dvh]"
+    tableHeight="h-[67dvh] md:h-[58dvh]"
+    itemPerPage={6}
+  />
 
       {selectedOrder && (
         <OrderDetailsModal
