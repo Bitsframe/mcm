@@ -6,10 +6,17 @@ import React, {
   useState,
   useMemo,
 } from "react";
+
 import { Quantity_Field } from "@/components/Quantity_Field";
+import { FaCreditCard } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
+import { Select } from "flowbite-react";
+
 import { PiCaretCircleRightFill } from "react-icons/pi";
+import { FaArrowsAltV } from "react-icons/fa";
+import { BsCashCoin } from "react-icons/bs";
+
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
@@ -18,6 +25,9 @@ import { currencyFormatHandle } from "@/helper/common_functions";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
+import DiscountModal from "@/components/modals/DiscountModal";
+// import SplitToLocationModal from "@/components/SplitToLocationModal";
+
 import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { useTranslation } from "react-i18next";
@@ -35,11 +45,6 @@ import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
-import SplitToLocationModal from "@/components/SplitToLocationModal";
-import { BsCashCoin } from "react-icons/bs";
-import { FaCreditCard } from "react-icons/fa6";
-import { FiMinus, FiPlus } from "react-icons/fi";
-import { FaArrowsAltV } from "react-icons/fa";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -50,10 +55,12 @@ interface CartItemComponentInterface {
     price: number,
     index: number
   ) => void;
+  updateDiscountPercent: (index: number, discount: number) => void;
 }
 
 interface CartArrayInterface {
   product_id: number;
+  main_product_id: number;
   quantity: number;
   product_name: string;
   category_name: string;
@@ -62,6 +69,9 @@ interface CartArrayInterface {
   quantity_available: number;
   fulfillment_location_id: number;
   fulfillment_location_name: string;
+
+  original_price: number; // original price before discount
+  discount_percent: number; // discount applied
 }
 
 const render_details = [
@@ -89,10 +99,13 @@ const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
 
+
+
 const CartItemComponent: FC<CartItemComponentInterface> = ({
   data,
   controllProductQtyHandle,
   index,
+  updateDiscountPercent,
 }) => {
   const {
     product_name,
@@ -100,7 +113,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     quantity,
     quantity_available,
     product_id,
-    price,
+    price: initialPrice,
+    original_price,
+    discount_percent,  // Existing discount_percent from the backend or initial value
     fulfillment_location_id,
     fulfillment_location_name,
   } = data;
@@ -108,6 +123,20 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   const { selectedLocation } = useContext(LocationContext);
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
 
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountPct, setDiscountPct] = useState(discount_percent);  // The modal value will update this
+  const [price, setPrice] = useState(initialPrice); // Price after discount applied
+
+  // Recalculate price whenever discountPct, original_price, or quantity changes
+  useEffect(() => {
+    let totalPrice = original_price * quantity; // Total price before discount
+    if (discountPct > 0) {
+      totalPrice = totalPrice * (1 - discountPct / 100); // Apply the discount for the specific product
+    }
+    setPrice(Number(totalPrice.toFixed(2))); // Set the price after discount
+  }, [discountPct, original_price, quantity]); // Recalculate when discountPct, original_price, or quantity changes
+
+  // Function to handle quantity change
   const qtyHandle = (type: string) => {
     let newQty = quantity;
     if (type === "inc") {
@@ -118,8 +147,24 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     controllProductQtyHandle(product_id, newQty, price, index);
   };
 
+  // Function to remove item
   const removeItemHandle = () => {
     controllProductQtyHandle(product_id, 0, price, index);
+  };
+
+  // Handle the removal of the discount
+  const handleRemoveDiscount = () => {
+    setDiscountPct(0); // Reset discount for the product
+    setPrice(original_price * quantity); // Recalculate the price to the original price
+  };
+
+  // Handle when the discount modal is applied
+  const handleApplyDiscount = (pct: number) => {
+    setDiscountPct(pct); // Set the discountPct for the product
+    const discountedPrice = (original_price * quantity) * (1 - pct / 100); // Calculate the new price after discount
+    setPrice(Number(discountedPrice.toFixed(2))); // Set the new discounted price
+    updateDiscountPercent(index, pct); // Update parent cartArray
+    setIsDiscountModalOpen(false); // Close the modal after applying the discount
   };
 
   return (
@@ -164,15 +209,29 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             </dd>
             {isOtherLocation && (
               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
-                Fulfillment at: {fulfillment_location_name}
+                Fulfilled at: {fulfillment_location_name}
               </dd>
             )}
           </dl>
         </div>
+
+        {/* Price Section */}
         <div className="flex items-center space-x-3">
-          <p className="font-bold text-[#121111] dark:text-white">
-            {calcTotalAmount(price, quantity)}
-          </p>
+          {discountPct > 0 ? (
+            <>
+              <p className="text-sm text-gray-500 line-through dark:text-gray-400">
+                ${original_price * quantity} {/* original price before discount */}
+              </p>
+              <p className="font-bold text-[#121111] dark:text-white">
+                ${price} {/* discounted price for total quantity */}
+              </p>
+            </>
+          ) : (
+            <p className="font-bold text-[#121111] dark:text-white">
+              ${original_price * quantity} {/* Total price without discount */}
+            </p>
+          )}
+
           <div>
             <button onClick={removeItemHandle}>
               <IoCloseOutline
@@ -183,9 +242,45 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
           </div>
         </div>
       </div>
+
+      {/* Discount Section */}
+      <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 dark:text-gray-300">Discount</span>
+          <span className="text-emerald-600 dark:text-emerald-400">
+            {discountPct > 0 ? `${discountPct}% off` : "0% "}
+          </span>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsDiscountModalOpen(true)}
+            className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+          >
+            {discountPct > 0 ? "Change discount" : "Add discount"}
+          </button>
+          {discountPct > 0 && (
+            <button
+              onClick={handleRemoveDiscount} // Removes the discount
+              className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+            >
+              Remove discount
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Discount Modal */}
+      <DiscountModal
+        isOpen={isDiscountModalOpen}
+        initialValue={discountPct}
+        onApply={handleApplyDiscount}  // Use the updated function to apply the discount
+        onClose={() => setIsDiscountModalOpen(false)}
+      />
     </div>
   );
 };
+
 
 const Orders = () => {
   const { categories } = useCategoriesClinica(true);
@@ -202,10 +297,9 @@ const Orders = () => {
   const [otherLocationProductQty, setOtherLocationProductQty] =
     useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
-  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>(
-    []
-  );
+  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
 
+  // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
 
   const [cashInput, setCashInput] = useState("");
@@ -245,6 +339,9 @@ const Orders = () => {
   const [discountInput, setDiscountInput] = useState<string>("");
   const [addAmount, setAddAmount] = useState(0);
   const [addAmountInput, setAddAmountInput] = useState("");
+  const [discountPct, setDiscountPct] = useState<number>(0);
+const [discountModalOpen, setDiscountModalOpen] = useState(false);
+
 
   const router = useRouter();
 
@@ -317,36 +414,79 @@ const Orders = () => {
     setProductQty(qty);
   };
 
+  // const addToCartHandle = () => {
+  //   const findCategory: any = categories.find(
+  //     ({ category_id }: any) => +selectedProduct.category_id === +category_id
+  //   );
+
+  //   let addProduct: CartArrayInterface | null = null;
+
+  //   if (findCategory && selectedLocation) {
+  //     addProduct = {
+  //       product_id: selectedProduct.product_id,
+  //       product_name: selectedProduct.product_name,
+  //       quantity: productQty,
+  //       category_name: findCategory.category_name,
+  //       category_id: findCategory.category_id,
+  //       quantity_available: selectedProduct.quantity_available,
+  //       price: selectedProduct.price,
+  //       fulfillment_location_id: selectedLocation.id,
+  //       fulfillment_location_name:
+  //         selectedLocation.title || selectedLocation.name || "Unknown",
+  //     };
+
+  //     if (addProduct) {
+  //       cartArray.push(addProduct);
+  //       setCartArray([...cartArray]);
+  //       selectProductHandle(0);
+  //       setProductQty(0);
+  //       getCategoriesByLocationId(0);
+  //     }
+  //   }
+  // };
+
+
+
+
   const addToCartHandle = () => {
-    const findCategory: any = categories.find(
-      ({ category_id }: any) => +selectedProduct.category_id === +category_id
-    );
+  const findCategory: any = categories.find(
+    ({ category_id }: any) => +selectedProduct.category_id === +category_id
+  );
 
-    let addProduct: CartArrayInterface | null = null;
+  if (findCategory && selectedLocation) {
+    const basePrice = selectedProduct.price;
+    const finalUnitPrice = discountPct
+      ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
+      : basePrice;
 
-    if (findCategory && selectedLocation) {
-      addProduct = {
-        product_id: selectedProduct.product_id,
-        product_name: selectedProduct.product_name,
-        quantity: productQty,
-        category_name: findCategory.category_name,
-        category_id: findCategory.category_id,
-        quantity_available: selectedProduct.quantity_available,
-        price: selectedProduct.price,
-        fulfillment_location_id: selectedLocation.id,
-        fulfillment_location_name:
-          selectedLocation.title || selectedLocation.name || "Unknown",
-      };
+    const addProduct: CartArrayInterface = {
+      product_id: selectedProduct.product_id,
+      product_name: selectedProduct.product_name,
+      quantity: productQty,
+      category_name: findCategory.category_name,
+      category_id: findCategory.category_id,
+      quantity_available: selectedProduct.quantity_available,
+      // store discounted price
+      price: finalUnitPrice,
+      // optional metadata
+      original_price: basePrice,
+      discount_percent: discountPct,
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name:
+        selectedLocation.title || selectedLocation.name || "Unknown",
+    };
 
-      if (addProduct) {
-        cartArray.push(addProduct);
-        setCartArray([...cartArray]);
-        selectProductHandle(0);
-        setProductQty(0);
-        getCategoriesByLocationId(0);
-      }
-    }
-  };
+    cartArray.push(addProduct);
+    setCartArray([...cartArray]);
+
+    // reset after adding
+    selectProductHandle(0);
+    setProductQty(0);
+    setDiscountPct(0); // clear discount for next product
+    getCategoriesByLocationId(0);
+  }
+};
+
 
   const openOtherLocationModal = () => {
     setShowOtherLocationModal(true);
@@ -450,17 +590,9 @@ const Orders = () => {
     }
   };
 
-  const handleAddFromSplitModal = (
-    product: any,
-    location: any,
-    quantity: number
-  ) => {
-    const findCategory: any = categories.find(
-      ({ category_id }: any) => +product.category_id === +category_id
-    );
-
+  const handleAddFromSplitModal = (product: any, location: any, quantity: number) => {
+    const findCategory: any = categories.find(({ category_id }: any) => +product.category_id === +category_id);
     let addProduct: CartArrayInterface | null = null;
-
     if (findCategory) {
       addProduct = {
         product_id: product.product_id,
@@ -473,14 +605,12 @@ const Orders = () => {
         fulfillment_location_id: location.location_id,
         fulfillment_location_name: location.location_name,
       };
-
       if (addProduct) {
+        // Add to cart as a separate item (even if same product from different location)
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
         setShowSplitModal(false);
-        toast.success(
-          `Added ${quantity} ${product.product_name} from ${location.location_name}`
-        );
+        toast.success(`Added ${quantity} ${product.product_name} from ${location.location_name}`);
       }
     }
   };
@@ -505,6 +635,7 @@ const Orders = () => {
       setIsBalanceLoading(true);
 
       if (!selectedPatient || !cartArray.length) return;
+      
 
       const { data } = await axios.post("/api/orders", {
         patient_id: selectedPatient.id,
@@ -518,7 +649,7 @@ const Orders = () => {
         selectedPatient,
         selectedLocation,
       });
-
+  
       toast.success(data.message, {
         style: {
           background: "white",
@@ -589,7 +720,7 @@ const Orders = () => {
       console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {
         style: {
-          background: "var(--background)",
+          background: "#FFFFFF",
           color: "var(--foreground)",
           border: "1px solid var(--border)",
         },
@@ -721,158 +852,116 @@ const Orders = () => {
   const totalPaid =
     (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
-  const isValidPayment = () => {
-    if (!selectedLocation || cartArray.length === 0) return false;
 
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const totalPaid = receivedAmount + cardAmount;
-    const patientBalance = selectedLocation.balance;
-
-    if (totalPaid > totalDue) {
-      const overpay = totalPaid - totalDue;
-      const resultBalance = patientBalance - overpay;
-      return resultBalance >= 0;
-    } else {
-      const creditShort = totalDue - totalPaid;
-      const resultBalance = patientBalance + creditUsed + creditShort;
-      return resultBalance >= 0;
-    }
-  };
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-          {/* Header with fulfillment button */}
-          {fetchingDataLoading ? (
-            <div className="w-full flex flex-col justify-center h-full space-y-1">
-              <CircularProgress size={16} className="dark:text-white" />
-              <h1 className="text-xs text-gray-400 dark:text-gray-300">
-                Fetching patient details
-              </h1>
-            </div>
-          ) : (
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  {t("POS-Sales_k3")}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={openOtherLocationModal}
-                    type="button"
-                  >
-                    {t("POS-Sales_k82")}
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={() => setIsAddBalanceModalOpen(true)}
-                    disabled={!selectedPatient}
-                    type="button"
-                  >
-                    {t("POS-Sales_k83")}
-                  </button>
-                </div>
-
-                <Custom_Modal
-                  is_open={isAddBalanceModalOpen}
-                  close_handle={() => setIsAddBalanceModalOpen(false)}
-                  create_new_handle={handleAddBalance}
-                  loading={addBalanceLoading}
-                  Title="Add Balance"
-                  buttonLabel="Add"
-                  submit_button_color="blue"
-                  disabled={
-                    addBalanceLoading || !addAmount || addAmount > creditAmount
-                  }
-                >
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
-                        Current Balance
-                      </label>
-                      <div className="p-2 rounded font-bold">
-                        {creditAmount}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Add Amount
-                      </label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={addAmountInput}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (/^\d*\.?\d{0,2}$/.test(raw)) {
-                            setAddAmountInput(raw);
-                            const parsed = Number.parseFloat(raw);
-                            setAddAmount(isNaN(parsed) ? 0 : parsed); 
-                          }
-                          if (raw === "") {
-                            setAddAmountInput("");
-                            setAddAmount(0);
-                          }
-                        }}
-                        placeholder="Enter amount"
-                        className="w-full border border-black"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="block text-sm font-medium mb-1">
-                        New Balance
-                      </label>
-                      <div
-                        className={`
-                            p-3 rounded font-bold text-lg
-                             ${
-                               creditAmount + (addAmount || 0) >= 0
-                                 ? "bg-green-100 text-green-700"
-                                 : "bg-red-100 text-red-700"
-                             }
-                          `}
-                      >
-                        {Math.max(0, creditAmount - (addAmount || 0)).toFixed(
-                          2
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Custom_Modal>
+            {/* Header with fulfillment button */}
+            {fetchingDataLoading ? (
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                  Fetching patient details
+                </h1>
               </div>
-
-              {selectedPatient ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {render_details.map(({ label, key, render_value }, ind) => {
-                    const extracted_val = render_value
-                      ? render_value(selectedPatient)
-                      : selectedPatient[key];
-                    return (
-                      <div
-                        key={ind}
-                        className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
-                      >
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {label}
-                        </p>
-                        <p className="text-sm font-medium dark:text-white">
-                          {extracted_val}
-                        </p>
+            ) : (
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                    {t("POS-Sales_k3")}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={openOtherLocationModal}
+                      type="button"
+                    >
+                      Add from Other Location
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={() => setIsAddBalanceModalOpen(true)}
+                      disabled={!selectedPatient}
+                      type="button"
+                    >
+                      Add Balance
+                    </button>
+                  </div>
+                  <Custom_Modal
+                    is_open={isAddBalanceModalOpen}
+                    close_handle={() => setIsAddBalanceModalOpen(false)}
+                    create_new_handle={handleAddBalance}
+                    loading={addBalanceLoading}
+                    Title="Add Balance"
+                    buttonLabel="Add"
+                    submit_button_color="blue"
+                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
+                  >
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
-                    );
-                  })}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={addAmount}
+                          onChange={e => setAddAmount(Number(e.target.value))}
+                          className="w-full border border-black"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <div
+                          className={`
+                          p-3 rounded font-bold text-lg 
+                          ${creditAmount + (addAmount || 0) >= 0
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"}
+                        `}
+                        >
+
+                          {Math.max(0, creditAmount - (addAmount || 0)).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </Custom_Modal>
+
                 </div>
-              ) : (
-                <div>
-                  <h1 className="text-red-600 dark:text-red-400 text-xs">
-                    {t("POS-Sales_k4")}
-                  </h1>
-                </div>
-              )}
-            </div>
-          )}
+                {selectedPatient ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {render_details.map(({ label, key, render_value }, ind) => {
+                      const extracted_val = render_value
+                        ? render_value(selectedPatient)
+                        : selectedPatient[key];
+                      return (
+                        <div
+                          key={ind}
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                        >
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {label}
+                          </p>
+                          <p className="text-sm font-medium dark:text-white">
+                            {extracted_val}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div>
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
+                      {t("POS-Sales_k4")}
+                    </h1>
+                  </div>
+                )}
+              </div>
+            )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
             <h2 className="text-sm font-semibold mb-2 dark:text-white">
@@ -961,6 +1050,37 @@ const Orders = () => {
                   ) : null}
                 </div>
               </div>
+
+                        {/* Discount row for selected product */}
+          <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 dark:text-gray-300">Discount</span>
+              {discountPct > 0 && (
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  {discountPct}% off
+                </span>
+                )}
+                </div>
+                <button
+                onClick={() => setDiscountModalOpen(true)}
+                className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+                >
+                {discountPct > 0 ? "Change discount" : "Add discount"}
+                </button>
+
+
+                <DiscountModal
+                isOpen={discountModalOpen}
+                initialValue={discountPct}
+                onApply={(pct) => {
+                setDiscountPct(pct);          // store per-product discount
+                setDiscountModalOpen(false);
+                }}
+                onClose={() => setDiscountModalOpen(false)}
+                />
+                </div>
+
+
               <div className="flex gap-2">
                 <button
                   disabled={!productQty}
@@ -970,14 +1090,12 @@ const Orders = () => {
                 >
                   {t("POS-Sales_k8")}
                 </button>
+              </div>
+              <div className="mb-2">
                 <button
-                  disabled={
-                    !selectedProduct ||
-                    selectedProduct.quantity_available - productQty > 0 ||
-                    selectedProduct?.unlimited
-                  }
+                  disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
                   onClick={() => setShowSplitModal(true)}
-                  className="bg-blue-600 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
                   type="button"
                 >
                   {t("POS-Sales_k82")}
@@ -1042,6 +1160,11 @@ const Orders = () => {
                   data={data}
                   key={ind}
                   controllProductQtyHandle={controllProductQtyHandle}
+                  updateDiscountPercent={(idx, discount) => {
+                    const updatedCart = [...cartArray];
+                    updatedCart[idx].discount_percent = discount;
+                    setCartArray(updatedCart);
+                  }}
                 />
               ))}
             </div>
@@ -1074,94 +1197,104 @@ const Orders = () => {
                   ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
                 </p>
               </div>
+<div className="flex items-center justify-between">
+  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+    {t("POS-Sales_k13")} %
+  </h1>
+  <div className="flex items-center gap-2">
+    <p className="text-xs">
+      {appliedDiscount
+        ? `${Math.abs(
+            grandTotalHandle(cartArray, appliedDiscount).discountAmount
+          ).toFixed(2)} (${appliedDiscount}%)`
+        : "NILL"}
+    </p>
+    {appliedDiscount > 0 && (
+      <button
+        onClick={() => {
+          setAppliedDiscount(0);  // Reset the discount
+          setDiscountInput("");    // Clear discount input field
+          toast.success("Discount removed");  // Show success message
+        }}
+        className="text-xs text-red-500"
+      >
+        X {/* Cross symbol to remove discount */}
+      </button>
+    )}
+    <button
+      className={`text-xs px-2 py-0.5 rounded ${
+        cartArray.length === 0
+          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+          : "bg-blue-500 text-white"
+      }`}
+      disabled={cartArray.length === 0}
+      onClick={() => {
+        setDiscountInput(appliedDiscount !== 0 ? String(appliedDiscount) : "");
+        setIsDiscountModalOpen(true);
+      }}
+    >
+      Add
+    </button>
+  </div>
+</div>
 
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k13")} %
-                </h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs">
-                    {appliedDiscount
-                      ? `${Math.abs(
-                          grandTotalHandle(cartArray, appliedDiscount)
-                            .discountAmount
-                        ).toFixed(2)} (${appliedDiscount}%)`
-                      : "NILL"}
-                  </p>
-                  <button
-                    className={`text-xs px-2 py-0.5 rounded ${
-                      cartArray.length === 0
-                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        : "bg-blue-500 text-white"
-                    }`}
-                    disabled={cartArray.length === 0}
-                    onClick={() => {
-                      setDiscountInput(
-                        appliedDiscount !== 0 ? String(appliedDiscount) : ""
-                      );
-                      setIsDiscountModalOpen(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
+{/* Discount Modal */}
+{isDiscountModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
+      <div>
+        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+          Enter Discount % (0 - 100)
+        </h2>
+        <input
+          type="text"
+          value={discountInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "") {
+              setDiscountInput("");
+              return;
+            }
+            if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+              const num = Number.parseFloat(value);
+              if (num <= 100) {
+                setDiscountInput(value);
+              }
+            }
+          }}
+          placeholder="Enter % of discount"
+          className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
+        />
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <button
+          className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
+          onClick={() => setIsDiscountModalOpen(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+          onClick={() => {
+            const numValue =
+              typeof discountInput === "string"
+                ? Number.parseFloat(discountInput)
+                : discountInput;
+            if (numValue >= 0 && numValue <= 100) {
+              setAppliedDiscount(numValue);  // Apply the discount
+              setIsDiscountModalOpen(false);
+            } else {
+              toast.error("Discount must be between 0 and 100%");
+            }
+          }}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-              {isDiscountModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-                        Enter Discount % (0 - 100)
-                      </h2>
-                      <input
-                        type="text"
-                        value={discountInput}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "") {
-                            setDiscountInput("");
-                            return;
-                          }
-                          if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
-                            const num = Number.parseFloat(value);
-                            if (num <= 100) {
-                              setDiscountInput(value);
-                            }
-                          }
-                        }}
-                        placeholder="Enter % of discount"
-                        className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
-                        onClick={() => setIsDiscountModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
-                        onClick={() => {
-                          const numValue =
-                            typeof discountInput === "string"
-                              ? Number.parseFloat(discountInput)
-                              : discountInput;
-                          if (numValue >= 0 && numValue <= 100) {
-                            setAppliedDiscount(numValue);
-                            setIsDiscountModalOpen(false);
-                          } else {
-                            toast.error("Discount must be between 0 and 100%");
-                          }
-                        }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
@@ -1531,16 +1664,14 @@ transition-colors`}
         </div>
       </Modal>
 
-      <SplitToLocationModal
+      {/* <SplitToLocationModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
-        selectedCategory={categories.find(
-          (cat: any) => cat.category_id === selectedCategory
-        )}
+        selectedCategory={categories.find((cat: any) => cat.category_id === selectedCategory)}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
-      />
+      /> */}
     </main>
   );
 };
