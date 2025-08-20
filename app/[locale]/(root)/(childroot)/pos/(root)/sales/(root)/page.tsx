@@ -99,6 +99,105 @@ const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
 
+// const CartItemComponent: FC<CartItemComponentInterface> = ({
+//   data,
+//   controllProductQtyHandle,
+//   index,
+// }) => {
+//   const {
+//     product_name,
+//     category_name,
+//     quantity,
+//     quantity_available,
+//     product_id,
+//     price,
+//     fulfillment_location_id,
+//     fulfillment_location_name,
+//   } = data;
+
+//   const { selectedLocation } = useContext(LocationContext);
+//   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
+
+//   const qtyHandle = (type: string) => {
+//     let newQty = quantity;
+//     if (type === "inc") {
+//       newQty += 1;
+//     } else {
+//       newQty -= 1;
+//     }
+//     controllProductQtyHandle(product_id, newQty, price, index);
+//   };
+
+//   const removeItemHandle = () => {
+//     controllProductQtyHandle(product_id, 0, price, index);
+//   };
+
+//   return (
+//     <div
+//       className={
+//         isOtherLocation
+//           ? "bg-blue-50 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 py-2 px-3 rounded-md shadow-sm"
+//           : "bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md"
+//       }
+//     >
+//       <div className="flex items-center">
+//         <div className="flex-1 flex items-center space-x-3">
+//           <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
+//             <button
+//               onClick={() => qtyHandle("inc")}
+//               className="disabled:opacity-60"
+//               disabled={quantity_available === quantity}
+//             >
+//               <IoIosArrowUp
+//                 size={18}
+//                 className="text-primary_color dark:text-blue-400"
+//               />
+//             </button>
+//             <span className="block text-base font-bold text-[#121111] dark:text-white">
+//               {quantity}
+//             </span>
+//             <button
+//               disabled={quantity === 0}
+//               className="disabled:opacity-60"
+//               onClick={() => qtyHandle("dec")}
+//             >
+//               <IoIosArrowDown
+//                 size={18}
+//                 className="text-primary_color dark:text-blue-400"
+//               />
+//             </button>
+//           </div>
+//           <dl>
+//             <dt className="text-base dark:text-white">{product_name}</dt>
+//             <dd className="text-sm text-gray-700 dark:text-gray-400">
+//               {category_name}
+//             </dd>
+//             {isOtherLocation && (
+//               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
+//                 Fulfilled at: {fulfillment_location_name}
+//               </dd>
+//             )}
+//           </dl>
+//         </div>
+//         <div className="flex items-center space-x-3">
+//           <p className="font-bold text-[#121111] dark:text-white">
+//             {calcTotalAmount(price, quantity)}
+//           </p>
+//           <div>
+//             <button onClick={removeItemHandle}>
+//               <IoCloseOutline
+//                 size={18}
+//                 className="text-primary_color dark:text-blue-400"
+//               />
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+
 
 
 const CartItemComponent: FC<CartItemComponentInterface> = ({
@@ -113,9 +212,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     quantity,
     quantity_available,
     product_id,
-    price: initialPrice,
-    original_price,
-    discount_percent,  // Existing discount_percent from the backend or initial value
+    price,
+    original_price, // You now have the original price
+    discount_percent, // You now have the discount percent
     fulfillment_location_id,
     fulfillment_location_name,
   } = data;
@@ -217,18 +316,20 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
 
         {/* Price Section */}
         <div className="flex items-center space-x-3">
-          {discountPct > 0 ? (
-            <>
-              <p className="text-sm text-gray-500 line-through dark:text-gray-400">
-                ${original_price * quantity} {/* original price before discount */}
-              </p>
-              <p className="font-bold text-[#121111] dark:text-white">
-                ${price} {/* discounted price for total quantity */}
-              </p>
-            </>
-          ) : (
-            <p className="font-bold text-[#121111] dark:text-white">
-              ${original_price * quantity} {/* Total price without discount */}
+          {/* Display original price */}
+          <p className="text-sm text-gray-500 line-through dark:text-gray-400">
+            ${original_price} {/* original price before discount */}
+          </p>
+
+          {/* Display discounted price */}
+          <p className="font-bold text-[#121111] dark:text-white">
+            ${price} {/* discounted price */}
+          </p>
+
+          {/* Display the discount percentage */}
+          {discount_percent > 0 && (
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+              {discount_percent}% off
             </p>
           )}
 
@@ -448,7 +549,50 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
 
 
-  const addToCartHandle = () => {
+//   const addToCartHandle = () => {
+//   const findCategory: any = categories.find(
+//     ({ category_id }: any) => +selectedProduct.category_id === +category_id
+//   );
+
+//   if (findCategory && selectedLocation) {
+//     const basePrice = selectedProduct.price;
+//     const finalUnitPrice = discountPct
+//       ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
+//       : basePrice;
+
+//     const addProduct: CartArrayInterface = {
+//       product_id: selectedProduct.product_id,
+//       product_name: selectedProduct.product_name,
+//       quantity: productQty,
+//       category_name: findCategory.category_name,
+//       category_id: findCategory.category_id,
+//       quantity_available: selectedProduct.quantity_available,
+//       // store discounted price
+//       price: finalUnitPrice,
+//       // optional metadata
+//       original_price: basePrice,
+//       discount_percent: discountPct,
+//       fulfillment_location_id: selectedLocation.id,
+//       fulfillment_location_name:
+//         selectedLocation.title || selectedLocation.name || "Unknown",
+//     };
+
+//     cartArray.push(addProduct);
+//     setCartArray([...cartArray]);
+
+//     // reset after adding
+//     selectProductHandle(0);
+//     setProductQty(0);
+//     setDiscountPct(0); // clear discount for next product
+//     getCategoriesByLocationId(0);
+//   }
+// };
+
+
+
+
+
+const addToCartHandle = () => {
   const findCategory: any = categories.find(
     ({ category_id }: any) => +selectedProduct.category_id === +category_id
   );
@@ -459,6 +603,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
       ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
       : basePrice;
 
+    // Prepare the product data to be added to the cart
     const addProduct: CartArrayInterface = {
       product_id: selectedProduct.product_id,
       product_name: selectedProduct.product_name,
@@ -466,26 +611,27 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
       category_name: findCategory.category_name,
       category_id: findCategory.category_id,
       quantity_available: selectedProduct.quantity_available,
-      // store discounted price
-      price: finalUnitPrice,
-      // optional metadata
-      original_price: basePrice,
-      discount_percent: discountPct,
+      price: finalUnitPrice, // discounted price
+      original_price: basePrice, // original price before discount
+      discount_percent: discountPct, // discount applied
       fulfillment_location_id: selectedLocation.id,
       fulfillment_location_name:
         selectedLocation.title || selectedLocation.name || "Unknown",
     };
 
+    // Update the cart with the new product
     cartArray.push(addProduct);
     setCartArray([...cartArray]);
 
-    // reset after adding
+    // Reset form and variables after adding to cart
     selectProductHandle(0);
     setProductQty(0);
-    setDiscountPct(0); // clear discount for next product
+    setDiscountPct(0); // Clear discount for next product
     getCategoriesByLocationId(0);
   }
 };
+
+
 
 
   const openOtherLocationModal = () => {
