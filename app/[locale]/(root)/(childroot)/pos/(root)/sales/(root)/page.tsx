@@ -606,6 +606,7 @@ const addToCartHandle = () => {
     // Prepare the product data to be added to the cart
     const addProduct: CartArrayInterface = {
       product_id: selectedProduct.product_id,
+      main_product_id: selectedProduct.main_product_id,
       product_name: selectedProduct.product_name,
       quantity: productQty,
       category_name: findCategory.category_name,
