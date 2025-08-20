@@ -314,34 +314,43 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
           </dl>
         </div>
 
-        {/* Price Section */}
-        <div className="flex items-center space-x-3">
+          {/* Price Section */}
+
+          <div className="flex items-center space-x-3">
+          {discount_percent > 0 ? (
+          <>
           {/* Display original price */}
           <p className="text-sm text-gray-500 line-through dark:text-gray-400">
-            ${original_price} {/* original price before discount */}
+          ${original_price} {/* original price before discount */}
           </p>
 
           {/* Display discounted price */}
           <p className="font-bold text-[#121111] dark:text-white">
-            ${price} {/* discounted price */}
+          ${price} {/* discounted price */}
           </p>
 
           {/* Display the discount percentage */}
-          {discount_percent > 0 && (
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
-              {discount_percent}% off
-            </p>
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">
+          {discount_percent}% off
+          </p>
+          </>
+          ) : (
+          // No discount, only show original price
+          <p className="font-bold text-[#121111] dark:text-white">
+          ${original_price}
+          </p>
           )}
 
           <div>
-            <button onClick={removeItemHandle}>
-              <IoCloseOutline
-                size={18}
-                className="text-primary_color dark:text-blue-400"
-              />
-            </button>
+          <button onClick={removeItemHandle}>
+          <IoCloseOutline
+          size={18}
+          className="text-primary_color dark:text-blue-400"
+          />
+          </button>
           </div>
-        </div>
+          </div>
+
       </div>
 
       {/* Discount Section */}
@@ -515,81 +524,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
     setProductQty(qty);
   };
 
-  // const addToCartHandle = () => {
-  //   const findCategory: any = categories.find(
-  //     ({ category_id }: any) => +selectedProduct.category_id === +category_id
-  //   );
-
-  //   let addProduct: CartArrayInterface | null = null;
-
-  //   if (findCategory && selectedLocation) {
-  //     addProduct = {
-  //       product_id: selectedProduct.product_id,
-  //       product_name: selectedProduct.product_name,
-  //       quantity: productQty,
-  //       category_name: findCategory.category_name,
-  //       category_id: findCategory.category_id,
-  //       quantity_available: selectedProduct.quantity_available,
-  //       price: selectedProduct.price,
-  //       fulfillment_location_id: selectedLocation.id,
-  //       fulfillment_location_name:
-  //         selectedLocation.title || selectedLocation.name || "Unknown",
-  //     };
-
-  //     if (addProduct) {
-  //       cartArray.push(addProduct);
-  //       setCartArray([...cartArray]);
-  //       selectProductHandle(0);
-  //       setProductQty(0);
-  //       getCategoriesByLocationId(0);
-  //     }
-  //   }
-  // };
-
-
-
-
-//   const addToCartHandle = () => {
-//   const findCategory: any = categories.find(
-//     ({ category_id }: any) => +selectedProduct.category_id === +category_id
-//   );
-
-//   if (findCategory && selectedLocation) {
-//     const basePrice = selectedProduct.price;
-//     const finalUnitPrice = discountPct
-//       ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
-//       : basePrice;
-
-//     const addProduct: CartArrayInterface = {
-//       product_id: selectedProduct.product_id,
-//       product_name: selectedProduct.product_name,
-//       quantity: productQty,
-//       category_name: findCategory.category_name,
-//       category_id: findCategory.category_id,
-//       quantity_available: selectedProduct.quantity_available,
-//       // store discounted price
-//       price: finalUnitPrice,
-//       // optional metadata
-//       original_price: basePrice,
-//       discount_percent: discountPct,
-//       fulfillment_location_id: selectedLocation.id,
-//       fulfillment_location_name:
-//         selectedLocation.title || selectedLocation.name || "Unknown",
-//     };
-
-//     cartArray.push(addProduct);
-//     setCartArray([...cartArray]);
-
-//     // reset after adding
-//     selectProductHandle(0);
-//     setProductQty(0);
-//     setDiscountPct(0); // clear discount for next product
-//     getCategoriesByLocationId(0);
-//   }
-// };
-
-
-
+  
 
 
 const addToCartHandle = () => {
