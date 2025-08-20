@@ -70,15 +70,20 @@ export default function DiscountModal({
           Enter percentage (0–100) for this product only.
         </p>
 
-        <input
-          type="number"
-          min={0}
-          max={100}
-          step="0.01"
-          value={value}
-          onChange={(e) => setValue(clamp(Number(e.target.value) || 0))}
-          className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
-        />
+      <input
+  type="text"
+  value={value === 0 ? "" : value}  // When value is 0, show an empty string
+  onChange={(e) => {
+    const newValue = clamp(Number(e.target.value) || 0);  // Ensure the input is always clamped between 0 and 100
+    setValue(newValue);
+  }}
+  placeholder="Enter % of discount"  // Custom placeholder text
+  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
+  min={0}
+  max={100}
+  step="0.01"
+/>
+
 
         <div className="mt-4 flex justify-end gap-2">
           <button
