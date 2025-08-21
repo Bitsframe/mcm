@@ -17,6 +17,8 @@ export const sendOrderEmail = async (
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
     const formattedDate = `${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`;
+    const discountPercentArray = orderItems.map(item => item.discount_percent);
+ 
 
     // Create a feedback URL with order ID and patient ID for tracking
     const feedbackUrl = `${process.env.NEXT_PUBLIC_USER_WEBSITE}/feedback/${orderDetails.order_id}`;
@@ -135,6 +137,7 @@ export const sendOrderEmail = async (
           <th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Units</th>
           <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
           <th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Discount</th>
+       
         </tr>
       </thead>
       <tbody>
@@ -145,8 +148,9 @@ export const sendOrderEmail = async (
             <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
             <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">${currencyFormatHandle(item.price * item.quantity)}</td>
             <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">
-              ${item.discount_percent > 0 ? `-${currencyFormatHandle((item.price * item.quantity * item.discount_percent) / 100)}` : "No Discount"}
+              ${discountPercentArray } %
             </td>
+            
           </tr>
         `).join("")}
       </tbody>
