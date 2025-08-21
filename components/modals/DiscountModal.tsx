@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface DiscountModalProps {
   isOpen: boolean;
-  initialValue?: number;            // seed with current discount
+  initialValue?: number; // Seed with the current discount
   title?: string;
   onApply: (percent: number) => void;
   onClose: () => void;
@@ -19,12 +19,12 @@ export default function DiscountModal({
   const [value, setValue] = useState<number>(initialValue);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
-  // keep local input in sync when opening / when parent changes
+  // Keep local input in sync when opening / when parent changes
   useEffect(() => {
     if (isOpen) setValue(initialValue);
   }, [isOpen, initialValue]);
 
-  // close on outside click
+  // Close on outside click
   useEffect(() => {
     if (!isOpen) return;
     function handleClickOutside(e: MouseEvent) {
@@ -36,7 +36,7 @@ export default function DiscountModal({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
-  // esc to close, enter to apply
+  // Escape to close, Enter to apply
   useEffect(() => {
     if (!isOpen) return;
     function onKey(e: KeyboardEvent) {
@@ -48,6 +48,8 @@ export default function DiscountModal({
   }, [isOpen, value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clamp = (n: number) => Math.max(0, Math.min(100, n));
+  
+  // Apply the discount logic
   const handleApply = () => onApply(clamp(Number.isFinite(value) ? value : 0));
 
   if (!isOpen) return null;
@@ -70,20 +72,41 @@ export default function DiscountModal({
           Enter percentage (0–100) for this product only.
         </p>
 
-      <input
-  type="text"
-  value={value === 0 ? "" : value}  // When value is 0, show an empty string
-  onChange={(e) => {
-    const newValue = clamp(Number(e.target.value) || 0);  // Ensure the input is always clamped between 0 and 100
-    setValue(newValue);
-  }}
-  placeholder="Enter % of discount"  // Custom placeholder text
-  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
-  min={0}
-  max={100}
-  step="0.01"
-/>
+        {/* Discount Input */}
+        <input
+          type="text"
+          value={value === 0 ? "" : value} // Show an empty string when value is 0
+          onChange={(e) => {
+            let rawValue = e.target.value;
 
+            // Remove any non-numeric characters except for a decimal point
+            rawValue = rawValue.replace(/[^0-9.]/g, "");
+
+            // Ensure only one decimal point is allowed
+            if ((rawValue.match(/\./g) || []).length > 1) {
+              rawValue = rawValue.replace(/\.+$/, "");
+            }
+
+            // Parse the raw value as a float
+            let newValue = parseFloat(rawValue) || 0;
+
+            // Clamp the value between 0 and 100
+            newValue = Math.max(0, Math.min(100, newValue));
+
+            // Round the value to two decimal places if necessary
+            if (!isNaN(newValue)) {
+              newValue = Math.round(newValue * 100) / 100; // Ensure two decimal places
+            }
+
+            // Set the value in the state
+            setValue(newValue);
+          }}
+          placeholder="Enter % of discount"
+          className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
+          min={0}
+          max={100}
+          step="0.01"
+        />
 
         <div className="mt-4 flex justify-end gap-2">
           <button

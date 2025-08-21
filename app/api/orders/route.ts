@@ -20,6 +20,7 @@ export async function POST(request: Request) {
 
 
      console.log("Cart Array Data:", cartArray); 
+     console.log(appliedDiscount);
 
 //     // Calculate all amounts
 //     const subtotalAmount = cartArray.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);

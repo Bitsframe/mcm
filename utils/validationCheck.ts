@@ -7,9 +7,11 @@ interface DataInterface {
     zipcode?: string;
     street_address?: string;
 }
+const validateFormData = (data: DataInterface, address = false) => {
+    const { email, phone, state, zipcode, street_address } = data;
 
-export const validateFormData = (data: DataInterface, address = false) => {
-    const { email, phone, state, zipcode, street_address } = data
+    console.log("Validating Email:", email);
+    console.log("Validating Phone:", phone);
 
     if (email) {
         const isValidEmail = String(email)
@@ -20,20 +22,27 @@ export const validateFormData = (data: DataInterface, address = false) => {
 
         if (!isValidEmail) {
             toast.error(`Please enter a valid email`);
-            return false
+            return false;
         }
     }
+
     if (phone) {
         const isValidPhone = String(phone)
             .toLowerCase()
             .match(/^(\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/);
         if (!isValidPhone) {
             toast.error(`Please enter a valid phone number`);
-            return false
+            return false;
         }
     }
-    if (address) {
-    }
-    return true
 
+    if (address) {
+        console.log("Validating Address Fields:", { state, zipcode, street_address });
+        if (!state || !zipcode || !street_address) {
+            toast.error("Please fill out all address fields");
+            return false;
+        }
+    }
+
+    return true;
 }
