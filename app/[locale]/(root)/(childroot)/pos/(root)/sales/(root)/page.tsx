@@ -55,6 +55,7 @@ interface CartItemComponentInterface {
     price: number,
     index: number
   ) => void;
+  updateDiscountPercent: (index: number, discount: number) => void;
 }
 
 interface CartArrayInterface {
@@ -98,111 +99,13 @@ const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
 
-// const CartItemComponent: FC<CartItemComponentInterface> = ({
-//   data,
-//   controllProductQtyHandle,
-//   index,
-// }) => {
-//   const {
-//     product_name,
-//     category_name,
-//     quantity,
-//     quantity_available,
-//     product_id,
-//     price,
-//     fulfillment_location_id,
-//     fulfillment_location_name,
-//   } = data;
-
-//   const { selectedLocation } = useContext(LocationContext);
-//   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
-
-//   const qtyHandle = (type: string) => {
-//     let newQty = quantity;
-//     if (type === "inc") {
-//       newQty += 1;
-//     } else {
-//       newQty -= 1;
-//     }
-//     controllProductQtyHandle(product_id, newQty, price, index);
-//   };
-
-//   const removeItemHandle = () => {
-//     controllProductQtyHandle(product_id, 0, price, index);
-//   };
-
-//   return (
-//     <div
-//       className={
-//         isOtherLocation
-//           ? "bg-blue-50 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 py-2 px-3 rounded-md shadow-sm"
-//           : "bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md"
-//       }
-//     >
-//       <div className="flex items-center">
-//         <div className="flex-1 flex items-center space-x-3">
-//           <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
-//             <button
-//               onClick={() => qtyHandle("inc")}
-//               className="disabled:opacity-60"
-//               disabled={quantity_available === quantity}
-//             >
-//               <IoIosArrowUp
-//                 size={18}
-//                 className="text-primary_color dark:text-blue-400"
-//               />
-//             </button>
-//             <span className="block text-base font-bold text-[#121111] dark:text-white">
-//               {quantity}
-//             </span>
-//             <button
-//               disabled={quantity === 0}
-//               className="disabled:opacity-60"
-//               onClick={() => qtyHandle("dec")}
-//             >
-//               <IoIosArrowDown
-//                 size={18}
-//                 className="text-primary_color dark:text-blue-400"
-//               />
-//             </button>
-//           </div>
-//           <dl>
-//             <dt className="text-base dark:text-white">{product_name}</dt>
-//             <dd className="text-sm text-gray-700 dark:text-gray-400">
-//               {category_name}
-//             </dd>
-//             {isOtherLocation && (
-//               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
-//                 Fulfilled at: {fulfillment_location_name}
-//               </dd>
-//             )}
-//           </dl>
-//         </div>
-//         <div className="flex items-center space-x-3">
-//           <p className="font-bold text-[#121111] dark:text-white">
-//             {calcTotalAmount(price, quantity)}
-//           </p>
-//           <div>
-//             <button onClick={removeItemHandle}>
-//               <IoCloseOutline
-//                 size={18}
-//                 className="text-primary_color dark:text-blue-400"
-//               />
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 
 
 const CartItemComponent: FC<CartItemComponentInterface> = ({
   data,
   controllProductQtyHandle,
   index,
+  updateDiscountPercent,
 }) => {
   const {
     product_name,
@@ -210,9 +113,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     quantity,
     quantity_available,
     product_id,
-    price,
-    original_price, // You now have the original price
-    discount_percent, // You now have the discount percent
+    price: initialPrice,
+    original_price,
+    discount_percent,  // Existing discount_percent from the backend or initial value
     fulfillment_location_id,
     fulfillment_location_name,
   } = data;
@@ -220,6 +123,20 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   const { selectedLocation } = useContext(LocationContext);
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
 
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountPct, setDiscountPct] = useState(discount_percent);  // The modal value will update this
+  const [price, setPrice] = useState(initialPrice); // Price after discount applied
+
+  // Recalculate price whenever discountPct, original_price, or quantity changes
+  useEffect(() => {
+    let totalPrice = original_price * quantity; // Total price before discount
+    if (discountPct > 0) {
+      totalPrice = totalPrice * (1 - discountPct / 100); // Apply the discount for the specific product
+    }
+    setPrice(Number(totalPrice.toFixed(2))); // Set the price after discount
+  }, [discountPct, original_price, quantity]); // Recalculate when discountPct, original_price, or quantity changes
+
+  // Function to handle quantity change
   const qtyHandle = (type: string) => {
     let newQty = quantity;
     if (type === "inc") {
@@ -230,8 +147,24 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     controllProductQtyHandle(product_id, newQty, price, index);
   };
 
+  // Function to remove item
   const removeItemHandle = () => {
     controllProductQtyHandle(product_id, 0, price, index);
+  };
+
+  // Handle the removal of the discount
+  const handleRemoveDiscount = () => {
+    setDiscountPct(0); // Reset discount for the product
+    setPrice(original_price * quantity); // Recalculate the price to the original price
+  };
+
+  // Handle when the discount modal is applied
+  const handleApplyDiscount = (pct: number) => {
+    setDiscountPct(pct); // Set the discountPct for the product
+    const discountedPrice = (original_price * quantity) * (1 - pct / 100); // Calculate the new price after discount
+    setPrice(Number(discountedPrice.toFixed(2))); // Set the new discounted price
+    updateDiscountPercent(index, pct); // Update parent cartArray
+    setIsDiscountModalOpen(false); // Close the modal after applying the discount
   };
 
   return (
@@ -282,44 +215,68 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
           </dl>
         </div>
 
-          {/* Price Section */}
-
-          <div className="flex items-center space-x-3">
-          {discount_percent > 0 ? (
-          <>
-          {/* Display original price */}
-          <p className="text-sm text-gray-500 line-through dark:text-gray-400">
-          ${original_price} {/* original price before discount */}
-          </p>
-
-          {/* Display discounted price */}
-          <p className="font-bold text-[#121111] dark:text-white">
-          ${price} {/* discounted price */}
-          </p>
-
-          {/* Display the discount percentage */}
-          <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          {discount_percent}% off
-          </p>
-          </>
+        {/* Price Section */}
+        <div className="flex items-center space-x-3">
+          {discountPct > 0 ? (
+            <>
+              <p className="text-sm text-gray-500 line-through dark:text-gray-400">
+                ${original_price * quantity} {/* original price before discount */}
+              </p>
+              <p className="font-bold text-[#121111] dark:text-white">
+                ${price} {/* discounted price for total quantity */}
+              </p>
+            </>
           ) : (
-          // No discount, only show original price
-          <p className="font-bold text-[#121111] dark:text-white">
-          ${original_price}
-          </p>
+            <p className="font-bold text-[#121111] dark:text-white">
+              ${original_price * quantity} {/* Total price without discount */}
+            </p>
           )}
 
           <div>
-          <button onClick={removeItemHandle}>
-          <IoCloseOutline
-          size={18}
-          className="text-primary_color dark:text-blue-400"
-          />
-          </button>
+            <button onClick={removeItemHandle}>
+              <IoCloseOutline
+                size={18}
+                className="text-primary_color dark:text-blue-400"
+              />
+            </button>
           </div>
-          </div>
-
+        </div>
       </div>
+
+      {/* Discount Section */}
+      <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 dark:text-gray-300">Discount</span>
+          <span className="text-emerald-600 dark:text-emerald-400">
+            {discountPct > 0 ? `${discountPct}% off` : "0% "}
+          </span>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsDiscountModalOpen(true)}
+            className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+          >
+            {discountPct > 0 ? "Change discount" : "Add discount"}
+          </button>
+          {discountPct > 0 && (
+            <button
+              onClick={handleRemoveDiscount} // Removes the discount
+              className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+            >
+              Remove discount
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Discount Modal */}
+      <DiscountModal
+        isOpen={isDiscountModalOpen}
+        initialValue={discountPct}
+        onApply={handleApplyDiscount}  // Use the updated function to apply the discount
+        onClose={() => setIsDiscountModalOpen(false)}
+      />
     </div>
   );
 };
@@ -458,8 +415,6 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
   };
 
   
-
-
 const addToCartHandle = () => {
   const findCategory: any = categories.find(
     ({ category_id }: any) => +selectedProduct.category_id === +category_id
@@ -467,11 +422,14 @@ const addToCartHandle = () => {
 
   if (findCategory && selectedLocation) {
     const basePrice = selectedProduct.price;
-    const finalUnitPrice = discountPct
-      ? Number((basePrice * (1 - discountPct / 100)).toFixed(2))
-      : basePrice;
+    let finalUnitPrice = basePrice;
+    const discount_percent = discountPct || 0;  // You already have discountPct in the component
 
-    // Prepare the product data to be added to the cart
+    if (discount_percent > 0) {
+      finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2)); // Apply discount if needed
+    }
+
+    // Creating the product object with discount_percent included
     const addProduct: CartArrayInterface = {
       product_id: selectedProduct.product_id,
       main_product_id: selectedProduct.main_product_id,
@@ -480,26 +438,23 @@ const addToCartHandle = () => {
       category_name: findCategory.category_name,
       category_id: findCategory.category_id,
       quantity_available: selectedProduct.quantity_available,
-      price: finalUnitPrice, // discounted price
-      original_price: basePrice, // original price before discount
-      discount_percent: discountPct, // discount applied
+      price: finalUnitPrice,
+      original_price: basePrice,
+      discount_percent,  // Add the discount here
       fulfillment_location_id: selectedLocation.id,
       fulfillment_location_name:
         selectedLocation.title || selectedLocation.name || "Unknown",
     };
 
-    // Update the cart with the new product
-    cartArray.push(addProduct);
-    setCartArray([...cartArray]);
+    cartArray.push(addProduct);  // Add the product to the cart array
+    setCartArray([...cartArray]); // Re-render the cart
 
-    // Reset form and variables after adding to cart
-    selectProductHandle(0);
-    setProductQty(0);
-    setDiscountPct(0); // Clear discount for next product
-    getCategoriesByLocationId(0);
+    selectProductHandle(0);  // Reset selected product after adding
+    setProductQty(0);        // Reset quantity
+    setDiscountPct(0);       // Reset discount
+    getCategoriesByLocationId(0);  // Fetch categories (if necessary)
   }
 };
-
 
 
 
@@ -650,6 +605,7 @@ const addToCartHandle = () => {
       setIsBalanceLoading(true);
 
       if (!selectedPatient || !cartArray.length) return;
+      
 
       const { data } = await axios.post("/api/orders", {
         patient_id: selectedPatient.id,
@@ -663,7 +619,7 @@ const addToCartHandle = () => {
         selectedPatient,
         selectedLocation,
       });
-
+  
       toast.success(data.message, {
         style: {
           background: "white",
@@ -1065,34 +1021,6 @@ const addToCartHandle = () => {
                 </div>
               </div>
 
-                        {/* Discount row for selected product */}
-          <div className="mt-2 flex items-center justify-between text-xs px-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 dark:text-gray-300">Discount</span>
-              {discountPct > 0 && (
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  {discountPct}% off
-                </span>
-                )}
-                </div>
-                <button
-                onClick={() => setDiscountModalOpen(true)}
-                className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
-                >
-                {discountPct > 0 ? "Change discount" : "Add discount"}
-                </button>
-
-
-                <DiscountModal
-                isOpen={discountModalOpen}
-                initialValue={discountPct}
-                onApply={(pct) => {
-                setDiscountPct(pct);          // store per-product discount
-                setDiscountModalOpen(false);
-                }}
-                onClose={() => setDiscountModalOpen(false)}
-                />
-                </div>
 
 
               <div className="flex gap-2">
@@ -1174,6 +1102,11 @@ const addToCartHandle = () => {
                   data={data}
                   key={ind}
                   controllProductQtyHandle={controllProductQtyHandle}
+                  updateDiscountPercent={(idx, discount) => {
+                    const updatedCart = [...cartArray];
+                    updatedCart[idx].discount_percent = discount;
+                    setCartArray(updatedCart);
+                  }}
                 />
               ))}
             </div>
@@ -1206,94 +1139,104 @@ const addToCartHandle = () => {
                   ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
                 </p>
               </div>
+<div className="flex items-center justify-between">
+  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+    {t("POS-Sales_k13")} %
+  </h1>
+  <div className="flex items-center gap-2">
+    <p className="text-xs">
+      {appliedDiscount
+        ? `${Math.abs(
+            grandTotalHandle(cartArray, appliedDiscount).discountAmount
+          ).toFixed(2)} (${appliedDiscount}%)`
+        : "NILL"}
+    </p>
+    {appliedDiscount > 0 && (
+      <button
+        onClick={() => {
+          setAppliedDiscount(0);  // Reset the discount
+          setDiscountInput("");    // Clear discount input field
+          toast.success("Discount removed");  // Show success message
+        }}
+        className="text-xs text-red-500"
+      >
+        X {/* Cross symbol to remove discount */}
+      </button>
+    )}
+    <button
+      className={`text-xs px-2 py-0.5 rounded ${
+        cartArray.length === 0
+          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+          : "bg-blue-500 text-white"
+      }`}
+      disabled={cartArray.length === 0}
+      onClick={() => {
+        setDiscountInput(appliedDiscount !== 0 ? String(appliedDiscount) : "");
+        setIsDiscountModalOpen(true);
+      }}
+    >
+      Add
+    </button>
+  </div>
+</div>
 
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k13")} %
-                </h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs">
-                    {appliedDiscount
-                      ? `${Math.abs(
-                          grandTotalHandle(cartArray, appliedDiscount)
-                            .discountAmount
-                        ).toFixed(2)} (${appliedDiscount}%)`
-                      : "NILL"}
-                  </p>
-                  <button
-                    className={`text-xs px-2 py-0.5 rounded ${
-                      cartArray.length === 0
-                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        : "bg-blue-500 text-white"
-                    }`}
-                    disabled={cartArray.length === 0}
-                    onClick={() => {
-                      setDiscountInput(
-                        appliedDiscount !== 0 ? String(appliedDiscount) : ""
-                      );
-                      setIsDiscountModalOpen(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
+{/* Discount Modal */}
+{isDiscountModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
+      <div>
+        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+          Enter Discount % (0 - 100)
+        </h2>
+        <input
+          type="text"
+          value={discountInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "") {
+              setDiscountInput("");
+              return;
+            }
+            if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+              const num = Number.parseFloat(value);
+              if (num <= 100) {
+                setDiscountInput(value);
+              }
+            }
+          }}
+          placeholder="Enter % of discount"
+          className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
+        />
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <button
+          className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
+          onClick={() => setIsDiscountModalOpen(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+          onClick={() => {
+            const numValue =
+              typeof discountInput === "string"
+                ? Number.parseFloat(discountInput)
+                : discountInput;
+            if (numValue >= 0 && numValue <= 100) {
+              setAppliedDiscount(numValue);  // Apply the discount
+              setIsDiscountModalOpen(false);
+            } else {
+              toast.error("Discount must be between 0 and 100%");
+            }
+          }}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-              {isDiscountModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-                        Enter Discount % (0 - 100)
-                      </h2>
-                      <input
-                        type="text"
-                        value={discountInput}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "") {
-                            setDiscountInput("");
-                            return;
-                          }
-                          if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
-                            const num = Number.parseFloat(value);
-                            if (num <= 100) {
-                              setDiscountInput(value);
-                            }
-                          }
-                        }}
-                        placeholder="Enter % of discount"
-                        className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
-                        onClick={() => setIsDiscountModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
-                        onClick={() => {
-                          const numValue =
-                            typeof discountInput === "string"
-                              ? Number.parseFloat(discountInput)
-                              : discountInput;
-                          if (numValue >= 0 && numValue <= 100) {
-                            setAppliedDiscount(numValue);
-                            setIsDiscountModalOpen(false);
-                          } else {
-                            toast.error("Discount must be between 0 and 100%");
-                          }
-                        }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
