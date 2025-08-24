@@ -690,7 +690,7 @@ const addToCartHandle = () => {
       console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {
         style: {
-          background: "var(--background)",
+          background: "#FFFFFF",
           color: "var(--foreground)",
           border: "1px solid var(--border)",
         },
