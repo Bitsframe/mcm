@@ -261,39 +261,89 @@ const EmailTemplates = () => {
     setActiveTemplate(null);
   };
 
-  const handleSaveTemplate = async () => {
-    try {
-      if (!templateName.trim()) {
-        alert("Please enter a template name");
-        return;
-      }
-      if (!templateContent.trim()) {
-        alert("Please enter template content");
-        return;
-      }
+  // const handleSaveTemplate = async () => {
+  //   try {
+  //     if (!templateName.trim()) {
+  //       alert("Please enter a template name");
+  //       return;
+  //     }
+  //     if (!templateContent.trim()) {
+  //       alert("Please enter template content");
+  //       return;
+  //     }
 
-      const plainTextBody = getFullPlainText(templateContent);
+  //     const plainTextBody = getFullPlainText(templateContent);
 
-      const post_data = {
-        name: templateName,
-        body: plainTextBody,
-        is_active: true,
-      };
+  //     const post_data = {
+  //       name: templateName,
+  //       body: plainTextBody,
+  //       is_active: true,
+  //     };
 
-      const { data, error } = await create_content_service({
-        table: "email_templates",
-        post_data,
-      });
+  //     const { data, error } = await create_content_service({
+  //       table: "email_templates",
+  //       post_data,
+  //     });
 
-      if (error) {
-        throw error;
-      }
+  //     if (error) {
+  //       throw error;
+  //     }
 
-      const newTemplate = {
-        id: data?.[0]?.id,
-        name: data?.[0]?.name,
-        content: data?.[0]?.body,
-      };
+  //     const newTemplate = {
+  //       id: data?.[0]?.id,
+  //       name: data?.[0]?.name,
+  //       content: data?.[0]?.body,
+  //     };
+
+  //     setTemplates([newTemplate, ...templates]);
+  //     setFilteredTemplates([newTemplate, ...filteredTemplates]);
+  //     setIsCreatingNew(false);
+  //     setActiveTemplate(null);
+  //     setTemplateName("");
+  //     setTemplateContent("");
+  //     alert("Template saved to Supabase!");
+  //   } catch (error) {
+  //     console.error("Error saving template:", error);
+  //     alert("Failed to save template. Please try again.");
+  //   }
+  // };
+
+const handleSaveTemplate = async () => {
+  try {
+    if (!templateName.trim()) {
+      alert("Please enter a template name");
+      return;
+    }
+    if (!templateContent.trim()) {
+      alert("Please enter template content");
+      return;
+    }
+
+    const plainTextBody = getFullPlainText(templateContent);
+
+    const post_data = {
+      name: templateName,
+      body: plainTextBody,
+      is_active: true,
+    };
+
+    const { data, error } = await create_content_service({
+      table: "email_templates",
+      post_data,
+    });
+
+    if (error) {
+      // Handle error and log it if needed
+      throw new Error(`Error creating template: ${error.message}`);
+    }
+
+    // Check if 'data' is valid and has the correct properties
+    if (Array.isArray(data) && data.length > 0) {
+     const newTemplate = {
+  id: (data as any)[0]?.id,          // Bypass TypeScript check with 'any'
+  name: (data as any)[0]?.name,      // Bypass TypeScript check with 'any'
+  content: (data as any)[0]?.body,   // Bypass TypeScript check with 'any'
+};
 
       setTemplates([newTemplate, ...templates]);
       setFilteredTemplates([newTemplate, ...filteredTemplates]);
@@ -302,12 +352,17 @@ const EmailTemplates = () => {
       setTemplateName("");
       setTemplateContent("");
       alert("Template saved to Supabase!");
-    } catch (error) {
-      console.error("Error saving template:", error);
-      alert("Failed to save template. Please try again.");
+    } else {
+      throw new Error("No valid data returned from the service.");
     }
-  };
+  } catch (error) {
+    console.error("Error saving template:", error);
+    alert("Failed to save template. Please try again.");
+  }
+};
 
+
+  
   const handleEditTemplate = (template: Template) => {
     setActiveTemplate(template);
     setTemplateContent(template.content);
