@@ -541,12 +541,15 @@ const addToCartHandle = () => {
     if (findCategory && fulfillmentLocation && selectedProduct) {
       addProduct = {
         product_id: selectedProduct.product_id,
+        main_product_id: selectedProduct.main_product_id,
         product_name: selectedProduct.product_name,
         quantity: otherLocationProductQty,
         category_name: findCategory.category_name,
         category_id: findCategory.category_id,
         quantity_available: selectedProduct.quantity_available,
         price: selectedProduct.price,
+        original_price: selectedProduct.price,
+        discount_percent: 0,
         fulfillment_location_id: fulfillmentLocation.id,
         fulfillment_location_name:
           fulfillmentLocation.title || fulfillmentLocation.name || "Unknown",
@@ -566,12 +569,15 @@ const addToCartHandle = () => {
     if (findCategory) {
       addProduct = {
         product_id: product.product_id,
+        main_product_id: product.main_product_id,
         product_name: product.product_name,
         quantity: quantity,
         category_name: findCategory.category_name,
         category_id: findCategory.category_id,
         quantity_available: product.quantity_available,
         price: product.price,
+        original_price: product.price,
+        discount_percent: 0,
         fulfillment_location_id: location.location_id,
         fulfillment_location_name: location.location_name,
       };

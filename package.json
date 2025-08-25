@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "fast-dev": "next dev",
-  "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build",
-  "start": "next start",
-  "lint": "next lint",
-  "prepare": "husky install"
-},
+    "dev": "next dev",
+    "fast-dev": "next dev",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prepare": "husky install"
+  },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.772.0",
     "@emotion/react": "^11.11.4",
@@ -31,7 +31,7 @@
     "@react-email/components": "^0.0.22",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.1.0",
-    "@supabase/supabase-js": "^2.42.0",
+    "@supabase/supabase-js": "2.47.6",
     "@tinymce/tinymce-react": "^6.1.0",
     "@tiptap/extension-image": "^2.12.0",
     "@tiptap/extension-link": "^2.12.0",
