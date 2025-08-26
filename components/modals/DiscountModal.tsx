@@ -11,17 +11,24 @@ interface DiscountModalProps {
 
 export default function DiscountModal({
   isOpen,
-  initialValue = 0,
+  initialValue,
   title = "Set product discount",
   onApply,
   onClose,
 }: DiscountModalProps) {
-  const [value, setValue] = useState<number>(initialValue);
+  // Use string state for input to allow floats and empty
+  const [inputValue, setInputValue] = useState<string>(
+    initialValue !== undefined && initialValue !== null ? initialValue.toString() : ""
+  );
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // Keep local input in sync when opening / when parent changes
   useEffect(() => {
-    if (isOpen) setValue(initialValue);
+    if (isOpen) {
+      setInputValue(
+        initialValue !== undefined && initialValue !== null ? initialValue.toString() : ""
+      );
+    }
   }, [isOpen, initialValue]);
 
   // Close on outside click
@@ -45,12 +52,20 @@ export default function DiscountModal({
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, value]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, inputValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clamp = (n: number) => Math.max(0, Math.min(100, n));
-  
+
   // Apply the discount logic
-  const handleApply = () => onApply(clamp(Number.isFinite(value) ? value : 0));
+  const handleApply = () => {
+    let num = parseFloat(inputValue);
+    if (isNaN(num)) num = 0;
+    num = Math.round(clamp(num) * 100) / 100;
+    // Enforce max 100 and min 0 on apply
+    if (num > 100) num = 100;
+    if (num < 0) num = 0;
+    onApply(num);
+  };
 
   if (!isOpen) return null;
 
@@ -75,31 +90,31 @@ export default function DiscountModal({
         {/* Discount Input */}
         <input
           type="text"
-          value={value === 0 ? "" : value} // Show an empty string when value is 0
+          value={inputValue}
           onChange={(e) => {
             let rawValue = e.target.value;
-
-            // Remove any non-numeric characters except for a decimal point
+            // Allow only digits and a decimal point
             rawValue = rawValue.replace(/[^0-9.]/g, "");
-
             // Ensure only one decimal point is allowed
             if ((rawValue.match(/\./g) || []).length > 1) {
-              rawValue = rawValue.replace(/\.+$/, "");
+              rawValue = rawValue.replace(/\.+$/, ""); // Remove extra dots
             }
-
-            // Parse the raw value as a float
-            let newValue = parseFloat(rawValue) || 0;
-
-            // Clamp the value between 0 and 100
-            newValue = Math.max(0, Math.min(100, newValue));
-
-            // Round the value to two decimal places if necessary
-            if (!isNaN(newValue)) {
-              newValue = Math.round(newValue * 100) / 100; // Ensure two decimal places
+            // Remove leading zero unless immediately followed by a decimal point
+            if (rawValue.length > 1 && rawValue[0] === '0' && rawValue[1] !== '.') {
+              rawValue = rawValue.replace(/^0+/, '');
             }
-
-            // Set the value in the state
-            setValue(newValue);
+            // Restrict to two decimal places if decimal exists
+            if (rawValue.includes('.')) {
+              const [intPart, decPart] = rawValue.split('.');
+              rawValue = intPart + '.' + (decPart ? decPart.slice(0, 2) : '');
+            }
+            // Enforce max 100 and min 0
+            if (rawValue !== "" && !isNaN(Number(rawValue))) {
+              let num = Number(rawValue);
+              if (num > 100) rawValue = "100";
+              if (num < 0) rawValue = "0";
+            }
+            setInputValue(rawValue);
           }}
           placeholder="Enter % of discount"
           className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
