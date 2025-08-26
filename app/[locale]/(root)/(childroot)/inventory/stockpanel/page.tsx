@@ -9,6 +9,7 @@ import React, {
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import InventoryCards from "./InventoryCards";
 import TableComponent from "@/components/TableComponent";
+import StockAlertsComponent from "@/components/StockAlerts";
 import { LocationContext, TabContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
@@ -200,6 +201,9 @@ const StockPanel = () => {
       <div className="w-full h-full overflow-y-auto overflow-x-hidden py-2 px-2 flex flex-col gap-4 max-w-full">
         <div className="w-full max-w-full">
           <InventoryCards archived={getDataArchiveType} />
+        </div>
+        <div className="w-full max-w-full">
+          <StockAlertsComponent />
         </div>
         {/* <div className="w-full max-w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-2 w-full max-w-full">

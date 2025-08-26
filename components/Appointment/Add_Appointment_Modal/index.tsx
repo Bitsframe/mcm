@@ -12,7 +12,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { CirclePlus } from "lucide-react";
 import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
 import { sendEmail } from "@/utils/emailService";
-import { LocationContext } from "@/context";
+import { LocationContext, AuthContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 
 interface RadioButtonOptionsInterface {
@@ -125,6 +125,7 @@ export const Add_Appointment_Modal = ({
 }) => {
   const { locations } = useLocationClinica();
   const { selectedLocation } = useContext(LocationContext);
+  const { userProfile } = useContext(AuthContext);
 
   const [formData, setFormData] = useState<any>({ phone: '' });
   const [open, setOpen] = useState(false);
@@ -220,6 +221,7 @@ export const Add_Appointment_Modal = ({
       phone: phone,
       service: service,
       date_and_time,
+      user_id: userProfile?.id, // Add user ID to appointment
     };
 
     const requiredFields = [
