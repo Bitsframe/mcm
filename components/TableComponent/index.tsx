@@ -46,7 +46,7 @@ interface DataListInterface {
   [key: string]: any;
 }
 
-const TableComponent: React.FC<Props> = ({
+const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   itemPerPage,
   tableHeader,
   loading,
@@ -54,8 +54,7 @@ const TableComponent: React.FC<Props> = ({
   openModal,
   tableBodyHeight = "",
   tableHeight = "h-[82dvh]",
-  searchHandle,
-  searchInputplaceholder,
+  searchInputs,
   RightSideComponent,
   pdf,
   resetPaginationTrigger,
@@ -132,17 +131,7 @@ const TableComponent: React.FC<Props> = ({
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
-        <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10 min-w-0">
-          <CiSearch size={18} color="gray" />
-          <input
-            onChange={searchHandle}
-            type="text"
-            //@ts-ignore
-            placeholder={t(searchInputplaceholder)}
-            className="w-full px-1 focus:outline-none placeholder-gray-400 dark:placeholder-gray-400 bg-transparent text-sm text-black dark:text-white min-w-0"
-          />
-        </div>
-
+  {/* No global search bar for this table */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
           {pdf ? <ExportAsPDF /> : null}
           {RightSideComponent ? <RightSideComponent /> : null}
@@ -210,22 +199,81 @@ const TableComponent: React.FC<Props> = ({
         <div className="hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
             <TableHeader className="bg-white dark:bg-[#0E1725] sticky top-0 z-10 min-w-0">
+              {/* Search Inputs Row */}
+              {searchInputs && (
+                <TableRow>
+                  <TableCell className="p-1">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      placeholder="Search Order ID"
+                      value={searchInputs.orderIdSearch}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, "");
+                        searchInputs.setOrderIdSearch(val);
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell className="p-1">
+                    <input
+                      type="text"
+                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      placeholder="Search Patient Name"
+                      value={searchInputs.patientNameSearch}
+                      onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
+                    />
+                  </TableCell>
+                  <TableCell className="p-1">
+                    <input
+                      type="text"
+                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      placeholder="Search DOB"
+                      value={searchInputs.dobSearch}
+                      onChange={e => searchInputs.setDobSearch(e.target.value)}
+                    />
+                  </TableCell>
+                  <TableCell className="p-1">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      placeholder="Search Phone Number"
+                      value={searchInputs.phoneSearch}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, "");
+                        searchInputs.setPhoneSearch(val);
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell className="p-1">
+                    <input
+                      type="text"
+                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      placeholder="Search Email"
+                      value={searchInputs.emailSearch}
+                      onChange={e => searchInputs.setEmailSearch(e.target.value)}
+                    />
+                  </TableCell>
+                  {/* Details column header cell for alignment */}
+                  {openModal && <TableCell className="p-1"></TableCell>}
+                </TableRow>
+              )}
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
-                {tableHeader.map(({ label, align, flex }, index) => (
-                  <TableHead
-                    key={index}
-                    className={`py-3 text-sm text-gray-500 dark:text-gray-300 font-medium ${
-                      flex || "flex-1"
-                    } ${align || "text-left"} min-w-0`}
-                  >
-                    {t(label, {
-                      ns: translationConstant.STOCKPANEL,
-                      defaultValue: t(label, {
-                        ns: translationConstant.POSHISTORY,
-                      }),
-                    })}
-                  </TableHead>
-                ))}
+                {/* Order ID */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Order ID</TableHead>
+                {/* Patient Name */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Patient Name</TableHead>
+                {/* DOB */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Date of Birth</TableHead>
+                {/* Phone Number */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Phone Number</TableHead>
+                {/* Email */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Email</TableHead>
+                {/* Details column header cell for alignment */}
+                {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
               </TableRow>
             </TableHeader>
 
@@ -244,22 +292,27 @@ const TableComponent: React.FC<Props> = ({
                     key={startIndex + index}
                     className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700 min-w-0"
                   >
-                    {tableHeader.map(
-                      ({ id, render_value, align, flex }, ind) => {
-                        const content = render_value
-                          ? render_value(elem[id], elem, openModal)
-                          : elem[id];
-                        return (
-                          <TableCell
-                            key={ind}
-                            className={`py-3 text-sm ${flex || "flex-1"} ${
-                              align || "text-left"
-                            } min-w-0`}
-                          >
-                            {content}
-                          </TableCell>
-                        );
-                      }
+                    {/* Order ID */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem.order_id}</TableCell>
+                    {/* Patient Name */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{`${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`}</TableCell>
+                    {/* DOB */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.dob || "-"}</TableCell>
+                    {/* Phone Number */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.phone || ''}</TableCell>
+                    {/* Email */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.email || ''}</TableCell>
+                    {/* Details Button */}
+                    {openModal && (
+                      <TableCell className="py-3 text-center min-w-0">
+                        <button
+                          onClick={() => openModal(elem)}
+                          className="px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 text-xs"
+                          title="View Details"
+                        >
+                          Details
+                        </button>
+                      </TableCell>
                     )}
                   </TableRow>
                 ))

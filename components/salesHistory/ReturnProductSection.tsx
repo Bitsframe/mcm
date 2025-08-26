@@ -2,6 +2,7 @@ import { create_content_service } from "@/utils/supabase/data_services/data_serv
 import { useEffect, useState } from "react"
 import { IoCloseOutline } from "react-icons/io5"
 import { toast } from "sonner"
+import React from 'react';
 import { Button } from 'flowbite-react';
 
 
@@ -13,6 +14,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
     const [forReturnQty, setForReturnQty] = useState(0)
     const [forReturnReason, setForReturnReason] = useState('0')
     const [loading, setLoading] = useState(false)
+    const [showModal, setShowModal] = useState(false);
 
 
     const returnHandle = () => {
@@ -87,16 +89,16 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
 
 
-    if (processReturn) {
-        return <div className=' fixed bg-black/40 top-0 bottom-0 left-0 right-0 flex justify-center items-center'>
-            <div className='bg-white max-w-[850px] w-[100%] py-3 px-3 rounded-md'>
-                <div className='flex justify-between pt-2 py-5'>
-                    <h1 className='text-xl font-semibold'>
-                        Process Return
-                    </h1>
-                    <IoCloseOutline className='pointer-events-auto cursor-pointer' size={24} onClick={ClosereturnHandle} />
-                </div>
-                <div>
+    if (showModal) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-md relative">
+                    <button
+                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowModal(false)}
+                    >
+                        &times;
+                    </button>
                     <form onSubmit={processReturnHandle} className='space-y-6'>
 
                         <div className='flex justify-start flex-col space-y-1'>
@@ -128,9 +130,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
                     </form>
                 </div>
             </div>
-
-        </div>
-
+        )
     }
 
     if (returnedQty && !loading) {
@@ -140,7 +140,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
     }
 
 
-    return <button disabled={isAnyReturned} onClick={returnHandle} className='bg-[#E1BBB8] text-sm px-3 py-3 rounded-md disabled:opacity-60'>
+    return <button disabled={isAnyReturned} onClick={() => setShowModal(true)} className='bg-[#E1BBB8] text-sm px-3 py-3 rounded-md disabled:opacity-60'>
         Return
     </button>
 

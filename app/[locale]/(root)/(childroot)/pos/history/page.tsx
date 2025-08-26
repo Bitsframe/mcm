@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import moment from "moment";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { currencyFormatHandle } from "@/helper/common_functions";
@@ -26,59 +20,28 @@ interface DataListInterface {
 const tableHeader = [
   {
     id: "order_id",
-    label: "POS-Historyk4",
+    label: "Order ID",
     align: "text-center",
     flex: "flex-1",
   },
   {
-    id: "order_date",
-    label: "POS-Historyk5",
-    render_value: (val: string) =>
-      moment(val, "YYYY-MM-DD HH:mm:ss")
-        .subtract(6, "hours")
-        .format("DD-MMMM-YYYY"),
+    id: "patient_name",
+    label: "Patient Name",
+    render_value: (_val: any, elem?: any) => `${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`,
+    align: "text-center",
+    flex: "flex-1",
   },
   {
-    id: "name",
-    label: "POS-Historyk6",
-    render_value: (val: any, elem?: any) =>
-      `${elem?.pos?.firstname} ${elem?.pos?.lastname}`,
+    id: "phone",
+    label: "Phone Number",
+    render_value: (_val: any, elem?: any) => elem?.pos?.phone || '',
+    align: "text-center",
+    flex: "flex-1",
   },
   {
-    id: "total_price",
-    label: "POS-Historyk7",
-    render_value: (val: any, elem?: any) => {
-      const totalVal = elem.sales_history?.reduce(
-        (a: number, b: { total_price: number }) => a + b?.total_price,
-        0
-      );
-      return currencyFormatHandle(totalVal);
-    },
-  },
-  {
-    id: "payment_type",
-    label: "POS-Historyk8",
-    render_value: (_val: string, elem: any) =>
-      <div className="space-x-1">
-    {elem.cash ? <span className="text-sm">Cash</span> : null}
-    {elem.cash && elem.card ? <span>/</span> : null}
-    {elem.card ? <span className="text-sm">Card</span> : null}
-  </div>
-  },
-  {
-    id: "last_updated",
-    label: "POS-Historyk9",
-    render_value: (_val: string, elem: any, openModal: Function) => (
-      <button
-        onClick={() => openModal(elem)}
-        className="bg-[#cce0ff] text-[#0066ff] border-2 border-[#0066ff] text-base px-2 py-1 rounded-md transition-colors w-full"
-      >
-        <div className="flex justify-center items-center gap-2">
-          <Eye className="w-4 h-4" />
-          Details
-        </div>
-      </button>
-    ),
+    id: "email",
+    label: "Email",
+    render_value: (_val: any, elem?: any) => elem?.pos?.email || '',
     align: "text-center",
     flex: "flex-1",
   },
@@ -89,14 +52,15 @@ const SalesHistory = () => {
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<DataListInterface | null>(
-    null
-  );
+  const [selectedOrder, setSelectedOrder] = useState<DataListInterface | null>(null);
   const { selectedLocation } = useContext(LocationContext);
   const [preDefinedReasonList, setPreDefinedReasonList] = useState([]);
-  type SearchType = "all" | "order_id" | "name";
-const [searchType, setSearchType] = useState<SearchType>("all");
-
+  // Search states for each column
+  const [orderIdSearch, setOrderIdSearch] = useState("");
+  const [patientNameSearch, setPatientNameSearch] = useState("");
+  const [phoneSearch, setPhoneSearch] = useState("");
+  const [emailSearch, setEmailSearch] = useState("");
+  const [dobSearch, setDobSearch] = useState("");
 
   const fetchReasonsList = useCallback(async () => {
     try {
@@ -122,6 +86,9 @@ const [searchType, setSearchType] = useState<SearchType>("all");
         selectParam: `,pos:allpatients (
           lastname,
           firstname,
+          email,
+          phone,
+          dob,
           locationid,
           patientid:id
         ),
@@ -136,7 +103,10 @@ const [searchType, setSearchType] = useState<SearchType>("all");
           key: "pos.locationid",
           value: location_id,
         },
-        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "allpatients.id", value: null }],
+        filterOptions: [
+          { operator: "not", column: "pos", value: null },
+          { operator: "not", column: "allpatients.id", value: null },
+        ],
       });
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
       setDataList(filteredData);
@@ -147,6 +117,39 @@ const [searchType, setSearchType] = useState<SearchType>("all");
       setLoading(false);
     }
   }, []);
+
+
+  // Filtering logic
+  useEffect(() => {
+    let filtered = allData;
+    if (orderIdSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        String(item.order_id).toLowerCase().includes(orderIdSearch.toLowerCase())
+      );
+    }
+    if (patientNameSearch.trim() !== "") {
+      filtered = filtered.filter((item) => {
+        const name = `${item?.pos?.firstname || ''} ${item?.pos?.lastname || ''}`.toLowerCase();
+        return name.includes(patientNameSearch.toLowerCase());
+      });
+    }
+    if (phoneSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        (item?.pos?.phone || "").toLowerCase().includes(phoneSearch.toLowerCase())
+      );
+    }
+    if (emailSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        (item?.pos?.email || "").toLowerCase().includes(emailSearch.toLowerCase())
+      );
+    }
+    if (dobSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        (item?.pos?.dob || "").toLowerCase().includes(dobSearch.toLowerCase())
+      );
+    }
+    setDataList(filtered);
+  }, [orderIdSearch, patientNameSearch, phoneSearch, emailSearch, dobSearch, allData]);
 
   useEffect(() => {
     if (selectedLocation) {
@@ -167,54 +170,6 @@ const [searchType, setSearchType] = useState<SearchType>("all");
     setModalOpen(false);
     setSelectedOrder(null);
   }, []);
-
-  // const onChangeHandle = useCallback(
-  //   (e: any) => {
-  //     const val = e.target.value;
-  //     if (val === "") {
-  //       setDataList([...allData]);
-  //     } else {
-  //       const filteredData = allData.filter((elem) => elem.order_id === +val);
-  //       setDataList(filteredData);
-  //     }
-  //   },
-  //   [allData]
-  // );
-
-
-  const onChangeHandle = useCallback(
-  (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value ?? "";
-    const q = val.trim().toLowerCase();
-
-    if (!q) {
-      setDataList([...allData]);
-      return;
-    }
-
-    const filtered = allData.filter((elem) => {
-      const idStr = String(elem?.order_id ?? "").toLowerCase();
-      const fullName = `${elem?.pos?.firstname ?? ""} ${elem?.pos?.lastname ?? ""}`
-        .trim()
-        .toLowerCase();
-
-      switch (searchType) {
-        case "order_id":
-          // exact or contains so "12" finds "1203"
-          return idStr === q || idStr.includes(q);
-        case "name":
-          return fullName.includes(q);
-        case "all":
-        default:
-          return idStr.includes(q) || fullName.includes(q);
-      }
-    });
-
-    setDataList(filtered);
-  },
-  [allData, searchType]
-);
-
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
 
@@ -241,33 +196,29 @@ const [searchType, setSearchType] = useState<SearchType>("all");
       </div>
 
 
-  {/* Search-by selector */}
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-      {t("SearchBy") || "Search by"}
-    </span>
-    <select
-      className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#F1F4F9] dark:bg-[#122136] text-sm text-gray-900 dark:text-white"
-      value={searchType}
-      onChange={(e) => setSearchType(e.target.value as SearchType)}
-    >
-      <option value="all">{t("All") || "All"}</option>
-      <option value="order_id">{t("Order ID") || "Order ID"}</option>
-      <option value="name">{t("Name") || "Name"}</option>
-    </select>
-  </div>
 
-  <TableComponent
-    tableHeader={tableHeader}
-    loading={loading}
-    dataList={dataList}
-    openModal={openModal}
-    searchHandle={onChangeHandle}
-    searchInputplaceholder={t("POS-Historyk3")}
-    tableBodyHeight="h-[50dvh]"
-    tableHeight="h-[67dvh] md:h-[58dvh]"
-    itemPerPage={6}
-  />
+      {/* Table Component */}
+      <TableComponent
+        tableHeader={tableHeader}
+        loading={loading}
+        dataList={dataList}
+        openModal={openModal}
+        tableBodyHeight="h-[50dvh]"
+        tableHeight="h-[67dvh] md:h-[58dvh]"
+        itemPerPage={6}
+        searchInputs={{
+          orderIdSearch,
+          setOrderIdSearch,
+          patientNameSearch,
+          setPatientNameSearch,
+          phoneSearch,
+          setPhoneSearch,
+          emailSearch,
+          setEmailSearch,
+          dobSearch,
+          setDobSearch,
+        }}
+      />
 
       {selectedOrder && (
         <OrderDetailsModal
