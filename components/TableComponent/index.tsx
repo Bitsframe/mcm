@@ -227,35 +227,48 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   </TableCell>
                   <TableCell className="p-1">
                     <input
-                      type="text"
+                      type="date"
                       className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      placeholder="Search DOB"
                       value={searchInputs.dobSearch}
                       onChange={e => searchInputs.setDobSearch(e.target.value)}
                     />
                   </TableCell>
                   <TableCell className="p-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      placeholder="Search Phone Number"
-                      value={searchInputs.phoneSearch}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^0-9]/g, "");
-                        searchInputs.setPhoneSearch(val);
-                      }}
-                    />
+                    <div className="flex items-center">
+                      <span className="px-1 text-xs select-none">+1</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        placeholder="Phone Number"
+                        value={searchInputs.phoneSearch}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9]/g, "");
+                          searchInputs.setPhoneSearch(val);
+                        }}
+                        style={{ marginLeft: '-2px' }}
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="p-1">
-                    <input
-                      type="text"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      placeholder="Search Email"
-                      value={searchInputs.emailSearch}
-                      onChange={e => searchInputs.setEmailSearch(e.target.value)}
-                    />
+                    {(() => {
+                      const emailValue = searchInputs.emailSearch;
+                      // Always validate if not empty
+                      let isValid = true;
+                      if (emailValue) {
+                        isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+                      }
+                      return (
+                        <input
+                          type="text"
+                          className={`w-full border-2 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none ${!emailValue || isValid ? 'border-black' : 'border-red-500'}`}
+                          placeholder="Search Email"
+                          value={emailValue}
+                          onChange={e => searchInputs.setEmailSearch(e.target.value)}
+                        />
+                      );
+                    })()}
                   </TableCell>
                   {/* Details column header cell for alignment */}
                   {openModal && <TableCell className="p-1"></TableCell>}
