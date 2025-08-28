@@ -13,12 +13,6 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import { Eye } from "lucide-react";
 
-// Validation function for email
-const validateEmail = (email: string) => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailRegex.test(email);
-};
-
 interface DataListInterface {
   [key: string]: any;
 }
@@ -67,7 +61,6 @@ const SalesHistory = () => {
   const [phoneSearch, setPhoneSearch] = useState("");
   const [emailSearch, setEmailSearch] = useState("");
   const [dobSearch, setDobSearch] = useState("");
-  const [emailValid, setEmailValid] = useState(true); // New state for email validation
 
   const fetchReasonsList = useCallback(async () => {
     try {
@@ -125,7 +118,8 @@ const SalesHistory = () => {
     }
   }, []);
 
-  // Filtering logic with email validation
+
+  // Filtering logic
   useEffect(() => {
     let filtered = allData;
     if (orderIdSearch.trim() !== "") {
@@ -145,12 +139,6 @@ const SalesHistory = () => {
       );
     }
     if (emailSearch.trim() !== "") {
-      // Check if email is valid and set the validation state
-      const isValid = validateEmail(emailSearch);
-      setEmailValid(isValid); // Update the validation state
-      if (!isValid) {
-        return; // Stop further filtering if email is invalid
-      }
       filtered = filtered.filter((item) =>
         (item?.pos?.email || "").toLowerCase().includes(emailSearch.toLowerCase())
       );
@@ -207,19 +195,7 @@ const SalesHistory = () => {
         </div>
       </div>
 
-      {/* Email input with validation */}
-      <div className="my-4">
-        <label htmlFor="emailSearch" className="block text-sm font-medium text-gray-700">Email</label>
-        <input
-          type="text"
-          id="emailSearch"
-          value={emailSearch}
-          onChange={(e) => setEmailSearch(e.target.value)}
-          className={`mt-1 block w-full p-2 border ${emailValid ? 'border-gray-300' : 'border-red-500'} rounded-md`}
-          placeholder="Enter Email"
-        />
-        {!emailValid && <p className="text-red-500 text-xs mt-1">Please enter a valid email address.</p>}
-      </div>
+
 
       {/* Table Component */}
       <TableComponent

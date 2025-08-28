@@ -252,24 +252,32 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     </div>
                   </TableCell>
                   <TableCell className="p-1">
-                    {(() => {
-                      const emailValue = searchInputs.emailSearch;
-                      // Always validate if not empty
-                      let isValid = true;
-                      if (emailValue) {
-                        isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
-                      }
-                      return (
-                        <input
-                          type="text"
-                          className={`w-full border-2 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none ${!emailValue || isValid ? 'border-black' : 'border-red-500'}`}
-                          placeholder="Search Email"
-                          value={emailValue}
-                          onChange={e => searchInputs.setEmailSearch(e.target.value)}
-                        />
-                      );
-                    })()}
-                  </TableCell>
+  {(() => {
+    const emailValue = searchInputs.emailSearch;
+    // Email validation logic
+    const isValid = emailValue ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue) : true;
+    const [touched, setTouched] = React.useState(false);
+
+    return (
+      <input
+        type="text"
+        className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
+        ${!isValid && touched ? 'bg-red-100 border-black' : 'bg-gray-100 border-black'}`}
+        placeholder="Search Email"
+        value={emailValue}
+        onChange={e => {
+          searchInputs.setEmailSearch(e.target.value); // Update the email search state
+        }}
+        onBlur={() => setTouched(true)}
+      />
+    );
+  })()}
+</TableCell>
+
+
+
+
+                  
                   {/* Details column header cell for alignment */}
                   {openModal && <TableCell className="p-1"></TableCell>}
                 </TableRow>
