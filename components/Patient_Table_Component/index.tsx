@@ -116,8 +116,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  
   const [searchType, setSearchType] = useState<
-    "all" | "name" | "email" | "phone"
+    "all" | "name" | "email" | "phone" | "id"
   >("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
@@ -248,6 +249,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             return patient.email.toLowerCase().includes(searchLower);
           case "phone":
             return patient.phone.toLowerCase().includes(searchLower);
+            case "id":
+              // Allow both string and number search for id
+              return patient.id.toString().includes(searchLower);
           case "all":
           default:
             return (
@@ -564,7 +568,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </span>
           <Select
             value={searchType}
-            onValueChange={(value: "all" | "name" | "email" | "phone") =>
+            onValueChange={(value: "all" | "name" | "email" | "phone" | "id") =>
               setSearchType(value)
             }
           >
@@ -595,6 +599,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Phone
+              </SelectItem>
+              <SelectItem
+                value="id"
+                className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                ID
               </SelectItem>
             </SelectContent>
           </Select>
