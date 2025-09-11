@@ -1142,7 +1142,7 @@ const addToCartHandle = () => {
                   {t("POS-Sales_k76")}
                 </h1>
                 <p className="text-xs">
-                  ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
+                  ${grandTotalHandle(cartArray, 0).productTotalOriginalPrice.toFixed(2)}
                 </p>
               </div>
 <div className="flex items-center justify-between">
