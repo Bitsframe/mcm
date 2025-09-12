@@ -1066,21 +1066,20 @@ const addToCartHandle = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h1 className="text-[11px] text-gray-700 dark:text-gray-300 ">
-                  {t("POS-Sales_k30")}:{" "}
-                  <span className={`font-bold`}>
-                    {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
-                    {/* Display calculated adjusted Balance Limit */}
-                    {`${selectedLocation?.credit_limit?.toFixed(2)}`}
-                  </span>
-                </h1>
+    {t("POS-Sales_k30")}: {" "}
+    <span className="font-bold">
+      {`${selectedLocation?.credit_limit?.toFixed(2)}`}
+    </span>
+</h1>
+
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k29")}:{" "}
                   <span
-                    className={`font-bold ${
-                      displayedBalanceLimit < 0
-                        ? "text-red-500 dark:text-red-400"
+                    className={`font-bold px-1 rounded ${
+                      displayedBalanceLimit === 0
+                        ? "bg-red-600 text-white dark:bg-red-800"
                         : ""
                     }`}
                   >
