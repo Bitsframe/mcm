@@ -132,7 +132,7 @@ const TableComponent: React.FC<Props> = ({
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
-        <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#334155] relative z-10 min-w-0">
+        <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725] relative z-10 min-w-0">
           <CiSearch size={18} color="gray" />
           <input
             onChange={searchHandle}

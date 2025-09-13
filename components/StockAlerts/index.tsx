@@ -5,6 +5,15 @@ import { fetch_content_service } from "@/utils/supabase/data_services/data_servi
 import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent 
+} from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+
 
 interface StockAlert {
   uuid: string;
@@ -43,6 +52,7 @@ const StockAlertsComponent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<DataListInterface | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<{isProcessing: boolean; processed: number; total: number}>({isProcessing: false, processed: 0, total: 0});
 
   const { selectedLocation } = useContext(LocationContext);
   const { t } = useTranslation(translationConstant.STOCKPANEL);
@@ -86,12 +96,14 @@ const StockAlertsComponent: React.FC = () => {
 
       setDataList(fetched_data || []);
       setAllData(fetched_data || []);
+      setLoading(false);
+      
     } catch (error) {
-      console.error("❌ Error fetching stock alerts:", error);
+      console.error(" Error fetching stock alerts:", error);
       setDataList([]);
       setAllData([]);
-    } finally {
       setLoading(false);
+      setProcessingStatus({isProcessing: false, processed: 0, total: 0});
     }
   };
 
@@ -134,6 +146,51 @@ const StockAlertsComponent: React.FC = () => {
     setSelectedAlert(null);
   };
 
+  const handleRefreshData = async () => {
+    if (processingStatus.isProcessing) {
+      return;
+    }
+
+    if (!selectedLocation?.id) {
+      return;
+    }
+
+    setProcessingStatus({isProcessing: true, processed: 0, total: 0});
+    
+    try {
+      fetch('/api/stockpanel-AI')
+        .then(async (response) => {
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ Stock AI API call failed:", errorText);
+            setProcessingStatus({isProcessing: false, processed: 0, total: 0});
+            return;
+          }
+
+          const result = await response.json();
+          console.log("✅ Stock AI API processed:", result.totalProcessed, "items");
+          
+          setProcessingStatus({isProcessing: false, processed: result.totalProcessed, total: result.totalProcessed});
+          
+          console.log(" Background processing completed successfully!");
+          
+          if (selectedLocation?.id) {
+            await fetchStockAlerts(selectedLocation.id);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ Error during background processing:", error);
+          setProcessingStatus({isProcessing: false, processed: 0, total: 0});
+        });
+      
+      
+    } catch (error) {
+      console.error("❌ Error starting background processing:", error);
+      setProcessingStatus({isProcessing: false, processed: 0, total: 0});
+      alert("An error occurred while starting background processing. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (selectedLocation?.id) {
       fetchStockAlerts(selectedLocation.id);
@@ -168,24 +225,47 @@ const StockAlertsComponent: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
-              <span>AI-Powered Stock Alerts</span>
-              <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+      <div className="bg-white dark:bg-[#0e1725] rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
               </svg>
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Intelligent inventory monitoring with predictive insights
-            </p>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+                <span>AI-Powered Stock Alerts</span>
+                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                </svg>
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Intelligent inventory monitoring with predictive insights
+              </p>
+            </div>
           </div>
+          
+          {/* Refresh Data Button */}
+          <button
+            onClick={handleRefreshData}
+            disabled={processingStatus.isProcessing}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              processingStatus.isProcessing
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
+            }`}
+          >
+            <svg 
+              className={`w-4 h-4 ${processingStatus.isProcessing ? 'animate-spin' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>{processingStatus.isProcessing ? 'Processing...' : 'Start AI Analysis'}</span>
+          </button>
         </div>
         
         <div className="relative">
@@ -204,6 +284,30 @@ const StockAlertsComponent: React.FC = () => {
         </div>
       </div>
 
+      {processingStatus.isProcessing && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4 mb-4 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-blue-700 dark:text-blue-400 font-medium">AI Analysis running in background...</span>
+            </div>
+            <div className="text-sm text-blue-600 dark:text-blue-300">
+              {processingStatus.processed > 0 ? `${processingStatus.processed} items processed` : 'Starting...'}
+            </div>
+          </div>
+          <div className="mt-2 bg-blue-100 dark:bg-blue-800/50 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+              style={{
+                width: processingStatus.total > 0 
+                  ? `${(processingStatus.processed / processingStatus.total) * 100}%` 
+                  : '10%'
+              }}
+            ></div>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -215,7 +319,7 @@ const StockAlertsComponent: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700/50">
+              <thead className="bg-gray-50 dark:bg-[#0e1725]">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Inventory ID</th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product ID</th>
@@ -227,7 +331,7 @@ const StockAlertsComponent: React.FC = () => {
                   <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Anomaly</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white dark:bg-[#0e1725] divide-y divide-gray-200 dark:divide-gray-700">
                 {currentData.map((item, index) => {
                   const isLowStock = item.quantity <= item.threshold;
                   return (
@@ -288,7 +392,7 @@ const StockAlertsComponent: React.FC = () => {
               </tbody>
             </table>
             
-            <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 px-4">
+            <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] px-4">
               <div>
                 {dataList.length === 0
                   ? `Showing 0 to 0 of 0`
@@ -331,7 +435,7 @@ const StockAlertsComponent: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Insight</h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Based on usage patterns, 3 critical items need immediate attention. AI recommends bulk ordering to optimize costs.
+              Based on usage patterns, 3 critical items need immediate attention.
             </p>
           </div>
         </div>
@@ -339,7 +443,7 @@ const StockAlertsComponent: React.FC = () => {
 
       {modalOpen && selectedAlert && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Stock Alert Details</h3>
               <button
@@ -352,42 +456,148 @@ const StockAlertsComponent: React.FC = () => {
               </button>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Inventory ID</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.inventory_id || "-"}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Inventory ID</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.inventory_id || "-"}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product ID</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.product_id || "-"}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.quantity || 0}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Threshold</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.threshold || 0}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.priority || "-"}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Severity</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_severity || "-"}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.message || "-"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Message</label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_message || "-"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Forecasted Runout (Months)</label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.forecasted_runout_months || "-"}</p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product ID</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.product_id || "-"}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.quantity || 0}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Threshold</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.threshold || 0}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.priority || "-"}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Severity</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_severity || "-"}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.message || "-"}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Message</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_message || "-"}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Forecasted Runout (Months)</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.forecasted_runout_months || "-"}</p>
+              
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">Stock Trend Analysis</h4>
+                <div className="h-[300px]">
+                  {/* Shadcn Chart Component */}
+                  <ChartContainer
+                    config={{
+                      quantity: {
+                        label: "Quantity",
+                        color: "#2563eb",
+                      },
+                      threshold: {
+                        label: "Threshold",
+                        color: "#dc2626",
+                      },
+                      forecast: {
+                        label: "Forecast",
+                        color: "#16a34a",
+                      },
+                    }}
+                  >
+                    <LineChart
+                      data={[
+                        {
+                          name: "Current",
+                          quantity: selectedAlert.quantity,
+                          threshold: selectedAlert.threshold,
+                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1))),
+                        },
+                        {
+                          name: "1 Month",
+                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1))),
+                          threshold: selectedAlert.threshold,
+                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 2)),
+                        },
+                        {
+                          name: "2 Months",
+                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 2)),
+                          threshold: selectedAlert.threshold,
+                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 3)),
+                        },
+                        {
+                          name: "3 Months",
+                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 3)),
+                          threshold: selectedAlert.threshold,
+                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 4)),
+                        },
+                      ]}
+                      margin={{
+                        top: 20,
+                        right: 20,
+                        bottom: 20,
+                        left: 20,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="name" className="text-sm" />
+                      <YAxis className="text-sm" />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        cursor={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="quantity"
+                        strokeWidth={2}
+                        activeDot={{
+                          r: 6,
+                          style: { fill: "#2563eb", opacity: 0.8 },
+                        }}
+                        className="stroke-[--color-quantity] fill-[--color-quantity]"                        
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="threshold"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        activeDot={{
+                          r: 6,
+                          style: { fill: "#dc2626", opacity: 0.8 },
+                        }}
+                        className="stroke-[--color-threshold] fill-[--color-threshold]"                        
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="forecast"
+                        strokeWidth={2}
+                        strokeDasharray="3 3"
+                        activeDot={{
+                          r: 6,
+                          style: { fill: "#16a34a", opacity: 0.8 },
+                        }}
+                        className="stroke-[--color-forecast] fill-[--color-forecast]"                        
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                    </LineChart>
+                  </ChartContainer>
+                </div>
+                <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                  <p>Projected to run out in <span className="font-medium text-blue-600 dark:text-blue-400">{selectedAlert.forecasted_runout_months || "unknown"}</span> months based on current usage patterns.</p>
+                </div>
               </div>
             </div>
           </div>
