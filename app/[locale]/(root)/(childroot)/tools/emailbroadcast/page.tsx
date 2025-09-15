@@ -270,7 +270,11 @@ const EmailBroadcast: React.FC = () => {
     const fetchEmailList = async () => {
       try {
         const email = await getUserEmail();
+       
         setEmailList(email);
+
+    
+
         const location = await getLocations();
         setLocationList(location);
         const services = await getServices();
