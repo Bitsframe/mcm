@@ -85,7 +85,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
     useEffect(() => {
         setReturnedQty(data.return_qty)
-    }, [])
+    }, [data.return_qty])
 
 
 
