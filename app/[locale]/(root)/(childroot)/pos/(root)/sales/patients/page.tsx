@@ -245,7 +245,7 @@ const Patients = () => {
       sortOptions: { column: "lastvisit", order: "desc" },
     });
 
-    // Map lastvisit to updated_at for compatibility
+    // Map lastvisit from database for display purposes
     const mappedData = fetched_data.map((item: any) => ({
       ...item,
       updated_at: item.lastvisit
@@ -286,7 +286,6 @@ const Patients = () => {
   };
 
   const editHandle = (data: any) => {
-    console.log("Edit handle called with data:", data);
     openModalHandle();
     setActionData(data);
     setActiveModalMode("edit");
@@ -312,12 +311,7 @@ const Patients = () => {
         setModalEmailError("");
       }
     }
-    console.log(`Updating field ${id} with value:`, e);
-    setActionData((pre: any) => {
-      const updated = { ...pre, [id]: e };
-      console.log("Updated actionData:", updated);
-      return updated;
-    });
+    setActionData((pre: any) => ({ ...pre, [id]: e }));
     setCanModalSubmit(true);
   };
   const addPatientFieldsChange = (e: any, id: string) => {
@@ -387,8 +381,6 @@ const Patients = () => {
       return;
     }
 
-    console.log("Action data before update:", actionData);
-    
     if (!actionData.id) {
       toast.error("Patient ID is missing. Cannot update.");
       setModalLoading(false);
@@ -405,8 +397,6 @@ const Patients = () => {
         language: "",
         post_data: cleanActionData,
       });
-      
-      console.log("Update response:", data);
       
       if (data?.length) {
         toast.success("Updated successfully");
@@ -431,7 +421,6 @@ const Patients = () => {
         toast.error("No data returned from update operation.");
       }
     } catch (error: any) {
-      console.error("Update error:", error);
       if (error && error?.message) {
         toast.error(error?.message);
       } else {
@@ -750,9 +739,7 @@ const createNewDataHandle = async () => {
                   
                   {dataList.map((elem, ind) => {
                 const { id, firstname, lastname, phone, updated_at, email } = elem;
-                const formattedDateTime = moment
-                  .utc(updated_at, "YYYY-MM-DD h:mm s")
-                  .local()
+                const formattedDateTime = moment(updated_at)
                   .format("DD/MM/YYYY h:mm A");
 
                 const truncateEmail = (email: string) => {
