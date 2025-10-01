@@ -240,14 +240,19 @@ const Patients = () => {
 
     const fetched_data: any = await fetch_content_service({
       table: "allpatients",
-      selectParam: ', updated_at:lastvisit',
       matchCase: [{ key: "locationid", value: locationId || 17 }],
       filterOptions: filterOptions,
       sortOptions: { column: "lastvisit", order: "desc" },
     });
 
-    setDataList(fetched_data);
-    setAllData(fetched_data);
+    // Map lastvisit to updated_at for compatibility
+    const mappedData = fetched_data.map((item: any) => ({
+      ...item,
+      updated_at: item.lastvisit
+    }));
+
+    setDataList(mappedData);
+    setAllData(mappedData);
     setLoading(false);
     setCurrentPage(1);
   };
@@ -281,6 +286,7 @@ const Patients = () => {
   };
 
   const editHandle = (data: any) => {
+    console.log("Edit handle called with data:", data);
     openModalHandle();
     setActionData(data);
     setActiveModalMode("edit");
@@ -306,7 +312,12 @@ const Patients = () => {
         setModalEmailError("");
       }
     }
-    setActionData((pre: any) => ({ ...pre, [id]: e }));
+    console.log(`Updating field ${id} with value:`, e);
+    setActionData((pre: any) => {
+      const updated = { ...pre, [id]: e };
+      console.log("Updated actionData:", updated);
+      return updated;
+    });
     setCanModalSubmit(true);
   };
   const addPatientFieldsChange = (e: any, id: string) => {
@@ -376,13 +387,27 @@ const Patients = () => {
       return;
     }
 
+    console.log("Action data before update:", actionData);
+    
+    if (!actionData.id) {
+      toast.error("Patient ID is missing. Cannot update.");
+      setModalLoading(false);
+      return;
+    }
+
     setModalLoading(true);
     try {
+      // Remove updated_at field since it doesn't exist in the database
+      const { updated_at, ...cleanActionData } = actionData;
+      
       const data = await update_content_service({
         table: "allpatients",
         language: "",
-        post_data: actionData,
+        post_data: cleanActionData,
       });
+      
+      console.log("Update response:", data);
+      
       if (data?.length) {
         toast.success("Updated successfully");
         closeModalHandle();
@@ -399,11 +424,14 @@ const Patients = () => {
           newData.id === elem.id ? newData : elem
         );
 
-        setAllData([...newDataSetAllData]);
-        setDataList([...newDataSetDataList]);
+        setAllData([...newDataSetDataList]);
+        setDataList([...newDataSetAllData]);
         setDetailsView(newData);
+      } else {
+        toast.error("No data returned from update operation.");
       }
     } catch (error: any) {
+      console.error("Update error:", error);
       if (error && error?.message) {
         toast.error(error?.message);
       } else {
