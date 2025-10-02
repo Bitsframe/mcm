@@ -29,7 +29,7 @@ export const POST = async (req: Request) => {
     // Step 2: Fetch orders linked to the found `pos` records
     const orders = await fetch_content_service({
       table: 'orders',
-      selectParam: ', promocodes(*, promotype(*))',
+      selectParam: '*, promocodes(*, promotype(*))',
       filterOptions: [{ column: 'patient_id', operator: 'in', value: posIds },
         // { column: 'order_id', operator: 'neq', value: currentOrderId }
       ]
@@ -39,7 +39,13 @@ export const POST = async (req: Request) => {
 
     const orderIds = orders.map((order: any) => order.order_id);
 
-    // Step 3: Fetch sales history for these orders
+    // Step 3: Fetch discounts for these orders
+    const discounts = await fetch_content_service({
+      table: 'discounts',
+      filterOptions: [{ column: 'order_id', operator: 'in', value: orderIds }]
+    });
+
+    // Step 4: Fetch sales history for these orders
     const salesHistory = await fetch_content_service({
       table: 'sales_history',
       filterOptions: [{ column: 'order_id', operator: 'in', value: orderIds }]
@@ -48,7 +54,7 @@ export const POST = async (req: Request) => {
 
     const inventoryIds = salesHistory.map((sale: any) => sale.inventory_id);
 
-    // Step 4: Fetch inventory details
+    // Step 5: Fetch inventory details
     const inventoryData = await fetch_content_service({
       table: 'inventory',
       filterOptions: [{ column: 'inventory_id', operator: 'in', value: inventoryIds }]
@@ -56,7 +62,7 @@ export const POST = async (req: Request) => {
 
     const productIds = inventoryData.map((item: any) => item.product_id);
 
-    // Step 5: Fetch product details
+    // Step 6: Fetch product details
     const products = await fetch_content_service({
       table: 'products',
       filterOptions: [{ column: 'product_id', operator: 'in', value: productIds }]
@@ -64,13 +70,13 @@ export const POST = async (req: Request) => {
 
     const categoryIds = products.map((product: any) => product.category_id);
 
-    // Step 6: Fetch category details
+    // Step 7: Fetch category details
     const categories = await fetch_content_service({
       table: 'categories',
       filterOptions: [{ column: 'category_id', operator: 'in', value: categoryIds }]
     });
 
-    // Step 7: Structure the final response
+    // Step 8: Structure the final response
     const formattedData = posRecords.map((pos: any) => {
       console.log({ pos })
       const ordersForPos = orders.filter((order: any) => order.patient_id === pos.id);
@@ -106,6 +112,9 @@ export const POST = async (req: Request) => {
         });
 
         const percentage = order.promocodes?.promotype?.percentage;
+        
+        // Get discounts for this specific order
+        const orderDiscounts = discounts.filter((discount: any) => discount.order_id === order.order_id);
 
         return {
           order_id: order.order_id,
@@ -116,6 +125,9 @@ export const POST = async (req: Request) => {
           promo_code_percentage: percentage,
           cash: order.cash,
           card: order.card,
+          credit_balance: order.credit_balance,
+          previous_credit_amount: order.previous_credit_amount,
+          discounts: orderDiscounts,
           pos: {
             id: pos.id,
             email: pos.email,
