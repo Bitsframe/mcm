@@ -232,28 +232,70 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </span>
                     </div>
                     
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Product Discount:</span>
+                      <span className="font-medium text-red-600 dark:text-red-400">
+                        -${(() => {
+                          let totalProductDiscount = 0;
+                          
+                          // Calculate sum of all product-level discounts
+                          if (dataList?.sales_history && dataList?.discounts) {
+                            dataList.sales_history.forEach((item: any) => {
+                              const productId = item?.inventory?.product_id;
+                              const productDiscount = dataList.discounts.find((discount: any) => 
+                                discount.product_id === productId && discount.discount_type === 'product'
+                              );
+                              
+                              if (productDiscount) {
+                                const originalAmount = item.total_price || 0;
+                                const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                totalProductDiscount += discountAmount;
+                              }
+                            });
+                          }
+                          
+                          return totalProductDiscount.toFixed(2);
+                        })()}
+                      </span>
+                    </div>
+                    
                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-base">
                         <span className="text-gray-800 dark:text-gray-200">Net Amount:</span>
                         <span className="text-gray-800 dark:text-gray-200">
                           ${(() => {
+                            // Calculate Gross Amount
                             const grossAmount = dataList?.sales_history?.reduce((sum: number, item: any) => 
                               sum + (item.total_price || 0), 0) || 0;
+                            
+                            // Calculate Cart Discount
                             const cartDiscount = dataList?.discounts?.find((d: any) => 
                               d.discount_type === 'cart' && d.product_id === null
                             );
-                            const discountValue = cartDiscount ? cartDiscount.discount_value : 0;
-                            return (grossAmount - discountValue).toFixed(2);
+                            const cartDiscountValue = cartDiscount ? cartDiscount.discount_value : 0;
+                            
+                            // Calculate Product Discount
+                            let totalProductDiscount = 0;
+                            if (dataList?.sales_history && dataList?.discounts) {
+                              dataList.sales_history.forEach((item: any) => {
+                                const productId = item?.inventory?.product_id;
+                                const productDiscount = dataList.discounts.find((discount: any) => 
+                                  discount.product_id === productId && discount.discount_type === 'product'
+                                );
+                                
+                                if (productDiscount) {
+                                  const originalAmount = item.total_price || 0;
+                                  const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                  totalProductDiscount += discountAmount;
+                                }
+                              });
+                            }
+                            
+                            // Net Amount = Gross Amount - Cart Discount - Product Discount
+                            return (grossAmount - cartDiscountValue - totalProductDiscount).toFixed(2);
                           })()}
                         </span>
                       </div>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Previous Credit Amount:</span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        ${(dataList?.previous_credit_amount || 0).toFixed(2)}
-                      </span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -318,7 +360,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             {/* Table Section */}
             <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
               {/* Table Header - Only visible on md and larger screens */}
-              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-6 gap-4">
+              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-7 gap-4">
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <div
                     key={index}
@@ -368,6 +410,25 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                   discount.product_id === productId && discount.discount_type === 'product'
                                 );
                                 return productDiscount ? `${productDiscount.discount_amount}%` : '0%';
+                              })()}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Amount After Discount</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              {(() => {
+                                const originalAmount = elem?.total_price || 0;
+                                const productId = elem?.inventory?.product_id;
+                                const productDiscount = dataList?.discounts?.find((discount: any) => 
+                                  discount.product_id === productId && discount.discount_type === 'product'
+                                );
+                                
+                                if (productDiscount) {
+                                  const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                  return `$${(originalAmount - discountAmount).toFixed(2)}`;
+                                }
+                                
+                                return `$${originalAmount.toFixed(2)}`;
                               })()}
                             </p>
                           </div>

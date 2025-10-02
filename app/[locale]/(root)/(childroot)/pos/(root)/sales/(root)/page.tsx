@@ -725,6 +725,12 @@ const addToCartHandle = () => {
     grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
   // console.log("🔢 Subtotal:", subtotal);
 
+  // Check if all items in cart are free services (original_price = 0)
+  const allItemsAreFree = useMemo(() => {
+    if (!cartArray.length) return false;
+    return cartArray.every(item => item.original_price === 0);
+  }, [cartArray]);
+
   const creditAvailable = React.useMemo(() => {
     if (!selectedLocation || selectedLocation.balance === undefined) {
       return 0;
@@ -1428,29 +1434,20 @@ transition-colors`}
                     !cartArray.length ||
                     totalPaid > subtotal ||
                     creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
+                    (((payWithCash || payWithCard) &&
                       totalPaid === 0 &&
-                      creditUsed === 0)
+                      creditUsed === 0) && !allItemsAreFree)
                   }
-                  className={`      rounded py-1 px-3 text-white w-1/2       flex justify-between items-center text-sm      ${
+                  className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm bg-blue-600 ${
                     !cartArray.length ||
                     totalPaid > subtotal ||
                     creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
+                    (((payWithCash || payWithCard) &&
                       totalPaid === 0 &&
-                      creditUsed === 0)
-                      ? "bg-blue-600"
-                      : "bg-blue-600"
-                  }      ${
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
+                      creditUsed === 0) && !allItemsAreFree)
                       ? "opacity-50"
                       : ""
-                  }    `}
+                  }`}
                 >
                   {placeOrderLoading ? (
                     <CircularProgress size={14} color="secondary" />

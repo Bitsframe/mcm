@@ -38,13 +38,32 @@ export const TableRowRender: FC<TableListRenderInterface> = ({
     );
     return productDiscount ? `${productDiscount.discount_amount}%` : '0%';
   };
+
+  // Function to calculate amount after discount
+  const getAmountAfterDiscount = () => {
+    const originalAmount = dataList?.total_price || 0;
+    const productId = dataList?.inventory?.product_id;
+    const productDiscount = discounts.find((discount: any) => 
+      discount.product_id === productId && discount.discount_type === 'product'
+    );
+    
+    if (productDiscount) {
+      const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+      return originalAmount - discountAmount;
+    }
+    
+    return originalAmount;
+  };
   return (
-    <TableRow className="grid grid-cols-6 gap-4 items-center text-base border-b-2 border-b-[#E4E4E7] hover:bg-inherit px-4 py-2">
+    <TableRow className="grid grid-cols-7 gap-4 items-center text-base border-b-2 border-b-[#E4E4E7] hover:bg-inherit px-4 py-2">
       {tableHeader.map(({ id, render_value, align }, ind) => {
         let content;
         
         if (id === 'product_discount') {
           content = getProductDiscountPercentage();
+        } else if (id === 'amount_after_discount') {
+          const amountAfterDiscount = getAmountAfterDiscount();
+          content = `$${amountAfterDiscount.toFixed(2)}`;
         } else {
           content = render_value 
             ? render_value(dataList[id], dataList) 

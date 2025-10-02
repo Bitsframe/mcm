@@ -285,8 +285,8 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                 <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Order ID</TableHead>
                 {/* Patient Name */}
                 <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Patient Name</TableHead>
-                {/* DOB */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Date of Birth</TableHead>
+                {/* Amount Received */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Amount Received</TableHead>
                 {/* Phone Number */}
                 <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Phone Number</TableHead>
                 {/* Email */}
@@ -315,8 +315,8 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     <TableCell className="py-3 text-sm text-center min-w-0">{elem.order_id}</TableCell>
                     {/* Patient Name */}
                     <TableCell className="py-3 text-sm text-center min-w-0">{`${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`}</TableCell>
-                    {/* DOB */}
-                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.dob || "-"}</TableCell>
+                    {/* Amount Received */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">${elem?.paid_amount || 0}</TableCell>
                     {/* Phone Number */}
                     <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.phone || ''}</TableCell>
                     {/* Email */}
