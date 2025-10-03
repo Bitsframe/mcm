@@ -378,10 +378,13 @@ const Patients = () => {
 
     setModalLoading(true);
     try {
+      // Remove updated_at if it exists to avoid schema errors
+      const { updated_at, ...updateData } = actionData;
+      
       const data = await update_content_service({
         table: "allpatients",
         language: "",
-        post_data: actionData,
+        post_data: updateData,
       });
       if (data?.length) {
         toast.success("Updated successfully");
