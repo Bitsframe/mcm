@@ -70,10 +70,18 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
 
   const ITEMS_PER_PAGE = itemPerPage || 5;
   const [currentPage, setCurrentPage] = React.useState(1);
-  const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
+  
+  // Sort dataList by order_id in descending order (latest orders first)
+  const sortedDataList = [...dataList].sort((a, b) => {
+    const orderIdA = a.order_id || 0;
+    const orderIdB = b.order_id || 0;
+    return orderIdB - orderIdA; // Descending order
+  });
+  
+  const totalPages = Math.ceil(sortedDataList.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
-  const currentData = dataList.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedDataList.length);
+  const currentData = sortedDataList.slice(startIndex, endIndex);
 
   useEffect(() => {
     setCurrentPage(1);

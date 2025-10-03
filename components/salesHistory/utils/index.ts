@@ -35,26 +35,6 @@ export const tableHeader = [
         render_value: (val: any, elem?: any) => currencyFormatHandle(val)
     },
     {
-        id: 'product_discount',
-        label: 'Product Discount %',
-        align: 'text-center',
-        flex: 'flex-1',
-        render_value: (val: any, elem?: any) => {
-            // This will be handled in the component where discounts data is available
-            return val || '0%';
-        }
-    },
-    {
-        id: 'amount_after_discount',
-        label: 'Amount After Discount',
-        align: 'text-center',
-        flex: 'flex-1',
-        render_value: (val: any, elem?: any) => {
-            // This will be calculated in the component where discounts data is available
-            return currencyFormatHandle(val || elem?.total_price || 0);
-        }
-    },
-    {
         id: 'actions',
         label: 'POS-Historyk27',
         align: 'text-center',

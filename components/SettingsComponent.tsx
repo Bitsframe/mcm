@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 import moment from "moment";
@@ -100,8 +100,11 @@ const SettingsComponent: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [search, setSearch] = useState("");
   const { t } = useTranslation(translationConstant.CONTROLS);
-  
-  const fetchLocations = useCallback(async () => {
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.from("Locations").select("*");
@@ -115,11 +118,7 @@ const SettingsComponent: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchLocations();
-  }, [fetchLocations]);
+  };
 
   const selectLocation = (location: Location) => {
     setSelectedLocation(location);

@@ -192,7 +192,7 @@ const UserManagementComponent = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k18");
-  }, [setActiveTitle]);
+  }, []);
 
   const { t } = useTranslation(translationConstant.USERMANAGEMENT);
 

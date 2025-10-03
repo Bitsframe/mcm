@@ -31,7 +31,11 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
     <div className="py-4 space-y-4">
       <h3 className="font-bold text-lg">{t("POS-Historyk12")}</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-base">
+        <p>
+          <span className="text-sm text-gray-500">{t("POS-Historyk13")}:</span><br />
+          <strong>{patientid}</strong>
+        </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk14")}:</span><br />
           <strong>{firstname} {lastname}</strong>
@@ -47,6 +51,26 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk17")}:</span><br />
           <strong>{email}</strong>
+        </p>
+        <p>
+          <span className="text-sm text-gray-500">{t("POS-Historyk18")}:</span><br />
+          <div className="space-x-4">
+            {paymentType.cash ? <strong>Cash</strong> : null}
+            {paymentType.cash && paymentType.card ? <span>/</span> : null}
+            {paymentType.card ? <strong>Card</strong> : null}
+          </div>
+          {/* <select
+            value={currentPaymentType}
+            onChange={(e) => handlePaymentTypeChange(e.target.value)}
+            disabled={isUpdating}
+            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="Cash">Cash</option>
+            <option value="Debit">Debit</option>
+          </select>
+          {isUpdating && (
+            <span className="text-xs text-blue-500 mt-1">Updating...</span>
+          )} */}
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk19")}:</span><br />

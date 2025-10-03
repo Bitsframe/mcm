@@ -240,19 +240,14 @@ const Patients = () => {
 
     const fetched_data: any = await fetch_content_service({
       table: "allpatients",
+      selectParam: ', updated_at:lastvisit',
       matchCase: [{ key: "locationid", value: locationId || 17 }],
       filterOptions: filterOptions,
       sortOptions: { column: "lastvisit", order: "desc" },
     });
 
-    // Map lastvisit from database for display purposes
-    const mappedData = fetched_data.map((item: any) => ({
-      ...item,
-      updated_at: item.lastvisit
-    }));
-
-    setDataList(mappedData);
-    setAllData(mappedData);
+    setDataList(fetched_data);
+    setAllData(fetched_data);
     setLoading(false);
     setCurrentPage(1);
   };
@@ -381,23 +376,13 @@ const Patients = () => {
       return;
     }
 
-    if (!actionData.id) {
-      toast.error("Patient ID is missing. Cannot update.");
-      setModalLoading(false);
-      return;
-    }
-
     setModalLoading(true);
     try {
-      // Remove updated_at field since it doesn't exist in the database
-      const { updated_at, ...cleanActionData } = actionData;
-      
       const data = await update_content_service({
         table: "allpatients",
         language: "",
-        post_data: cleanActionData,
+        post_data: actionData,
       });
-      
       if (data?.length) {
         toast.success("Updated successfully");
         closeModalHandle();
@@ -414,11 +399,9 @@ const Patients = () => {
           newData.id === elem.id ? newData : elem
         );
 
-        setAllData([...newDataSetDataList]);
-        setDataList([...newDataSetAllData]);
+        setAllData([...newDataSetAllData]);
+        setDataList([...newDataSetDataList]);
         setDetailsView(newData);
-      } else {
-        toast.error("No data returned from update operation.");
       }
     } catch (error: any) {
       if (error && error?.message) {
@@ -739,7 +722,9 @@ const createNewDataHandle = async () => {
                   
                   {dataList.map((elem, ind) => {
                 const { id, firstname, lastname, phone, updated_at, email } = elem;
-                const formattedDateTime = moment(updated_at)
+                const formattedDateTime = moment
+                  .utc(updated_at, "YYYY-MM-DD h:mm s")
+                  .local()
                   .format("DD/MM/YYYY h:mm A");
 
                 const truncateEmail = (email: string) => {

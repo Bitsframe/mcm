@@ -90,6 +90,7 @@ const in_office_patient_options: RadioButtonOptionsInterface[] = [
   {
     label: "Appoinments_k19",
     value: "false",
+    disabled: true
   },
 ];
 const patient_type_options: RadioButtonOptionsInterface[] = [
@@ -125,11 +126,7 @@ export const Add_Appointment_Modal = ({
   const { locations } = useLocationClinica();
   const { selectedLocation } = useContext(LocationContext);
 
-  const [formData, setFormData] = useState<any>({ 
-    phone: '',
-    in_office_patient: "true", // Default value since false is disabled
-    new_patient: "true", // Default value
-  });
+  const [formData, setFormData] = useState<any>({ phone: '' });
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
   const [loading, setLoading] = useState(false);
@@ -138,49 +135,14 @@ export const Add_Appointment_Modal = ({
   const close_handle = () => {
     setOpen(false);
     setEmailError("");
-    // Reset form but keep location_id and set default values for required fields
     if (selectedLocation) {
       setFormData({
-        phone: '',
         location_id: selectedLocation.id,
-        in_office_patient: "true", // Default value since false is disabled
-        new_patient: "true", // Default value
-      });
-    } else if (locations && locations.length > 0) {
-      setFormData({
-        phone: '',
-        location_id: locations[0].id,
-        in_office_patient: "true", // Default value since false is disabled
-        new_patient: "true", // Default value
-      });
-    } else {
-      setFormData({ 
-        phone: '',
-        in_office_patient: "true", // Default value since false is disabled
-        new_patient: "true", // Default value
       });
     }
   };
   const open_handle = () => {
     setOpen(true);
-    // Ensure location_id is set when opening modal
-    if (!formData.location_id) {
-      if (selectedLocation) {
-        setFormData((prev: any) => ({ 
-          ...prev, 
-          location_id: selectedLocation.id,
-          in_office_patient: prev.in_office_patient || "true",
-          new_patient: prev.new_patient || "true",
-        }));
-      } else if (locations && locations.length > 0) {
-        setFormData((prev: any) => ({ 
-          ...prev, 
-          location_id: locations[0].id,
-          in_office_patient: prev.in_office_patient || "true",
-          new_patient: prev.new_patient || "true",
-        }));
-      }
-    }
   };
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -360,21 +322,12 @@ export const Add_Appointment_Modal = ({
     };
 
     fetchServices();
-    
-    // Set location_id from selectedLocation or use first available location
     if (selectedLocation) {
-      setFormData((prev: any) => ({
-        ...prev,
+      setFormData({
         location_id: selectedLocation.id,
-      }));
-    } else if (locations && locations.length > 0) {
-      // If no selected location, use the first available location as default
-      setFormData((prev: any) => ({
-        ...prev,
-        location_id: locations[0].id,
-      }));
+      });
     }
-  }, [selectedLocation, locations]);
+  }, []);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
@@ -402,19 +355,20 @@ export const Add_Appointment_Modal = ({
         <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-medium text-gray-800 dark:text-gray-300">
-                {t("Appoinments_k51")}
-              </Label>
+              <p>{t("Appoinments_k51")} </p>
+              <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
+              {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
+                Locations
+              </Label>x
               <Select
-                value={formData.location_id || ""}
+                value={formData.location_id}
                 onChange={(e) =>
                   select_change_handle("location_id", e.target.value)
                 }
                 className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                required
               >
                 <option value="" className="bg-white dark:bg-[#080e16]">
-                  Select a location
+                  All locations
                 </option>
                 {locations.map((location: any, index: any) => (
                   <option
@@ -425,7 +379,7 @@ export const Add_Appointment_Modal = ({
                     {location.address}
                   </option>
                 ))}
-              </Select>
+              </Select> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

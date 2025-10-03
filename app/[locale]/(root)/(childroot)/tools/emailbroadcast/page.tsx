@@ -48,12 +48,9 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
 import { toast } from "sonner";
-import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 
 const EmailBroadcast: React.FC = () => {
-  // State for editing template preview
-  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
-  const [editedTemplateContent, setEditedTemplateContent] = useState("");
   const [emailList, setEmailList] = useState<any[]>([]);
   const [locationList, setLocationList] = useState<any[]>([]);
   const [serviceList, setServiceList] = useState<any[]>([]);
@@ -181,7 +178,7 @@ const EmailBroadcast: React.FC = () => {
         if (name && name.trim()) {
           previewHtml = previewHtml.replace(
             /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
-            (_: string, p1: string, p2: string) => `${p1}<br/>${name}${p2}`
+            (match: string, p1: string, p2: string) => `${p1}<br/>${name}${p2}`
           );
         }
         return (
@@ -202,7 +199,11 @@ const EmailBroadcast: React.FC = () => {
       return (
         <div
           className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
-          style={{ "--text-color": "var(--foreground)" } as React.CSSProperties}
+          style={
+            {
+              "--text-color": "var(--foreground)",
+            } as React.CSSProperties
+          }
         >
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
@@ -888,82 +889,11 @@ const EmailBroadcast: React.FC = () => {
         </div>
 
         <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
-          <div className="flex items-center mb-4">
-            <h2 className="text-lg font-medium text-foreground dark:text-white mr-2" style={{ lineHeight: '2rem' }}>
-              {t("EmailB_k17")}
-            </h2>
-            <button
-              type="button"
-              title="Edit Template"
-              className={`p-1 rounded ${dbTemplates.find((t) => t.id === selectedTemplate) ? 'hover:bg-gray-200 dark:hover:bg-gray-700' : 'opacity-50 cursor-not-allowed'}`}
-              disabled={!dbTemplates.find((t) => t.id === selectedTemplate)}
-              onClick={() => {
-                if (!dbTemplates.find((t) => t.id === selectedTemplate)) return;
-                let initialContent = "";
-                const selectedDb = dbTemplates.find((t) => t.id === selectedTemplate);
-                if (selectedDb) {
-                  initialContent = selectedDb.body || "";
-                }
-                setEditedTemplateContent(initialContent);
-                setIsEditingTemplate(true);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-blue-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.125 2.125 0 113.006 3.006L7.5 19.862l-4 1 1-4 12.362-12.375z" />
-              </svg>
-            </button>
-          </div>
+          <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
+            {t("EmailB_k17")}
+          </h2>
           <div className="border border-border bg-[#f1f4f7] dark:border-gray-600 rounded-md p-6 dark:bg-gray-800">
-            {isEditingTemplate ? (
-              <div>
-                <textarea
-                  className="w-full h-48 p-2 border rounded bg-white dark:bg-gray-900 text-foreground dark:text-white"
-                  value={editedTemplateContent}
-                  onChange={e => setEditedTemplateContent(e.target.value)}
-                />
-                <div className="flex gap-2 mt-3">
-                  <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
-                    onClick={async () => {
-                      const selectedDbIdx = dbTemplates.findIndex((t) => t.id === selectedTemplate);
-                      if (selectedDbIdx !== -1) {
-                        // Persist changes to Supabase
-                        try {
-                          const post_data = {
-                            id: dbTemplates[selectedDbIdx].id,
-                            body: editedTemplateContent,
-                            is_active: true,
-                          };
-                          await update_content_service({
-                            table: "email_templates",
-                            post_data,
-                            matchKey: "id",
-                          });
-                          // Update local state
-                          const updatedTemplates = [...dbTemplates];
-                          updatedTemplates[selectedDbIdx] = {
-                            ...updatedTemplates[selectedDbIdx],
-                            body: editedTemplateContent,
-                          };
-                          setDbTemplates(updatedTemplates);
-                          toast.success("Template content updated successfully!");
-                        } catch (error) {
-                          console.error("Error updating template:", error);
-                          toast.error("Failed to update template. Please try again.");
-                        }
-                      }
-                      setIsEditingTemplate(false);
-                    }}
-                  >Save</button>
-                  <button
-                    className="px-4 py-2 bg-gray-400 text-white rounded"
-                    onClick={() => setIsEditingTemplate(false)}
-                  >Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <RenderTemplate />
-            )}
+            <RenderTemplate />
           </div>
         </div>
       </div>
