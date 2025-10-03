@@ -78,20 +78,13 @@ const SalesHistory = () => {
   }, []);
 
   const fetch_handle = useCallback(async (location_id: number) => {
-    console.log("🔄 Starting API call for POS History page");
-    console.log("📍 Location ID:", location_id);
-    
     setLoading(true);
     try {
-      console.log("📡 Calling fetch_content_service with parameters:");
-      console.log("  - Table: orders");
-      console.log("  - Select Params: pos:allpatients + sales_history");
-      console.log("  - Match Case: pos.locationid =", location_id);
       
       const fetched_data = await fetch_content_service({
         table: "orders",
         language: "",
-        selectParam: `,pos:allpatients (
+        selectParam: `, order_date, paid_amount, cash, card, pos:allpatients (
           lastname,
           firstname,
           email,
@@ -117,18 +110,7 @@ const SalesHistory = () => {
         ],
       });
       
-      console.log("📊 Raw API Response (from orders table):", fetched_data);
-      console.log("📈 Total records fetched:", fetched_data?.length || 0);
-      
-      if (fetched_data && fetched_data.length > 0) {
-        console.log("🔍 Sample record structure:", fetched_data[0]);
-        console.log("🏥 Patient data (pos):", fetched_data[0]?.pos);
-        console.log("🛒 Sales history:", fetched_data[0]?.sales_history);
-      }
-      
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
-      console.log("✅ Filtered data (after removing null pos):", filteredData);
-      console.log("📊 Final records count:", filteredData.length);
       
       setDataList(filteredData);
       setAllData(filteredData);
@@ -165,22 +147,24 @@ const SalesHistory = () => {
       );
     }
     if (dobSearch.trim() !== "") {
-      filtered = filtered.filter((item) =>
-        (item?.pos?.dob || "").toLowerCase().includes(dobSearch.toLowerCase())
-      );
+      filtered = filtered.filter((item) => {
+        if (!item?.order_date) return false;
+        
+        // Convert order_date from UTC to CST and format as YYYY-MM-DD
+        const orderDate = new Date(item.order_date);
+        const cstOffset = -6; // CST is UTC-6
+        const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
+        const orderDateString = orderDateCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+        
+        return orderDateString === dobSearch;
+      });
     }
     setDataList(filtered);
   }, [orderIdSearch, patientNameSearch, phoneSearch, emailSearch, dobSearch, allData]);
 
   useEffect(() => {
-    console.log("🎯 useEffect triggered - selectedLocation changed");
-    console.log("📍 Selected Location:", selectedLocation);
-    
     if (selectedLocation) {
-      console.log("✅ Location found, calling fetch_handle with ID:", selectedLocation.id);
       fetch_handle(selectedLocation.id);
-    } else {
-      console.log("❌ No location selected");
     }
   }, [selectedLocation, fetch_handle]);
 
@@ -203,8 +187,6 @@ const SalesHistory = () => {
   const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
-    console.log("🚀 POS History page mounted");
-    console.log("📋 Setting active title to: Sidebar_k21");
     setActiveTitle("Sidebar_k21");
   }, []);
 
@@ -231,37 +213,39 @@ const SalesHistory = () => {
           <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Products Sold Today</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Products Sold {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {(() => {
-                    // Get today's date in CST
-                    const today = new Date();
-                    const cstOffset = -6; // CST is UTC-6
-                    const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
-                    const todayDateString = todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
                     
-                    console.log("📅 Today's date in CST:", todayDateString);
+                    let totalProductsSold = 0;
                     
-                    let totalProductsSoldToday = 0;
-                    
-                    allData.forEach((order) => {
+                    dataList.forEach((order) => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
                           // Convert UTC time to CST
                           const saleDate = new Date(sale.date_sold);
+                          const cstOffset = -6; // CST is UTC-6
                           const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
                           const saleDateString = saleDateCST.toISOString().split('T')[0];
                           
-                          // If sale date matches today's date, add the quantity
-                          if (saleDateString === todayDateString) {
-                            totalProductsSoldToday += sale.quantity_sold || 0;
+                          // If sale date matches target date, add the quantity
+                          if (saleDateString === targetDateString) {
+                            totalProductsSold += sale.quantity_sold || 0;
                           }
                         });
                       }
                     });
                     
-                    console.log("📊 Total products sold today (CST):", totalProductsSoldToday);
-                    return totalProductsSoldToday;
+                    return totalProductsSold;
                   })()}
                 </p>
               </div>
@@ -277,39 +261,38 @@ const SalesHistory = () => {
           <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Amount Received</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Amount Received {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {
-                    // Get today's date in CST
-                    const today = new Date();
-                    const cstOffset = -6; // CST is UTC-6
-                    const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
-                    const todayDateString = todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
                     
-                    console.log("💰 Calculating Total Amount Received for today (CST):", todayDateString);
-                    
-                    let totalAmountToday = 0;
+                    let totalAmount = 0;
                     
                     allData.forEach((order) => {
+                      if (!order?.order_date) return;
+                      
                       // Convert order_date from UTC to CST
                       const orderDate = new Date(order.order_date);
+                      const cstOffset = -6; // CST is UTC-6
                       const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
                       const orderDateString = orderDateCST.toISOString().split('T')[0];
                       
-                      console.log(`📋 Order ${order.order_id}: UTC=${order.order_date}, CST=${orderDateCST.toISOString()}, Date=${orderDateString}`);
-                      
-                      // If order date matches today's date, add the paid_amount
-                      if (orderDateString === todayDateString) {
+                      // If order date matches target date, add the paid_amount
+                      if (orderDateString === targetDateString) {
                         const paidAmount = order.paid_amount || 0;
-                        totalAmountToday += paidAmount;
-                        console.log(`✅ Order ${order.order_id} matches today - Added: $${paidAmount}`);
-                      } else {
-                        console.log(`❌ Order ${order.order_id} is not from today`);
+                        totalAmount += paidAmount;
                       }
                     });
                     
-                    console.log("💰 Total Amount Received Today (CST):", totalAmountToday);
-                    return totalAmountToday.toFixed(2);
+                    return totalAmount.toFixed(2);
                   })()}
                 </p>
               </div>
@@ -321,18 +304,49 @@ const SalesHistory = () => {
             </div>
           </div>
 
-          {/* Card 3 - Average Order Value */}
+          {/* Card 3 - Total Sales */}
           <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Order Value</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Sales {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${allData.length > 0 ? (allData.reduce((sum, order) => sum + (order.paid_amount || 0), 0) / allData.length).toFixed(2) : '0.00'}
+                  ${(() => {
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
+                    
+                    let totalSales = 0;
+                    
+                    dataList.forEach((order) => {
+                      if (order.sales_history) {
+                        order.sales_history.forEach((sale: any) => {
+                          // Convert UTC time to CST
+                          const saleDate = new Date(sale.date_sold);
+                          const cstOffset = -6; // CST is UTC-6
+                          const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
+                          const saleDateString = saleDateCST.toISOString().split('T')[0];
+                          
+                          // If sale date matches target date, add the total_price
+                          if (saleDateString === targetDateString) {
+                            totalSales += sale.total_price || 0;
+                          }
+                        });
+                      }
+                    });
+                    
+                    return totalSales.toFixed(2);
+                  })()}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
                 <svg className="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
             </div>

@@ -64,7 +64,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
                 setReturnedQty(forReturnQty)
                 setOtherReturned(true, data?.inventory?.products?.product_name)
                 toast.success("Return processed successfully")
-                setProcessReturn(false)
+                setShowModal(false)
             }
         } catch (error: any) {
             if (error && error?.message) {
