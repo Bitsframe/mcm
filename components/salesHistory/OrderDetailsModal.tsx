@@ -29,8 +29,28 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const { order_id, pos, patient_id } = orderDetails || {};
 
   const renderIndexHandle = (fetched_data: any, index: number) => {
-    setDataList(fetched_data?.[index] || {});
-    const listHistory = fetched_data?.[index]?.sales_history || [];
+    const currentOrderData = fetched_data?.[index] || {};
+    setDataList(currentOrderData);
+    
+    // Console log discount data
+    console.log("=== DISCOUNT DATA DEBUG ===");
+    console.log("Full order data:", currentOrderData);
+    console.log("Discounts array:", currentOrderData.discounts);
+    console.log("Number of discounts:", currentOrderData.discounts?.length || 0);
+    if (currentOrderData.discounts?.length > 0) {
+      currentOrderData.discounts.forEach((discount: any, idx: number) => {
+        console.log(`Discount ${idx + 1}:`, discount);
+      });
+    }
+    console.log("=== CREDIT BALANCE DEBUG ===");
+    console.log("Cash:", currentOrderData.cash);
+    console.log("Card:", currentOrderData.card);
+    console.log("Previous Credit Amount:", currentOrderData.previous_credit_amount);
+    console.log("Credit Balance:", currentOrderData.credit_balance);
+    console.log("Available fields:", Object.keys(currentOrderData));
+    console.log("=========================")
+    
+    const listHistory = currentOrderData?.sales_history || [];
     const returnedItemsSet = new Set<string>();
     listHistory.forEach((item: any) => {
       if (item.return_qty > 0) {
@@ -124,27 +144,169 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
               {t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}
             </h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-            >
-              <span className="text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                &times;
+            <div className="flex items-center gap-4">
+              <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
+                Patient ID: <strong className="text-gray-800 dark:text-gray-200">{pos?.patientid || patient_id}</strong>
               </span>
-            </button>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <span className="text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                  &times;
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Scrollable Content Section */}
           <div className="flex-1 overflow-y-auto p-4">
-            {/* Patient Details */}
+            {/* Patient Details and Invoice Summary */}
             <div className="mb-4 p-4 bg-gray-50 dark:bg-[#080e16] rounded-lg">
-              <PatientDetailsRender
-                order_id={order_id}
-                patientData={{...dataList?.pos, patientid:patient_id}}
-                paymentType={
-                  {cash: dataList?.cash, card: dataList?.card}
-                }
-              />
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Left Side - Patient Details */}
+                <div className="flex-1">
+                  <PatientDetailsRender
+                    order_id={order_id}
+                    patientData={{...dataList?.pos, patientid:patient_id}}
+                    paymentType={
+                      {cash: dataList?.cash, card: dataList?.card}
+                    }
+                  />
+                </div>
+                
+                {/* Right Side - Invoice Summary */}
+                <div className="lg:w-80 bg-white dark:bg-[#0e1725] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                  <h4 className="font-bold text-lg mb-4 text-gray-800 dark:text-gray-200">Invoice Summary</h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Invoice Date:</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        {(() => {
+                          const date = new Date(dataList?.order_date);
+                          return date.toLocaleDateString('en-GB', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric' 
+                          });
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        {dataList?.cash && dataList?.card ? 'Cash & Card' : 
+                         dataList?.cash ? 'Cash' : 
+                         dataList?.card ? 'Card' : 'N/A'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Gross Amount:</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        ${(() => {
+                          const total = dataList?.sales_history?.reduce((sum: number, item: any) => 
+                            sum + (item.total_price || 0), 0) || 0;
+                          return total.toFixed(2);
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Discount({(() => {
+                          const cartDiscount = dataList?.discounts?.find((d: any) => 
+                            d.discount_type === 'cart' && d.product_id === null
+                          );
+                          return cartDiscount ? `${cartDiscount.discount_amount}%` : '0%';
+                        })()}):
+                      </span>
+                      <span className="font-medium text-red-600 dark:text-red-400">
+                        -${(() => {
+                          const cartDiscount = dataList?.discounts?.find((d: any) => 
+                            d.discount_type === 'cart' && d.product_id === null
+                          );
+                          return cartDiscount ? cartDiscount.discount_value.toFixed(2) : '0.00';
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Product Discount:</span>
+                      <span className="font-medium text-red-600 dark:text-red-400">
+                        -${(() => {
+                          let totalProductDiscount = 0;
+                          
+                          // Calculate sum of all product-level discounts
+                          if (dataList?.sales_history && dataList?.discounts) {
+                            dataList.sales_history.forEach((item: any) => {
+                              const productId = item?.inventory?.product_id;
+                              const productDiscount = dataList.discounts.find((discount: any) => 
+                                discount.product_id === productId && discount.discount_type === 'product'
+                              );
+                              
+                              if (productDiscount) {
+                                const originalAmount = item.total_price || 0;
+                                const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                totalProductDiscount += discountAmount;
+                              }
+                            });
+                          }
+                          
+                          return totalProductDiscount.toFixed(2);
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
+                      <div className="flex justify-between font-semibold text-base">
+                        <span className="text-gray-800 dark:text-gray-200">Net Amount:</span>
+                        <span className="text-gray-800 dark:text-gray-200">
+                          ${(() => {
+                            // Calculate Gross Amount
+                            const grossAmount = dataList?.sales_history?.reduce((sum: number, item: any) => 
+                              sum + (item.total_price || 0), 0) || 0;
+                            
+                            // Calculate Cart Discount
+                            const cartDiscount = dataList?.discounts?.find((d: any) => 
+                              d.discount_type === 'cart' && d.product_id === null
+                            );
+                            const cartDiscountValue = cartDiscount ? cartDiscount.discount_value : 0;
+                            
+                            // Calculate Product Discount
+                            let totalProductDiscount = 0;
+                            if (dataList?.sales_history && dataList?.discounts) {
+                              dataList.sales_history.forEach((item: any) => {
+                                const productId = item?.inventory?.product_id;
+                                const productDiscount = dataList.discounts.find((discount: any) => 
+                                  discount.product_id === productId && discount.discount_type === 'product'
+                                );
+                                
+                                if (productDiscount) {
+                                  const originalAmount = item.total_price || 0;
+                                  const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                  totalProductDiscount += discountAmount;
+                                }
+                              });
+                            }
+                            
+                            // Net Amount = Gross Amount - Cart Discount - Product Discount
+                            return (grossAmount - cartDiscountValue - totalProductDiscount).toFixed(2);
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Credit Balance:</span>
+                      <span className="font-medium text-green-600 dark:text-green-400">
+                        ${(dataList?.credit_balance || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Order Summary */}
@@ -177,16 +339,6 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                   </p>
                 </div> */}
               </div>
-              <div className="space-y-1">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {t("Discount")}: {dataList?.promo_code_percentage ? `${dataList.promo_code_percentage}%` : "N/A"}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {t("POS-Historyk22")}: {calcTotalAmount(dataList)}
-                </p>
-              </div>
             </div>
 
             {/* Search Bar */}
@@ -208,12 +360,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             {/* Table Section */}
             <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
               {/* Table Header - Only visible on md and larger screens */}
-              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-12 gap-28">
+              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-7 gap-4">
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <div
                     key={index}
-                    className={`col-span-2 text-sm font-medium text-gray-500 dark:text-gray-400 ${
-                      align === "right" ? "text-right" : "text-left"
+                    className={`text-sm font-medium text-gray-500 dark:text-gray-400 ${
+                      align === "right" ? "text-right" : align === "text-center" ? "text-center" : "text-left"
                     }`}
                   >
                     {t(label)}
@@ -249,6 +401,37 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                               {elem?.quantity}
                             </p>
                           </div>
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Product Discount %</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              {(() => {
+                                const productId = elem?.inventory?.product_id;
+                                const productDiscount = dataList?.discounts?.find((discount: any) => 
+                                  discount.product_id === productId && discount.discount_type === 'product'
+                                );
+                                return productDiscount ? `${productDiscount.discount_amount}%` : '0%';
+                              })()}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Amount After Discount</p>
+                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                              {(() => {
+                                const originalAmount = elem?.total_price || 0;
+                                const productId = elem?.inventory?.product_id;
+                                const productDiscount = dataList?.discounts?.find((discount: any) => 
+                                  discount.product_id === productId && discount.discount_type === 'product'
+                                );
+                                
+                                if (productDiscount) {
+                                  const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+                                  return `$${(originalAmount - discountAmount).toFixed(2)}`;
+                                }
+                                
+                                return `$${originalAmount.toFixed(2)}`;
+                              })()}
+                            </p>
+                          </div>
                           <div className="text-right">
                             <p className="text-sm text-gray-500 dark:text-gray-400">{t("Total")}</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
@@ -264,6 +447,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
                           dataList={elem}
                           order_id={order_id}
+                          discounts={dataList?.discounts || []}
                         />
                       </div>
                     </div>
@@ -276,6 +460,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         isAnyReturned={returnedItems.has(elem?.inventory?.products?.product_name) || page > 1}
                         dataList={elem}
                         order_id={order_id}
+                        discounts={dataList?.discounts || []}
                       />
                     </div>
                   </div>
