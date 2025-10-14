@@ -20,7 +20,7 @@ import emailtemplate9 from "@/components/EmailTemplate/template9";
 import emailtemplate10 from "@/components/EmailTemplate/template10";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Search, X } from "lucide-react";
+import { ChevronLeft, Search, X, Edit } from "lucide-react";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
   Select,
@@ -48,7 +48,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
 import { toast } from "sonner";
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -108,6 +108,47 @@ const EmailBroadcast: React.FC = () => {
   }, []);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>("template1");
+  const [isEditingTemplate, setIsEditingTemplate] = useState<boolean>(false);
+  const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
+  const [editBody, setEditBody] = useState<string>("");
+  const [editTemplateId, setEditTemplateId] = useState<number | null>(null);
+
+  const openTemplateEditor = () => {
+    // find DB template by id (loose match in case selectedTemplate is string)
+    const dbSelected = dbTemplates.find((t) => t.id == (selectedTemplate as any));
+    if (dbSelected) {
+      setEditTemplateId(dbSelected.id);
+      setEditBody(dbSelected.body || "");
+      setEditModalOpen(true);
+      setIsEditingTemplate(true);
+      return;
+    }
+
+    // For hardcoded templates just toggle the editing flag
+    setIsEditingTemplate((v) => !v);
+  };
+
+  const submitTemplateUpdate = async () => {
+    if (!editTemplateId) return;
+    try {
+      const post_data = {
+        id: editTemplateId,
+        body: editBody,
+      } as any;
+
+      const res = await update_content_service({ table: "email_templates", post_data });
+      if (res?.length) {
+        // update local DB templates state
+        const updated = res[0];
+        setDbTemplates((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        setEditModalOpen(false);
+        setIsEditingTemplate(false);
+        toast.success("Template updated successfully");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update template");
+    }
+  };
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -182,11 +223,23 @@ const EmailBroadcast: React.FC = () => {
           );
         }
         return (
-          <div className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+          <div className="relative text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+            <button
+              onClick={() => openTemplateEditor()}
+              title={isEditingTemplate ? "Exit edit mode" : "Edit template"}
+              className="absolute top-2 right-2 p-1 rounded bg-white/90 dark:bg-black/70 hover:opacity-90 shadow"
+            >
+              <Edit className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+            </button>
             <div
               style={{ whiteSpace: "pre-line" }}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
+            {isEditingTemplate && (
+              <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                Edit mode enabled
+              </div>
+            )}
           </div>
         );
       }
@@ -198,13 +251,20 @@ const EmailBroadcast: React.FC = () => {
     if (SelectedTemplateComponent) {
       return (
         <div
-          className="text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
+          className="relative text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
           style={
             {
               "--text-color": "var(--foreground)",
             } as React.CSSProperties
           }
         >
+          <button
+            onClick={() => openTemplateEditor()}
+            title={isEditingTemplate ? "Exit edit mode" : "Edit template"}
+            className="absolute top-2 right-2 p-1 rounded bg-white/90 dark:bg-black/70 hover:opacity-90 shadow"
+          >
+            <Edit className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+          </button>
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
             reason={reason || "[Reason]"}
@@ -218,6 +278,11 @@ const EmailBroadcast: React.FC = () => {
             // @ts-ignore
             className="text-foreground dark:text-white"
           />
+          {isEditingTemplate && (
+            <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+              Edit mode enabled
+            </div>
+          )}
         </div>
       );
     }
@@ -838,6 +903,34 @@ const EmailBroadcast: React.FC = () => {
               placeholder={t("EmailB_k16")}
               className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
+
+            {/* Template Editor Modal */}
+            {editModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                <div className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl">
+                  <h2 className="text-lg font-semibold mb-3 text-foreground dark:text-white">Edit Template</h2>
+                  <textarea
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    className="w-full h-64 p-3 rounded border border-input dark:border-gray-700 bg-background dark:bg-[#061018] text-foreground dark:text-white"
+                  />
+                  <div className="flex justify-end gap-2 mt-3">
+                    <button
+                      onClick={() => { setEditModalOpen(false); setIsEditingTemplate(false); }}
+                      className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-foreground"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => submitTemplateUpdate()}
+                      className="px-4 py-2 rounded bg-blue-600 text-white"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 mt-2">
