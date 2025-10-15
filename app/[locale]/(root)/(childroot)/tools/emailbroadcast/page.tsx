@@ -20,7 +20,7 @@ import emailtemplate9 from "@/components/EmailTemplate/template9";
 import emailtemplate10 from "@/components/EmailTemplate/template10";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Search, X, Edit } from "lucide-react";
+import { ChevronLeft, Search, X, Edit, Plus } from "lucide-react";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
   Select,
@@ -48,7 +48,13 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import axios from "axios";
 import { toast } from "sonner";
-import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service, update_content_service, create_content_service } from "@/utils/supabase/data_services/data_services";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from "lucide-react";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -89,6 +95,79 @@ const EmailBroadcast: React.FC = () => {
   ];
 
   const { setActiveTitle } = useContext(TabContext);
+
+  // TipTap editor states for creating templates
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateContent, setTemplateContent] = useState("");
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Link.configure({ openOnClick: false }),
+    ],
+    content: templateContent,
+    onUpdate: ({ editor }) => setTemplateContent(editor.getHTML()),
+  });
+  const createModalRef = React.useRef<HTMLDivElement | null>(null);
+  const saveBtnRef = React.useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (showCreateModal && createModalRef.current && saveBtnRef.current) {
+      const w = saveBtnRef.current.offsetWidth;
+      createModalRef.current.style.setProperty('--save-btn-width', `${w}px`);
+    }
+  }, [showCreateModal]);
+
+  // Helpers to convert HTML -> plain text and wrap into the expected plain body
+  function htmlToText(html: string): string {
+    if (typeof window !== "undefined") {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      return div.textContent || div.innerText || "";
+    } else {
+      return html.replace(/<[^>]+>/g, "");
+    }
+  }
+
+  function getFullPlainText(content: string) {
+    let cleanContent = htmlToText(content)
+      .replace(/^Dear Patient,\s*/i, "")
+      .replace(/\s*Best,\s*$/i, "")
+      .trim();
+
+    return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
+  }
+
+  const MenuBar = ({ editor }: any) => {
+    if (!editor) return null;
+    return (
+      <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2">
+        <button onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bold') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Bold"><Bold className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('italic') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Italic"><Italic className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('underline') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Underline"><UnderlineIcon className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+        <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bulletList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Bullet List"><List className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('orderedList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Numbered List"><ListOrdered className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+        <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Left"><AlignLeft className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Center"><AlignCenter className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Right"><AlignRight className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+        <button onClick={() => { const url = window.prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('link') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Add Link"><LinkIcon className="w-4 h-4"/></button>
+      </div>
+    );
+  };
+
+  // keep editor in sync if templateContent changed externally
+  useEffect(() => {
+    if (editor && templateContent !== editor.getHTML()) {
+      editor.commands.setContent(templateContent || "");
+    }
+  }, [templateContent, editor]);
 
   useEffect(() => {
     setActiveTitle("Sidebar_k14");
@@ -211,7 +290,7 @@ const EmailBroadcast: React.FC = () => {
     })),
   ];
 
-  const RenderTemplate = () => {
+  const  RenderTemplate = () => {
     if (dbTemplates.length > 0) {
       const selected = dbTemplates.find((t) => t.id === selectedTemplate);
       if (selected) {
@@ -280,7 +359,7 @@ const EmailBroadcast: React.FC = () => {
           />
           {isEditingTemplate && (
             <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-              Edit mode enabled
+              built-in templates cannot be edited
             </div>
           )}
         </div>
@@ -884,6 +963,16 @@ const EmailBroadcast: React.FC = () => {
                 </svg>
               </div>
             </div>
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-sm"
+                title="Create new template"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-sm">Create</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 mt-2">
@@ -912,7 +1001,8 @@ const EmailBroadcast: React.FC = () => {
                   <textarea
                     value={editBody}
                     onChange={(e) => setEditBody(e.target.value)}
-                    className="w-full h-64 p-3 rounded border border-input dark:border-gray-700 bg-background dark:bg-[#061018] text-foreground dark:text-white"
+                    className="w-full h-64 p-3 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-[#0b1320] text-foreground dark:text-white"
+                    style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   />
                   <div className="flex justify-end gap-2 mt-3">
                     <button
@@ -931,6 +1021,75 @@ const EmailBroadcast: React.FC = () => {
                 </div>
               </div>
             )}
+
+          {/* Create Template Modal (TipTap) */}
+          {showCreateModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <div ref={createModalRef} className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl" id="emailbroadcast-create-modal">
+                <style>{`#emailbroadcast-create-modal .editor-inner input, #emailbroadcast-create-modal .editor-inner .ProseMirror p { width: var(--save-btn-width); max-width: var(--save-btn-width); margin: 0 auto; }`}</style>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold mb-1 text-foreground dark:text-white">Create Template</h2>
+                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="text-muted-foreground">Close</button>
+                </div>
+
+                <div className="mb-3">
+                  <label className="text-sm text-foreground block mb-1">Template Name</label>
+                  <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} className="w-full p-2 rounded border border-gray-300 bg-gray-100 dark:bg-[#0b1320] text-foreground dark:text-white" />
+                </div>
+
+                <div className="mb-3">
+                  <div className="flex flex-col h-[300px]">
+                    <MenuBar editor={editor} />
+                    <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b bg-gray-100 dark:bg-[#07101a]">
+                      <EditorContent editor={editor} className="h-[360px] p-4 bg-transparent text-black dark:text-white" />
+                    </div>
+                  </div>
+                </div>
+
+                  <div className="flex justify-end gap-2 mt-4">
+                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="px-3 py-2 rounded bg-gray-200 dark:bg-gray-700">Cancel</button>
+                  <button
+                    ref={saveBtnRef}
+                    onClick={async () => {
+                      try {
+                        if (!templateName.trim()) {
+                          toast.error('Please enter a template name');
+                          return;
+                        }
+                        if (!templateContent.trim()) {
+                          toast.error('Please enter template content');
+                          return;
+                        }
+
+                        const plainTextBody = getFullPlainText(templateContent);
+                        const post_data = { name: templateName, body: plainTextBody, is_active: true } as any;
+                        const { data, error } = await create_content_service({ table: 'email_templates', post_data });
+                        if (error) throw error;
+                        if (Array.isArray(data) && data.length > 0) {
+                          const newTemplate = data[0];
+                          setDbTemplates(prev => [newTemplate, ...prev]);
+                          setSelectedTemplate(newTemplate.id as any);
+                          setShowCreateModal(false);
+                          setTemplateName('');
+                          setTemplateContent('');
+                          // reset editor content
+                          editor?.commands.setContent('');
+                          toast.success('Template created');
+                        } else {
+                          throw new Error('Failed to create template');
+                        }
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Failed to create template');
+                      }
+                    }}
+                    className="px-3 py-2 rounded bg-blue-600 text-white"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
 
           <div className="space-y-2 mt-2">
