@@ -206,8 +206,9 @@ export const Add_Appointment_Modal = ({
         }
       })();
     } else if (key === "new_patient" && val === "true") {
-      // clear coming back data when switching back to New
+      // clear coming back data and any selected patient when switching back to New
       setComingBackData([]);
+      setSelectedComingBackPatient(null);
     }
   };
   const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {

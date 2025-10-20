@@ -175,6 +175,18 @@ const SalesHistory = () => {
   const openModal = useCallback((orderDetails: DataListInterface) => {
     setSelectedOrder(orderDetails);
     setModalOpen(true);
+    try {
+      // Log info to console for debugging instead of alert
+      const dateFilter = dobSearch ? dobSearch : "All dates";
+      console.log("SalesHistory.openModal called", {
+        dateFilter,
+        selectedOrder: orderDetails,
+        // include a note about what goes into the PDF
+        pdfFields: ["Order ID", "Date", "Patient Name", "Total Amount", "Payment Type"],
+      });
+    } catch (e) {
+      // ignore in non-browser environments
+    }
   }, []);
 
   const closeModal = useCallback(() => {

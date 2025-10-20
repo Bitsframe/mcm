@@ -58,6 +58,7 @@ import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft,
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
+  const [visibleEmails, setVisibleEmails] = useState<any[]>([]);
   const [locationList, setLocationList] = useState<any[]>([]);
   const [serviceList, setServiceList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -263,11 +264,14 @@ const EmailBroadcast: React.FC = () => {
     setLocation("");
     setTreatmentType("");
     setIsFilterOn(false);
+    // restore full list in the UI
+    setVisibleEmails(emailList || []);
   };
 
   const handleSelectAndDeselectAll = (isSelected: boolean) => {
     if (isSelected) {
-      setCheckedItems(emailList);
+      // select only the currently visible (possibly filtered) emails
+      setCheckedItems(visibleEmails && visibleEmails.length ? visibleEmails : emailList);
     } else {
       setCheckedItems([]);
     }
@@ -403,9 +407,39 @@ const EmailBroadcast: React.FC = () => {
         )
     );
 
-    return [...selectedEmails, ...unselectedEmails].filter((email) =>
-      email?.email?.toLowerCase()?.includes(searchQuery.toLowerCase())
-    );
+    // If searchQuery is empty, return all with selected ones first
+    if (!searchQuery || !searchQuery.trim()) {
+      return [...selectedEmails, ...unselectedEmails];
+    }
+
+    const q = searchQuery.toLowerCase().trim();
+
+    return [...selectedEmails, ...unselectedEmails].filter((email) => {
+      const emailStr = (email?.email || '').toLowerCase();
+      const first = (email?.firstname || '').toLowerCase();
+      const last = (email?.lastname || '').toLowerCase();
+      const full = `${first} ${last}`.trim();
+
+      return (
+        emailStr.includes(q) ||
+        first.includes(q) ||
+        last.includes(q) ||
+        full.includes(q)
+      );
+    });
+  };
+
+  // Apply filters and notify via console for debugging
+  const applyFilters = () => {
+    try {
+      const matched = filterEmails();
+      setIsFilterOn(true);
+      setFilter(false);
+      // update visible emails shown in the list immediately
+      setVisibleEmails(matched);
+    } catch (err) {
+      console.error('Error applying filters', err);
+    }
   };
 
   const filteredEmails = filterEmails();
@@ -416,6 +450,7 @@ const EmailBroadcast: React.FC = () => {
         const email = await getUserEmail();
        
         setEmailList(email);
+        setVisibleEmails(email || []);
 
     
 
@@ -625,17 +660,17 @@ const EmailBroadcast: React.FC = () => {
 
                       <div className="flex items-center justify-between mt-2 sm:mt-3">
                         <div className="relative border border-input dark:border-[#0e1725] rounded-lg w-full sm:w-auto flex-1">
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                            <Search className="w-4 h-4" />
-                          </span>
-                          <input
-                            placeholder={t("EmailB_k9")}
-                            type="text"
-                            className="pl-10 pr-2 py-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground w-full text-sm sm:text-base"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                                          <Search className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                          placeholder={t("EmailB_k9") + ' or name'}
+                                          type="text"
+                                          className="pl-10 pr-2 py-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground w-full text-sm sm:text-base"
+                                          value={searchQuery}
+                                          onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                      </div>
 
                         <Image
                           src={Filter}
@@ -702,7 +737,7 @@ const EmailBroadcast: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        filteredEmails.map((email: any, index: any) => (
+                        (visibleEmails || filteredEmails).map((email: any, index: any) => (
                           <div
                             key={index}
                             className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"
@@ -895,12 +930,20 @@ const EmailBroadcast: React.FC = () => {
                         </Select>
                       </div>
 
-                      <button
-                        onClick={() => handleReset()}
-                        className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
-                      >
-                        {t("EmailB_k26")}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleReset()}
+                          className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
+                        >
+                          {t("EmailB_k26")}
+                        </button>
+                        <button
+                          onClick={() => applyFilters()}
+                          className=" bg-green-600 py-2 px-4 rounded-lg text-base text-white"
+                        >
+                          {"Apply Filters"}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </AlertDialogDescription>

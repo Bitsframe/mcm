@@ -30,19 +30,44 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
         setLoading(true);
 
         try {
-            // Fetch the data with date range filter
+                            // Loud alert to show date range and included fields
+                                        try {
+                                            console.log("ExportAsPDF.generatePDF called", {
+                                                startDate,
+                                                endDate,
+                                                selectedLocation: selectedLocation?.title,
+                                                pdfFields: ["Order ID", "Date", "Patient Name", "Total Amount", "Payment Type"],
+                                            });
+                                        } catch (e) {
+                                            // ignore in non-browser env
+                                        }
+            // Fetch the data with date range filter, and include related inventory, orders and products
+            // We'll inspect and log the combined dataset and skip populating the PDF body for now.
             const fetched_data = await fetch_content_service({
                 table: 'sales_history',
                 language: '',
+                // Select related records: orders (with pos/patient), inventory (with product)
                 selectParam: `,
-                    orders(pos:allpatients (
-                    lastname,
-                    firstname,
-                    locationid
-                )),
-                date_sold,
-                quantity_sold,
-                total_price
+                    orders(order_id, pos:allpatients (
+                        lastname,
+                        firstname,
+                        email,
+                        phone,
+                        dob,
+                        locationid
+                    )),
+                    inventory(inventory_id, product_id, products (
+                        product_id,
+                        product_name,
+                        price,
+                        category_id,
+                        archived,
+                        unlimited
+                    )),
+                    date_sold,
+                    quantity_sold,
+                    total_price,
+                    sales_history_id
                 `,
                 matchCase: { key: 'orders.pos.locationid', value: selectedLocation.id },
                 filterOptions: [
@@ -53,30 +78,72 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 ]
             });
 
-            // Define table column headers
-            const tableColumn = ['Order ID', 'Date', 'Patient Name', 'Total Amount', 'Payment Type'];
+            // For debugging: log the fetched structure that includes sales_history rows with nested orders, inventory and products
+            try {
+                console.log('sales_history fetched_data (expanded):', fetched_data);
+            } catch (e) {
+                // ignore in non-browser env
+            }
+
+            // Fetch discounts for the orders present in the fetched sales_history rows
+            try {
+                const orderIds = Array.from(new Set((fetched_data || []).map((row: any) => row.orders?.order_id).filter(Boolean)));
+                if (orderIds.length > 0) {
+                    const discounts = await fetch_content_service({
+                        table: 'discounts',
+                        language: '',
+                        filterOptions: [{ column: 'order_id', operator: 'in', value: orderIds }]
+                    });
+                    try { console.log('discounts for orders:', discounts); } catch (e) {}
+                } else {
+                    try { console.log('No order IDs found in sales_history to fetch discounts'); } catch (e) {}
+                }
+            } catch (e) {
+                console.error('Error fetching discounts for orders:', e);
+            }
+
+            // Define table column headers (include product details)
+            const tableColumn = ['Order ID', 'Date', 'Patient Name', 'Product Name', 'Product Price', 'Quantity', 'Total Amount', 'Payment Type'];
             const tableRows: (string[] | object[])[] = [];
             let totalAmount = 0;
 
-            // Process data if available
+            // Populate the PDF rows using nested relations (orders, inventory.products)
             if (fetched_data && fetched_data.length > 0) {
-                // Process data and calculate total
                 fetched_data.forEach((item: any) => {
-                    const patientName = `${item.orders.pos.firstname} ${item.orders.pos.lastname}`;
+                    const orderId = item.orders?.order_id || item.order_id || '';
+                    const salesHistoryId = item.sales_history_id ? item.sales_history_id.toString() : '';
+                    const dateStr = item.date_sold ? new Date(item.date_sold).toLocaleString() : '';
+                    const patientName = item.orders?.pos ? `${item.orders.pos.firstname || ''} ${item.orders.pos.lastname || ''}`.trim() : '';
+
+                    const productName = item.inventory?.products?.product_name || item.inventory?.product_name || '';
+                    const productPriceNum = item.inventory?.products?.price ?? item.inventory?.price ?? item.price ?? 0;
+                    const productPrice = `$${Number(productPriceNum).toFixed(2)}`;
+
+                    const quantity = item.quantity_sold != null ? String(item.quantity_sold) : '';
+                    const rowTotalNum = item.total_price != null ? Number(item.total_price) : 0;
+                    const rowTotal = `$${rowTotalNum.toFixed(2)}`;
+
+                    const paymentType = item.paymentcash ? 'Cash' : 'Card';
+
+                    // Build the row: keep existing fields and add product details
                     const rowData = [
-                        item.sales_history_id.toString(),
-                        new Date(item.date_sold).toLocaleString(),
+                        String(orderId || salesHistoryId),
+                        dateStr,
                         patientName,
-                        `$${item.total_price.toFixed(2)}`,
-                        item.paymentcash ? 'Cash' : 'Card',
+                        productName,
+                        productPrice,
+                        quantity,
+                        rowTotal,
+                        paymentType,
                     ];
+
                     tableRows.push(rowData);
-                    totalAmount += parseFloat(item.total_price);
+                    totalAmount += parseFloat(String(rowTotalNum || 0));
                 });
             } else {
                 // Add a "No Records" message row
                 tableRows.push([
-                    { content: 'No records found for the selected date range', colSpan: 5, styles: { halign: 'center', fontStyle: 'italic' } }
+                    { content: 'No records found for the selected date range', colSpan: tableColumn.length, styles: { halign: 'center', fontStyle: 'italic' } }
                 ]);
             }
 
