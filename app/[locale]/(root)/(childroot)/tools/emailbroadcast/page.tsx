@@ -271,7 +271,7 @@ const EmailBroadcast: React.FC = () => {
   const handleSelectAndDeselectAll = (isSelected: boolean) => {
     if (isSelected) {
       // select only the currently visible (possibly filtered) emails
-      setCheckedItems(visibleEmails && visibleEmails.length ? visibleEmails : emailList);
+      setCheckedItems(filteredEmails && filteredEmails.length ? filteredEmails : emailList);
     } else {
       setCheckedItems([]);
     }
@@ -688,8 +688,10 @@ const EmailBroadcast: React.FC = () => {
                             type="checkbox"
                             className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
                             checked={
-                              checkedItems.length === emailList.length &&
-                              emailList.length > 0
+                              filteredEmails.length > 0 &&
+                              filteredEmails.every((email: any) =>
+                                checkedItems.some((item: any) => item.email === email.email)
+                              )
                             }
                             onChange={(e) =>
                               handleSelectAndDeselectAll(e.target.checked)
@@ -737,7 +739,7 @@ const EmailBroadcast: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        (visibleEmails || filteredEmails).map((email: any, index: any) => (
+                        filteredEmails.map((email: any, index: any) => (
                           <div
                             key={index}
                             className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"

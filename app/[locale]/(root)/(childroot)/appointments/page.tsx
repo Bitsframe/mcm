@@ -114,7 +114,7 @@ const Appointments = () => {
           // selectParam: ",date_and_time",
         })
         const onlyDateTimes = (data || []).map((row: any) => row?.date_and_time)
-        console.log("[Appointments] date_and_time for location", selectedLocation.id, onlyDateTimes)
+       
       } catch (err) {
         console.error("Failed to fetch appointment date_and_time", err)
       }
