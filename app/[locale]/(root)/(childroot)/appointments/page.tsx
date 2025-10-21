@@ -5,6 +5,7 @@ import {
   delete_appointment_service,
   fetchApprovedAppointmentsByLocation,
   fetchUnapprovedAppointmentsByLocation,
+  fetch_content_service,
 } from "@/utils/supabase/data_services/data_services"
 import { toast } from "react-toastify"
 import moment from "moment"
@@ -100,6 +101,26 @@ const Appointments = () => {
       fetchDataHandler(Number(selectedLocation.id))
     }
   }, [selectedLocation, fetchDataHandler])
+
+  // Debug: fetch only date_and_time for current location and log
+  useEffect(() => {
+    const fetchDateTimes = async () => {
+      try {
+        if (!selectedLocation?.id) return
+        const data: any[] = await fetch_content_service({
+          table: "Appoinments",
+          matchCase: [{ key: "location_id", value: Number(selectedLocation.id) }],
+          // selectParam could be used, but service always prefixes with '*', so we'll map client-side
+          // selectParam: ",date_and_time",
+        })
+        const onlyDateTimes = (data || []).map((row: any) => row?.date_and_time)
+        console.log("[Appointments] date_and_time for location", selectedLocation.id, onlyDateTimes)
+      } catch (err) {
+        console.error("Failed to fetch appointment date_and_time", err)
+      }
+    }
+    fetchDateTimes()
+  }, [selectedLocation])
 
   const findLocations = useCallback(
     (locationId: number) => {

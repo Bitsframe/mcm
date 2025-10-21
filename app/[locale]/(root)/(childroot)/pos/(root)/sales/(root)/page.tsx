@@ -27,6 +27,7 @@ import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
 import DiscountModal from "@/components/modals/DiscountModal";
 // import SplitToLocationModal from "@/components/SplitToLocationModal";
+import Product from "@/components/POS/Product";
 
 import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
@@ -321,6 +322,7 @@ const Orders = () => {
   const [fetchingDataLoading, setfetchingDataLoading] = useState(true);
   const [cartArray, setCartArray] = useState<CartArrayInterface[]>([]);
   const [productQty, setProductQty] = useState<number>(0);
+  const [productQtyMap, setProductQtyMap] = useState<Record<number, number>>({});
   const [placeOrderLoading, setPlaceOrderLoading] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(
@@ -349,6 +351,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
     const value = e.target.value;
     getCategoriesByLocationId(value);
     setProductQty(0);
+    setProductQtyMap({});
   };
 
   const select_product_change_handle = (e: any) => {
@@ -412,6 +415,64 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
   const quantityHandle = (qty: number) => {
     setProductQty(qty);
+  };
+
+  const setRowQuantity = (product_id: number, qty: number) => {
+    setProductQtyMap((prev) => ({ ...prev, [product_id]: qty }));
+  };
+
+  // Keep legacy behavior working by syncing a selected row
+  const handleSelectProduct = (p: any) => {
+    selectProductHandle(p.product_id);
+    setProductQty(productQtyMap[p.product_id] || 0);
+  };
+
+  const handleRowQuantityChange = (p: any, q: number) => {
+    setRowQuantity(p.product_id, q);
+    // Also update legacy states so buttons relying on selectedProduct/productQty work
+    selectProductHandle(p.product_id);
+    setProductQty(q);
+  };
+
+  const addToCartFor = (p: any) => {
+    const findCategory: any = categories.find(
+      ({ category_id }: any) => +p.category_id === +category_id
+    );
+
+    if (findCategory && selectedLocation) {
+      const basePrice = p.price;
+      let finalUnitPrice = basePrice;
+      const discount_percent = discountPct || 0;
+
+      if (discount_percent > 0) {
+        finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+      }
+
+      const qty = productQtyMap[p.product_id] || 0;
+      if (qty <= 0) return;
+
+      const addProduct: CartArrayInterface = {
+        product_id: p.product_id,
+        main_product_id: p.main_product_id,
+        product_name: p.product_name,
+        quantity: qty,
+        category_name: findCategory.category_name,
+        category_id: findCategory.category_id,
+        quantity_available: p.quantity_available,
+        price: finalUnitPrice,
+        original_price: basePrice,
+        discount_percent,
+        fulfillment_location_id: selectedLocation.id,
+        fulfillment_location_name:
+          selectedLocation.title || selectedLocation.name || "Unknown",
+      };
+
+      cartArray.push(addProduct);
+      setCartArray([...cartArray]);
+
+      // reset row qty
+      setProductQtyMap((prev) => ({ ...prev, [p.product_id]: 0 }));
+    }
   };
 
   
@@ -968,77 +1029,53 @@ const addToCartHandle = () => {
                   <div className="text-xs text-black dark:text-white">
                     {selectedCategory ? "Loading..." : "Select Category.."}
                   </div>
+                ) : selectedCategory ? (
+                  <div className="overflow-x-auto bg-white dark:bg-[#0E1725] rounded">
+                    <table className="w-full table-auto">
+                      <thead>
+                        <tr>
+                          <th className="border-b p-2 text-left">Product Name</th>
+                          <th className="border-b p-2 text-left">Quantity</th>
+                          <th className="border-b p-2 text-left">Availability</th>
+                          <th className="border-b p-2 text-left">Price/Unit</th>
+                          <th className="border-b p-2 text-left">Total Cost</th>
+                          <th className="border-b p-2 text-left">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.length > 0 ? (
+                          products.map((p: any) => (
+                            <Product
+                              key={p.product_id}
+                              rowMode
+                              productName={p.product_name}
+                              pricePerUnit={p?.price || 0}
+                              quantityLeft={p?.unlimited ? Number.MAX_SAFE_INTEGER : p?.quantity_available || 0}
+                              quantity={productQtyMap[p.product_id] || 0}
+                              onQuantityChange={(q) => handleRowQuantityChange(p, q)}
+                              onAddToCart={() => addToCartFor(p)}
+                              onRowSelect={() => handleSelectProduct(p)}
+                              disabled={!selectedPatient}
+                              minQuantity={0}
+                              formatPrice={currencyFormatHandle}
+                            />
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={6} className="p-2 text-xs text-center text-gray-500 dark:text-gray-300">No products</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
-                  <Searchable_Dropdown
-                    disabled={!selectedPatient}
-                    initialValue={0}
-                    //@ts-ignore
-                    dark_bg_color="gray.700"
-                    start_empty={true}
-                    options_arr={products.map(
-                      ({ product_id, product_name }: any) => ({
-                        value: product_id,
-                        label: product_name,
-                      })
-                    )}
-                    required={true}
-                    value={selectedProduct ? selectedProduct.product_id : 0}
-                    on_change_handle={select_product_change_handle}
-                    label="Select Product"
-                  />
+                  <div className="text-xs text-black dark:text-white">Select Category..</div>
                 )}
               </div>
-              <div>
-                <div className="space-y-0.5">
-                  <Quantity_Field
-                    disabled={!selectedPatient}
-                    maxAvailability={
-                      selectedProduct ? selectedProduct.quantity_available : 0
-                    }
-                    quantity={productQty}
-                    quantityHandle={quantityHandle}
-                    unlimited={selectedProduct?.unlimited}
-                  />
-                  {selectedProduct ? (
-                    <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
-                      <div className="text-xs flex items-center space-x-3">
-                        <p>
-                          {currencyFormatHandle(selectedProduct?.price || 0)}
-                          /unit
-                        </p>
-                        <p>
-                          Total Cost{" "}
-                          {currencyFormatHandle(
-                            (selectedProduct?.price || 0) * productQty
-                          )}
-                        </p>
-                      </div>
-                      {selectedProduct.unlimited ? (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          Unlimited
-                        </div>
-                      ) : (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty} left
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
 
 
 
-              <div className="flex gap-2">
-                <button
-                  disabled={!productQty}
-                  onClick={addToCartHandle}
-                  className="bg-[#0066FF] my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
-                  type="submit"
-                >
-                  {t("POS-Sales_k8")}
-                </button>
-              </div>
+              {/* Add to Cart button is now handled within Product component */}
               <div className="mb-2">
                 <button
                   disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}

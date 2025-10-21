@@ -310,6 +310,82 @@ export const Add_Appointment_Modal = ({
       address: `${formData.street_address}, ${formData.state}, ${formData.zipcode}`,
       date_and_time,
     };
+    // If a coming-back patient is selected, update the existing appointment row instead of inserting
+    if (selectedComingBackPatient && selectedComingBackPatient.id) {
+      try {
+        const updatePayload: any = {
+          service: appointmentDetails.service,
+          date_and_time: appointmentDetails.date_and_time,
+        };
+
+        const { data: updatedData, error: updateError } = await supabase
+          .from('Appoinments')
+          .update(updatePayload)
+          .eq('id', selectedComingBackPatient.id)
+          .select();
+
+        // Notify parent and show toasts similar to insert path
+        newAddedRow(updatedData?.[0]);
+
+        if (updateError) {
+          if (
+            updateError?.message ===
+            'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
+          ) {
+            toast.error(
+              `Sorry, Appointment time slot is not available, Please select any other time slot`
+            );
+          } else {
+            toast.error(`Error updating appointment: ${updateError?.message}`);
+          }
+        } else {
+          toast.success(
+            <div className="flex justify-between">
+              <p>Appointment updated successfully.</p>
+              <button
+                onClick={() => toast.dismiss()}
+                className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <span className="text-sm">✕</span>
+              </button>
+            </div>
+          );
+
+          // Trigger server-side email via API route
+          try {
+            const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails;
+            const appointmentDate = date_and_time && date_and_time.includes('|')
+              ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
+              : '-';
+            const appointmentTime = date_and_time && date_and_time.includes('|')
+              ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
+              : '-';
+
+            await fetch('/api/sendappointemntemail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: email_address,
+                subject: 'Appointment Confirmation',
+                appointmentDate,
+                appointmentTime,
+              }),
+            });
+          } catch (e) {
+            console.error('Error triggering appointment email (update):', e);
+          }
+          close_handle();
+        }
+      } catch (e) {
+        console.error('Error updating appointment', e);
+        toast.error('An error occurred while updating the appointment');
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    // Insert new appointment for new patients or when no existing patient selected
     const { data, error } = await supabase
       .from("Appoinments")
       .insert([postData])
@@ -357,7 +433,28 @@ export const Add_Appointment_Modal = ({
           ? date_and_time.split("|")[1]?.split(" - ")?.[1] || "-"
           : "-",
       };
-      await sendEmail({ lang: "en", emailType, data });
+      // Trigger server-side email via API route for new appointment
+      try {
+        const appointmentDate = date_and_time && date_and_time.includes('|')
+          ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
+          : '-';
+        const appointmentTime = date_and_time && date_and_time.includes('|')
+          ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
+          : '-';
+
+        await fetch('/api/sendappointemntemail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: data.email, // `data` variable holds email in this scope
+            subject: 'Appointment Confirmation',
+            appointmentDate,
+            appointmentTime,
+          }),
+        });
+      } catch (e) {
+        console.error('Error triggering appointment email (insert):', e);
+      }
       console.log(data, "Appointment Submitted");
       close_handle();
     }
@@ -678,6 +775,14 @@ export const Add_Appointment_Modal = ({
                     }
                   }}
                 />
+              </div>
+            )}
+
+            {/* Show a friendly message when comingBackData was fetched but contains no rows */}
+            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && (
+              <div className="mt-4 p-4 rounded bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
+                <p className="font-medium">No returning patient</p>
+                
               </div>
             )}
 
