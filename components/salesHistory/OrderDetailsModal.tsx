@@ -13,6 +13,14 @@ import axios from "axios";
 import { toast } from "sonner";
 import moment from "moment";
 import { ArrowLeftFromLine, ArrowRightFromLine } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   isOpen,
@@ -130,6 +138,20 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
+  // UI state for editable payment method dropdown
+  type PaymentOption = "Cash" | "Card" | "Cash & Card" | "N/A";
+  const [paymentMethodUI, setPaymentMethodUI] = useState<PaymentOption>("N/A");
+
+  // Initialize dropdown from database values when data loads
+  useEffect(() => {
+    const cashVal = !!dataList?.cash;
+    const cardVal = !!dataList?.card;
+    let init: PaymentOption = "N/A";
+    if (cashVal && cardVal) init = "Cash & Card";
+    else if (cashVal) init = "Cash";
+    else if (cardVal) init = "Card";
+    setPaymentMethodUI(init);
+  }, [dataList?.cash, dataList?.card]);
 
   return isOpen ? (
     <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -193,13 +215,27 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </span>
                     </div>
                     
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        {dataList?.cash && dataList?.card ? 'Cash & Card' : 
-                         dataList?.cash ? 'Cash' : 
-                         dataList?.card ? 'Card' : 'N/A'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {/* If both payment types exist in DB, show an indicator */}
+                        {dataList?.cash && dataList?.card ? (
+                          <span className="text-xs text-muted-foreground hidden sm:inline">(Cash & Card)</span>
+                        ) : null}
+                        <Select value={paymentMethodUI} onValueChange={(v: PaymentOption) => setPaymentMethodUI(v)}>
+                          <SelectTrigger className="w-[110px] h-8 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-[#080e16] border dark:border-[#0e1725]">
+                            <SelectGroup>
+                              <SelectItem value="Cash & Card" className="text-sm">Cash & Card</SelectItem>
+                              <SelectItem value="Cash" className="text-sm">Cash</SelectItem>
+                              <SelectItem value="Card" className="text-sm">Card</SelectItem>
+                              <SelectItem value="N/A" className="text-sm">N/A</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     
                     <div className="flex justify-between">
