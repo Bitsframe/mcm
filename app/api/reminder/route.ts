@@ -8,9 +8,17 @@ const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL!;
 
 export async function GET(req: Request) {
   try {
+    // Validate the API key for authorization
+    const secretKey = process.env.SUPABASE_SERVICE_ROLE_API_KEY;
+    const headerSecret = req.headers.get('Authorization')?.split(' ')[1];
+
+    if (headerSecret !== secretKey) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     // Fetch minimal fields from Appointments via shared data service
     const appointments: any[] = await fetch_content_service({
-      table: 'Appoinments',
+      table: 'Appointments',
       selectParam: ',id,first_name,last_name,email_address,date_and_time,two_days_before,two_weeks_before',
       sortOptions: { column: 'id', order: 'asc' },
     });
@@ -23,8 +31,7 @@ export async function GET(req: Request) {
         const dateAndTime: string | null = appt.date_and_time;
         if (!dateAndTime || appt.two_weeks_before || appt.two_days_before) continue; // Skip if reminder already sent or flags are true
 
-        // Parse stored value like:  "3|26-09-2025 - 11:00 AM"
-        // Left of '|' is location id; right contains "DD-MM-YYYY - hh:mm A"
+        // Parse stored value like: "3|26-09-2025 - 11:00 AM"
         const slotString = dateAndTime.includes('|')
           ? dateAndTime.split('|', 2)[1].trim()
           : dateAndTime.trim();
@@ -33,7 +40,6 @@ export async function GET(req: Request) {
         if (!datePartRaw) continue;
         const timePartRaw = (timePartRawRaw || '').trim();
 
-        // Robust date parse with common variants; strict mode to avoid ambiguity
         const apptDate = moment(datePartRaw.trim(), [
           'DD-MM-YYYY',
           'DD/MM/YYYY',
@@ -48,8 +54,8 @@ export async function GET(req: Request) {
         let reminderType: string | null = null;
 
         // Check if it's time to send the reminder (either 2 weeks or 2 days)
-        if (daysDiff <= 14 && !appt.two_weeks_before) reminderType = "2weeks"; // Send reminder if the flag is false and 14 days or less before the appointment
-        if (daysDiff === 2 && !appt.two_days_before) reminderType = "2days"; // If 2 days before and flag is false
+        if (daysDiff <= 14 && !appt.two_weeks_before) reminderType = "2weeks";
+        if (daysDiff === 2 && !appt.two_days_before) reminderType = "2days";
 
         // Send the reminder if it's within the range
         if (!reminderType) continue;
@@ -74,7 +80,7 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Send the reminder email using the same endpoint and format as /api/sendappointemntemail
+        // Send the reminder email using the same endpoint and format as /api/sendappointmentemail
         if (!EDGE_FUNCTION_URL) {
           const msg = '[reminder] EDGE_FUNCTION_URL not configured';
           console.error(msg);
@@ -116,12 +122,11 @@ export async function GET(req: Request) {
 
         // Mark the reminder as sent using the shared update_content_service
         try {
-          // Update both flags based on the reminder type
           const updateData = reminderType === "2weeks"
             ? { two_weeks_before: true }
             : { two_days_before: true };
 
-          await update_content_service({ table: 'Appoinments', post_data: { id: appt.id, ...updateData } });
+          await update_content_service({ table: 'Appointments', post_data: { id: appt.id, ...updateData } });
         } catch (updateError: any) {
           console.error("[getReminders] Error updating reminder flags:", updateError?.message || updateError);
           results.push({ appointmentId: appt.id, type: reminderType, status: "failed", error: updateError?.message || String(updateError) });
@@ -131,7 +136,6 @@ export async function GET(req: Request) {
         // Log success and record it
         results.push({ appointmentId: appt.id, type: reminderType, status: "sent" });
       } catch (err: any) {
-        // Handle errors and log them
         console.error("[getReminders] Failed to process appointment id", appt.id, err?.message || err);
         results.push({ appointmentId: appt.id, type: "error", status: "failed", error: err?.message });
       }
