@@ -778,8 +778,9 @@ export const Add_Appointment_Modal = ({
               </div>
             )}
 
-            {/* Show a friendly message when comingBackData was fetched but contains no rows */}
-            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && (
+            {/* Show a friendly message when comingBackData was fetched but contains no rows
+                Only show this when 'Coming Back' is selected (new_patient === "false"). */}
+            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <div className="mt-4 p-4 rounded bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
                 <p className="font-medium">No returning patient</p>
                 

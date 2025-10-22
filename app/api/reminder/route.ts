@@ -1,36 +1,19 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import moment from "moment";
-import { sendEmail } from "@/utils/emailService";
-import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
-import { update_content_service } from '@/utils/supabase/data_services/data_services';
+import { NextResponse } from 'next/server';
+import moment from 'moment';
+import { fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
 
-// Secure this endpoint by setting REMINDERS_CRON_SECRET in your environment
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!;
-const CRON_SECRET = process.env.REMINDERS_CRON_SECRET || "";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Use the environment variables
+const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL!;
+const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL!;
 
 export async function GET(req: Request) {
   try {
-    // Validate secret header
-    const headerSecret = req.headers.get("x-cron-secret") || "";
-    if (CRON_SECRET && headerSecret !== CRON_SECRET) {
-      console.error("[getReminders] Unauthorized access attempt");
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch appointments from the Supabase database
-    const { data: appointments, error } = await supabase
-      .from("Appointments")
-      .select(`id, first_name, last_name, email_address, date_and_time, service, location_id, reminder_sent`)
-      .order("id", { ascending: true });
-
-    if (error) {
-      console.error("[getReminders] Error fetching appointments:", error.message);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
+    // Fetch minimal fields from Appointments via shared data service
+    const appointments: any[] = await fetch_content_service({
+      table: 'Appoinments',
+      selectParam: ',id,first_name,last_name,email_address,date_and_time,two_days_before,two_weeks_before',
+      sortOptions: { column: 'id', order: 'asc' },
+    });
 
     const results: { appointmentId: number; type: string; status: string; error?: string }[] = [];
 
@@ -38,18 +21,25 @@ export async function GET(req: Request) {
     for (const appt of appointments || []) {
       try {
         const dateAndTime: string | null = appt.date_and_time;
-        if (!dateAndTime || appt.reminder_sent) continue; // Skip if reminder already sent or no date
+        if (!dateAndTime || appt.two_weeks_before || appt.two_days_before) continue; // Skip if reminder already sent or flags are true
 
-        // Split and extract the date and time from the stored value
-        const parts = dateAndTime.split("|");
-        if (parts.length < 2) continue;
+        // Parse stored value like:  "3|26-09-2025 - 11:00 AM"
+        // Left of '|' is location id; right contains "DD-MM-YYYY - hh:mm A"
+        const slotString = dateAndTime.includes('|')
+          ? dateAndTime.split('|', 2)[1].trim()
+          : dateAndTime.trim();
 
-        const slotPart = parts[1].trim();
-        const [datePartRaw, timePartRaw] = slotPart.split(" - ");
+        const [datePartRaw, timePartRawRaw] = slotString.split(' - ');
         if (!datePartRaw) continue;
+        const timePartRaw = (timePartRawRaw || '').trim();
 
-        // Parse date using the format stored in the database
-        const apptDate = moment(datePartRaw, "DD-MM-YYYY");
+        // Robust date parse with common variants; strict mode to avoid ambiguity
+        const apptDate = moment(datePartRaw.trim(), [
+          'DD-MM-YYYY',
+          'DD/MM/YYYY',
+          'MM-DD-YYYY',
+          'MM/DD/YYYY',
+        ], true);
         if (!apptDate.isValid()) continue;
 
         const today = moment().startOf("day");
@@ -57,9 +47,9 @@ export async function GET(req: Request) {
 
         let reminderType: string | null = null;
 
-        // Check if it's time to send the reminder
-        if (daysDiff === 14) reminderType = "2weeks";
-        if (daysDiff === 2) reminderType = "2days";
+        // Check if it's time to send the reminder (either 2 weeks or 2 days)
+        if (daysDiff <= 14 && !appt.two_weeks_before) reminderType = "2weeks"; // Send reminder if the flag is false and 14 days or less before the appointment
+        if (daysDiff === 2 && !appt.two_days_before) reminderType = "2days"; // If 2 days before and flag is false
 
         // Send the reminder if it's within the range
         if (!reminderType) continue;
@@ -84,18 +74,56 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Send the reminder email
-        await sendEmail({
-          lang: "en",
-          emailType: EmailBodyTempEnum.APPOINTMENT_CONFIRMATION, // You can adjust based on the template
-          data: emailData,
+        // Send the reminder email using the same endpoint and format as /api/sendappointemntemail
+        if (!EDGE_FUNCTION_URL) {
+          const msg = '[reminder] EDGE_FUNCTION_URL not configured';
+          console.error(msg);
+          results.push({ appointmentId: appt.id, type: reminderType, status: "failed", error: msg });
+          continue;
+        }
+
+        const batchEndpoint = EDGE_FUNCTION_URL.endsWith('/')
+          ? `${EDGE_FUNCTION_URL}send-batch-email`
+          : `${EDGE_FUNCTION_URL}/send-batch-email`;
+
+        const subject = reminderType === '2weeks'
+          ? 'Appointment Reminder (2 weeks)'
+          : 'Appointment Reminder (2 days)';
+
+        const batchPayload = {
+          from: SENDER_BROADCAST_EMAIL,
+          recipients: [emailData.email],
+          subject,
+          html: `
+  ${emailData.name ? `<p>Hello ${emailData.name},</p>` : ''}
+  <p>This is a gentle reminder that your appointment is scheduled for <strong>${emailData.date} at ${emailData.time}</strong>.</p>
+  <p>We look forward to seeing you!</p>
+`,
+        };
+
+        const response = await fetch(batchEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(batchPayload),
         });
+
+        const responseText = await response.text();
+        if (!response.ok) {
+          console.error('[reminder] Email send failed:', responseText);
+          results.push({ appointmentId: appt.id, type: reminderType, status: "failed", error: responseText });
+          continue;
+        }
 
         // Mark the reminder as sent using the shared update_content_service
         try {
-          await update_content_service({ table: 'Appointments', post_data: { id: appt.id, reminder_sent: true } });
+          // Update both flags based on the reminder type
+          const updateData = reminderType === "2weeks"
+            ? { two_weeks_before: true }
+            : { two_days_before: true };
+
+          await update_content_service({ table: 'Appoinments', post_data: { id: appt.id, ...updateData } });
         } catch (updateError: any) {
-          console.error("[getReminders] Error updating reminder_sent status:", updateError?.message || updateError);
+          console.error("[getReminders] Error updating reminder flags:", updateError?.message || updateError);
           results.push({ appointmentId: appt.id, type: reminderType, status: "failed", error: updateError?.message || String(updateError) });
           continue;
         }
@@ -115,7 +143,6 @@ export async function GET(req: Request) {
       details: results,
     });
   } catch (error: any) {
-    // Catch general errors
     console.error("[getReminders] Reminder job failed:", error?.message || error);
     return NextResponse.json({ success: false, error: error?.message || String(error) }, { status: 500 });
   }
