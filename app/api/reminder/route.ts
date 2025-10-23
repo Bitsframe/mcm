@@ -1,27 +1,25 @@
 import { NextResponse } from 'next/server';
 import moment from 'moment';
-import { fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
+import { createClient } from '@supabase/supabase-js';
 
 // Use the environment variables
 const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL!;
 const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export async function GET(req: Request) {
   try {
-    // Validate the API key for authorization
-    const secretKey = process.env.SUPABASE_SERVICE_ROLE_API_KEY;
-    const headerSecret = req.headers.get('Authorization')?.split(' ')[1];
+    // Fetch minimal fields from Appointments using service role client (no auth header required)
+    const { data: appointments, error: fetchError } = await supabase
+      .from('Appointments')
+      .select('id, first_name, last_name, email_address, service, date_and_time, two_days_before, two_weeks_before')
+      .order('id', { ascending: true });
 
-    if (headerSecret !== secretKey) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    if (fetchError) {
+      return NextResponse.json({ success: false, error: fetchError.message }, { status: 500 });
     }
-
-    // Fetch minimal fields from Appointments via shared data service
-    const appointments: any[] = await fetch_content_service({
-      table: 'Appointments',
-      selectParam: ',id,first_name,last_name,email_address,date_and_time,two_days_before,two_weeks_before',
-      sortOptions: { column: 'id', order: 'asc' },
-    });
 
     const results: { appointmentId: number; type: string; status: string; error?: string }[] = [];
 
@@ -120,13 +118,18 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Mark the reminder as sent using the shared update_content_service
+        // Mark the reminder as sent using the service role client
         try {
           const updateData = reminderType === "2weeks"
             ? { two_weeks_before: true }
             : { two_days_before: true };
 
-          await update_content_service({ table: 'Appointments', post_data: { id: appt.id, ...updateData } });
+          const { error: updateError } = await supabase
+            .from('Appointments')
+            .update(updateData)
+            .eq('id', appt.id);
+
+          if (updateError) throw updateError;
         } catch (updateError: any) {
           console.error("[getReminders] Error updating reminder flags:", updateError?.message || updateError);
           results.push({ appointmentId: appt.id, type: reminderType, status: "failed", error: updateError?.message || String(updateError) });
