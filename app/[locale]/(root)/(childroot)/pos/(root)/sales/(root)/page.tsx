@@ -43,6 +43,7 @@ import {
 } from "@/utils/supabase/data_services/data_services";
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import ProductListModal from '@/components/POS/ProductListModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
@@ -318,6 +319,97 @@ const Orders = () => {
     selectedProduct,
     selectProductHandle,
   } = useProductsClinica();
+
+  // Modal & products-for-location state
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [allProductsForLocation, setAllProductsForLocation] = useState<any[]>([]);
+  const [loadingAllProducts, setLoadingAllProducts] = useState(false);
+  const [modalQtyMap, setModalQtyMap] = useState<Record<number, number>>({});
+
+  const openProductModal = async () => {
+    setProductModalOpen(true);
+    // fetch products for the selected location (no category filter)
+    await fetchAllProductsForLocation();
+  };
+
+  const closeProductModal = () => {
+    setProductModalOpen(false);
+    setAllProductsForLocation([]);
+    setModalQtyMap({});
+  };
+
+  const fetchAllProductsForLocation = async () => {
+    if (!selectedLocation?.id) return;
+    setLoadingAllProducts(true);
+    try {
+      const data: any = await fetch_content_service({
+        table: 'inventory',
+        matchCase: [
+          { key: 'location_id', value: selectedLocation.id },
+          { key: 'archived', value: false },
+          { key: 'products.archived', value: false },
+        ],
+        selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+        filterOptions: [
+          { operator: 'not', column: 'products', value: null },
+          { operator: 'neq', column: 'products.price', value: 0 },
+        ],
+      });
+
+      const formatted = (data || [])
+        .filter((elem: any) => elem.quantity > 0 || (elem.products?.unlimited && elem.products?.price > 0))
+        .map((item: any) => ({
+          product_id: item.inventory_id,
+          main_product_id: item.product_id,
+          product_name: item.products?.product_name,
+          price: item.products?.price,
+          quantity_available: item.quantity,
+          unlimited: item.products?.unlimited,
+        }));
+
+      setAllProductsForLocation(formatted);
+    } catch (err) {
+      console.error('Error fetching products for location', err);
+      setAllProductsForLocation([]);
+    } finally {
+      setLoadingAllProducts(false);
+    }
+  };
+
+  const modalSetQty = (id: number, qty: number) => setModalQtyMap(prev => ({ ...prev, [id]: qty }));
+
+  const addFromModalToCart = (p: any) => {
+    const qty = modalQtyMap[p.product_id] || 1;
+    // mirror existing addToCartFor behaviour but with explicit qty
+    if (!selectedLocation) return;
+    const findCategory: any = categories.find(({ category_id }: any) => +p.category_id === +category_id);
+    // findCategory will usually be present only if categories were previously loaded; but we can attempt to derive category_name
+    const basePrice = p.price;
+    let finalUnitPrice = basePrice;
+    const discount_percent = discountPct || 0;
+    if (discount_percent > 0) {
+      finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+    }
+
+    const addProduct: CartArrayInterface = {
+      product_id: p.product_id,
+      main_product_id: p.main_product_id,
+      product_name: p.product_name,
+      quantity: qty,
+      category_name: findCategory?.category_name || p.category_name || '',
+      category_id: findCategory?.category_id || p.category_id || 0,
+      quantity_available: p.quantity_available,
+      price: finalUnitPrice,
+      original_price: basePrice,
+      discount_percent,
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+    };
+
+    setCartArray(prev => [...prev, addProduct]);
+    // reset modal qty for that product
+    setModalQtyMap(prev => ({ ...prev, [p.product_id]: 0 }));
+  };
 
   const [fetchingDataLoading, setfetchingDataLoading] = useState(true);
   const [cartArray, setCartArray] = useState<CartArrayInterface[]>([]);
@@ -1001,81 +1093,37 @@ const addToCartHandle = () => {
             )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
-            <h2 className="text-sm font-semibold mb-2 dark:text-white">
-              {t("POS-Sales_k5")}
-            </h2>
             <div className="space-y-2">
               <div>
-                <Searchable_Dropdown
-                  disabled={!selectedPatient}
-                  initialValue={0}
-                  value={selectedCategory}
-                  //@ts-ignore
-                  dark_bg_color="gray.700"
-                  start_empty={true}
-                  options_arr={categories.map(
-                    ({ category_id, category_name }: any) => ({
-                      value: category_id,
-                      label: category_name,
-                    })
-                  )}
-                  required={true}
-                  on_change_handle={category_change_handle}
-                  label="POS-Sales_k6"
-                />
-              </div>
-              <div>
-                {loadingProducts ? (
-                  <div className="text-xs text-black dark:text-white">
-                    {selectedCategory ? "Loading..." : "Select Category.."}
-                  </div>
-                ) : selectedCategory ? (
-                  <div className="overflow-x-auto bg-white dark:bg-[#0E1725] rounded">
-                    <table className="w-full table-auto">
-                      <thead>
-                        <tr>
-                          <th className="border-b p-2 text-left">Product Name</th>
-                          <th className="border-b p-2 text-left">Quantity</th>
-                          <th className="border-b p-2 text-left">Availability</th>
-                          <th className="border-b p-2 text-left">Price/Unit</th>
-                          <th className="border-b p-2 text-left">Total Cost</th>
-                          <th className="border-b p-2 text-left">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {products.length > 0 ? (
-                          products.map((p: any) => (
-                            <Product
-                              key={p.product_id}
-                              rowMode
-                              productName={p.product_name}
-                              pricePerUnit={p?.price || 0}
-                              quantityLeft={p?.unlimited ? Number.MAX_SAFE_INTEGER : p?.quantity_available || 0}
-                              quantity={productQtyMap[p.product_id] || 0}
-                              onQuantityChange={(q) => handleRowQuantityChange(p, q)}
-                              onAddToCart={() => addToCartFor(p)}
-                              onRowSelect={() => handleSelectProduct(p)}
-                              disabled={!selectedPatient}
-                              minQuantity={0}
-                              formatPrice={currencyFormatHandle}
-                            />
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={6} className="p-2 text-xs text-center text-gray-500 dark:text-gray-300">No products</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-xs text-black dark:text-white">Select Category..</div>
-                )}
+                {/* Replaced product details table with a simple Add Product button that opens the product list modal */}
+                <div className="flex">
+                  <button
+                    type="button"
+                    disabled={!selectedPatient}
+                    onClick={openProductModal}
+                    className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    style={{ minWidth: 0 }}
+                  >
+                    Add Product
+                  </button>
+                </div>
               </div>
 
 
 
               {/* Add to Cart button is now handled within Product component */}
+              <ProductListModal
+                isOpen={productModalOpen}
+                onClose={closeProductModal}
+                loading={loadingAllProducts}
+                products={allProductsForLocation}
+                qtyMap={modalQtyMap}
+                onQtyChange={modalSetQty}
+                onAddToCart={addFromModalToCart}
+                disabled={!selectedPatient}
+                title={t('POS-Sales_k5') || 'Product Details'}
+                formatPrice={currencyFormatHandle}
+              />
               <div className="mb-2">
                 <button
                   disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
@@ -1539,7 +1587,7 @@ transition-colors`}
           {otherLocationId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Category
+                Select Product
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1548,7 +1596,7 @@ transition-colors`}
                   handleOtherLocationCategoryChange(Number(e.target.value))
                 }
               >
-                <option value="">Select Category</option>
+                <option value="">Select Product</option>
                 {otherLocationCategories.map((cat: any) => (
                   <option
                     key={String(cat.category_id)}

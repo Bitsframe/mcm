@@ -17,6 +17,11 @@ interface ProductProps {
   formatPrice?: (amount: number) => string; // optional currency formatter
   // Render mode: full table (default) or just a table row
   rowMode?: boolean;
+  // Modal mode: when true the component renders as a modal. Use isOpen to control visibility.
+  modal?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+  modalTitle?: string;
 }
 
 const Product: React.FC<ProductProps> = ({
@@ -31,6 +36,10 @@ const Product: React.FC<ProductProps> = ({
   minQuantity = 1,
   formatPrice,
   rowMode = false,
+  modal = false,
+  isOpen = false,
+  onClose,
+  modalTitle,
 }) => {
   const [internalQty, setInternalQty] = useState<number>(minQuantity);
   const qty = controlledQty !== undefined ? controlledQty : internalQty;
@@ -115,8 +124,8 @@ const Product: React.FC<ProductProps> = ({
 
   if (rowMode) return row;
 
-  return (
-    <div className="bg-white dark:bg-[#0E1725] shadow-md rounded-lg p-5">
+  const tableContent = (
+    <div className="bg-white dark:bg-[#0E1725] rounded-lg p-2">
       <table className="w-full table-auto">
         <thead>
           <tr>
@@ -130,6 +139,41 @@ const Product: React.FC<ProductProps> = ({
         </thead>
         <tbody>{row}</tbody>
       </table>
+    </div>
+  );
+
+  if (!modal) {
+    return <div className="bg-white dark:bg-[#0E1725] shadow-md rounded-lg p-5">{tableContent}</div>;
+  }
+
+  // Modal mode
+  if (modal && !isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={() => {
+          if (onClose) onClose();
+        }}
+      />
+      <div className="relative w-full max-w-4xl mx-4 bg-white dark:bg-[#0E1725] rounded-lg shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-lg font-semibold">{modalTitle ?? 'Product'}</h3>
+          <button
+            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            onClick={() => {
+              if (onClose) onClose();
+            }}
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+          {tableContent}
+        </div>
+      </div>
     </div>
   );
 };

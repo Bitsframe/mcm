@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 // Use the environment variables
 const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL;
 const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
+const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL; // Add the reply-to email to the environment variables
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
       appointmentDate: appointmentDate,
       appointmentTime: appointmentTime,
       html: `<p>Your appointment has been booked for <strong>${appointmentDate} at ${appointmentTime}</strong>. Please be on time.</p>`,
+      replyTo: REPLY_TO_EMAIL || SENDER_BROADCAST_EMAIL, // Add the Reply-To email
     };
 
     // Log the request body for debugging
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
       recipients: [to],
       subject: requestBody.subject,
       html: requestBody.html,
+      replyTo: requestBody.replyTo, // Include the replyTo in the batch payload
     };
 
     // Send a POST request to the batch endpoint

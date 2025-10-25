@@ -47,6 +47,7 @@
     "clsx": "^2.1.1",
     "cronitor": "^2.4.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.3",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
     "husky": "^9.1.6",
