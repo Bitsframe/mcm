@@ -8,6 +8,12 @@ export async function middleware(request: NextRequest) {
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
 
+  // ✅ Skip auth for internal API routes (server-to-server)
+  if (pathname.startsWith("/api/reminder")) {
+    console.log("Bypassing middleware for /api/reminder");
+    return NextResponse.next();
+  }
+
   const localeMatch = pathname.match(/^\/(en|es)/);
   const locale = localeMatch ? localeMatch[1] : i18nConfig.defaultLocale || "en";
 

@@ -420,12 +420,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </div>
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Credit Balance:</span>
-                      <span className="font-medium text-green-600 dark:text-green-400">
-                        ${(dataList?.credit_balance || 0).toFixed(2)}
-                      </span>
-                    </div>
+                    {/* Credit Balance removed from frontend per request */}
                   </div>
                 </div>
               </div>

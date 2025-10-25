@@ -26,8 +26,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
   title = 'Products',
   formatPrice,
 }) => {
-  if (!isOpen) return null;
-
+  // Hooks must be called unconditionally at the top of the component
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredProducts = useMemo(() => {
@@ -35,6 +34,8 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
     const s = searchTerm.toLowerCase();
     return products.filter((p: any) => (p.product_name || '').toLowerCase().includes(s));
   }, [products, searchTerm]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
