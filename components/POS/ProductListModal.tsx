@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Product from './Product';
 
 interface ProductListModalProps {
@@ -28,6 +28,14 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    const s = searchTerm.toLowerCase();
+    return products.filter((p: any) => (p.product_name || '').toLowerCase().includes(s));
+  }, [products, searchTerm]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -45,10 +53,29 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
         </div>
 
         <div className="p-4" style={{ maxHeight: '72vh', overflowY: 'auto' }}>
+          <div className="mb-3 flex items-center gap-2">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search product..."
+              className="w-full md:w-1/2 px-3 py-2 border rounded bg-white dark:bg-gray-800 text-sm"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded text-sm"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div className="text-sm">Loading products...</div>
-          ) : products.length === 0 ? (
-            <div className="text-sm">No products found for this location</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-sm">No products found for this search/location</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
@@ -63,18 +90,19 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {filteredProducts.map((p) => (
                     <Product
                       key={p.product_id}
                       rowMode
                       productName={p.product_name}
                       pricePerUnit={p.price}
-                      quantityLeft={p.unlimited ? Number.MAX_SAFE_INTEGER : p.quantity_available}
-                      quantity={qtyMap[p.product_id] || 1}
+                      quantityLeft={p.quantity_available}
+                      unlimited={!!p.unlimited}
+                      quantity={qtyMap[p.product_id] ?? 0}
                       onQuantityChange={(q) => onQtyChange(p.product_id, q)}
                       onAddToCart={() => onAddToCart(p)}
                       disabled={disabled}
-                      minQuantity={1}
+                      minQuantity={0}
                       formatPrice={formatPrice}
                     />
                   ))}

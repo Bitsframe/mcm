@@ -358,14 +358,23 @@ const Orders = () => {
 
       const formatted = (data || [])
         .filter((elem: any) => elem.quantity > 0 || (elem.products?.unlimited && elem.products?.price > 0))
-        .map((item: any) => ({
-          product_id: item.inventory_id,
-          main_product_id: item.product_id,
-          product_name: item.products?.product_name,
-          price: item.products?.price,
-          quantity_available: item.quantity,
-          unlimited: item.products?.unlimited,
-        }));
+        .map((item: any) => {
+          const formattedItem = {
+            product_id: item.inventory_id,
+            main_product_id: item.product_id,
+            product_name: item.products?.product_name,
+            price: item.products?.price,
+            quantity_available: item.quantity,
+            unlimited: item.products?.unlimited,
+          };
+          try {
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] raw inventory item:', item);
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] formatted item:', formattedItem);
+          } catch (e) {}
+          return formattedItem;
+        });
 
       setAllProductsForLocation(formatted);
     } catch (err) {
@@ -379,7 +388,8 @@ const Orders = () => {
   const modalSetQty = (id: number, qty: number) => setModalQtyMap(prev => ({ ...prev, [id]: qty }));
 
   const addFromModalToCart = (p: any) => {
-    const qty = modalQtyMap[p.product_id] || 1;
+    const qty = modalQtyMap[p.product_id] ?? 0;
+    if (qty <= 0) return; // nothing to add
     // mirror existing addToCartFor behaviour but with explicit qty
     if (!selectedLocation) return;
     const findCategory: any = categories.find(({ category_id }: any) => +p.category_id === +category_id);
@@ -649,6 +659,11 @@ const addToCartHandle = () => {
         { operator: "neq", column: "products.price", value: 0 },
       ],
     }).then((data: any[]) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[handleOtherLocationCategoryChange] raw data length:', data?.length);
+      } catch (e) {}
+
       const formattedData = data
         .filter(
           (elem) =>
@@ -662,6 +677,10 @@ const addToCartHandle = () => {
             product_id,
             products: { price, product_name, category_id, unlimited },
           }: any) => {
+            try {
+              // eslint-disable-next-line no-console
+              console.log('[handleOtherLocationCategoryChange] raw item:', { inventory_id, quantity, product_id, products: { price, product_name, category_id, unlimited } });
+            } catch (e) {}
             return {
               product_id: inventory_id,
               category_id,

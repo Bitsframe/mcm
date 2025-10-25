@@ -22,6 +22,8 @@ interface ProductProps {
   isOpen?: boolean;
   onClose?: () => void;
   modalTitle?: string;
+  // Explicit unlimited flag (preferred to passing a sentinel number)
+  unlimited?: boolean;
 }
 
 const Product: React.FC<ProductProps> = ({
@@ -33,23 +35,40 @@ const Product: React.FC<ProductProps> = ({
   onAddToCart,
   onRowSelect,
   disabled = false,
-  minQuantity = 1,
+  minQuantity = 0,
   formatPrice,
   rowMode = false,
   modal = false,
   isOpen = false,
   onClose,
   modalTitle,
+  unlimited = false,
 }) => {
-  const [internalQty, setInternalQty] = useState<number>(minQuantity);
+  const [internalQty, setInternalQty] = useState<number>(0);
   const qty = controlledQty !== undefined ? controlledQty : internalQty;
 
+  // Debug: log availability prop so we can see what value is passed and spot 'unlimited' markers
+  try {
+    // eslint-disable-next-line no-console
+    console.log("[Product] props:", {
+      productName,
+      pricePerUnit,
+      quantityLeft,
+      qty,
+      rowMode,
+      modal,
+      isOpen,
+    });
+  } catch (e) {
+    // ignore
+  }
   const canIncrease = useMemo(() => {
+    if (unlimited) return true;
     if (Number.isFinite(quantityLeft)) return qty < quantityLeft;
-    return true; // unlimited
-  }, [qty, quantityLeft]);
+    return true; // fallback
+  }, [qty, quantityLeft, unlimited]);
 
-  const canDecrease = qty > minQuantity;
+  const canDecrease = qty > 0;
 
   const handleIncrease = () => {
     if (!canIncrease || disabled) return;
@@ -102,10 +121,12 @@ const Product: React.FC<ProductProps> = ({
         </div>
       </td>
       <td className="border-b p-2">
-        {Number.isFinite(quantityLeft) ? (
+        {unlimited ? (
+          <span className="text-amber-600 dark:text-amber-400">Unlimited</span>
+        ) : Number.isFinite(quantityLeft) ? (
           <span>{Math.max(0, quantityLeft - qty)} left</span>
         ) : (
-          <span className="text-amber-600 dark:text-amber-400">Unlimited</span>
+          <span>{Math.max(0, quantityLeft - qty)} left</span>
         )}
       </td>
       <td className="border-b p-2">{fmt(pricePerUnit)} /unit</td>
@@ -114,7 +135,7 @@ const Product: React.FC<ProductProps> = ({
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
           onClick={handleAddToCart}
-          disabled={disabled || qty <= minQuantity}
+          disabled={disabled || qty <= 0}
         >
           Add to Cart
         </button>
