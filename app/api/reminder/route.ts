@@ -24,6 +24,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Log environment variables (Be careful with logging sensitive information)
+  console.log('Supabase URL:', SUPABASE_URL); // Make sure this is safe to log
+  console.log('Supabase Service Role Key:', SUPABASE_SERVICE_ROLE_KEY); // Be cautious with this in production
+  console.log('Sender Email:', SENDER_BROADCAST_EMAIL); // Be cautious with this in production
+  console.log('Edge Function URL:', EDGE_FUNCTION_URL); // Be cautious with this in production
+
   // ✅ Create privileged Supabase client
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
