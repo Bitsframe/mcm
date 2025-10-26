@@ -15,6 +15,10 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY!;
 export async function GET(req: Request) {
   // 🔐 Validate x-internal-key header
   const internalKey = req.headers.get('x-internal-key');
+  
+  // Log the received API key for debugging
+  console.log('Received x-internal-key:', internalKey);
+
   if (internalKey !== INTERNAL_API_KEY) {
     console.warn('❌ Unauthorized access attempt. Key received:', internalKey);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -49,12 +53,18 @@ export async function GET(req: Request) {
     }[] = [];
 
     const today = moment().startOf('day');
+    console.log('📅 Today’s date:', today.format('MM/DD/YYYY'));
 
     // Iterate through all appointments
     for (const appt of appointments || []) {
       try {
+        console.log(`🔍 Processing appointment ID: ${appt.id}`);
+
         const rawDate = appt.date_and_time;
-        if (!rawDate || appt.two_weeks_before || appt.two_days_before) continue;
+        if (!rawDate || appt.two_weeks_before || appt.two_days_before) {
+          console.log(`⏭️ Skipping appointment ID ${appt.id} (already flagged)`);
+          continue;
+        }
 
         // Parse date from "date - time" string
         const slotString = rawDate.includes('|')
@@ -67,15 +77,22 @@ export async function GET(req: Request) {
           'DD-MM-YYYY', 'DD/MM/YYYY', 'MM-DD-YYYY', 'MM/DD/YYYY',
         ], true);
 
-        if (!apptDate.isValid()) continue;
+        if (!apptDate.isValid()) {
+          console.warn(`❌ Invalid appointment date: ${rawDate}`);
+          continue;
+        }
 
         const daysDiff = apptDate.startOf('day').diff(today, 'days');
+        console.log(`📆 Days until appointment: ${daysDiff}`);
 
         // 🕒 Determine reminder type based on days difference
         let reminderType: '2weeks' | '2days' | null = null;
         if (daysDiff <= 14 && daysDiff > 2 && !appt.two_weeks_before) reminderType = '2weeks';
         if (daysDiff <= 2 && !appt.two_days_before) reminderType = '2days';
-        if (!reminderType) continue;
+        if (!reminderType) {
+          console.log(`⏭️ No reminder needed for appointment ID ${appt.id}`);
+          continue;
+        }
 
         // 📨 Build email content
         const emailHtml = `
@@ -85,8 +102,10 @@ export async function GET(req: Request) {
           )}</strong> at <strong>${timePart || ''}</strong>.</p>
           <p>Please be on time.</p>
         `;
+        console.log(`📧 Created email content for reminder type: ${reminderType}`);
 
         if (!appt.email_address) {
+          console.warn(`❌ Appointment ID ${appt.id} has no email address.`);
           results.push({
             appointmentId: appt.id,
             type: reminderType,
@@ -97,7 +116,6 @@ export async function GET(req: Request) {
         }
 
         // 🌐 Send email
-        
         const endpoint = `${EDGE_FUNCTION_URL}/send-batch-email`;
         console.log("📡 Sending to endpoint:", endpoint);
 
@@ -152,7 +170,10 @@ export async function GET(req: Request) {
           .update(updateData)
           .eq('id', appt.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('❌ Error updating flags for appointment ID:', appt.id, updateError.message);
+          throw updateError;
+        }
 
         console.log(`✅ Reminder flag updated for appointment ID ${appt.id}`);
         results.push({ appointmentId: appt.id, type: reminderType, status: 'sent' });
@@ -168,6 +189,7 @@ export async function GET(req: Request) {
     }
 
     // 📦 Return job summary
+    console.log('📦 Job summary:', results);
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
