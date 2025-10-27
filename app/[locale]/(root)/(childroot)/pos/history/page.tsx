@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import { Eye } from "lucide-react";
+import ConfirmDeleteModal from '@/components/Modal_Components/ConfirmDeleteModal';
 
 interface DataListInterface {
   [key: string]: any;
@@ -171,6 +172,45 @@ const SalesHistory = () => {
   useEffect(() => {
     fetchReasonsList();
   }, [fetchReasonsList]);
+
+  // Delete workflow: open confirm modal, then perform delete
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const requestDelete = (orderId: number) => {
+    setOrderToDelete(orderId);
+    setDeleteModalOpen(true);
+  };
+
+  const performDelete = async () => {
+    if (!orderToDelete) return;
+    try {
+      setDeleteLoading(true);
+      const res = await fetch('/api/orders/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderToDelete }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error('Failed to delete order', data);
+        alert(data.message || 'Failed to delete order');
+      } else {
+        // refresh list
+        if (selectedLocation) {
+          fetch_handle(selectedLocation.id);
+        }
+        setDeleteModalOpen(false);
+        setOrderToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting order', error);
+      alert('Error deleting order');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const openModal = useCallback((orderDetails: DataListInterface) => {
     setSelectedOrder(orderDetails);
@@ -372,6 +412,7 @@ const SalesHistory = () => {
         loading={loading}
         dataList={dataList}
         openModal={openModal}
+        onDelete={requestDelete}
         tableBodyHeight="h-[50dvh]"
         tableHeight="h-[67dvh] md:h-[58dvh]"
         itemPerPage={6}
@@ -397,6 +438,18 @@ const SalesHistory = () => {
           orderDetails={selectedOrder}
         />
       )}
+      {/* Confirm delete modal */}
+      <ConfirmDeleteModal
+        is_open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setOrderToDelete(null);
+        }}
+        onConfirm={performDelete}
+        loading={deleteLoading}
+        title="Delete Order"
+        description="Are you sure you want to delete this order? This action cannot be undone."
+      />
     </main>
   );
 };

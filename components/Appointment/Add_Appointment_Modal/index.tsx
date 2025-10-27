@@ -310,6 +310,13 @@ export const Add_Appointment_Modal = ({
       address: `${formData.street_address}, ${formData.state}, ${formData.zipcode}`,
       date_and_time,
     };
+    // If user selected "New" (isNew === true), set fixed DB values as requested:
+    // - isApproved should be true
+    // - new_patient should be false (store fixed value)
+    if (isNew && !selectedComingBackPatient) {
+      postData.isApproved = true;
+      postData.new_patient = false;
+    }
     // If a coming-back patient is selected, update the existing appointment row instead of inserting
     if (selectedComingBackPatient && selectedComingBackPatient.id) {
       try {

@@ -32,6 +32,7 @@ interface Props {
   loading?: boolean;
   dataList: any[];
   openModal?: (orderDetails: DataListInterface) => void;
+  onDelete?: (orderId: number) => void;
   tableBodyHeight?: string;
   tableHeight?: string;
   searchHandle?: (e: any) => void;
@@ -52,6 +53,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   loading,
   dataList,
   openModal,
+  onDelete,
   tableBodyHeight = "",
   tableHeight = "h-[82dvh]",
   searchInputs,
@@ -300,7 +302,9 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                 {/* Email */}
                 <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Email</TableHead>
                 {/* Details column header cell for alignment */}
-                {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
+                  {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
+                  {/* Delete column header (if delete handler provided) */}
+                  {onDelete && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
               </TableRow>
             </TableHeader>
 
@@ -338,6 +342,18 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                           title="View Details"
                         >
                           Details
+                        </button>
+                      </TableCell>
+                    )}
+                    {/* Delete Button */}
+                    {onDelete && (
+                      <TableCell className="py-3 text-center min-w-0">
+                        <button
+                          onClick={() => onDelete(elem.order_id)}
+                          className="px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors duration-150 text-xs"
+                          title="Delete Order"
+                        >
+                          Delete
                         </button>
                       </TableCell>
                     )}

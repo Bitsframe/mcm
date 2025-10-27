@@ -35,18 +35,14 @@ const PatientList: React.FC<PatientListProps> = ({ data, onSelect }) => {
   };
 
   // Filter button (e.g., you can add more filtering logic here)
-  const handleFilter = () => {
-    const filtered = data.filter((patient) => patient.id % 2 === 0); // Example filter
-    setFilteredData(filtered);
-  };
+  // (Filter button removed per request)
 
-  // Handle checkbox change - allow only one patient to be selected
+  // Handle selection change - radio behaviour (single select)
   const handleSelectPatient = (id: number) => {
-    const newSelected = selectedPatient === id ? null : id;
-    setSelectedPatient(newSelected); // Toggle selection, allow only one selected
+    setSelectedPatient(id);
     const patient = data.find((p) => p.id === id) || null;
     if (onSelect) {
-      onSelect(newSelected ? patient : null);
+      onSelect(patient);
     }
   };
 
@@ -61,13 +57,7 @@ const PatientList: React.FC<PatientListProps> = ({ data, onSelect }) => {
           onChange={(e) => handleSearch(e.target.value)}
           className="p-2 border rounded mr-2"
         />
-        <button
-          onClick={handleFilter}
-          className="p-2 bg-blue-500 text-white rounded flex items-center"
-        >
-          <span className="mr-2">Filter</span>
-          <i className="fas fa-filter"></i>
-        </button>
+        {/* Filter button removed */}
       </div>
 
       {/* Table */}
@@ -87,7 +77,8 @@ const PatientList: React.FC<PatientListProps> = ({ data, onSelect }) => {
               <td className="px-4 py-2">
                 <label className="inline-flex items-center cursor-pointer">
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="coming-back-select"
                     checked={selectedPatient === patient.id}
                     onChange={() => handleSelectPatient(patient.id)}
                     className="sr-only"
@@ -101,15 +92,13 @@ const PatientList: React.FC<PatientListProps> = ({ data, onSelect }) => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       border: '2px solid #9ca3af',
-                      borderRadius: 4,
+                      borderRadius: 9999,
                       backgroundColor: selectedPatient === patient.id ? '#0066ff' : '#ffffff',
                     }}
                     className="mr-2"
                   >
                     {selectedPatient === patient.id && (
-                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 5L4 8L11 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <span style={{ width: 8, height: 8, borderRadius: 9999, backgroundColor: '#fff' }} />
                     )}
                   </span>
                 </label>

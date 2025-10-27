@@ -16,25 +16,20 @@ export async function GET(req: Request) {
   // 🔐 Validate x-internal-key header
   const internalKey = req.headers.get('x-internal-key');
   
-  // Log the received API key for debugging
-  console.log('Received x-internal-key:', internalKey);
+  
 
   if (internalKey !== INTERNAL_API_KEY) {
     console.warn('❌ Unauthorized access attempt. Key received:', internalKey);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Log environment variables (Be careful with logging sensitive information)
-  console.log('Supabase URL:', SUPABASE_URL); // Make sure this is safe to log
-  console.log('Supabase Service Role Key:', SUPABASE_SERVICE_ROLE_KEY); // Be cautious with this in production
-  console.log('Sender Email:', SENDER_BROADCAST_EMAIL); // Be cautious with this in production
-  console.log('Edge Function URL:', EDGE_FUNCTION_URL); // Be cautious with this in production
+  // Environment variables are available (not logged to avoid leaking secrets)
 
   // ✅ Create privileged Supabase client
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    console.log('🔍 Fetching upcoming appointments…');
+  // fetching upcoming appointments
 
     // Fetch all appointments that have not yet been flagged
     const { data: appointments, error: fetchError } = await supabase
@@ -49,7 +44,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, error: fetchError.message }, { status: 500 });
     }
 
-    console.log(`✅ Total appointments fetched: ${appointments?.length ?? 0}`);
+  // total appointments fetched (not logged)
 
     const results: {
       appointmentId: number;
@@ -58,17 +53,16 @@ export async function GET(req: Request) {
       error?: string;
     }[] = [];
 
-    const today = moment().startOf('day');
-    console.log('📅 Today’s date:', today.format('MM/DD/YYYY'));
+  const today = moment().startOf('day');
 
     // Iterate through all appointments
     for (const appt of appointments || []) {
       try {
-        console.log(`🔍 Processing appointment ID: ${appt.id}`);
+  // processing appointment
 
         const rawDate = appt.date_and_time;
         if (!rawDate || appt.two_weeks_before || appt.two_days_before) {
-          console.log(`⏭️ Skipping appointment ID ${appt.id} (already flagged)`);
+          // skipping appointment (already flagged or missing date)
           continue;
         }
 
@@ -88,15 +82,14 @@ export async function GET(req: Request) {
           continue;
         }
 
-        const daysDiff = apptDate.startOf('day').diff(today, 'days');
-        console.log(`📆 Days until appointment: ${daysDiff}`);
+  const daysDiff = apptDate.startOf('day').diff(today, 'days');
 
         // 🕒 Determine reminder type based on days difference
         let reminderType: '2weeks' | '2days' | null = null;
         if (daysDiff <= 14 && daysDiff > 2 && !appt.two_weeks_before) reminderType = '2weeks';
         if (daysDiff <= 2 && !appt.two_days_before) reminderType = '2days';
         if (!reminderType) {
-          console.log(`⏭️ No reminder needed for appointment ID ${appt.id}`);
+          // no reminder needed for this appointment
           continue;
         }
 
@@ -107,8 +100,8 @@ export async function GET(req: Request) {
             'MM/DD/YYYY'
           )}</strong> at <strong>${timePart || ''}</strong>.</p>
           <p>Please be on time.</p>
-        `;
-        console.log(`📧 Created email content for reminder type: ${reminderType}`);
+  `;
+  // email content created
 
         if (!appt.email_address) {
           console.warn(`❌ Appointment ID ${appt.id} has no email address.`);
@@ -122,8 +115,7 @@ export async function GET(req: Request) {
         }
 
         // 🌐 Send email
-        const endpoint = `${EDGE_FUNCTION_URL}/send-batch-email`;
-        console.log("📡 Sending to endpoint:", endpoint);
+  const endpoint = `${EDGE_FUNCTION_URL}/send-batch-email`;
 
         const payload = {
           from: SENDER_BROADCAST_EMAIL,
@@ -135,7 +127,7 @@ export async function GET(req: Request) {
           html: emailHtml,
         };
 
-        console.log(`📧 Sending ${reminderType} reminder → ${appt.email_address}`);
+  // sending reminder
 
         let response;
         try {
@@ -180,8 +172,6 @@ export async function GET(req: Request) {
           console.error('❌ Error updating flags for appointment ID:', appt.id, updateError.message);
           throw updateError;
         }
-
-        console.log(`✅ Reminder flag updated for appointment ID ${appt.id}`);
         results.push({ appointmentId: appt.id, type: reminderType, status: 'sent' });
       } catch (err: any) {
         console.error('⚠️ Error processing appointment', appt.id, err?.message);
@@ -194,8 +184,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // 📦 Return job summary
-    console.log('📦 Job summary:', results);
+  // return job summary (not logged)
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),

@@ -47,21 +47,7 @@ const Product: React.FC<ProductProps> = ({
   const [internalQty, setInternalQty] = useState<number>(0);
   const qty = controlledQty !== undefined ? controlledQty : internalQty;
 
-  // Debug: log availability prop so we can see what value is passed and spot 'unlimited' markers
-  try {
-    // eslint-disable-next-line no-console
-    console.log("[Product] props:", {
-      productName,
-      pricePerUnit,
-      quantityLeft,
-      qty,
-      rowMode,
-      modal,
-      isOpen,
-    });
-  } catch (e) {
-    // ignore
-  }
+  // No per-row console logging to avoid noisy output in UI
   const canIncrease = useMemo(() => {
     if (unlimited) return true;
     if (Number.isFinite(quantityLeft)) return qty < quantityLeft;
@@ -131,15 +117,7 @@ const Product: React.FC<ProductProps> = ({
       </td>
       <td className="border-b p-2">{fmt(pricePerUnit)} /unit</td>
       <td className="border-b p-2">{fmt(totalCost)}</td>
-      <td className="border-b p-2">
-        <button
-          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
-          onClick={handleAddToCart}
-          disabled={disabled || qty <= 0}
-        >
-          Add to Cart
-        </button>
-      </td>
+      {/* Actions removed; single Add to Cart button exists at the top of ProductListModal */}
     </tr>
   );
 
@@ -155,7 +133,6 @@ const Product: React.FC<ProductProps> = ({
             <th className="border-b p-2 text-left">Availability</th>
             <th className="border-b p-2 text-left">Price/Unit</th>
             <th className="border-b p-2 text-left">Total Cost</th>
-            <th className="border-b p-2 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>{row}</tbody>
