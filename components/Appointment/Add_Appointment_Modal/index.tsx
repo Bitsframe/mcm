@@ -785,6 +785,58 @@ export const Add_Appointment_Modal = ({
               </div>
             )}
 
+            {/* When showing the ComingBackTable (returning patients), also show service & scheduling fields below it */}
+            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && (
+              <>
+                <div className="mt-4 space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k3")}
+                  </Label>
+                  <select
+                    required
+                    value={formData.service}
+                    onChange={(e) =>
+                      select_change_handle("service", e.target.value)
+                    }
+                    className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
+                    style={{
+                      backgroundColor: document.documentElement.classList.contains(
+                        "dark"
+                      )
+                        ? "#122136"
+                        : "#f1f4f9",
+                      border: "none",
+                      outline: "none",
+                    }}
+                  >
+                    <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                      {t("Appoinments_k28")}
+                    </option>
+                    {services?.map((service: string, index: any) => (
+                      <option
+                        key={index}
+                        value={service}
+                        className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 mt-4">
+                  <div className="space-y-2">
+                    {locations.length > 0 && (
+                      <ScheduleDateTime
+                        data={locations[0]}
+                        selectDateTimeSlotHandle={selectDateTimeSlotHandle}
+                      />
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Show a friendly message when comingBackData was fetched but contains no rows
                 Only show this when 'Coming Back' is selected (new_patient === "false"). */}
             {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (

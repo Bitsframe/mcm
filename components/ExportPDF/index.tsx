@@ -157,8 +157,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 console.error('ExportAsPDF: Error during extra debug fetches:', e);
             }
 
-            // Define table column headers (include product details)
-            const tableColumn = ['Order ID', 'Date', 'Patient Name', 'Product Name', 'Product Price', 'Quantity', 'Total Amount', 'Product Discount', 'Cart Discount', 'Payment Type', 'Price After Discount'];
+            // Define table column headers (reordered per request: Patient Name, Order ID, Products, then the rest)
+            const tableColumn = ['Patient Name', 'Order ID', 'Product Name', 'Product Price', 'Quantity', 'Total Amount', 'Product Discount', 'Cart Discount', 'Payment Type', 'Date', 'Price After Discount'];
             const tableRows: (string[] | object[])[] = [];
             let totalAmount = 0;
 
@@ -294,17 +294,18 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const finalPriceNum = Math.max(0, postCartTotal - Number(productDiscountTotal || 0));
                     const finalPriceText = `$${Number(finalPriceNum).toFixed(2)}`;
 
+                    // Arrange row data to match `tableColumn` above
                     const rowData = [
+                        orderObj.patientName || '',
                         String(orderObj.order_id || ''),
-                        orderObj.date,
-                        orderObj.patientName,
                         productsText,
-                        `$${Number(items[0]?.productPrice || 0).toFixed(2)}`, // just show first product price column as representative
+                        `$${Number(items[0]?.productPrice || 0).toFixed(2)}`,
                         String(totalQty),
                         `$${Number(orderTotal).toFixed(2)}`,
                         displayProductDiscountText,
                         displayCartDiscountText,
                         orderObj.paymentType,
+                        orderObj.date || '',
                         finalPriceText,
                     ];
 
