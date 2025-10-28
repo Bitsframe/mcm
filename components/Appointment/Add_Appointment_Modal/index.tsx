@@ -14,6 +14,8 @@ import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
 import { sendEmail } from "@/utils/emailService";
 import { LocationContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
+import ComingBackTable from "@/components/Appointment/ComingBackTable";
+
 
 interface RadioButtonOptionsInterface {
   label: string;
@@ -21,102 +23,91 @@ interface RadioButtonOptionsInterface {
   disabled?: boolean;
 }
 
-const RadioButton = ({ value, name, label, checked, onChange, disabled }: any) => {
-  const { t } = useTranslation(translationConstant.APPOINMENTS);
+const RadioButtons = ({
+  name,
+  options,
+  selectedValue,
+  onChange,
+  className,
+  required,
+}: {
+  name: string;
+  options: RadioButtonOptionsInterface[];
+  selectedValue?: string;
+  onChange: (val: string) => void;
+  className?: string;
+  required?: boolean;
+}) => {
   return (
-    <div className="flex items-center justify-start gap-3">
-      <input
-        id={`${name}-${value}`}
-        type="radio"
-        value={value}
-        name={name}
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-        className={`w-[25px] h-[25px] !border-solid !border-[2px] !border-gray-300 dark:!border-gray-600 dark:bg-gray-700 dark:checked:bg-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      />{" "}
-      <label
-        htmlFor={`${name}-${value}`}
-        className="text-[14px] text-customGray dark:text-gray-300 font-poppins"
-      >
-        {t(label)}
-      </label>
+    <div className={className}>
+      {options.map((opt) => (
+        <label
+          key={opt.value}
+          className={`inline-flex items-center mr-6 ${opt.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          {/* hidden native input used as peer for styling */}
+          <input
+            type="radio"
+            name={name}
+            value={opt.value}
+            checked={selectedValue === opt.value}
+            onChange={() => !opt.disabled && onChange(opt.value)}
+            required={required}
+            className="peer sr-only"
+            disabled={opt.disabled}
+          />
+
+          {/* styled radio: outer circle + inner white dot when selected */}
+          <span className="inline-flex items-center justify-center mr-2">
+            <span
+              style={{
+                width: 18,
+                height: 18,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 9999,
+                border: `2px solid ${selectedValue === opt.value ? '#0066ff' : '#cbd5e1'}`,
+                backgroundColor: selectedValue === opt.value ? '#0066ff' : '#ffffff',
+                transition: 'background-color 120ms ease, border-color 120ms ease',
+              }}
+            >
+              {selectedValue === opt.value && (
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 9999,
+                    backgroundColor: '#ffffff',
+                  }}
+                />
+              )}
+            </span>
+          </span>
+
+          <span className="select-none text-lg">{opt.label}</span>
+        </label>
+      ))}
     </div>
   );
 };
 
-const RadioButtons = ({
-  name,
-  options,
-  label,
-  selectedValue,
-  onChange,
-  required = false,
-  className,
-}: {
-  name: string;
-  options: RadioButtonOptionsInterface[];
-  label?: string;
-  selectedValue: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  className?: string;
-}) => (
-  <div className="flex flex-col md:flex-row items-start justify-start gap-2 pt-3">
-    <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
-      {label}
-    </label>
-    <div className="flex flex-wrap gap-4">
-      {options.map(({ label, value, disabled }, index) => (
-        <RadioButton
-          key={index}
-          value={value}
-          name={name}
-          label={label}
-          checked={selectedValue === value}
-          onChange={() => onChange(value)}
-          disabled={disabled}
-        />
-      ))}
-    </div>
-  </div>
-);
-
 const in_office_patient_options: RadioButtonOptionsInterface[] = [
-  {
-    label: "Appoinments_k18",
-    value: "true",
-  },
-  {
-    label: "Appoinments_k19",
-    value: "false",
-    disabled: true
-  },
+  { label: "Office visit", value: "true" },
+  { label: "Virtual visit", value: "false", disabled: true },
 ];
+
 const patient_type_options: RadioButtonOptionsInterface[] = [
-  {
-    label: "Appoinments_k21",
-    value: "true",
-  },
-  {
-    label: "Appoinments_k14",
-    value: "false",
-  },
+  { label: "New", value: "true" },
+  { label: "Coming Back", value: "false" },
 ];
+
 const gender_options: RadioButtonOptionsInterface[] = [
-  {
-    label: "Appoinments_k35",
-    value: "Male",
-  },
-  {
-    label: "Appoinments_k36",
-    value: "Female",
-  },
-  {
-    label: "Appoinments_k37",
-    value: "Other",
-  },
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+  { label: "Other", value: "Other" },
 ];
+
 
 export const Add_Appointment_Modal = ({
   newAddedRow,
@@ -129,6 +120,8 @@ export const Add_Appointment_Modal = ({
   const [formData, setFormData] = useState<any>({ phone: '' });
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
+  const [comingBackData, setComingBackData] = useState<any[]>([]);
+  const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
 
@@ -142,6 +135,14 @@ export const Add_Appointment_Modal = ({
     }
   };
   const open_handle = () => {
+    // When opening the modal, set sensible defaults: 'Yes' for in-office and 'New' for patient
+    setFormData((pre: any) => {
+      const base = { ...(pre || {}) };
+      if (selectedLocation && (selectedLocation as any).id) {
+        base.location_id = (selectedLocation as any).id;
+      }
+      return { ...base, in_office_patient: "true", new_patient: "true" };
+    });
     setOpen(true);
   };
   const isValidEmail = (email: string): boolean => {
@@ -173,6 +174,42 @@ export const Add_Appointment_Modal = ({
     setFormData((pre: any) => {
       return { ...pre, [key]: val };
     });
+    // If selecting 'Coming back' (existing patient), fetch existing appointments
+    if (key === "new_patient" && val === "false") {
+      (async () => {
+        try {
+          // Many existing rows may store TRUE/FALSE as uppercase strings; try matching common variants first
+          let query = supabase.from('Appoinments').select('*').in('new_patient', ['FALSE', 'false', 'False']);
+          if (selectedLocation && selectedLocation.id) {
+            query = query.eq('location_id', selectedLocation.id);
+          }
+
+          let { data, error } = await query;
+
+          // If no rows found and no error, try boolean match as a fallback
+          if ((!(data && data.length > 0)) && !error) {
+            const res = await supabase.from('Appoinments').select('*').eq('new_patient', false).maybeSingle();
+            if (res && (res as any).data) {
+              data = [(res as any).data];
+            }
+          }
+
+          if (error) {
+            console.error('Error fetching returning patients:', error);
+            setComingBackData([]);
+          } else {
+            console.log('Returning patients (new_patient=false):', data || []);
+            setComingBackData(data || []);
+          }
+        } catch (err) {
+          console.error('Failed to fetch returning patients', err);
+        }
+      })();
+    } else if (key === "new_patient" && val === "true") {
+      // clear coming back data and any selected patient when switching back to New
+      setComingBackData([]);
+      setSelectedComingBackPatient(null);
+    }
   };
   const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {
     if (formData.location_id) {
@@ -222,7 +259,8 @@ export const Add_Appointment_Modal = ({
       date_and_time,
     };
 
-    const requiredFields = [
+    // Build required fields depending on whether this is a new patient
+    const baseRequired = [
       "location_id",
       "in_office_patient",
       "new_patient",
@@ -230,13 +268,28 @@ export const Add_Appointment_Modal = ({
       "last_name",
       "email_address",
       "phone",
-      "sex",
-      "state",
-      "zipcode",
-      "street_address",
-      "service",
-      "date_and_time",
     ];
+
+    // If new_patient is true (new patient), require additional personal and scheduling fields
+    const isNew = new_patient === "true" || new_patient === true;
+    // If a coming-back patient is selected, we still require scheduling fields
+    const requireScheduling = isNew || selectedComingBackPatient;
+    const requiredFields = isNew
+      ? baseRequired.concat([
+          "sex",
+          "state",
+          "zipcode",
+          "street_address",
+          "service",
+          "date_and_time",
+        ])
+      : baseRequired;
+
+    // If we need scheduling (either new patient or selected coming-back), ensure service & slot are required
+    if (requireScheduling) {
+      if (!requiredFields.includes("service")) requiredFields.push("service");
+      if (!requiredFields.includes("date_and_time")) requiredFields.push("date_and_time");
+    }
 
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -257,6 +310,89 @@ export const Add_Appointment_Modal = ({
       address: `${formData.street_address}, ${formData.state}, ${formData.zipcode}`,
       date_and_time,
     };
+    // If user selected "New" (isNew === true), set fixed DB values as requested:
+    // - isApproved should be true
+    // - new_patient should be false (store fixed value)
+    if (isNew && !selectedComingBackPatient) {
+      postData.isApproved = true;
+      postData.new_patient = false;
+    }
+    // If a coming-back patient is selected, update the existing appointment row instead of inserting
+    if (selectedComingBackPatient && selectedComingBackPatient.id) {
+      try {
+        const updatePayload: any = {
+          service: appointmentDetails.service,
+          date_and_time: appointmentDetails.date_and_time,
+        };
+
+        const { data: updatedData, error: updateError } = await supabase
+          .from('Appoinments')
+          .update(updatePayload)
+          .eq('id', selectedComingBackPatient.id)
+          .select();
+
+        // Notify parent and show toasts similar to insert path
+        newAddedRow(updatedData?.[0]);
+
+        if (updateError) {
+          if (
+            updateError?.message ===
+            'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
+          ) {
+            toast.error(
+              `Sorry, Appointment time slot is not available, Please select any other time slot`
+            );
+          } else {
+            toast.error(`Error updating appointment: ${updateError?.message}`);
+          }
+        } else {
+          toast.success(
+            <div className="flex justify-between">
+              <p>Appointment updated successfully.</p>
+              <button
+                onClick={() => toast.dismiss()}
+                className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <span className="text-sm">✕</span>
+              </button>
+            </div>
+          );
+
+          // Trigger server-side email via API route
+          try {
+            const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails;
+            const appointmentDate = date_and_time && date_and_time.includes('|')
+              ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
+              : '-';
+            const appointmentTime = date_and_time && date_and_time.includes('|')
+              ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
+              : '-';
+
+            await fetch('/api/sendappointemntemail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: email_address,
+                subject: 'Appointment Confirmation',
+                appointmentDate,
+                appointmentTime,
+              }),
+            });
+          } catch (e) {
+            console.error('Error triggering appointment email (update):', e);
+          }
+          close_handle();
+        }
+      } catch (e) {
+        console.error('Error updating appointment', e);
+        toast.error('An error occurred while updating the appointment');
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    // Insert new appointment for new patients or when no existing patient selected
     const { data, error } = await supabase
       .from("Appoinments")
       .insert([postData])
@@ -304,7 +440,28 @@ export const Add_Appointment_Modal = ({
           ? date_and_time.split("|")[1]?.split(" - ")?.[1] || "-"
           : "-",
       };
-      await sendEmail({ lang: "en", emailType, data });
+      // Trigger server-side email via API route for new appointment
+      try {
+        const appointmentDate = date_and_time && date_and_time.includes('|')
+          ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
+          : '-';
+        const appointmentTime = date_and_time && date_and_time.includes('|')
+          ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
+          : '-';
+
+        await fetch('/api/sendappointemntemail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: data.email, // `data` variable holds email in this scope
+            subject: 'Appointment Confirmation',
+            appointmentDate,
+            appointmentTime,
+          }),
+        });
+      } catch (e) {
+        console.error('Error triggering appointment email (insert):', e);
+      }
       console.log(data, "Appointment Submitted");
       close_handle();
     }
@@ -412,224 +569,360 @@ export const Add_Appointment_Modal = ({
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k13")}
-                </Label>
-                <Input_Component_Appointment
-                  required
-                  onChange={(e: string) =>
-                    select_change_handle("first_name", e)
-                  }
-                  value={formData.first_name}
-                  placeholder={t("Appoinments_k67")}
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                />
+            {formData.new_patient !== "false" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k13")}
+                  </Label>
+                  <Input_Component_Appointment
+                    required
+                    onChange={(e: string) =>
+                      select_change_handle("first_name", e)
+                    }
+                    value={formData.first_name}
+                    placeholder={t("Appoinments_k67")}
+                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k12")}
+                  </Label>
+                  <Input_Component_Appointment
+                    required
+                    onChange={(e: string) => select_change_handle("last_name", e)}
+                    value={formData.last_name}
+                    placeholder={t("Appoinments_k68")}
+                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k12")}
-                </Label>
-                <Input_Component_Appointment
-                  required
-                  onChange={(e: string) => select_change_handle("last_name", e)}
-                  value={formData.last_name}
-                  placeholder={t("Appoinments_k68")}
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                />
-              </div>
-            </div>
+            )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k11")}
-                </Label>
-                <Input_Component_Appointment
-                  required
-                  onChange={(e: string) =>
-                    select_change_handle("email_address", e)
-                  }
-                  type="email"
-                  value={formData.email_address}
-                  placeholder={t("Appoinments_k69")}
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                  title="Please enter a valid email address (e.g., user@example.com)"
-                  hasError={!!emailError}
-                />
-                {emailError && (
-                  <p className="text-red-500 text-sm mt-1">{emailError}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k10")}
-                </Label>
-                {/* <Input_Component_Appointment
-                  required
-                  onChange={(e: string) => select_change_handle("phone", e)}
-                  value={formData.phone}
-                  placeholder="Phone Number"
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                /> */}
-                <PhoneNumberInput
-                  required={true}
-                  value={formData.phone || ''}
-                  onChange={(e: string) => select_change_handle("phone", e)}
-                  breakpoint={false}
-                />
-              </div>
-            </div>
+            {formData.new_patient !== "false" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k11")}
+                    </Label>
+                    <Input_Component_Appointment
+                      required
+                      onChange={(e: string) =>
+                        select_change_handle("email_address", e)
+                      }
+                      type="email"
+                      value={formData.email_address}
+                      placeholder={t("Appoinments_k69")}
+                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                      title="Please enter a valid email address (e.g., user@example.com)"
+                      hasError={!!emailError}
+                    />
+                    {emailError && (
+                      <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k10")}
+                    </Label>
+                    <PhoneNumberInput
+                      required={true}
+                      value={formData.phone || ''}
+                      onChange={(e: string) => select_change_handle("phone", e)}
+                      breakpoint={false}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Date of Birth */}
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k9")}
-                </Label>
-                <Input_Component_Appointment
-                  type="date"
-                  onChange={(e: string) => select_change_handle("dob", e)}
-                  value={formData.dob}
-                  placeholder="Enter mm/dd/yyyy"
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                  //@ts-ignore
-                  max={new Date().toISOString().split('T')[0]}
-                />
-              </div>
+            {formData.new_patient !== "false" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Date of Birth */}
+                <div className="space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k9")}
+                  </Label>
+                  <Input_Component_Appointment
+                    type="date"
+                    onChange={(e: string) => select_change_handle("dob", e)}
+                    value={formData.dob}
+                    placeholder="Enter mm/dd/yyyy"
+                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                    //@ts-ignore
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
 
-              {/* Gender */}
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k8")}
-                </Label>
-                <RadioButtons
-                  name="sex"
-                  options={gender_options}
-                  selectedValue={formData.sex}
-                  required
-                  onChange={(e) => select_change_handle("sex", e)}
-                  className="flex gap-2 flex-wrap sm:flex-nowrap"
-                />
+                {/* Gender */}
+                <div className="space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k8")}
+                  </Label>
+                  <RadioButtons
+                    name="sex"
+                    options={gender_options}
+                    selectedValue={formData.sex}
+                    required
+                    onChange={(e) => select_change_handle("sex", e)}
+                    className="flex gap-2 flex-wrap sm:flex-nowrap"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            {formData.new_patient !== "false" && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k6")}
+                    </Label>
+                    <select
+                      value={formData.state}
+                      onChange={(e) =>
+                        select_change_handle("state", e.target.value)
+                      }
+                      className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
+                      style={{
+                        backgroundColor:
+                          document.documentElement.classList.contains("dark")
+                            ? "#122136"
+                            : "#f1f4f9",
+                        border: "none",
+                        outline: "none",
+                      }}
+                    >
+                      <option
+                        disabled
+                        value=""
+                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
+                      >
+                        Alaska - AK
+                      </option>
+                      {usStates?.map(({ value, name }, index: any) => (
+                        <option
+                          key={index}
+                          value={name}
+                          className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >{`${name} - ${value}`}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k5")}
+                    </Label>
+                    <Input_Component_Appointment
+                      max={5}
+                      onChange={(e: string) => select_change_handle("zipcode", e)}
+                      value={formData.zipcode}
+                      placeholder={t("Appoinments_k71")}
+                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k4")}
+                  </Label>
+                  <Input_Component_Appointment
+                    onChange={(e: string) =>
+                      select_change_handle("street_address", e)
+                    }
+                    value={formData.street_address}
+                    placeholder={t("Appoinments_k70")}
+                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
+
+            {/* service select moved below selected patient summary */}
+
+            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && (
+              <div className="mt-4">
+                <Label className="font-medium text-gray-800 dark:text-gray-300">Coming back patients</Label>
+                <ComingBackTable
+                  data={comingBackData.map((p: any) => ({
+                    id: p.id,
+                    first_name: p.first_name,
+                    last_name: p.last_name,
+                    email_address: p.email_address,
+                    address: p.address,
+                    phone: p.phone,
+                    date_and_time: p.date_and_time,
+                    dob: p.dob,
+                    sex: p.sex,
+                  }))}
+                  onSelect={(patient) => {
+                    setSelectedComingBackPatient(patient);
+                    if (patient) {
+                      setFormData((pre: any) => ({
+                        ...pre,
+                        first_name: patient.first_name,
+                        last_name: patient.last_name,
+                        email_address: patient.email_address,
+                        phone: patient.phone,
+                        street_address: patient.address,
+                        // intentionally NOT setting date_and_time from selected patient
+                        date_and_time: "",
+                        dob: patient.dob,
+                        sex: patient.sex,
+                        new_patient: "false",
+                      }));
+                    }
+                  }}
+                />
+              </div>
+            )}
+
+            {/* When showing the ComingBackTable (returning patients), also show service & scheduling fields below it */}
+            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && (
+              <>
+                <div className="mt-4 space-y-2">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k3")}
+                  </Label>
+                  <select
+                    required
+                    value={formData.service}
+                    onChange={(e) =>
+                      select_change_handle("service", e.target.value)
+                    }
+                    className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
+                    style={{
+                      backgroundColor: document.documentElement.classList.contains(
+                        "dark"
+                      )
+                        ? "#122136"
+                        : "#f1f4f9",
+                      border: "none",
+                      outline: "none",
+                    }}
+                  >
+                    <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                      {t("Appoinments_k28")}
+                    </option>
+                    {services?.map((service: string, index: any) => (
+                      <option
+                        key={index}
+                        value={service}
+                        className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 mt-4">
+                  <div className="space-y-2">
+                    {locations.length > 0 && (
+                      <ScheduleDateTime
+                        data={locations[0]}
+                        selectDateTimeSlotHandle={selectDateTimeSlotHandle}
+                      />
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Show a friendly message when comingBackData was fetched but contains no rows
+                Only show this when 'Coming Back' is selected (new_patient === "false"). */}
+            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
+              <div className="mt-4 p-4 rounded bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
+                <p className="font-medium">No returning patient</p>
+                
+              </div>
+            )}
+
+            {selectedComingBackPatient && (
+              <div className="mt-4 p-4 border rounded bg-gray-50 dark:bg-[#071226]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg">Selected patient</h3>
+                    <p className="mt-2"><strong>Name:</strong> {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
+                    <p className="mt-1"><strong>Address:</strong> {selectedComingBackPatient.address || '-'}</p>
+                    <p className="mt-1"><strong>Phone:</strong> {selectedComingBackPatient.phone || '-'}</p>
+                    
+                    <p className="mt-1"><strong>Sex:</strong> {selectedComingBackPatient.sex || '-'}</p>
+                    <p className="mt-1"><strong>DOB:</strong> {selectedComingBackPatient.dob || '-'}</p>
+                  </div>
+                  <div>
+                    <button
+                      onClick={() => {
+                        // clear selection and show table again
+                        setSelectedComingBackPatient(null);
+                        setFormData((pre: any) => ({ ...pre, new_patient: "false" }));
+                      }}
+                      className="px-3 py-1 bg-white border rounded text-sm"
+                    >Change</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Service select should appear after patient details / selected patient */}
+            {(formData.new_patient !== "false" || selectedComingBackPatient) && (
+              <div className="mt-4 space-y-2">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k6")}
+                  {t("Appoinments_k3")}
                 </Label>
                 <select
-                  value={formData.state}
+                  required
+                  value={formData.service}
                   onChange={(e) =>
-                    select_change_handle("state", e.target.value)
+                    select_change_handle("service", e.target.value)
                   }
                   className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
                   style={{
-                    backgroundColor:
-                      document.documentElement.classList.contains("dark")
-                        ? "#122136"
-                        : "#f1f4f9",
+                    backgroundColor: document.documentElement.classList.contains(
+                      "dark"
+                    )
+                      ? "#122136"
+                      : "#f1f4f9",
                     border: "none",
                     outline: "none",
                   }}
                 >
-                  <option
-                    disabled
-                    value=""
-                    className="bg-white dark:bg-[#122136] text-black dark:text-white"
-                  >
-                    Alaska - AK
+                  <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                    {t("Appoinments_k28")}
                   </option>
-                  {usStates?.map(({ value, name }, index: any) => (
+                  {services?.map((service: string, index: any) => (
                     <option
                       key={index}
-                      value={name}
+                      value={service}
                       className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >{`${name} - ${value}`}</option>
+                    >
+                      {service}
+                    </option>
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k5")}
-                </Label>
-                <Input_Component_Appointment
-                  max={5}
-                  onChange={(e: string) => select_change_handle("zipcode", e)}
-                  value={formData.zipcode}
-                  placeholder={t("Appoinments_k71")}
-                  bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                />
+            )}
+
+            {(formData.new_patient !== "false" || selectedComingBackPatient) && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  {locations.length > 0 && (
+                    <ScheduleDateTime
+                      data={locations[0]}
+                      selectDateTimeSlotHandle={selectDateTimeSlotHandle}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="font-medium text-gray-800 dark:text-gray-300">
-                {t("Appoinments_k4")}
-              </Label>
-              <Input_Component_Appointment
-                onChange={(e: string) =>
-                  select_change_handle("street_address", e)
-                }
-                value={formData.street_address}
-                placeholder={t("Appoinments_k70")}
-                bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-              />
-            </div>
-
-            <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-
-            <div className="space-y-2">
-              <Label className="font-medium text-gray-800 dark:text-gray-300">
-                {t("Appoinments_k3")}
-              </Label>
-              <select
-              required
-                value={formData.service}
-                onChange={(e) =>
-                  select_change_handle("service", e.target.value)
-                }
-                className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
-                style={{
-                  backgroundColor: document.documentElement.classList.contains(
-                    "dark"
-                  )
-                    ? "#122136"
-                    : "#f1f4f9",
-                  border: "none",
-                  outline: "none",
-                }}
-              >
-                <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
-                  {t("Appoinments_k28")}
-                </option>
-                {services?.map((service: string, index: any) => (
-                  <option
-                    key={index}
-                    value={service}
-                    className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    {service}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                {locations.length > 0 && (
-                  <ScheduleDateTime
-                    data={locations[0]}
-                    selectDateTimeSlotHandle={selectDateTimeSlotHandle}
-                  />
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </Modal.Body>
 

@@ -47,6 +47,7 @@
     "clsx": "^2.1.1",
     "cronitor": "^2.4.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.3",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
     "husky": "^9.1.6",
@@ -101,8 +102,15 @@
   },
   "description": "mcm yarn",
   "main": "yes",
-  "repository": "yes",
+  "repository": {
+    "type": "git",
+    "url": "yes"
+  },
   "author": "yes",
   "license": "MIT",
-  "packageManager": "yarn@1.22.19+sha512.ff4579ab459bb25aa7c0ff75b62acebe576f6084b36aa842971cf250a5d8c6cd3bc9420b22ce63c7f93a0857bc6ef29291db39c3e7a23aab5adfd5a4dd6c5d71"
+  "packageManager": "yarn@1.22.19+sha512.ff4579ab459bb25aa7c0ff75b62acebe576f6084b36aa842971cf250a5d8c6cd3bc9420b22ce63c7f93a0857bc6ef29291db39c3e7a23aab5adfd5a4dd6c5d71",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": []
 }

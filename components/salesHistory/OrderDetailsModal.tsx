@@ -1,4 +1,4 @@
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { translationConstant } from "@/utils/translationConstants";
 import { CircularProgress } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
@@ -13,6 +13,14 @@ import axios from "axios";
 import { toast } from "sonner";
 import moment from "moment";
 import { ArrowLeftFromLine, ArrowRightFromLine } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   isOpen,
@@ -130,6 +138,20 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
+  // UI state for editable payment method dropdown
+  type PaymentOption = "Cash" | "Card" | "Card & Cash";
+  const [paymentMethodUI, setPaymentMethodUI] = useState<PaymentOption | undefined>(undefined);
+
+  // Initialize dropdown from database values when data loads
+  useEffect(() => {
+    const cashVal = !!dataList?.cash;
+    const cardVal = !!dataList?.card;
+    let init: PaymentOption | undefined = undefined;
+    if (cashVal && cardVal) init = "Card & Cash";
+    else if (cashVal) init = "Cash";
+    else if (cardVal) init = "Card";
+    setPaymentMethodUI(init);
+  }, [dataList?.cash, dataList?.card]);
 
   return isOpen ? (
     <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -193,12 +215,112 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </span>
                     </div>
                     
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                      <div className="flex items-center gap-2">
+                        {/* If both payment types exist in DB, show an indicator */}
+                        {dataList?.cash && dataList?.card ? (
+                          <span className="text-xs text-muted-foreground hidden sm:inline">(Card & Cash)</span>
+                        ) : null}
+                        <Select
+                          value={paymentMethodUI}
+                          onValueChange={async (v: PaymentOption) => {
+                            try {
+                              setPaymentMethodUI(v);
+                              const currentCash = Number(dataList?.cash) || 0;
+                              const currentCard = Number(dataList?.card) || 0;
+
+                              // Do nothing when selecting combined option
+                              if (v === "Card & Cash") return;
+
+                              // If both are zero, nothing to transfer
+                              if (currentCash === 0 && currentCard === 0) return;
+
+                              // If both have values, user said don't do anything
+                              if (currentCash > 0 && currentCard > 0) return;
+
+                              let newCash = currentCash;
+                              let newCard = currentCard;
+
+                              if (v === "Cash") {
+                                // Move any card amount to cash, set card to 0
+                                if (currentCard > 0 && currentCash === 0) {
+                                  newCash = currentCard;
+                                  newCard = 0;
+                                } else if (currentCard > 0 && currentCash > 0) {
+                                  // both present - skip per requirement
+                                  return;
+                                } else if (currentCard === 0 && currentCash > 0) {
+                                  // already cash, no change
+                                  return;
+                                }
+                              } else if (v === "Card") {
+                                // Move any cash amount to card, set cash to 0
+                                if (currentCash > 0 && currentCard === 0) {
+                                  newCard = currentCash;
+                                  newCash = 0;
+                                } else if (currentCash > 0 && currentCard > 0) {
+                                  // both present - skip per requirement
+                                  return;
+                                } else if (currentCash === 0 && currentCard > 0) {
+                                  // already card, no change
+                                  return;
+                                }
+                              }
+
+                              // If values didn't change, skip update
+                              if (newCash === currentCash && newCard === currentCard) return;
+
+                              // Persist using update_content_service on orders by order_id
+                              await update_content_service({
+                                table: "orders",
+                                post_data: {
+                                  order_id: dataList?.order_id,
+                                  cash: newCash,
+                                  card: newCard,
+                                },
+                                matchKey: "order_id",
+                              });
+
+                              // Optimistically update local state
+                              setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard }));
+                            } catch (e: any) {
+                              console.error("Failed to update payment method", e);
+                              toast.error(e?.message || "Failed to update payment method");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-[110px] h-8 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-[#080e16] border dark:border-[#0e1725]">
+                            <SelectGroup>
+                              <SelectItem value="Card & Cash" className="text-sm">Card & Cash</SelectItem>
+                              <SelectItem value="Cash" className="text-sm">Cash</SelectItem>
+                              <SelectItem value="Card" className="text-sm">Card</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Cash Amount:</span>
                       <span className="font-medium text-gray-800 dark:text-gray-200">
-                        {dataList?.cash && dataList?.card ? 'Cash & Card' : 
-                         dataList?.cash ? 'Cash' : 
-                         dataList?.card ? 'Card' : 'N/A'}
+                        ${(() => {
+                          const cashAmt = Number(dataList?.cash) || 0;
+                          return cashAmt.toFixed(2);
+                        })()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Card Amount:</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        ${(() => {
+                          const cardAmt = Number(dataList?.card) || 0;
+                          return cardAmt.toFixed(2);
+                        })()}
                       </span>
                     </div>
                     
@@ -298,6 +420,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </div>
                     </div>
                     
+                 
                   </div>
                 </div>
               </div>

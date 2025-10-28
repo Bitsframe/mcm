@@ -27,6 +27,7 @@ import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
 import DiscountModal from "@/components/modals/DiscountModal";
 // import SplitToLocationModal from "@/components/SplitToLocationModal";
+import Product from "@/components/POS/Product";
 
 import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
@@ -42,6 +43,7 @@ import {
 } from "@/utils/supabase/data_services/data_services";
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import ProductListModal from '@/components/POS/ProductListModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
@@ -318,9 +320,111 @@ const Orders = () => {
     selectProductHandle,
   } = useProductsClinica();
 
+  // Modal & products-for-location state
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [allProductsForLocation, setAllProductsForLocation] = useState<any[]>([]);
+  const [loadingAllProducts, setLoadingAllProducts] = useState(false);
+  const [modalQtyMap, setModalQtyMap] = useState<Record<number, number>>({});
+
+  const openProductModal = async () => {
+    setProductModalOpen(true);
+    // fetch products for the selected location (no category filter)
+    await fetchAllProductsForLocation();
+  };
+
+  const closeProductModal = () => {
+    setProductModalOpen(false);
+    setAllProductsForLocation([]);
+    setModalQtyMap({});
+  };
+
+  const fetchAllProductsForLocation = async () => {
+    if (!selectedLocation?.id) return;
+    setLoadingAllProducts(true);
+    try {
+      const data: any = await fetch_content_service({
+        table: 'inventory',
+        matchCase: [
+          { key: 'location_id', value: selectedLocation.id },
+          { key: 'archived', value: false },
+          { key: 'products.archived', value: false },
+        ],
+        selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+        filterOptions: [
+          { operator: 'not', column: 'products', value: null },
+          { operator: 'neq', column: 'products.price', value: 0 },
+        ],
+      });
+
+      const formatted = (data || [])
+        .filter((elem: any) => elem.quantity > 0 || (elem.products?.unlimited && elem.products?.price > 0))
+        .map((item: any) => {
+          const formattedItem = {
+            product_id: item.inventory_id,
+            main_product_id: item.product_id,
+            product_name: item.products?.product_name,
+            price: item.products?.price,
+            quantity_available: item.quantity,
+            unlimited: item.products?.unlimited,
+          };
+          try {
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] raw inventory item:', item);
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] formatted item:', formattedItem);
+          } catch (e) {}
+          return formattedItem;
+        });
+
+      setAllProductsForLocation(formatted);
+    } catch (err) {
+      console.error('Error fetching products for location', err);
+      setAllProductsForLocation([]);
+    } finally {
+      setLoadingAllProducts(false);
+    }
+  };
+
+  const modalSetQty = (id: number, qty: number) => setModalQtyMap(prev => ({ ...prev, [id]: qty }));
+
+  const addFromModalToCart = (p: any) => {
+    const qty = modalQtyMap[p.product_id] ?? 0;
+    if (qty <= 0) return; // nothing to add
+    // mirror existing addToCartFor behaviour but with explicit qty
+    if (!selectedLocation) return;
+    const findCategory: any = categories.find(({ category_id }: any) => +p.category_id === +category_id);
+    // findCategory will usually be present only if categories were previously loaded; but we can attempt to derive category_name
+    const basePrice = p.price;
+    let finalUnitPrice = basePrice;
+    const discount_percent = discountPct || 0;
+    if (discount_percent > 0) {
+      finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+    }
+
+    const addProduct: CartArrayInterface = {
+      product_id: p.product_id,
+      main_product_id: p.main_product_id,
+      product_name: p.product_name,
+      quantity: qty,
+      category_name: findCategory?.category_name || p.category_name || '',
+      category_id: findCategory?.category_id || p.category_id || 0,
+      quantity_available: p.quantity_available,
+      price: finalUnitPrice,
+      original_price: basePrice,
+      discount_percent,
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+    };
+
+    setCartArray(prev => [...prev, addProduct]);
+    // reset modal qty for that product
+    setModalQtyMap(prev => ({ ...prev, [p.product_id]: 0 }));
+  };
+
   const [fetchingDataLoading, setfetchingDataLoading] = useState(true);
   const [cartArray, setCartArray] = useState<CartArrayInterface[]>([]);
   const [productQty, setProductQty] = useState<number>(0);
+  const [productQtyMap, setProductQtyMap] = useState<Record<number, number>>({});
   const [placeOrderLoading, setPlaceOrderLoading] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(
@@ -349,6 +453,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
     const value = e.target.value;
     getCategoriesByLocationId(value);
     setProductQty(0);
+    setProductQtyMap({});
   };
 
   const select_product_change_handle = (e: any) => {
@@ -412,6 +517,64 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
   const quantityHandle = (qty: number) => {
     setProductQty(qty);
+  };
+
+  const setRowQuantity = (product_id: number, qty: number) => {
+    setProductQtyMap((prev) => ({ ...prev, [product_id]: qty }));
+  };
+
+  // Keep legacy behavior working by syncing a selected row
+  const handleSelectProduct = (p: any) => {
+    selectProductHandle(p.product_id);
+    setProductQty(productQtyMap[p.product_id] || 0);
+  };
+
+  const handleRowQuantityChange = (p: any, q: number) => {
+    setRowQuantity(p.product_id, q);
+    // Also update legacy states so buttons relying on selectedProduct/productQty work
+    selectProductHandle(p.product_id);
+    setProductQty(q);
+  };
+
+  const addToCartFor = (p: any) => {
+    const findCategory: any = categories.find(
+      ({ category_id }: any) => +p.category_id === +category_id
+    );
+
+    if (findCategory && selectedLocation) {
+      const basePrice = p.price;
+      let finalUnitPrice = basePrice;
+      const discount_percent = discountPct || 0;
+
+      if (discount_percent > 0) {
+        finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+      }
+
+      const qty = productQtyMap[p.product_id] || 0;
+      if (qty <= 0) return;
+
+      const addProduct: CartArrayInterface = {
+        product_id: p.product_id,
+        main_product_id: p.main_product_id,
+        product_name: p.product_name,
+        quantity: qty,
+        category_name: findCategory.category_name,
+        category_id: findCategory.category_id,
+        quantity_available: p.quantity_available,
+        price: finalUnitPrice,
+        original_price: basePrice,
+        discount_percent,
+        fulfillment_location_id: selectedLocation.id,
+        fulfillment_location_name:
+          selectedLocation.title || selectedLocation.name || "Unknown",
+      };
+
+      cartArray.push(addProduct);
+      setCartArray([...cartArray]);
+
+      // reset row qty
+      setProductQtyMap((prev) => ({ ...prev, [p.product_id]: 0 }));
+    }
   };
 
   
@@ -496,6 +659,11 @@ const addToCartHandle = () => {
         { operator: "neq", column: "products.price", value: 0 },
       ],
     }).then((data: any[]) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[handleOtherLocationCategoryChange] raw data length:', data?.length);
+      } catch (e) {}
+
       const formattedData = data
         .filter(
           (elem) =>
@@ -509,6 +677,10 @@ const addToCartHandle = () => {
             product_id,
             products: { price, product_name, category_id, unlimited },
           }: any) => {
+            try {
+              // eslint-disable-next-line no-console
+              console.log('[handleOtherLocationCategoryChange] raw item:', { inventory_id, quantity, product_id, products: { price, product_name, category_id, unlimited } });
+            } catch (e) {}
             return {
               product_id: inventory_id,
               category_id,
@@ -940,105 +1112,37 @@ const addToCartHandle = () => {
             )}
 
           <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
-            <h2 className="text-sm font-semibold mb-2 dark:text-white">
-              {t("POS-Sales_k5")}
-            </h2>
             <div className="space-y-2">
               <div>
-                <Searchable_Dropdown
-                  disabled={!selectedPatient}
-                  initialValue={0}
-                  value={selectedCategory}
-                  //@ts-ignore
-                  dark_bg_color="gray.700"
-                  start_empty={true}
-                  options_arr={categories.map(
-                    ({ category_id, category_name }: any) => ({
-                      value: category_id,
-                      label: category_name,
-                    })
-                  )}
-                  required={true}
-                  on_change_handle={category_change_handle}
-                  label="POS-Sales_k6"
-                />
-              </div>
-              <div>
-                {loadingProducts ? (
-                  <div className="text-xs text-black dark:text-white">
-                    {selectedCategory ? "Loading..." : "Select Category.."}
-                  </div>
-                ) : (
-                  <Searchable_Dropdown
+                {/* Replaced product details table with a simple Add Product button that opens the product list modal */}
+                <div className="flex">
+                  <button
+                    type="button"
                     disabled={!selectedPatient}
-                    initialValue={0}
-                    //@ts-ignore
-                    dark_bg_color="gray.700"
-                    start_empty={true}
-                    options_arr={products.map(
-                      ({ product_id, product_name }: any) => ({
-                        value: product_id,
-                        label: product_name,
-                      })
-                    )}
-                    required={true}
-                    value={selectedProduct ? selectedProduct.product_id : 0}
-                    on_change_handle={select_product_change_handle}
-                    label="Select Product"
-                  />
-                )}
-              </div>
-              <div>
-                <div className="space-y-0.5">
-                  <Quantity_Field
-                    disabled={!selectedPatient}
-                    maxAvailability={
-                      selectedProduct ? selectedProduct.quantity_available : 0
-                    }
-                    quantity={productQty}
-                    quantityHandle={quantityHandle}
-                    unlimited={selectedProduct?.unlimited}
-                  />
-                  {selectedProduct ? (
-                    <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
-                      <div className="text-xs flex items-center space-x-3">
-                        <p>
-                          {currencyFormatHandle(selectedProduct?.price || 0)}
-                          /unit
-                        </p>
-                        <p>
-                          Total Cost{" "}
-                          {currencyFormatHandle(
-                            (selectedProduct?.price || 0) * productQty
-                          )}
-                        </p>
-                      </div>
-                      {selectedProduct.unlimited ? (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          Unlimited
-                        </div>
-                      ) : (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty} left
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
+                    onClick={openProductModal}
+                    className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    style={{ minWidth: 0 }}
+                  >
+                    Add Product
+                  </button>
                 </div>
               </div>
 
 
 
-              <div className="flex gap-2">
-                <button
-                  disabled={!productQty}
-                  onClick={addToCartHandle}
-                  className="bg-[#0066FF] my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
-                  type="submit"
-                >
-                  {t("POS-Sales_k8")}
-                </button>
-              </div>
+              {/* Add to Cart button is now handled within Product component */}
+              <ProductListModal
+                isOpen={productModalOpen}
+                onClose={closeProductModal}
+                loading={loadingAllProducts}
+                products={allProductsForLocation}
+                qtyMap={modalQtyMap}
+                onQtyChange={modalSetQty}
+                onAddToCart={addFromModalToCart}
+                disabled={!selectedPatient}
+                title={t('POS-Sales_k5') || 'Product Details'}
+                formatPrice={currencyFormatHandle}
+              />
               <div className="mb-2">
                 <button
                   disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
@@ -1502,7 +1606,7 @@ transition-colors`}
           {otherLocationId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Category
+                Select Product
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1511,7 +1615,7 @@ transition-colors`}
                   handleOtherLocationCategoryChange(Number(e.target.value))
                 }
               >
-                <option value="">Select Category</option>
+                <option value="">Select Product</option>
                 {otherLocationCategories.map((cat: any) => (
                   <option
                     key={String(cat.category_id)}
