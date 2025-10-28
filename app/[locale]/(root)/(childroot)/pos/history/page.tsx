@@ -179,6 +179,11 @@ const SalesHistory = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const requestDelete = (orderId: number) => {
+    try {
+      console.log("SalesHistory.requestDelete called", { orderId, ts: new Date().toISOString() });
+    } catch (e) {
+      // ignore in non-browser
+    }
     setOrderToDelete(orderId);
     setDeleteModalOpen(true);
   };
@@ -187,12 +192,20 @@ const SalesHistory = () => {
     if (!orderToDelete) return;
     try {
       setDeleteLoading(true);
+      try {
+        console.log("SalesHistory.performDelete: sending delete request", { orderToDelete });
+      } catch (e) {}
+
       const res = await fetch('/api/orders/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderToDelete }),
       });
       const data = await res.json();
+      try {
+        console.log("SalesHistory.performDelete: delete response", { status: res.status, body: data });
+      } catch (e) {}
+
       if (!res.ok || !data.success) {
         console.error('Failed to delete order', data);
         alert(data.message || 'Failed to delete order');

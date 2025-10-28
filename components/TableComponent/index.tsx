@@ -349,7 +349,17 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     {onDelete && (
                       <TableCell className="py-3 text-center min-w-0">
                         <button
-                          onClick={() => onDelete(elem.order_id)}
+                          onClick={() => {
+                            try {
+                              console.log("TableComponent: Delete button clicked", {
+                                order_id: elem.order_id,
+                                row: elem,
+                              });
+                            } catch (e) {
+                              // ignore in non-browser environments
+                            }
+                            onDelete(elem.order_id);
+                          }}
                           className="px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors duration-150 text-xs"
                           title="Delete Order"
                         >

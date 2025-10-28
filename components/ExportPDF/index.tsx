@@ -5,6 +5,7 @@ import DateRangeModal from './DateRangeModal';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { LocationContext } from '@/context';
 import { toast } from 'react-toastify'; // Import the toast library
+import { buildOrderInfoBlock } from './pdfHelpers';
 
 interface TableData {
     orderId: string;
@@ -43,7 +44,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 language: '',
                 // Select related records: orders (with pos/patient), inventory (with product)
                 selectParam: `,
-                    orders(order_id, pos:allpatients (
+                    orders(order_id, paid_amount, cash, card, pos:allpatients (
                         lastname,
                         firstname,
                         email,
@@ -75,7 +76,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
 
             // For debugging: log the fetched structure that includes sales_history rows with nested orders, inventory and products
             try {
-                // logging removed for production
+                console.log('[ExportAsPDF] generatePDF called', { startDate, endDate, selectedLocation });
+                console.log('[ExportAsPDF] fetched_data (raw):', fetched_data);
             } catch (e) {
                 // ignore in non-browser env
             }
@@ -92,9 +94,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         language: '',
                         filterOptions: [{ column: 'order_id', operator: 'in', value: orderIds }]
                     }) || [];
-                    try { /* logging removed */ } catch (e) {}
+                    console.log('[ExportAsPDF] discountsForOrders for orderIds', orderIds, discountsForOrders);
                 } else {
-                    try { /* logging removed */ } catch (e) {}
+                    console.log('[ExportAsPDF] no orderIds found for discounts lookup');
                 }
             } catch (e) {
                 console.error('ExportAsPDF: Error fetching discounts for orders:', e);
@@ -107,60 +109,62 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     language: ''
                 });
                 try {
-                    // logging removed for production
-                    try {
-                        const summary = (allDiscounts || []).map((d: any) => ({
-                            discount_id: d.discount_id,
-                            order_id: d.order_id,
-                            order_id_type: typeof d.order_id,
-                            product_id: d.product_id,
-                            product_id_type: typeof d.product_id,
-                            discount_type: d.discount_type,
-                            discount_amount: d.discount_amount,
-                            discount_value: d.discount_value,
-                        }));
-                        // summary prepared but not logged
-                    } catch (e) { console.error('ExportAsPDF: error summarizing allDiscounts', e); }
-                } catch (e) { /* ignore */ }
+                    const summary = (allDiscounts || []).map((d: any) => ({
+                        discount_id: d.discount_id,
+                        order_id: d.order_id,
+                        order_id_type: typeof d.order_id,
+                        product_id: d.product_id,
+                        product_id_type: typeof d.product_id,
+                        discount_type: d.discount_type,
+                        discount_amount: d.discount_amount,
+                        discount_value: d.discount_value,
+                    }));
+                    console.log('[ExportAsPDF] allDiscounts summary (debug):', summary);
+                } catch (e) { console.error('ExportAsPDF: error summarizing allDiscounts', e); }
             } catch (e) {
                 console.error('ExportAsPDF: Error fetching ALL discounts (debug):', e);
             }
 
             // EXTRA DEBUG: fetch and log related tables explicitly to narrow down which data is missing
+            let productsRaw: any[] = [];
             try {
                 try { /* logging removed */ } catch(e){}
 
                 const derivedOrderIds = Array.from(new Set((fetched_data || []).map((row: any) => row.orders?.order_id).filter(Boolean)));
+                let ordersRaw: any[] = [];
                 if (derivedOrderIds.length > 0) {
-                    const ordersRaw = await fetch_content_service({ table: 'orders', language: '', filterOptions: [{ column: 'order_id', operator: 'in', value: derivedOrderIds }] });
-                    try { /* logging removed */ } catch(e){}
+                    ordersRaw = await fetch_content_service({ table: 'orders', language: '', filterOptions: [{ column: 'order_id', operator: 'in', value: derivedOrderIds }] }) || [];
+                    console.log('[ExportAsPDF] ordersRaw for derivedOrderIds', derivedOrderIds, ordersRaw);
                 } else {
-                    try { /* logging removed */ } catch(e){}
+                    console.log('[ExportAsPDF] no derivedOrderIds found');
                 }
 
                 const inventoryIds = Array.from(new Set((fetched_data || []).map((row: any) => row.inventory?.inventory_id || row.inventory_id).filter(Boolean)));
+                let inventoryRaw: any[] = [];
                 if (inventoryIds.length > 0) {
-                    const inventoryRaw = await fetch_content_service({ table: 'inventory', language: '', filterOptions: [{ column: 'inventory_id', operator: 'in', value: inventoryIds }] });
-                    try { /* logging removed */ } catch(e){}
+                    inventoryRaw = await fetch_content_service({ table: 'inventory', language: '', filterOptions: [{ column: 'inventory_id', operator: 'in', value: inventoryIds }] }) || [];
+                    console.log('[ExportAsPDF] inventoryRaw for inventoryIds', inventoryIds, inventoryRaw);
 
                     const productIds = Array.from(new Set((inventoryRaw || []).map((it: any) => it.product_id).filter(Boolean)));
                     if (productIds.length > 0) {
-                        const productsRaw = await fetch_content_service({ table: 'products', language: '', filterOptions: [{ column: 'product_id', operator: 'in', value: productIds }] });
-                        try { /* logging removed */ } catch(e){}
+                        productsRaw = await fetch_content_service({ table: 'products', language: '', filterOptions: [{ column: 'product_id', operator: 'in', value: productIds }] }) || [];
+                        console.log('[ExportAsPDF] productsRaw for productIds', productIds, productsRaw);
                     } else {
-                        try { /* logging removed */ } catch(e){}
+                        console.log('[ExportAsPDF] no productIds found in inventoryRaw');
                     }
                 } else {
-                    try { /* logging removed */ } catch(e){}
+                    console.log('[ExportAsPDF] no inventoryIds found in fetched_data');
                 }
             } catch (e) {
                 console.error('ExportAsPDF: Error during extra debug fetches:', e);
             }
 
-            // Define table column headers (reordered per request: Patient Name, Order ID, Products, then the rest)
-            const tableColumn = ['Patient Name', 'Order ID', 'Product Name', 'Product Price', 'Quantity', 'Total Amount', 'Product Discount', 'Cart Discount', 'Payment Type', 'Date', 'Price After Discount'];
+            // Define table column headers to match desired product-level layout
+            const tableColumn = ['Category', 'Product', 'Quantity', 'Amount', 'Product Discount %', 'Amount After Discount'];
             const tableRows: (string[] | object[])[] = [];
             let totalAmount = 0;
+            // ordersMap will hold grouped sales_history rows by order_id so we can compute totals like cash/card sums
+            let ordersMap: Map<string, any> = new Map();
 
             // Populate the PDF rows using nested relations (orders, inventory.products)
             if (fetched_data && fetched_data.length > 0) {
@@ -183,7 +187,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 });
 
                 // Group sales_history rows by order_id
-                const ordersMap = new Map<string, any>();
+                ordersMap = new Map<string, any>();
                 fetched_data.forEach((item: any) => {
                     const orderId = item.orders?.order_id || item.order_id || '';
                     const oIdStr = String(orderId);
@@ -205,6 +209,11 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             date: dateStr,
                             patientName,
                             paymentType,
+                            // store contact and payment info for the per-order header block
+                            email: item.orders?.pos?.email || '',
+                            phone: item.orders?.pos?.phone || '',
+                            cash: item.orders?.paid_amount != null ? Number(item.orders?.paid_amount || 0) : (item.orders?.cash != null ? Number(item.orders.cash) : undefined),
+                            card: item.orders?.card != null ? Number(item.orders.card) : undefined,
                             items: [],
                         });
                     }
@@ -218,10 +227,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     });
                 });
 
-                // Build one table row per order (aggregate product lines)
+                // Build product-level rows for each order with a per-order header
                 for (const [oIdStr, orderObj] of Array.from(ordersMap.entries())) {
                     const items = orderObj.items as any[];
-                    const productsText = items.map((it) => `${it.productName} x${it.quantityNum} ($${Number(it.productPrice).toFixed(2)})`).join('\n');
                     const totalQty = items.reduce((s, it) => s + (it.quantityNum || 0), 0);
                     const orderTotal = items.reduce((s, it) => s + (it.rowTotalNum || 0), 0);
 
@@ -294,22 +302,75 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const finalPriceNum = Math.max(0, postCartTotal - Number(productDiscountTotal || 0));
                     const finalPriceText = `$${Number(finalPriceNum).toFixed(2)}`;
 
-                    // Arrange row data to match `tableColumn` above
-                    const rowData = [
-                        orderObj.patientName || '',
-                        String(orderObj.order_id || ''),
-                        productsText,
-                        `$${Number(items[0]?.productPrice || 0).toFixed(2)}`,
-                        String(totalQty),
-                        `$${Number(orderTotal).toFixed(2)}`,
-                        displayProductDiscountText,
-                        displayCartDiscountText,
-                        orderObj.paymentType,
-                        orderObj.date || '',
-                        finalPriceText,
-                    ];
+                    // Insert a per-order patient details / invoice summary block above the green header
+                    const totalsForBlock = { orderTotal, cartDiscountTotal, productDiscountTotal, finalPriceNum };
+                    const infoBlockRows = buildOrderInfoBlock({
+                        patientName: orderObj.patientName,
+                        email: orderObj.email,
+                        phone: orderObj.phone,
+                        date: orderObj.date,
+                        paymentType: orderObj.paymentType,
+                        cash: orderObj.cash,
+                        card: orderObj.card,
+                    }, totalsForBlock, tableColumn.length);
+                    infoBlockRows.forEach(r => tableRows.push(r as any));
 
-                    tableRows.push(rowData);
+                    // Insert a green header row for this order to visually separate orders
+                    const perOrderHeader = tableColumn.map((col) => ({
+                        content: col,
+                        styles: { halign: 'center', fillColor: [0, 150, 136], textColor: [255, 255, 255], fontStyle: 'bold' }
+                    }));
+                    tableRows.push(perOrderHeader as any);
+
+                    // For each product in the order, add a product-level row matching the desired table
+                    for (const it of items) {
+                        // Category name: try to lookup from productsRaw if available
+                        let categoryName = '';
+                        try {
+                            const prod = productsRaw?.find((p: any) => String(p.product_id) === String(it.productId));
+                            if (prod && prod.category_id) categoryName = String(prod.category_id);
+                        } catch (e) { /* ignore */ }
+
+                        const productName = it.productName || '';
+                        const qty = Number(it.quantityNum || 0);
+                        const amountNum = Number(it.rowTotalNum || 0);
+
+                        // compute product discount percent and amount after discount per item
+                        const key = `${oIdStr}_${String(it.productId)}`;
+                        const pds = productMapLocal.get(key) || [];
+                        let pctSum = 0;
+                        let productDiscountAmount = 0;
+                        const itemRowAfterCart = Number(it.rowTotalNum || 0) * (1 - cartPct);
+                        pds.forEach((d: any) => {
+                            if (d == null) return;
+                            if (d.discount_amount != null && d.discount_amount !== '') {
+                                const pct = Number(d.discount_amount) || 0;
+                                pctSum += pct;
+                                productDiscountAmount += (itemRowAfterCart * pct) / 100;
+                            } else if (d.discount_value != null && d.discount_value !== '') {
+                                productDiscountAmount += Number(d.discount_value) || 0;
+                            }
+                        });
+
+                        const amountAfter = Math.max(0, itemRowAfterCart - productDiscountAmount);
+
+                        const productRow = [
+                            categoryName,
+                            productName,
+                            String(qty),
+                            `$${Number(amountNum).toFixed(2)}`,
+                            `${pctSum}%`,
+                            `$${Number(amountAfter).toFixed(2)}`,
+                        ];
+
+                        tableRows.push(productRow);
+                    }
+
+                    // Add a spacer row after each order to create a clear white gap.
+                    // Mark it via a custom style flag so we can detect it in autoTable hooks.
+                    tableRows.push([
+                        { content: '', colSpan: tableColumn.length, styles: { minCellHeight: 18, fillColor: [255, 255, 255], isSpacer: true, cellPadding: 0 } }
+                    ]);
                     totalAmount += Number(orderTotal || 0);
                 }
             } else {
@@ -326,18 +387,46 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             ];
             tableRows.push(totalRow);
 
+            // Debug: log table columns/rows and totals
+            try {
+                console.log('[ExportAsPDF] tableColumn:', tableColumn);
+                console.log('[ExportAsPDF] tableRows (first 10 rows):', tableRows.slice(0, 10));
+                console.log('[ExportAsPDF] totalAmount:', totalAmount);
+            } catch (e) { /* ignore in non-browser env */ }
+
+            // Compute total sales using cash + card values from grouped orders (one-time top summary)
+            let totalSales = 0;
+            try {
+                for (const [, orderObj] of Array.from(ordersMap.entries())) {
+                    const cashVal = Number(orderObj.cash ?? 0) || 0;
+                    const cardVal = Number(orderObj.card ?? 0) || 0;
+                    totalSales += cashVal + cardVal;
+                }
+            } catch (e) {
+                // ignore any malformed entries
+            }
+
             // Create PDF document
             const doc = new jsPDF();
 
-            // Title Section: Heading, Date Range, and Location
+            // Title Section: Heading, Date Range, Location and Total Sales on the right
             doc.setFontSize(16);
             doc.text('Sales History Report', 14, 20);
             doc.setFontSize(12);
 
-            // Date Range
+            // Date Range (left)
             doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 30);
-            
-            // Location Title
+
+            // Total Sales (right, shown once)
+            try {
+                // place at right margin, align right
+                doc.text(`Total Sales: $${Number(totalSales || 0).toFixed(2)}`, 195, 30, { align: 'right' });
+            } catch (e) {
+                // fallback: place without alignment
+                doc.text(`Total Sales: $${Number(totalSales || 0).toFixed(2)}`, 160, 30);
+            }
+
+            // Location Title (left, below date range)
             doc.text(`Location: ${selectedLocation.title}`, 14, 40);  // Adjust for the selectedLocation name
 
             // Add some space before the table
@@ -350,12 +439,41 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 // logging removed for production
             } catch (e) { console.error('ExportAsPDF: Error logging PDF payload', e); }
 
+            // Use per-order header rows inserted into the body instead of a single global head
+            // to avoid duplicate/empty header rows being rendered at the start of each page.
             autoTable(doc, {
-                head: [tableColumn],
+                head: [],
                 body: tableRows,
                 startY: 50,  // Starting point for the table
                 margin: { top: 20 },
                 theme: 'grid', // Optional theme for styling
+                // Ensure default head styles aren't applied since head is empty
+                didParseCell: function (data: any) {
+                    try {
+                        // Ensure spacer cells have no text
+                        if (data.cell && data.cell.styles && data.cell.styles.isSpacer) {
+                            data.cell.text = '';
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                },
+                didDrawCell: function (data: any) {
+                    try {
+                        // Draw a white rectangle over spacer rows to fully hide any grid lines
+                        if (data.cell && data.cell.styles && data.cell.styles.isSpacer) {
+                            const cell = data.cell;
+                            const x = cell.x;
+                            const y = cell.y;
+                            const w = cell.width;
+                            const h = cell.height;
+                            doc.setFillColor(255, 255, 255);
+                            doc.rect(x, y, w, h, 'F');
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                }
             });
 
             // Save the generated PDF
