@@ -540,7 +540,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </div>
                     </div>
                     
-                    {/* Credit Balance removed from frontend per request */}
+                 
                   </div>
                 </div>
               </div>
