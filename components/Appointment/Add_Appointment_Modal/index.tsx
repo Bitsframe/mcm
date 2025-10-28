@@ -178,37 +178,58 @@ export const Add_Appointment_Modal = ({
     if (key === "new_patient" && val === "false") {
       (async () => {
         try {
-          // Many existing rows may store TRUE/FALSE as uppercase strings; try matching common variants first
-          let query = supabase.from('Appoinments').select('*').in('new_patient', ['FALSE', 'false', 'False']);
-          if (selectedLocation && selectedLocation.id) {
-            query = query.eq('location_id', selectedLocation.id);
-          }
-
-          let { data, error } = await query;
-
-          // If no rows found and no error, try boolean match as a fallback
-          if ((!(data && data.length > 0)) && !error) {
-            const res = await supabase.from('Appoinments').select('*').eq('new_patient', false).maybeSingle();
-            if (res && (res as any).data) {
-              data = [(res as any).data];
-            }
-          }
-
-          if (error) {
-            console.error('Error fetching returning patients:', error);
+          // For 'Coming Back' select existing patients from the central allpatients table
+          // filtered by selected location id.
+          if (!selectedLocation || !selectedLocation.id) {
+            console.warn('[Add_Appointment_Modal] selectedLocation is not set, cannot fetch coming back patients by location');
             setComingBackData([]);
-          } else {
-            console.log('Returning patients (new_patient=false):', data || []);
-            setComingBackData(data || []);
+            return;
           }
+
+          const { data, error } = await supabase
+            .from('allpatients')
+            .select('*')
+            .eq('locationid', selectedLocation.id);
+
+          // raw response available in `data`/`error`
+          if (error) {
+            console.error('Error fetching returning patients from allpatients:', error);
+            setComingBackData([]);
+            return;
+          }
+
+          // no-op: data may be empty or contain rows
+
+          // Use the raw allpatients rows directly (no extra conditions or mapping)
+          setComingBackData(data || []);
         } catch (err) {
-          console.error('Failed to fetch returning patients', err);
+          console.error('Failed to fetch returning patients from allpatients', err);
+          setComingBackData([]);
         }
       })();
     } else if (key === "new_patient" && val === "true") {
       // clear coming back data and any selected patient when switching back to New
       setComingBackData([]);
       setSelectedComingBackPatient(null);
+
+      // Reset all form fields to defaults for a fresh 'New' patient entry.
+      setFormData((pre: any) => ({
+        // preserve location if available, otherwise keep previous
+        location_id: selectedLocation?.id ?? pre?.location_id,
+        in_office_patient: "true",
+        new_patient: "true",
+        first_name: "",
+        last_name: "",
+        email_address: "",
+        phone: "",
+        street_address: "",
+        dob: "",
+        sex: "",
+        service: "",
+        state: "",
+        zipcode: "",
+        date_and_time: "",
+      }));
     }
   };
   const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {
@@ -216,15 +237,14 @@ export const Add_Appointment_Modal = ({
       let dbSlot = "";
       if (date && time) {
         const formated_date = moment(date).format("DD-MM-YYYY");
-        const createSlotForDB = `${formData.location_id}|${formated_date} - ${time}`;
-        console.log({ createSlotForDB });
+  const createSlotForDB = `${formData.location_id}|${formated_date} - ${time}`;
         dbSlot = createSlotForDB;
       }
 
       setFormData((pre: any) => {
         return { ...pre, date_and_time: dbSlot };
       });
-      console.log(dbSlot);
+  // dbSlot prepared
     }
   };
   const submitHandle = async () => {
@@ -462,7 +482,7 @@ export const Add_Appointment_Modal = ({
       } catch (e) {
         console.error('Error triggering appointment email (insert):', e);
       }
-      console.log(data, "Appointment Submitted");
+  // appointment submitted
       close_handle();
     }
     setLoading(false);
@@ -748,20 +768,20 @@ export const Add_Appointment_Modal = ({
 
             {/* service select moved below selected patient summary */}
 
-            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && (
+            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <div className="mt-4">
                 <Label className="font-medium text-gray-800 dark:text-gray-300">Coming back patients</Label>
                 <ComingBackTable
                   data={comingBackData.map((p: any) => ({
-                    id: p.id,
-                    first_name: p.first_name,
-                    last_name: p.last_name,
-                    email_address: p.email_address,
-                    address: p.address,
-                    phone: p.phone,
-                    date_and_time: p.date_and_time,
-                    dob: p.dob,
-                    sex: p.sex,
+                    id: p.id ?? p.patientid ?? p.patient_id,
+                    first_name: p.firstname ?? p.first_name ?? p.firstName ?? '',
+                    last_name: p.lastname ?? p.last_name ?? p.lastName ?? '',
+                    email_address: p.email ?? p.email_address ?? p.emailAddress ?? '',
+                    address: p.address ?? p.addr ?? '',
+                    phone: p.phone ?? p.mobile ?? p.phone_number ?? '',
+                    date_and_time: p.date_and_time ?? '',
+                    dob: p.dob ?? p.date_of_birth ?? p.birth_date ?? '',
+                    sex: p.sex ?? p.gender ?? '',
                   }))}
                   onSelect={(patient) => {
                     setSelectedComingBackPatient(patient);
@@ -786,7 +806,7 @@ export const Add_Appointment_Modal = ({
             )}
 
             {/* When showing the ComingBackTable (returning patients), also show service & scheduling fields below it */}
-            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && (
+            {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <>
                 <div className="mt-4 space-y-2">
                   <Label className="font-medium text-gray-800 dark:text-gray-300">
