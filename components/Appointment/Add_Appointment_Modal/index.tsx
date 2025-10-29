@@ -141,7 +141,8 @@ export const Add_Appointment_Modal = ({
       if (selectedLocation && (selectedLocation as any).id) {
         base.location_id = (selectedLocation as any).id;
       }
-      return { ...base, in_office_patient: "true", new_patient: "true" };
+      // mark new patients as approved by default when opening the modal
+      return { ...base, in_office_patient: "true", new_patient: "true", isApproved: true };
     });
     setOpen(true);
   };
@@ -218,6 +219,8 @@ export const Add_Appointment_Modal = ({
         location_id: selectedLocation?.id ?? pre?.location_id,
         in_office_patient: "true",
         new_patient: "true",
+        // mark new patients approved by default
+        isApproved: true,
         first_name: "",
         last_name: "",
         email_address: "",
