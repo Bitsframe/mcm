@@ -151,7 +151,9 @@ export async function fetch_content_service({
   }
 
   // Add location filtering for tables that have location_id
-  const locationBasedTables = ['allpatients', 'Appoinments', 'pos', 'inventory', 'sales_history'];
+  // Note: `sales_history` rows reference `inventory_id` and may not have a `locationid` column
+  // so we exclude it here to avoid SQL errors when adding a location filter.
+  const locationBasedTables = ['allpatients', 'Appoinments', 'pos', 'inventory'];
   if (locationBasedTables.includes(table)) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

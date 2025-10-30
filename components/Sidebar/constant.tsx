@@ -60,6 +60,7 @@ const ROUTES = {
   CONTROLS: "/controls",
   CREDITS: "/credits",
   TRANSACTIONS: "/transactions",
+  BONUS: "/bonus",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -130,6 +131,13 @@ export const routeList: Route[] = [
     label: "Sidebar_k27",
     icon: FaReceipt,
     route: ROUTES.TRANSACTIONS,
+  },
+  {
+    id: 'bonus',
+    name: "bonus",
+    label: "Bonus",
+    icon: Calculator,
+    route: ROUTES.BONUS,
   },
   {
     id: 'inventory',
