@@ -3,10 +3,16 @@ import { cookies } from "next/headers";
 
 export const createClient = () => {
   const cookieStore = cookies();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  // Prefer the service role key on the server if present (required for writes when RLS is enabled).
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  // Note: SUPABASE_SERVICE_ROLE_KEY must be set in your server environment for elevated privileges.
+  // Do NOT expose the service role key to the browser or commit it to source control.
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
        async get(name: string) {

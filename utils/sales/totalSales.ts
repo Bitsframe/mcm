@@ -120,12 +120,10 @@ export async function getTodaySalesGroupedByLocation(opts?: { date?: Date, locat
     }
 
     const invIdsForLocations = Array.from(new Set(invForLocations.map(ir => ir.inventory_id ?? ir.inventoryid ?? ir.id).filter(Boolean)))
-    console.log('[totalSales] inventory ids for provided locations:', invIdsForLocations)
     if (invIdsForLocations.length > 0) {
       filterOptions.push({ column: 'inventory_id', operator: 'in', value: invIdsForLocations })
     } else {
       // No inventory found for these locations -> no sales
-      console.log('[totalSales] no inventory found for provided locations, returning empty result')
       return {}
     }
   }
@@ -134,8 +132,6 @@ export async function getTodaySalesGroupedByLocation(opts?: { date?: Date, locat
     table: "sales_history",
     filterOptions,
   }).catch(() => [])
-
-  console.log('[totalSales] getTodaySalesGroupedByLocation fetched sales rows:', salesRows.length, salesRows.slice(0,5))
 
   // collect inventory ids from sales rows (sales_history uses `inventory_id` column)
   const inventoryIds = Array.from(new Set(salesRows.map(r => r.inventory_id ?? r.inventoryid).filter(Boolean)))
@@ -149,15 +145,12 @@ export async function getTodaySalesGroupedByLocation(opts?: { date?: Date, locat
       table: "inventory",
       filterOptions: [{ column: "inventory_id", operator: "in", value: inventoryIds }],
     }).catch(() => [])
-    console.log('[totalSales] fetched inventory rows:', invRows.length, invRows.slice(0,5))
     invRows.forEach(ir => {
       const id = String(ir.inventory_id ?? ir.inventoryid ?? ir.id ?? "")
       inventoryPriceMap[id] = Number(ir.price ?? 0)
       // inventory table has location_id which indicates the inventory's location
       inventoryLocationMap[id] = ir.location_id ?? ir.locationid ?? ir.locationId ?? ""
     })
-    console.log('[totalSales] built inventoryPriceMap:', inventoryPriceMap)
-    console.log('[totalSales] built inventoryLocationMap:', inventoryLocationMap)
   }
 
   const result: Record<string, { locationId: string | number, total: number, count: number }> = {}
@@ -182,7 +175,6 @@ export async function getTodaySalesGroupedByLocation(opts?: { date?: Date, locat
     result[locKey].count += 1
   })
 
-  console.log('[totalSales] grouped totals by location:', result)
   return result
 }
 
@@ -207,11 +199,8 @@ export async function fetchAndLogSalesAndInventory(opts?: { date?: Date }) {
     ],
   }).catch(() => [])
 
-  console.log('[debug] fetched sales_history rows:', salesRows.length)
-  console.log('[debug] sample sales row:', salesRows[0] ?? null)
-
   const inventoryIds = Array.from(new Set(salesRows.map(r => r.inventory_id ?? r.inventoryid).filter(Boolean)))
-  console.log('[debug] inventoryIds referenced by sales rows:', inventoryIds)
+  
 
   let invRows: any[] = []
   if (inventoryIds.length > 0) {
@@ -221,8 +210,7 @@ export async function fetchAndLogSalesAndInventory(opts?: { date?: Date }) {
     }).catch(() => [])
   }
 
-  console.log('[debug] fetched inventory rows count:', invRows.length)
-  console.log('[debug] sample inventory row:', invRows[0] ?? null)
+  
 
   return { salesRows, invRows }
 }
@@ -233,12 +221,8 @@ export async function fetchAndLogSalesAndInventory(opts?: { date?: Date }) {
  */
 export async function fetchAllSalesAndInventory() {
   const salesRows: any[] = await fetch_content_service({ table: 'sales_history' }).catch(() => [])
-  console.log('[fetchAll] sales_history rows count:', salesRows.length)
-  console.log('[fetchAll] sample sales row:', salesRows[0] ?? null)
 
   const invRows: any[] = await fetch_content_service({ table: 'inventory' }).catch(() => [])
-  console.log('[fetchAll] inventory rows count:', invRows.length)
-  console.log('[fetchAll] sample inventory row:', invRows[0] ?? null)
 
   return { salesRows, invRows }
 }
