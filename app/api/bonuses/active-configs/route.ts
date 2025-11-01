@@ -16,9 +16,27 @@ export async function GET(req: Request) {
         .is('effective_to', null)
       if (error) {
         console.error('[api/bonuses/active-configs] select error', error)
-        return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 })
+        return NextResponse.json({ error: (error as any)?.message ?? String(error) }, { status: 500 })
       }
-      return NextResponse.json({ configs: data || [] })
+      // Reduce to one config per location: pick the row with the latest effective_from
+      try {
+        const cfgs: any[] = data || []
+        const map: Record<string, any> = {}
+        cfgs.forEach((c: any) => {
+          const key = String(c.location_id)
+          if (!map[key]) map[key] = c
+          else {
+            const prev = map[key]
+            const prevFrom = prev?.effective_from ? new Date(prev.effective_from).getTime() : 0
+            const curFrom = c?.effective_from ? new Date(c.effective_from).getTime() : 0
+            if (curFrom >= prevFrom) map[key] = c
+          }
+        })
+        return NextResponse.json({ configs: Object.values(map) })
+      } catch (e) {
+        console.error('[api/bonuses/active-configs] reduce error', e)
+        return NextResponse.json({ configs: data || [] })
+      }
     }
 
     // For a given selectedDate, find configs where effective_from <= selectedDate
@@ -31,10 +49,28 @@ export async function GET(req: Request) {
 
     if (cfgErr) {
       console.error('[api/bonuses/active-configs] select error', cfgErr)
-      return NextResponse.json({ error: cfgErr.message ?? String(cfgErr) }, { status: 500 })
+      return NextResponse.json({ error: (cfgErr as any)?.message ?? String(cfgErr) }, { status: 500 })
     }
 
-    return NextResponse.json({ configs: cfgData || [] })
+    // Reduce to one config per location (choose the latest effective_from)
+    try {
+      const cfgs: any[] = cfgData || []
+      const map: Record<string, any> = {}
+      cfgs.forEach((c: any) => {
+        const key = String(c.location_id)
+        if (!map[key]) map[key] = c
+        else {
+          const prev = map[key]
+          const prevFrom = prev?.effective_from ? new Date(prev.effective_from).getTime() : 0
+          const curFrom = c?.effective_from ? new Date(c.effective_from).getTime() : 0
+          if (curFrom >= prevFrom) map[key] = c
+        }
+      })
+      return NextResponse.json({ configs: Object.values(map) })
+    } catch (e) {
+      console.error('[api/bonuses/active-configs] reduce error', e)
+      return NextResponse.json({ configs: cfgData || [] })
+    }
   } catch (err: any) {
     console.error('[api/bonuses/active-configs] error', err)
     return NextResponse.json({ error: err?.message ?? String(err) }, { status: 500 })
