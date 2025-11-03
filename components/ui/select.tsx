@@ -81,6 +81,9 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
+      // prefer opening downward and request a small offset; disable avoidCollisions to reduce automatic flipping
+      sideOffset={8}
+      avoidCollisions={false}
       {...props}
     >
       <SelectScrollUpButton />

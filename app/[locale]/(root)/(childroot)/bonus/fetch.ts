@@ -20,6 +20,23 @@ export async function fetchBonusRowsForDate(selectedDate: string) {
   return bonusRows
 }
 
+export async function fetchPaidBonusesForDate(selectedDate: string) {
+  const nextDay = new Date(selectedDate)
+  nextDay.setDate(nextDay.getDate() + 1)
+  const nextDateStr = nextDay.toISOString().slice(0, 10)
+  // use matchCase to require paid = true, and filterOptions for the date range
+  const bonusRows: any[] = await fetch_content_service({
+    table: 'bonus',
+    matchCase: { key: 'paid', value: true },
+    filterOptions: [
+      // filter on paid_date (not the computation 'date') so rows with paid_date = selectedDate are returned
+      { column: 'paid_date', operator: 'gte', value: selectedDate },
+      { column: 'paid_date', operator: 'lt', value: nextDateStr },
+    ]
+  })
+  return bonusRows
+}
+
 export async function fetchActiveThresholds(selectedDate: string) {
   try {
     const resp = await fetch(`/api/bonuses/active-configs?selected_date=${encodeURIComponent(selectedDate)}`)
@@ -28,6 +45,22 @@ export async function fetchActiveThresholds(selectedDate: string) {
     return (json.configs || [])
   } catch (e) {
     console.error('[bonus/fetch] thresholds fetch error', e)
+    return []
+  }
+}
+
+export async function fetchBonusConfigHistoryByIds(ids: Array<string | number>) {
+  if (!ids || ids.length === 0) return []
+  try {
+    const rows: any[] = await fetch_content_service({
+      table: 'bonus_config_history',
+      filterOptions: [
+        { column: 'id', operator: 'in', value: ids }
+      ]
+    })
+    return rows
+  } catch (e) {
+    console.error('[bonus/fetch] fetchBonusConfigHistoryByIds error', e)
     return []
   }
 }

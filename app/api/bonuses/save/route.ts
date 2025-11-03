@@ -27,17 +27,16 @@ export async function POST(req: Request) {
       try {
         const updatedConfigs: any[] = []
         const insertedConfigs: any[] = []
-        const todayYMD = new Date().toISOString().slice(0, 10)
-        const tomorrow = new Date()
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        const tomorrowYMD = tomorrow.toISOString().slice(0, 10)
+  const todayYMD = new Date().toISOString().slice(0, 10)
 
         for (const item of bonuses) {
           try {
-            // Close old config (effective_to = tomorrow) where effective_to IS NULL
+            // Close old config (effective_to = today) where effective_to IS NULL
+            // This sets the previous open-ended config to end today so the new
+            // config can take effect starting today.
             const { data: closeData, error: closeErr } = await supabase
               .from('bonus_config_history')
-              .update({ effective_to: tomorrowYMD })
+              .update({ effective_to: todayYMD })
               .eq('location_id', item.location_id)
               .is('effective_to', null)
 
@@ -54,6 +53,9 @@ export async function POST(req: Request) {
               value: item.value ?? null,
               bonus_threshold: item.bonus_threshold ?? null,
               effective_from: todayYMD,
+              // created_at set explicitly to now for auditability
+              created_at: new Date().toISOString(),
+              // effective_to left null to indicate an open-ended config
             }
             const { data: insData, error: insErr } = await supabase
               .from('bonus_config_history')

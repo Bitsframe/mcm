@@ -1,13 +1,11 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { fetchLocations, fetchBonusRowsForDate, fetchActiveThresholds, subscribeToBonusChanges, startPolling, stopPolling } from './fetch'
-// only use DB fetch for bonus rows on page load
-// data fetching helpers moved to ./fetch
+import { fetchLocations, fetchBonusRowsForDate, fetchActiveThresholds, subscribeToBonusChanges, startPolling, stopPolling, fetchPaidBonusesForDate, fetchBonusConfigHistoryByIds } from './fetch'
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-// Input removed - search UI removed from this page
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslation } from "react-i18next"
@@ -17,7 +15,6 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 const BonusPage = () => {
-  // We'll fetch locations and today's totals and show them in the table
   const [patients, setPatients] = useState<any[]>([])
   const [selectedPatient, setSelectedPatient] = useState<any>(null)
   const [patientCreditBalances, setPatientCreditBalances] = useState<{[key: number]: number}>({})
@@ -27,10 +24,15 @@ const BonusPage = () => {
   const [totalsByLocation, setTotalsByLocation] = useState<Record<string, { locationId: string | number, total: number, count: number }>>({})
   const [bonusRowsByLocation, setBonusRowsByLocation] = useState<Record<string, any>>({})
   const [thresholdsByLocation, setThresholdsByLocation] = useState<Record<string, any>>({})
-  // Keep an original copy of bonuses loaded from DB so we can send only changed rows on save
+
+  const [paidBonusRowsByLocation, setPaidBonusRowsByLocation] = useState<Record<string, any>>({})
+  // Raw list of paid bonus rows fetched for the Transactions tab (no location collapse)
+  const [paidBonusRows, setPaidBonusRows] = useState<any[]>([])
+  const [paidConfigById, setPaidConfigById] = useState<Record<string, any>>({})
+  const [bonusConfigById, setBonusConfigById] = useState<Record<string, any>>({})
+
   const [originalBonuses, setOriginalBonuses] = useState<any[]>([])
-  // searchTerm and searchBy removed (global search input removed)
-  // Default the table to yesterday's date (YYYY-MM-DD) so current date rows are not shown
+
   const getYesterdayYMD = () => {
     const d = new Date(Date.now() - 24 * 60 * 60 * 1000)
     return d.toISOString().slice(0, 10)
@@ -38,7 +40,7 @@ const BonusPage = () => {
   const getTodayYMD = () => {
     return new Date().toISOString().slice(0, 10)
   }
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({ date: getTodayYMD() })
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({ date: getYesterdayYMD() })
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [patientsPerPage] = useState(6)
@@ -48,14 +50,12 @@ const BonusPage = () => {
   const [paidByPatient, setPaidByPatient] = useState<Record<string, boolean>>({})
   const [editedByPatient, setEditedByPatient] = useState<Record<string, boolean>>({})
   const [saveMessage, setSaveMessage] = useState<string>("")
-  // Avoid JSX/TSX generic parsing edge-cases by creating a named type and
-  // reusing it with useState<T>(). This prevents the parser from treating
-  // the middle union member as JSX and dropping it from the inferred type.
+
   type ActiveTab = 'calculation' | 'transactions' | 'set-limits'
   const [activeTab, setActiveTab] = useState<ActiveTab>('calculation')
   
 
-  // Extracted data loader so it can be called on mount, after save, and when switching tabs
+
   const fetchingRef = useRef(false)
 
   const fetchData = async () => {
@@ -67,8 +67,14 @@ const BonusPage = () => {
     fetchingRef.current = true
     setLoadingPatients(true)
     try {
-  // fetch all locations (table name: "Locations")
-  const locRows: any[] = await fetchLocations().catch(() => [])
+      // Debug: log that fetchData started and which date/tab we're fetching for
+      try {
+        const sel = columnFilters.date ?? getTodayYMD()
+        console.debug('[bonus/page] fetchData start', { selectedDate: sel, activeTab })
+      } catch (_) {}
+    // fetch all locations (table name: "Locations")
+    console.debug('[bonus/page] fetching locations')
+    const locRows: any[] = await fetchLocations().catch(() => [])
       const patientsFromLocations: any[] = locRows.map(r => {
         const rawId = r.id ?? r.location_id ?? r.locationid ?? r.location
         const idNum = Number(rawId)
@@ -79,9 +85,10 @@ const BonusPage = () => {
         }
       })
 
-      // fetch only bonus rows that match the selected date (default: yesterday)
-      // This avoids pulling all historical rows and then filtering client-side.
-  const selectedDate = columnFilters.date ?? getTodayYMD()
+    // fetch only bonus rows that match the selected date (default: yesterday)
+    // This avoids pulling all historical rows and then filtering client-side.
+    const selectedDate = columnFilters.date ?? getTodayYMD()
+    console.debug('[bonus/page] fetching bonusRows for date', { selectedDate })
       // Build a date range: [selectedDate, nextDate) so we can query date/datetime
       const nextDay = new Date(selectedDate)
       nextDay.setDate(nextDay.getDate() + 1)
@@ -104,9 +111,37 @@ const BonusPage = () => {
       setPatients(patientsFromLocations)
       setBonusRowsByLocation(map)
 
+      // If bonus rows reference a bonus_config_history id, fetch those configs
+      let cfgMapLocal: Record<string, any> | undefined = undefined
+      try {
+        const cfgIds = Array.from(new Set((bonusRows || []).map((r: any) => r?.bonus_config_history_id).filter((id: any) => id !== undefined && id !== null)))
+        console.debug('[bonus/page] bonus rows (calculation) reference config ids', { cfgIds })
+        if (cfgIds.length > 0) {
+          if (typeof fetchBonusConfigHistoryByIds === 'function') {
+            const cfgRows = await (fetchBonusConfigHistoryByIds as any)(cfgIds).catch(() => [])
+            cfgMapLocal = {}
+            ;(cfgRows || []).forEach((c: any) => { cfgMapLocal![String(c.id)] = c })
+            setBonusConfigById(cfgMapLocal)
+            console.debug('[bonus/page] fetched bonus_config_history rows (calculation)', { count: (cfgRows || []).length, keys: Object.keys(cfgMapLocal).slice(0,50), sample: (cfgRows || []).slice(0,10) })
+          } else {
+            console.warn('[bonus/page] fetchBonusConfigHistoryByIds is not a function for calculation tab', typeof fetchBonusConfigHistoryByIds)
+            setBonusConfigById({})
+            cfgMapLocal = {}
+          }
+        } else {
+          setBonusConfigById({})
+          cfgMapLocal = {}
+        }
+      } catch (e) {
+        console.error('[bonus/page] fetchBonusConfigHistoryByIds (calculation) error', e)
+        setBonusConfigById({})
+        cfgMapLocal = {}
+      }
+
       // Fetch active thresholds for the selected date and map by location_id
       // Declare thrMap in outer scope so it can be referenced later when
       // initializing editable fields (TypeScript needs the name in this scope).
+      console.debug('[bonus/page] fetching active thresholds for date', { selectedDate })
       let thrMap: Record<string, any> | undefined
       try {
         const thrList = await fetchActiveThresholds(selectedDate).catch(() => [])
@@ -125,16 +160,18 @@ const BonusPage = () => {
 
       // build originalBonuses array for change detection
       try {
-        const selectedDate = columnFilters.date ?? new Date().toISOString().slice(0, 10)
+  const selectedDate = columnFilters.date ?? getYesterdayYMD()
         const orig: any[] = patientsFromLocations.map((p) => {
           const key = String(p.id)
           const r = map[key]
+          // If this bonus row references a config history entry, prefer config values
+          const cfg = (r && r.bonus_config_history_id && cfgMapLocal) ? cfgMapLocal[String(r.bonus_config_history_id)] : null
       return {
         location_id: Number(p.id),
-        // prefer new `bonus_threshold` column, fall back to legacy `bonus_limit`
-        bonus_limit: (r?.bonus_threshold !== undefined && r?.bonus_threshold !== null) ? Number(r.bonus_threshold) : (r?.bonus_limit !== undefined && r?.bonus_limit !== null ? Number(r.bonus_limit) : 0),
-            flat_percentage: (r?.flat_percentage ?? r?.flat_percentage === '' ? r?.flat_percentage : (r?.flat_percentage ?? r?.flat_percentage ?? 'FLAT')) || 'FLAT',
-            value: (r?.value ?? r?.val ?? 0) !== undefined && (r?.value ?? r?.val ?? 0) !== null ? Number(r?.value ?? r?.val ?? 0) : 0,
+        // prefer config (bonus_config_history) values, then new `bonus_threshold` column, fall back to legacy `bonus_limit`
+        bonus_limit: (cfg && (cfg?.bonus_threshold !== undefined && cfg?.bonus_threshold !== null)) ? Number(cfg.bonus_threshold) : ((r?.bonus_threshold !== undefined && r?.bonus_threshold !== null) ? Number(r.bonus_threshold) : (r?.bonus_limit !== undefined && r?.bonus_limit !== null ? Number(r.bonus_limit) : 0)),
+            flat_percentage: (cfg && (cfg?.flat_percentage !== undefined && cfg?.flat_percentage !== null)) ? String(cfg.flat_percentage) : ((r?.flat_percentage ?? '').toString() || 'FLAT'),
+            value: (cfg && (cfg?.value !== undefined && cfg?.value !== null)) ? Number(cfg.value) : ((r?.value ?? r?.val ?? 0) !== undefined && (r?.value ?? r?.val ?? 0) !== null ? Number(r?.value ?? r?.val ?? 0) : 0),
             bonus_amount: (r?.bonus_amount ?? 0) !== undefined && (r?.bonus_amount ?? 0) !== null ? Number(r?.bonus_amount ?? 0) : 0,
             paid: !!(r?.paid ?? false),
             date: (r?.date ?? selectedDate),
@@ -152,18 +189,29 @@ const BonusPage = () => {
       Object.keys(map).forEach(k => {
         const r = map[k]
         paidMap[k] = !!r?.paid
-        // prefer active config (thresholdsByLocation map was just set) if present
-        const cfg = (typeof thrMap !== 'undefined' && thrMap && thrMap[k]) ? thrMap[k] : null
-        if (cfg) {
-          limitMap[k] = (cfg?.bonus_threshold !== undefined && cfg?.bonus_threshold !== null) ? String(cfg.bonus_threshold) : ''
-          valueMap[k] = (cfg?.value !== undefined && cfg?.value !== null) ? String(cfg.value) : ''
-          typeMap[k] = (cfg?.flat_percentage !== undefined && cfg?.flat_percentage !== null) ? String(cfg.flat_percentage) : 'FLAT'
+        // prefer config from bonus_config_history (if the bonus row references one)
+        const cfgFromHistory = (r && r.bonus_config_history_id && typeof cfgMapLocal !== 'undefined' && cfgMapLocal) ? cfgMapLocal[String(r.bonus_config_history_id)] : null
+        if (cfgFromHistory) {
+          try { console.debug('[bonus/page] using bonus_config_history for location', { location: k, configId: r.bonus_config_history_id, cfg: { bonus_threshold: cfgFromHistory.bonus_threshold, flat_percentage: cfgFromHistory.flat_percentage, value: cfgFromHistory.value } }) } catch(_) {}
+        }
+        if (cfgFromHistory) {
+          limitMap[k] = (cfgFromHistory?.bonus_threshold !== undefined && cfgFromHistory?.bonus_threshold !== null) ? String(cfgFromHistory.bonus_threshold) : ''
+          valueMap[k] = (cfgFromHistory?.value !== undefined && cfgFromHistory?.value !== null) ? String(cfgFromHistory.value) : ''
+          typeMap[k] = (cfgFromHistory?.flat_percentage !== undefined && cfgFromHistory?.flat_percentage !== null) ? String(cfgFromHistory.flat_percentage) : 'FLAT'
         } else {
-          // initialize from bonus row when no active config
-          limitMap[k] = (r?.bonus_threshold !== undefined && r?.bonus_threshold !== null) ? String(r.bonus_threshold) : (r?.bonus_limit !== undefined && r?.bonus_limit !== null ? String(r.bonus_limit) : '')
-          const val = r?.value ?? r?.val ?? r?.v ?? r?.value_amount
-          valueMap[k] = val !== undefined && val !== null ? String(val) : ''
-          typeMap[k] = (r?.flat_percentage ?? '').toString() || 'FLAT'
+          // prefer active config (thresholdsByLocation map was just set) if present
+          const cfg = (typeof thrMap !== 'undefined' && thrMap && thrMap[k]) ? thrMap[k] : null
+          if (cfg) {
+            limitMap[k] = (cfg?.bonus_threshold !== undefined && cfg?.bonus_threshold !== null) ? String(cfg.bonus_threshold) : ''
+            valueMap[k] = (cfg?.value !== undefined && cfg?.value !== null) ? String(cfg.value) : ''
+            typeMap[k] = (cfg?.flat_percentage !== undefined && cfg?.flat_percentage !== null) ? String(cfg.flat_percentage) : 'FLAT'
+          } else {
+            // initialize from bonus row when no active config
+            limitMap[k] = (r?.bonus_threshold !== undefined && r?.bonus_threshold !== null) ? String(r.bonus_threshold) : (r?.bonus_limit !== undefined && r?.bonus_limit !== null ? String(r.bonus_limit) : '')
+            const val = r?.value ?? r?.val ?? r?.v ?? r?.value_amount
+            valueMap[k] = val !== undefined && val !== null ? String(val) : ''
+            typeMap[k] = (r?.flat_percentage ?? '').toString() || 'FLAT'
+          }
         }
         editedInit[k] = false
       })
@@ -197,12 +245,19 @@ const BonusPage = () => {
   // Re-fetch bonus rows whenever the selected date changes so the table immediately
   // shows rows for the newly-selected date (or '-' for locations without rows).
   useEffect(() => {
+    // If we're in Set limits mode, do not fetch or subscribe to any bonus rows for the selected date.
+    if (activeTab === 'set-limits') {
+      // still reset pagination to first page when date changes in other tabs, keep page at 1 here
+      setCurrentPage(1)
+      return
+    }
+
     // Avoid double-fetch on mount by only fetching when date changes after initial load.
     // Calling fetchData() here is acceptable; it will fetch bonus rows for the selected date.
     fetchData()
     // reset pagination to first page when date changes
     setCurrentPage(1)
-  }, [columnFilters.date])
+  }, [columnFilters.date, activeTab])
 
   // Real-time updates: subscribe to Supabase realtime changes on `bonus` for the
   // currently selected date so the UI updates the "Not generated" pill and
@@ -211,14 +266,17 @@ const BonusPage = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-  const selectedDate = columnFilters.date ?? getTodayYMD()
+    // Do not subscribe or poll while the user is in Set limits mode
+    if (activeTab === 'set-limits') return
+
+    const selectedDate = columnFilters.date ?? getTodayYMD()
     // Use helper subscription function from fetch.ts
     const sub = subscribeToBonusChanges(selectedDate, () => fetchData())
     let pollHandle: any = null
     if (!sub || !sub.success) {
       // Realtime not available — start polling fallback
       pollHandle = startPolling(() => {
-        console.debug('[bonus/page] polling refresh')
+
         fetchData()
       }, 30_000)
     }
@@ -227,7 +285,7 @@ const BonusPage = () => {
       try { sub && sub.unsubscribe && sub.unsubscribe() } catch (e) { console.warn('[bonus/page] unsubscribe error', e) }
       try { stopPolling(pollHandle) } catch (e) { console.warn('[bonus/page] stopPolling error', e) }
     }
-  }, [columnFilters.date])
+  }, [columnFilters.date, activeTab])
 
   // (debug helper removed)
 
@@ -259,14 +317,14 @@ const BonusPage = () => {
     const limitMinStr = columnFilters.limitMin ?? ''
     if (limitMinStr !== '') {
       const limitMin = Number(limitMinStr)
-      const limitVal = Number(bonusLimitByPatient[patient.id] ?? 0)
+  const limitVal = Number(bonusLimitByPatient[String(patient.id)] ?? 0)
       if (isNaN(limitMin) ? false : limitVal < limitMin) return false
     }
 
     // Flat/Percentage filter
     const typeFilter = (columnFilters.type ?? '').toUpperCase()
     if (typeFilter) {
-      const type = (bonusTypeByPatient[patient.id] ?? 'FLAT').toUpperCase()
+  const type = (bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase()
       if (typeFilter !== 'ALL' && type !== typeFilter) return false
     }
 
@@ -274,7 +332,7 @@ const BonusPage = () => {
     const valueMinStr = columnFilters.valueMin ?? ''
     if (valueMinStr !== '') {
       const valMin = Number(valueMinStr)
-      const val = Number(bonusValueByPatient[patient.id] ?? 0)
+  const val = Number(bonusValueByPatient[String(patient.id)] ?? 0)
       if (isNaN(valMin) ? false : val < valMin) return false
     }
 
@@ -308,30 +366,81 @@ const BonusPage = () => {
   const currentPatients = filteredPatients
   const totalPages = 1
 
-  // For the transactions tab we only want to display locations with paid status
+  // For the transactions tab we want to display paid bonuses fetched from the DB
+  // for the currently selected date. By default the selected date is yesterday
+  // so yesterday's paid bonuses will show on first load.
   const transactionPatients = currentPatients.filter((p) => {
     const locId = String(p.id)
-    // prefer authoritative paid flag from DB, fall back to UI toggle
-    const paidFlag = (bonusRowsByLocation[locId] && typeof bonusRowsByLocation[locId].paid !== 'undefined')
-      ? !!bonusRowsByLocation[locId].paid
-      : !!(paidByPatient[locId] ?? false)
-    return !!paidFlag
+    const b = paidBonusRowsByLocation[locId]
+    // Only include locations that have a paid bonus row in the DB for the selected date
+    return !!b
   })
+
+  // When Transactions tab or the selected date changes, fetch paid bonus rows
+  useEffect(() => {
+    if ((activeTab as any) !== 'transactions') return
+    const selectedDate = columnFilters.date ?? getYesterdayYMD()
+    let mounted = true
+    ;(async () => {
+      try {
+
+        const rows = await fetchPaidBonusesForDate(selectedDate).catch(() => [])
+        if (!mounted) return
+
+        setPaidBonusRows(rows)
+        const map: Record<string, any> = {}
+        rows.forEach((r: any) => {
+          const key = String(r.location_id ?? r.locationid ?? r.location)
+          if (key) map[key] = r
+        })
+        setPaidBonusRowsByLocation(map)
+
+
+        try {
+          const cfgIds = Array.from(new Set((rows || []).map((r: any) => r?.bonus_config_history_id).filter((id: any) => id !== undefined && id !== null)))
+         
+          if (cfgIds.length > 0) {
+
+            if (typeof fetchBonusConfigHistoryByIds === 'function') {
+              const cfgRows = await (fetchBonusConfigHistoryByIds as any)(cfgIds).catch(() => [])
+              
+              const cfgMap: Record<string, any> = {}
+              ;(cfgRows || []).forEach((c: any) => { cfgMap[String(c.id)] = c })
+              setPaidConfigById(cfgMap)
+            } else {
+           
+              setPaidConfigById({})
+            }
+          } else {
+            setPaidConfigById({})
+          }
+        } catch (e) {
+          console.error('[bonus/page] fetchBonusConfigHistoryByIds error', e)
+          setPaidConfigById({})
+        }
+      } catch (e) {
+        console.error('[bonus/page] fetchPaidBonusesForDate error', e)
+        if (mounted) setPaidBonusRowsByLocation({})
+        if (mounted) setPaidBonusRows([])
+      }
+    })()
+    return () => { mounted = false }
+  }, [activeTab, columnFilters.date])
 
   useEffect(() => {
     setCurrentPage(1)
   }, [columnFilters])
 
-  // Debug: log the data used for display (filtered + current page) so we can inspect why only a few rows render
+
   useEffect(() => {
     try {
-      const selectedDate = columnFilters.date ?? new Date().toISOString().slice(0, 10)
+  const selectedDate = columnFilters.date ?? getYesterdayYMD()
       console.debug('[bonus/page] display data', {
         selectedDate,
         totalPatients: patients.length,
         filteredPatientsCount: filteredPatients.length,
         currentPatientsCount: currentPatients.length,
-        // sample of currentPatients with resolved display fields
+
         sampleCurrentPatients: currentPatients.slice(0, 10).map((p) => {
           const key = String(p.id)
           const db = bonusRowsByLocation[key] || null
@@ -339,7 +448,7 @@ const BonusPage = () => {
             id: p.id,
             title: p.title,
             total_sales_db: db ? (db.total_sales ?? null) : null,
-            // Prefer `bonus_threshold` returned from DB
+       
             bonus_limit_input: bonusLimitByPatient[key] ?? (db ? (db.bonus_threshold ?? db.bonus_limit ?? null) : null),
             flat_percentage_input: bonusTypeByPatient[key] ?? (db ? (db.flat_percentage ?? null) : null),
             value_input: bonusValueByPatient[key] ?? (db ? (db.value ?? db.val ?? null) : null),
@@ -358,14 +467,14 @@ const BonusPage = () => {
     }
   }, [patients, filteredPatients.length, currentPatients.length, columnFilters.date, bonusRowsByLocation, bonusLimitByPatient, bonusValueByPatient, bonusTypeByPatient, editedByPatient])
 
-  // When the calculation tab is selected, run the debugging query per-location (limited sample)
+  
+
   useEffect(() => {
-    // cast to string to avoid TypeScript control-flow narrowing of the
-    // `activeTab` union within this component function scope.
+
     if ((activeTab as string) !== 'calculation') return
     try {
   const selectedDate = columnFilters.date ?? getTodayYMD()
-      // limit to first 10 locations to avoid flooding the server
+
       const sample = patients.slice(0, 10)
       sample.forEach(async (p) => {
         try {
@@ -428,16 +537,16 @@ const BonusPage = () => {
     }
   }
 
-  // Compute display-only bonus amount for a patient/location
+
   const computeBonusAmount = (patient: any) => {
     const total = bonusRowsByLocation[String(patient.id)]?.total_sales ?? (totalsByLocation[String(patient.id)]?.total) ?? 0
-    const type = (bonusTypeByPatient[patient.id] ?? 'FLAT')
-    const valStr = (bonusValueByPatient[patient.id] ?? '')
-    // prefer authoritative threshold from threshold_history when present
+  const type = (bonusTypeByPatient[String(patient.id)] ?? 'FLAT')
+  const valStr = (bonusValueByPatient[String(patient.id)] ?? '')
+
     const thr = thresholdsByLocation[String(patient.id)]
     const limitStr = thr && (thr.bonus_threshold !== undefined && thr.bonus_threshold !== null)
-      ? String(thr.bonus_threshold)
-      : (bonusLimitByPatient[patient.id] ?? '')
+  ? String(thr.bonus_threshold)
+  : (bonusLimitByPatient[String(patient.id)] ?? '')
 
     const value = valStr === '' ? 0 : Number(valStr)
     const limit = limitStr === '' ? null : Number(limitStr)
@@ -452,10 +561,7 @@ const BonusPage = () => {
       amount = total * (pct / 100)
     }
 
-      // If a bonus limit is provided, only allow bonus when total > limit.
-      // For FLAT bonuses we cap the payout to the available amount above the threshold
-      // (i.e. at most total - limit). For PERCENTAGE bonuses we apply the percent
-      // to the full total once the threshold is met (so percent of total).
+   
       if (limit !== null && !isNaN(limit)) {
         if (total <= limit) {
           amount = 0
@@ -463,28 +569,28 @@ const BonusPage = () => {
           const allowed = Math.max(0, total - limit)
           amount = Math.min(amount, allowed)
         }
-        // PERCENTAGE: amount stays as percent of total
+        
       }
 
     return amount
   }
 
-  // Render a large dash for missing DB values (used in Calculation view)
+
   const renderBigDash = (className = 'text-gray-400') => (
     <span className={`${className} text-2xl font-semibold`} aria-hidden>
       —
     </span>
   )
 
-  // Today's display string for the Date column
+
   const todayStr = new Date().toLocaleDateString()
 
-  // Save current bonus settings (temporary client-side persistence)
+
   const handleSave = () => {
-    // Build array of bonus rows keyed by patient (location) id
+
     const locIds = patients.map(p => String(p.id))
-    const selectedDate = columnFilters.date ?? new Date().toISOString().slice(0, 10)
-    // Build payload differently when in Set limits tab: only send rows whose threshold/flat/value changed
+  const selectedDate = columnFilters.date ?? getYesterdayYMD()
+
     let changed: any[] = []
     if (isSetLimits) {
       const today = selectedDate
@@ -516,7 +622,7 @@ const BonusPage = () => {
       }
       changed = rows
     } else {
-      // In calculation (non-SetLimits) mode we only update paid status when Save is clicked.
+
       const paidChanged: any[] = []
       for (const locId of locIds) {
         const key = String(locId)
@@ -537,10 +643,9 @@ const BonusPage = () => {
       return
     }
 
-    // POST to server API to persist changed bonuses. If fails, still store locally as fallback.
     ;(async () => {
       try {
-        // If we're in Set limits mode, use the existing save endpoint with configOnly flag.
+
         if (isSetLimits) {
           const resp = await fetch('/api/bonuses/save', {
             method: 'POST',
@@ -563,7 +668,7 @@ const BonusPage = () => {
           setSaveMessage('Saved')
           try { toast.success('Bonus updated successfully') } catch(_) {}
           setTimeout(() => setSaveMessage(''), 2000)
-          // Merge changed into original and refresh
+        
           try {
             const updatedOrig = originalBonuses.map(o => {
               const match = changed.find(c => Number(c.location_id) === Number(o.location_id) && String(c.date || '') === String(o.date || ''))
@@ -574,12 +679,12 @@ const BonusPage = () => {
               if (!exists) updatedOrig.push(c)
             })
             setOriginalBonuses(updatedOrig)
-            try { fetchData() } catch (_) {}
+
           } catch (_) {}
           return
         }
 
-        // Otherwise (calculation tab) only update paid flags via the dedicated endpoint
+
         const resp = await fetch('/api/bonuses/update-paid', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -602,13 +707,13 @@ const BonusPage = () => {
         try { toast.success('Paid status updated') } catch(_) {}
         setTimeout(() => setSaveMessage(''), 2000)
 
-        // Merge paid changes into originalBonuses and refresh data
+
         try {
           const updatedOrig = originalBonuses.map(o => {
             const match = changed.find(c => Number(c.location_id) === Number(o.location_id) && String(c.date || '') === String(o.date || ''))
             return match ? { ...o, paid: match.paid, paid_date: match.paid ? (o.paid_date ?? new Date().toISOString().slice(0,10)) : null } : o
           })
-          // include any new rows
+       
           changed.forEach(c => {
             const exists = updatedOrig.find(u => Number(u.location_id) === Number(c.location_id) && String(u.date || '') === String(c.date || ''))
             if (!exists) updatedOrig.push({ location_id: c.location_id, date: c.date, paid: c.paid })
@@ -627,19 +732,140 @@ const BonusPage = () => {
     })()
   }
 
+
+  const [setLimitLocation, setSetLimitLocation] = useState<string>('')
+  const [setLimitType, setSetLimitType] = useState<'FLAT' | 'PERCENTAGE'>('FLAT')
+  const [setLimitValue, setSetLimitValue] = useState<string>('')
+  const [setLimitThreshold, setSetLimitThreshold] = useState<string>('')
+  const [setLimitSubmitting, setSetLimitSubmitting] = useState(false)
+
+  const [setLimitSearch, setSetLimitSearch] = useState<string>('')
+  const filteredLimitPatients = (patients || []).filter((p: any) => {
+    if (!setLimitSearch) return true
+    const title = (p?.title ?? '').toString().toLowerCase()
+    return title.includes(setLimitSearch.toLowerCase())
+  })
+
+  const handleSetLimitSubmit = async () => {
+  
+    if (!setLimitLocation) {
+      try { toast.error('Please enter a Location ID') } catch(_) {}
+      return
+    }
+    const locationId = Number(setLimitLocation)
+    if (Number.isNaN(locationId)) {
+      try { toast.error('Location must be a numeric ID') } catch(_) {}
+      return
+    }
+    const valueNum = Number(setLimitValue)
+    if (setLimitValue !== '' && Number.isNaN(valueNum)) {
+      try { toast.error('Value must be numeric') } catch(_) {}
+      return
+    }
+
+    
+    const thresholdNum = Number(setLimitThreshold)
+    if (setLimitThreshold !== '' && Number.isNaN(thresholdNum)) {
+      try { toast.error('Threshold must be numeric') } catch(_) {}
+      return
+    }
+    const thresholdRounded = setLimitThreshold === '' ? null : (Number.isNaN(thresholdNum) ? null : Math.round(thresholdNum * 100) / 100)
+
+    const payload = {
+      bonuses: [
+        {
+          location_id: locationId,
+          flat_percentage: setLimitType,
+          value: setLimitValue === '' ? null : valueNum,
+          bonus_threshold: thresholdRounded,
+        },
+      ],
+      configOnly: true,
+    }
+
+    setSetLimitSubmitting(true)
+    try {
+      const resp = await fetch('/api/bonuses/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      let json = null
+      try { json = await resp.json() } catch (_) {}
+      if (!resp.ok) {
+        try { toast.error('Failed to save configuration') } catch(_) {}
+        return
+      }
+      try { toast.success('Configuration saved') } catch(_) {}
+  
+      setSetLimitLocation('')
+      setSetLimitType('FLAT')
+      setSetLimitValue('')
+  setSetLimitThreshold('')
+    } catch (e) {
+      try { toast.error('Failed to save configuration') } catch(_) {}
+    } finally {
+      setSetLimitSubmitting(false)
+    }
+  }
+
+  const handleSetLimitValueChange = (raw: string) => {
+ 
+    if (raw === '') { setSetLimitValue(''); return }
+   
+    const cleaned = raw.replace(/[^0-9.\-]/g, '')
+    
+    const num = Number(cleaned)
+    if (setLimitType === 'PERCENTAGE') {
+      if (Number.isNaN(num)) {
+        setSetLimitValue('')
+        return
+      }
+      
+      const clamped = Math.max(0, Math.min(100, num))
+      
+      setSetLimitValue(String(Math.round(clamped * 100) / 100))
+      return
+    }
+
+    if (Number.isNaN(num)) {
+      setSetLimitValue('')
+      return
+    }
+    setSetLimitValue(String(cleaned))
+  }
+
+  const handleSetLimitThresholdChange = (raw: string) => {
+   
+    if (raw === '') { setSetLimitThreshold(''); return }
+  
+    let cleaned = raw.replace(/[^0-9.\-]/g, '')
+
+    const hasLeadingMinus = raw.trim().startsWith('-')
+
+    cleaned = cleaned.replace(/-/g, '')
+
+    const parts = cleaned.split('.')
+    cleaned = parts.shift() || ''
+    if (parts.length > 0) cleaned = `${cleaned}.${parts.join('')}`
+    if (hasLeadingMinus && cleaned !== '') cleaned = `-${cleaned}`
+
+    setSetLimitThreshold(cleaned)
+  }
+
     return (
     <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
-      {/* Toast container for notifications */}
+
       <ToastContainer position="top-right" autoClose={3000} />
-      {/* Header */}
+      
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Bonus</h1>
         </div>
       </div>
-      {/* Pagination removed; table will show scrollbars instead */}
 
-      {/* Tabs */}
+
+
       <div className="mb-4">
         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
           <button
@@ -665,7 +891,7 @@ const BonusPage = () => {
 
       {/* Global search removed */}
 
-  {(activeTab === 'calculation' || activeTab === 'set-limits') && (
+  {activeTab === 'calculation' && (
         loadingPatients ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-gray-500 dark:text-gray-300">Loading bonuses...</div>
@@ -755,7 +981,7 @@ const BonusPage = () => {
                           onChange={(e) => setColumnFilters((s) => ({ ...s, date: e.target.value }))}
                           // Prevent selecting today or future dates by capping the max to yesterday
                           // allow selecting up to today (previously capped to yesterday)
-                          max={getTodayYMD()}
+                          max={getYesterdayYMD()}
                           aria-label="Filter by date (up to yesterday)"
                         />
                       </TableCell>
@@ -1172,12 +1398,144 @@ const BonusPage = () => {
           </div>
 
           {/* pagination removed from calculation tab (kept for transactions) */}
-        </>
+          </>
         )
       )}
 
+  {/* Set limits tab intentionally does not fetch or display any bonus/transaction data */}
+  {activeTab === 'set-limits' && (
+    <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
+      <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh] p-6">
+        <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Set limits</h2>
+   
+
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+            <Select
+              value={setLimitLocation}
+              onValueChange={(v) => { setSetLimitLocation(v); setSetLimitSearch('') }}
+            >
+              <SelectTrigger className="mt-1 mb-2">
+                <SelectValue placeholder="Select a location" />
+              </SelectTrigger>
+              <SelectContent side="bottom" position="popper" className="w-[min(28rem,90vw)]">
+                {/* Search box inside dropdown for better UX */}
+                <div className="px-3 pt-2">
+                  <input
+                    type="search"
+                    value={setLimitSearch}
+                    onChange={(e) => setSetLimitSearch(e.target.value)}
+                    placeholder="Search locations..."
+                    className="w-full text-sm px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#07101a] dark:text-white outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div className="max-h-60 overflow-auto py-1">
+                  {filteredLimitPatients && filteredLimitPatients.length > 0 ? (
+                    filteredLimitPatients.map((p: any) => (
+                      <SelectItem key={String(p.id)} value={String(p.id)} className="px-3 py-2 text-sm">
+                        <div className="flex flex-col">
+                          <span className="truncate font-medium">{p.title ?? `Location ${p.id}`}</span>
+                          {p.city && <span className="text-xs text-gray-500 dark:text-gray-400">{p.city}</span>}
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500">No locations</div>
+                  )}
+                </div>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Flat / Percentage</label>
+            <select
+              className="mt-1 block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white"
+              value={setLimitType}
+              onChange={(e) => setSetLimitType((e.target.value as 'FLAT' | 'PERCENTAGE'))}
+            >
+              <option value="FLAT">FLAT</option>
+              <option value="PERCENTAGE">PERCENTAGE</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
+            <div className="mt-1 relative">
+              <input
+                type="text"
+                inputMode="decimal"
+                className="block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white pr-10"
+                placeholder={setLimitType === 'PERCENTAGE' ? '0-100' : 'Numeric value (e.g. 100)'}
+                value={setLimitValue}
+                onChange={(e) => handleSetLimitValueChange(e.target.value)}
+              />
+              {/* suffix/prefix */}
+              {setLimitType === 'FLAT' ? (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">$</span>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">%</span>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bonus Threshold</label>
+            <div className="mt-1 relative">
+              <input
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                className="block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white"
+                placeholder="Numeric (e.g. 100.50)"
+                value={setLimitThreshold}
+                onChange={(e) => handleSetLimitThresholdChange(e.target.value)}
+                onBlur={() => {
+                  if (setLimitThreshold !== '') {
+                    const n = Number(setLimitThreshold)
+                    if (!Number.isNaN(n)) setSetLimitThreshold(String(Math.round(n * 100) / 100))
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            size="sm"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border-green-600"
+            onClick={(e) => { e.stopPropagation(); handleSetLimitSubmit(); }}
+            disabled={setLimitSubmitting}
+          >
+            {setLimitSubmitting ? 'Submitting...' : 'Submit'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )}
+
       {activeTab === 'transactions' && (
         <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Transactions toolbar: date selector so transactions update as user picks a date */}
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-end gap-3">
+            <label className="text-sm text-gray-600 dark:text-gray-300 mr-2">Date:</label>
+            <input
+              type="date"
+              className="text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+              value={columnFilters.date ?? ''}
+              onChange={(e) => {
+                const v = e.target.value
+                setColumnFilters((s) => ({ ...s, date: v }))
+                // reset pagination to first page when date changes (useEffect also does this)
+                setCurrentPage(1)
+              }}
+              // match calculation tab behaviour: prevent future dates by capping to yesterday
+              max={getYesterdayYMD()}
+              aria-label="Select date for transactions"
+            />
+          </div>
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
@@ -1187,69 +1545,73 @@ const BonusPage = () => {
                 <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Flat/Percentage</TableHead>
                 <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Value</TableHead>
                 <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Bonus amount</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Date</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Paid Date</TableHead>
                 <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">Status</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="dark:bg-[#0e1725]">
-              {transactionPatients.length > 0 ? (
-                transactionPatients.map((patient) => {
-                  const balance = patientCreditBalances[patient.id] || 0
-                  const locId = String(patient.id)
-                  return (
-                    <TableRow key={patient.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-[#0e1725]">
-                      <TableCell className="font-medium dark:text-white">{patient.title || patient.name || `Location ${patient.id}`}</TableCell>
-                      {/* Read values from bonus DB by location_id; show '-' when missing */}
-                      <TableCell className="dark:text-white">
-                        <span className="font-semibold text-green-600 dark:text-green-400">{ bonusRowsByLocation[locId]?.total_sales !== undefined ? `$${Number(bonusRowsByLocation[locId].total_sales).toFixed(2)}` : '-' }</span>
-                      </TableCell>
-                      <TableCell className="dark:text-white">
-                        <span className="text-gray-700 dark:text-white">{ (thresholdsByLocation[locId] && typeof thresholdsByLocation[locId].bonus_threshold !== 'undefined') ? Number(thresholdsByLocation[locId].bonus_threshold).toFixed(2) : (bonusRowsByLocation[locId] && Object.prototype.hasOwnProperty.call(bonusRowsByLocation[locId], 'bonus_limit') ? Number(bonusRowsByLocation[locId].bonus_limit).toFixed(2) : '-') }</span>
-                      </TableCell>
-                      <TableCell className="dark:text-white">
-                        <span className="text-gray-700 dark:text-white">{ (thresholdsByLocation[locId] && thresholdsByLocation[locId].flat_percentage) ? thresholdsByLocation[locId].flat_percentage : (bonusRowsByLocation[locId]?.flat_percentage ?? '-') }</span>
-                      </TableCell>
-                      <TableCell className="dark:text-white">
-                        <div className="flex items-center">
-                          <span className="mr-2 text-gray-700 dark:text-gray-300">{ (String((thresholdsByLocation[locId]?.flat_percentage ?? bonusRowsByLocation[locId]?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '' : '$' }</span>
-                          <span className="text-gray-700 dark:text-white">{ (() => { const cfg = thresholdsByLocation[locId]; const b = bonusRowsByLocation[locId]; const val = cfg?.value ?? b?.value ?? b?.val ?? null; return (val !== undefined && val !== null) ? (Number(val).toFixed ? Number(val).toFixed(2) : String(val)) : '-' })() }</span>
-                          <span className="ml-2 text-gray-700 dark:text-gray-300">{ (String((thresholdsByLocation[locId]?.flat_percentage ?? bonusRowsByLocation[locId]?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '%' : '' }</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="dark:text-white">
-                        <span className="font-semibold text-blue-600 dark:text-blue-400">{ bonusRowsByLocation[locId]?.bonus_amount !== undefined ? `$${Number(bonusRowsByLocation[locId].bonus_amount).toFixed(2)}` : (computeBonusAmount(patient) > 0 ? `$${computeBonusAmount(patient).toFixed(2)}` : '-') }</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-500 dark:text-gray-300">{ bonusRowsByLocation[locId]?.date ?? '-' }</span>
-                      </TableCell>
-                      <TableCell>
-                        {
-                          (() => {
-                            const paidFlag = bonusRowsByLocation[locId]?.paid ?? (paidByPatient[locId] ?? false)
-                            if (paidFlag) {
-                              return (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100">
-                                  Paid
-                                </span>
-                              )
-                            }
-                            return (
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700 border border-red-100">
-                                Unpaid
-                              </span>
-                            )
-                          })()
-                        }
-                      </TableCell>
+            {(() => {
+              const selectedDate = columnFilters.date ?? getYesterdayYMD()
+              // Use the raw paid rows list and show every paid bonus row for the selected date
+              const paidRowsForDate = (paidBonusRows || []).filter((r: any) => {
+                if (!r) return false
+                if (!r.paid) return false
+                const pd = r.paid_date ?? r.paidDate ?? r.paid_at ?? r.date
+                if (!pd) return false
+                return String(pd).slice(0, 10) === selectedDate
+              })
+
+              return (
+                <TableBody className="dark:bg-[#0e1725]">
+                  {paidRowsForDate.length > 0 ? (
+                    paidRowsForDate.map((b: any, idx: number) => {
+                      const locId = String(b.location_id ?? b.locationid ?? b.location ?? '')
+                      const patient = patients.find((p) => String(p.id) === String(locId))
+                      const displayName = patient ? (patient.title || patient.name || `Location ${patient.id}`) : (b.location_name ?? `Location ${locId}`)
+                      // prefer explicit config referenced by the bonus row when available
+                      const cfg = (b?.bonus_config_history_id ? paidConfigById[String(b.bonus_config_history_id)] : null) || thresholdsByLocation[locId] || null
+                      return (
+                        <TableRow key={b.id ?? `${locId}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-[#0e1725]">
+                          <TableCell className="font-medium dark:text-white">{displayName}</TableCell>
+                          <TableCell className="dark:text-white">
+                            <span className="font-semibold text-green-600 dark:text-green-400">{ b?.total_sales !== undefined ? `$${Number(b.total_sales).toFixed(2)}` : '-' }</span>
+                          </TableCell>
+                          <TableCell className="dark:text-white">
+                            <span className="text-gray-700 dark:text-white">{ (cfg && typeof cfg.bonus_threshold !== 'undefined' && cfg.bonus_threshold !== null) ? Number(cfg.bonus_threshold).toFixed(2) : (b && Object.prototype.hasOwnProperty.call(b, 'bonus_limit') ? Number(b.bonus_limit).toFixed(2) : '-') }</span>
+                          </TableCell>
+                          <TableCell className="dark:text-white">
+                            <span className="text-gray-700 dark:text-white">{ (cfg && cfg.flat_percentage) ? cfg.flat_percentage : (b?.flat_percentage ?? '-') }</span>
+                          </TableCell>
+                          <TableCell className="dark:text-white">
+                            <div className="flex items-center">
+                              <span className="mr-2 text-gray-700 dark:text-gray-300">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '' : '$' }</span>
+                              <span className="text-gray-700 dark:text-white">{ (() => { const val = (cfg && (cfg.value !== undefined && cfg.value !== null)) ? cfg.value : (b?.value ?? b?.val ?? null); return (val !== undefined && val !== null) ? (Number(val).toFixed ? Number(val).toFixed(2) : String(val)) : '-' })() }</span>
+                              <span className="ml-2 text-gray-700 dark:text-gray-300">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '%' : '' }</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="dark:text-white">
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">{ b?.bonus_amount !== undefined ? `$${Number(b.bonus_amount).toFixed(2)}` : (patient ? (computeBonusAmount(patient) > 0 ? `$${computeBonusAmount(patient).toFixed(2)}` : '-') : '-') }</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-500 dark:text-gray-300">{ b?.paid_date ?? '-' }</span>
+                          </TableCell>
+                          <TableCell>
+                            { (b?.paid) ? (
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100">Paid</span>
+                            ) : (
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700 border border-red-100">Unpaid</span>
+                            ) }
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">No paid bonuses for selected date</TableCell>
                     </TableRow>
-                  )
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">No business found</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+                  )}
+                </TableBody>
+              )
+            })()}
           </Table>
         </div>
       )}
