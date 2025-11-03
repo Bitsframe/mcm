@@ -1166,21 +1166,37 @@ const BonusPage = () => {
                           )}
                           {!isSetLimits && (
                             <TableCell>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className={(paidByPatient[patient.id] ?? false)
-                                  ? "bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                                  : "bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700"}
-                                onClick={(e) => {
+                              {(() => {
+                                const key = String(patient.id)
+                                const b = bonusRowsByLocation[key]
+                                const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
+                                const computed = computeBonusAmount(patient)
+                                const isGenerated = (dbAmt !== null) ? (dbAmt > 0) : (computed > 0)
+                                const isPaid = !!(paidByPatient[String(patient.id)] ?? false)
+                                return (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!isGenerated}
+                                    className={
+                                      !isGenerated
+                                        ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200'
+                                        : (isPaid
+                                            ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                                            : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
+                                    }
+                                    onClick={(e) => {
+                                      if (!isGenerated) return
                                       e.stopPropagation()
-                                      setPaidByPatient((s) => ({ ...s, [String(patient.id)]: !(s?.[String(patient.id)] ?? false) }))
+                                      setPaidByPatient((s) => ({ ...s, [key]: !isPaid }))
                                     }}
-                                  aria-pressed={paidByPatient[patient.id] ?? false}
-                                >
-                  <Eye className={`w-4 h-4 mr-1 ${(paidByPatient[patient.id] ?? false) ? 'text-gray-700' : 'text-white'}`} />
-                  <span className="text-white">{(paidByPatient[patient.id] ?? false) ? 'Paid' : 'Pay'}</span>
-                              </Button>
+                                    aria-pressed={isPaid}
+                                  >
+                                    <Eye className={`w-4 h-4 mr-1 ${isPaid ? 'text-gray-700' : 'text-white'}`} />
+                                    <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
+                                  </Button>
+                                )
+                              })()}
                             </TableCell>
                           )}
                         </TableRow>
@@ -1371,22 +1387,37 @@ const BonusPage = () => {
                       </div>
                         {!isSetLimits && (
                           <div className="flex justify-end">
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             className={(paidByPatient[patient.id] ?? false)
-                               ? "bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                               : "bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700"}
-                             onClick={(e) => {
-                               e.stopPropagation()
-                               setPaidByPatient((s) => ({ ...s, [String(patient.id)]: !(s?.[String(patient.id)] ?? false) }))
-                             }}
-                             aria-pressed={paidByPatient[patient.id] ?? false}
-                           >
-                             <Eye className={`w-4 h-4 mr-1 ${(paidByPatient[patient.id] ?? false) ? 'text-gray-700' : 'text-white'}`} />
-                             <span className="text-white">{(paidByPatient[patient.id] ?? false) ? 'Paid' : 'Pay'}</span>
-                           </Button>
-                         </div>
+                            {(() => {
+                              const key = String(patient.id)
+                              const b = bonusRowsByLocation[key]
+                              const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
+                              const computed = computeBonusAmount(patient)
+                              const isGenerated = (dbAmt !== null) ? (dbAmt > 0) : (computed > 0)
+                              const isPaid = !!(paidByPatient[key] ?? false)
+                              return (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={!isGenerated}
+                                  className={!isGenerated
+                                    ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200'
+                                    : (isPaid
+                                      ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                                      : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
+                                  }
+                                  onClick={(e) => {
+                                    if (!isGenerated) return
+                                    e.stopPropagation()
+                                    setPaidByPatient((s) => ({ ...s, [key]: !isPaid }))
+                                  }}
+                                  aria-pressed={isPaid}
+                                >
+                                  <Eye className={`w-4 h-4 mr-1 ${isPaid ? 'text-gray-700' : 'text-white'}`} />
+                                  <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
+                                </Button>
+                              )
+                            })()}
+                          </div>
                         )}
                     </CardContent>
                   </Card>

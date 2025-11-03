@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import React, { useContext, useState } from 'react';
 import DateRangeModal from './DateRangeModal';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 import { toast } from 'react-toastify'; // Import the toast library
 import { buildOrderInfoBlock, getOrderInfoData } from './pdfHelpers';
@@ -31,6 +32,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
         setLoading(true);
 
         try {
+            // bonus totals (computed later) - keep in outer scope so header can access
+            let totalBonus = 0;
+            let totalPaidBonus = 0;
                             // Loud alert to show date range and included fields
                                         try {
                                                     // logging removed for production
@@ -78,6 +82,54 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             try {
                 console.log('[ExportAsPDF] generatePDF called', { startDate, endDate, selectedLocation });
                 console.log('[ExportAsPDF] fetched_data (raw):', fetched_data);
+                // --- DEBUG: fetch bonus rows and compute totals on frontend ---
+                try {
+                    // Use direct supabase queries here to select only required columns and avoid heavy payloads
+                    const selectCols = 'id, bonus_amount, date, paid, paid_date, location_id, total_sales, bonus_generated, bonus_config_history_id';
+
+                    // Fetch all bonus rows for the selected location where `date` is within the selected range
+                    const { data: bonusRows, error: bonusError } = await supabase
+                        .from('bonus')
+                        .select(selectCols)
+                        .eq('location_id', selectedLocation.id)
+                        .gte('date', startDate)
+                        .lte('date', endDate);
+
+                    if (bonusError) {
+                        console.error('ExportAsPDF: error fetching bonusRows from supabase', bonusError);
+                    }
+
+                    // Fetch paid bonus rows where paid = true and paid_date is within the selected range
+                    const { data: paidBonusRows, error: paidError } = await supabase
+                        .from('bonus')
+                        .select(selectCols)
+                        .eq('location_id', selectedLocation.id)
+                        .eq('paid', true)
+                        .gte('paid_date', startDate)
+                        .lte('paid_date', endDate);
+
+                    if (paidError) {
+                        console.error('ExportAsPDF: error fetching paidBonusRows from supabase', paidError);
+                    }
+
+                    // Compute totals on the frontend (safe numeric coercion)
+                    const toNumber = (v: any) => {
+                        const n = Number(v);
+                        return Number.isNaN(n) ? 0 : n;
+                    };
+
+                    totalBonus = (bonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
+                    totalPaidBonus = (paidBonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
+
+                    // Log detailed debug info so we can trace which rows are included
+                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows count:', (bonusRows || []).length);
+                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows (full):', bonusRows);
+                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows count:', (paidBonusRows || []).length);
+                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows (full):', paidBonusRows);
+                    console.log('[ExportAsPDF] BONUS debug: computed totals', { totalBonus: Number(totalBonus).toFixed(2), totalPaidBonus: Number(totalPaidBonus).toFixed(2) });
+                } catch (e) {
+                    console.error('ExportAsPDF: error fetching/processing bonus debug rows', e);
+                }
             } catch (e) {
                 // ignore in non-browser env
             }
@@ -486,10 +538,15 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 doc.text(`Total Receivables: $${Number(totalReceivables || 0).toFixed(2)}`, 195, 30, { align: 'right' });
                 // Show Total Sales (sum of net amounts) below receivables
                 doc.text(`Total Sales: $${Number(totalSalesNet || 0).toFixed(2)}`, 195, 36, { align: 'right' });
+                // Bonus and Paid Bonus (right)
+                doc.text(`Bonus: $${Number(totalBonus || 0).toFixed(2)}`, 195, 42, { align: 'right' });
+                doc.text(`Paid Bonus: $${Number(totalPaidBonus || 0).toFixed(2)}`, 195, 48, { align: 'right' });
             } catch (e) {
                 // fallback: place without alignment
                 doc.text(`Total Receivables: $${Number(totalReceivables || 0).toFixed(2)}`, 160, 30);
                 doc.text(`Total Sales: $${Number(totalSalesNet || 0).toFixed(2)}`, 160, 36);
+                doc.text(`Bonus: $${Number(totalBonus || 0).toFixed(2)}`, 160, 42);
+                doc.text(`Paid Bonus: $${Number(totalPaidBonus || 0).toFixed(2)}`, 160, 48);
             }
 
             // Location Title (left, below date range)
@@ -497,7 +554,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
 
             // Add some space before the table
             doc.setLineWidth(0.5);
-            doc.line(14, 45, 195, 45); // Horizontal line after the header
+            doc.line(14, 60, 195, 60); // Horizontal line after the header (moved down to allow bonus fields)
 
             // Generate the table in the PDF
             // DEBUG: log final PDF payload that's passed into autoTable
@@ -512,7 +569,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
             const LEFT_MARGIN = 14;
             const RIGHT_MARGIN = 14;
-            const START_Y = 50;
+            const START_Y = 66;
             let cursorY = START_Y;
 
             for (const [oIdStr, orderObj] of Array.from(ordersMap.entries())) {
