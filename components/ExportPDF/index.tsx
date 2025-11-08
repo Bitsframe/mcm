@@ -88,7 +88,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const selectCols = 'id, bonus_amount, date, paid, paid_date, location_id, total_sales, bonus_eligibility, bonus_config_history_id';
 
                     // Fetch all bonus rows for the selected location where `date` is within the selected range
-                    const { data: bonusRows, error: bonusError } = await supabase
+                    const { data: bonusRows, error: bonusError } = await (supabase as any)
                         .from('bonus')
                         .select(selectCols)
                         .eq('location_id', selectedLocation.id)
@@ -100,7 +100,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     }
 
                     // Fetch paid bonus rows where paid = true and paid_date is within the selected range
-                    const { data: paidBonusRows, error: paidError } = await supabase
+                    const { data: paidBonusRows, error: paidError } = await (supabase as any)
                         .from('bonus')
                         .select(selectCols)
                         .eq('location_id', selectedLocation.id)
