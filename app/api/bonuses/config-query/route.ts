@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     // Fetch bonus row for the location and date
     const { data: bonusData, error: bonusErr } = await supabase
       .from('bonus')
-      .select('id, location_id, date, total_sales, bonus_generated, bonus_amount')
+      .select('id, location_id, date, total_sales, bonus_eligibility, bonus_amount')
       .eq('location_id', Number(locationId))
       .eq('date', selectedDate)
 

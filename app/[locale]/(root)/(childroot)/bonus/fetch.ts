@@ -24,22 +24,20 @@ export async function fetchPaidBonusesForDate(selectedDate: string) {
   const nextDay = new Date(selectedDate)
   nextDay.setDate(nextDay.getDate() + 1)
   const nextDateStr = nextDay.toISOString().slice(0, 10)
-  // use matchCase to require paid = true, and filterOptions for the date range
+  // Return all bonus rows where paid === true.
+  // Note: callers may still pass a selectedDate but this function now ignores date filters
+  // to satisfy the requirement: "fetch only where paid == true regardless of location/date".
   const bonusRows: any[] = await fetch_content_service({
     table: 'bonus',
     matchCase: { key: 'paid', value: true },
-    filterOptions: [
-      // filter on paid_date (not the computation 'date') so rows with paid_date = selectedDate are returned
-      { column: 'paid_date', operator: 'gte', value: selectedDate },
-      { column: 'paid_date', operator: 'lt', value: nextDateStr },
-    ]
   })
   return bonusRows
 }
 
-export async function fetchActiveThresholds(selectedDate: string) {
+export async function fetchActiveThresholds(selectedDate?: string) {
   try {
-    const resp = await fetch(`/api/bonuses/active-configs?selected_date=${encodeURIComponent(selectedDate)}`)
+    const url = selectedDate ? `/api/bonuses/active-configs?selected_date=${encodeURIComponent(selectedDate)}` : `/api/bonuses/active-configs`
+    const resp = await fetch(url)
     if (!resp.ok) return []
     const json = await resp.json()
     return (json.configs || [])

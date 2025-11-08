@@ -42,6 +42,8 @@ const BonusPage = () => {
   }
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({ date: getYesterdayYMD() })
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [filterDraft, setFilterDraft] = useState<Record<string, string>>({})
   const [currentPage, setCurrentPage] = useState(1)
   const [patientsPerPage] = useState(6)
   const [bonusTypeByPatient, setBonusTypeByPatient] = useState<Record<string, string>>({})
@@ -144,7 +146,8 @@ const BonusPage = () => {
       console.debug('[bonus/page] fetching active thresholds for date', { selectedDate })
       let thrMap: Record<string, any> | undefined
       try {
-        const thrList = await fetchActiveThresholds(selectedDate).catch(() => [])
+        // Request active configs with no date to prefer rows where effective_to IS NULL
+        const thrList = await fetchActiveThresholds().catch(() => [])
         thrMap = {}
         ;(thrList || []).forEach((t: any) => {
           const key = String(t.location_id)
@@ -746,6 +749,27 @@ const BonusPage = () => {
     return title.includes(setLimitSearch.toLowerCase())
   })
 
+  // Per-location editable limits for Set limits tab
+  const [limitsByLocation, setLimitsByLocation] = useState<Record<string, { flat_percentage: 'FLAT' | 'PERCENTAGE', value: string, bonus_threshold: string, edited?: boolean }>>({})
+
+  // Populate limitsByLocation when entering Set limits tab or when patients change
+  useEffect(() => {
+    if (activeTab !== 'set-limits') return
+    const map: Record<string, { flat_percentage: 'FLAT' | 'PERCENTAGE', value: string, bonus_threshold: string }> = {}
+    ;(patients || []).forEach((p: any) => {
+      const key = String(p.id)
+      const b = bonusRowsByLocation[key] || {}
+      const thr = thresholdsByLocation[key] || {}
+      map[key] = {
+        // prefer explicit value from active thresholds/config if available, otherwise fall back to bonus row
+        flat_percentage: (b.flat_percentage || b.flatPercentage || b.flat_percentage === 0) ? (String(b.flat_percentage).toUpperCase() === 'PERCENTAGE' ? 'PERCENTAGE' : 'FLAT') : (thr.flat_percentage ? (String(thr.flat_percentage).toUpperCase() === 'PERCENTAGE' ? 'PERCENTAGE' : 'FLAT') : 'FLAT'),
+        value: (thr.value ?? b.value ?? b.val ?? '') !== null ? String(thr.value ?? b.value ?? b.val ?? '') : '',
+        bonus_threshold: (thr.bonus_threshold ?? b.bonus_threshold ?? b.bonus_limit ?? '') !== null ? String(thr.bonus_threshold ?? b.bonus_threshold ?? b.bonus_limit ?? '') : '',
+      }
+    })
+    setLimitsByLocation(map)
+  }, [activeTab, patients, bonusRowsByLocation, thresholdsByLocation])
+
   const handleSetLimitSubmit = async () => {
   
     if (!setLimitLocation) {
@@ -901,6 +925,18 @@ const BonusPage = () => {
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh]">
+              {/* Toolbar: right-aligned filter button */}
+              <div className="flex justify-end p-4">
+                <Button
+                  size="sm"
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
+                  onClick={() => { setFilterDraft({ ...columnFilters }); setIsFilterOpen(true) }}
+                  aria-label="Open filters"
+                  title="Open filters"
+                >
+                  Filter
+                </Button>
+              </div>
               <Table>
                   <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
@@ -912,82 +948,10 @@ const BonusPage = () => {
                     {!isSetLimits && <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Bonus amount</TableHead>}
                     {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Date</TableHead>}
                     {(activeTab as any) === 'transactions' && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Paid date</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Bonus generated</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Bonus Eligibility</TableHead>}
                     {!isSetLimits && <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">Status</TableHead>}
                   </TableRow>
-                  {/* Filter inputs row - hidden in Set limits tab */}
-                  {!isSetLimits && (
-                    <TableRow className="bg-white dark:bg-[#0e1725]">
-                      <TableCell className="py-2 px-3">
-                        <input
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          placeholder="Filter name"
-                          value={columnFilters.name ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, name: e.target.value }))}
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <input
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          placeholder="Min"
-                          value={columnFilters.totalMin ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, totalMin: e.target.value }))}
-                          inputMode="numeric"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <input
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          placeholder="Min"
-                          value={columnFilters.limitMin ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, limitMin: e.target.value }))}
-                          inputMode="numeric"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <select
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          value={columnFilters.type ?? 'ALL'}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, type: e.target.value }))}
-                        >
-                          <option value="ALL">All</option>
-                          <option value="FLAT">FLAT</option>
-                          <option value="PERCENTAGE">PERCENTAGE</option>
-                        </select>
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <input
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          placeholder="Min"
-                          value={columnFilters.valueMin ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, valueMin: e.target.value }))}
-                          inputMode="numeric"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <input
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          placeholder="Min"
-                          value={columnFilters.bonusMin ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, bonusMin: e.target.value }))}
-                          inputMode="numeric"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3">
-                        <input
-                          type="date"
-                          className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-                          value={columnFilters.date ?? ''}
-                          onChange={(e) => setColumnFilters((s) => ({ ...s, date: e.target.value }))}
-                          // Prevent selecting today or future dates by capping the max to yesterday
-                          // allow selecting up to today (previously capped to yesterday)
-                          max={getYesterdayYMD()}
-                          aria-label="Filter by date (up to yesterday)"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-3"></TableCell>
-                    </TableRow>
-                  )}
+                  {/* Inline filters removed - use Filter modal instead */}
                 </TableHeader>
                 <TableBody className="dark:bg-[#0e1725]">
                   {currentPatients.length > 0 ? (
@@ -1079,11 +1043,15 @@ const BonusPage = () => {
                                 <input
                                   className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                                   placeholder="Value"
-                                  inputMode="numeric"
+                                  inputMode="decimal"
                                   value={bonusValueByPatient[String(patient.id)] ?? ''}
                                   onChange={(e) => {
                                     const key = String(patient.id)
-                                    setBonusValueByPatient((s) => ({ ...s, [key]: e.target.value }))
+                                    // allow only numbers and a single decimal point
+                                    let v = String(e.target.value).replace(/[^0-9.]/g, '')
+                                    const parts = v.split('.')
+                                    if (parts.length > 1) v = parts.shift() + '.' + parts.join('')
+                                    setBonusValueByPatient((s) => ({ ...s, [key]: v }))
                                     setEditedByPatient((s) => ({ ...s, [key]: true }))
                                   }}
                                 />
@@ -1146,19 +1114,19 @@ const BonusPage = () => {
                               {(() => {
                                 const key = String(patient.id)
                                 const b = bonusRowsByLocation[key]
-                                const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
-                                const computed = computeBonusAmount(patient)
-                                const has = (dbAmt !== null ? dbAmt > 0 : computed > 0)
+                                // Use explicit boolean `bonus_eligibility` from the bonus row.
+                                // Treat any non-true value as not eligible.
+                                const has = !!(b && b.bonus_eligibility === true)
                                 if (has) {
                                   return (
                                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
-                                      Generated
+                                      Yes
                                     </span>
                                   )
                                 }
                                 return (
                                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">
-                                    Not generated
+                                    No
                                   </span>
                                 )
                               })()}
@@ -1169,9 +1137,8 @@ const BonusPage = () => {
                               {(() => {
                                 const key = String(patient.id)
                                 const b = bonusRowsByLocation[key]
-                                const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
-                                const computed = computeBonusAmount(patient)
-                                const isGenerated = (dbAmt !== null) ? (dbAmt > 0) : (computed > 0)
+                                // Use explicit boolean `bonus_eligibility` from the bonus row for button enablement
+                                const isGenerated = !!(b && b.bonus_eligibility === true)
                                 const isPaid = !!(paidByPatient[String(patient.id)] ?? false)
                                 return (
                                   <Button
@@ -1185,14 +1152,34 @@ const BonusPage = () => {
                                             ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                                             : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
                                     }
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       if (!isGenerated) return
                                       e.stopPropagation()
-                                      setPaidByPatient((s) => ({ ...s, [key]: !isPaid }))
+                                      const newPaid = !isPaid
+                                      // optimistic UI
+                                      setPaidByPatient((s) => ({ ...s, [key]: newPaid }))
+                                      try {
+                                        const selectedDate = columnFilters.date ?? getYesterdayYMD()
+                                        const resp = await fetch('/api/bonuses/update-paid', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ items: [{ location_id: Number(key), date: (b?.date ?? selectedDate), paid: newPaid }] })
+                                        })
+                                        if (!resp.ok) {
+                                          // revert
+                                          setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
+                                          toast.error('Failed to update paid status')
+                                        } else {
+                                          toast.success(newPaid ? 'Marked as paid' : 'Marked as unpaid')
+                                          try { fetchData() } catch (_) {}
+                                        }
+                                      } catch (err) {
+                                        setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
+                                        toast.error('Failed to update paid status')
+                                      }
                                     }}
                                     aria-pressed={isPaid}
                                   >
-                                    <Eye className={`w-4 h-4 mr-1 ${isPaid ? 'text-gray-700' : 'text-white'}`} />
                                     <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
                                   </Button>
                                 )
@@ -1211,25 +1198,129 @@ const BonusPage = () => {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </div>
-          </div>
 
-          {/* Save button (saves current bonus settings locally) */}
-          {isCalcOrSet && (
-            <div className="mb-4 flex justify-start mt-6">
-              <Button
-                size="sm"
-                className="w-36 px-4 py-2 bg-green-600 hover:bg-green-700 text-white border-green-600"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleSave()
-                }}
-              >
-                Save
-              </Button>
-              {saveMessage && <span className="ml-4 text-sm text-green-600 dark:text-green-400">{saveMessage}</span>}
-            </div>
-          )}
+            {/* Filter Sheet / Modal for desktop */}
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
+                <SheetHeader>
+                  <SheetTitle className="text-xl font-semibold dark:text-white">Filters</SheetTitle>
+                </SheetHeader>
+
+                <div className="p-4 space-y-3">
+                    <div>
+                      <label className="block text-sm text-gray-700 dark:text-gray-300">Name</label>
+                      <select
+                        id="filter-name-input-modal"
+                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                        value={filterDraft.name ?? ''}
+                        onChange={(e) => setFilterDraft((s) => ({ ...s, name: e.target.value }))}
+                      >
+                        <option value="">All locations</option>
+                        {patients && patients.map((p: any) => {
+                          const display = `${p.firstname || ''} ${p.lastname || ''} ${p.title || p.name || ''}`.trim()
+                          return (
+                            <option key={String(p.id)} value={display}>{display || `Location ${p.id}`}</option>
+                          )
+                        })}
+                      </select>
+                    </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm text-gray-700 dark:text-gray-300">Total sales (min)</label>
+                      <input
+                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                        placeholder="Min"
+                        value={filterDraft.totalMin ?? ''}
+                        onChange={(e) => setFilterDraft((s) => ({ ...s, totalMin: e.target.value }))}
+                        inputMode="numeric"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus threshold (min)</label>
+                      <input
+                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                        placeholder="Min"
+                        value={filterDraft.limitMin ?? ''}
+                        onChange={(e) => setFilterDraft((s) => ({ ...s, limitMin: e.target.value }))}
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm text-gray-700 dark:text-gray-300">Type</label>
+                      <select
+                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                        value={filterDraft.type ?? 'ALL'}
+                        onChange={(e) => setFilterDraft((s) => ({ ...s, type: e.target.value }))}
+                      >
+                        <option value="ALL">All</option>
+                        <option value="FLAT">FLAT</option>
+                        <option value="PERCENTAGE">PERCENTAGE</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 dark:text-gray-300">Value (min)</label>
+                      <input
+                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                        placeholder="Min"
+                        value={filterDraft.valueMin ?? ''}
+                        onChange={(e) => setFilterDraft((s) => ({ ...s, valueMin: e.target.value }))}
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus amount (min)</label>
+                    <input
+                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                      placeholder="Min"
+                      value={filterDraft.bonusMin ?? ''}
+                      onChange={(e) => setFilterDraft((s) => ({ ...s, bonusMin: e.target.value }))}
+                      inputMode="numeric"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus Eligibility</label>
+                    <select
+                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                      value={filterDraft.bonusEligibility ?? ''}
+                      onChange={(e) => setFilterDraft((s) => ({ ...s, bonusEligibility: e.target.value }))}
+                      aria-label="Filter by bonus eligibility"
+                    >
+                      <option value="">Any</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300">Date (up to yesterday)</label>
+                    <input
+                      type="date"
+                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                      value={filterDraft.date ?? ''}
+                      onChange={(e) => setFilterDraft((s) => ({ ...s, date: e.target.value }))}
+                      max={getYesterdayYMD()}
+                      aria-label="Filter by date (up to yesterday)"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button size="sm" variant="outline" onClick={() => setFilterDraft({})}>Clear</Button>
+                    <Button size="sm" onClick={() => { setColumnFilters({ ...filterDraft }); setIsFilterOpen(false) }}>Apply</Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+          {/* Save button removed: Pay button will persist paid status immediately. */}
 
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
@@ -1290,10 +1381,13 @@ const BonusPage = () => {
                                 value={bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '')}
                                 onChange={(e) => {
                                   const key = String(patient.id)
-                                  setBonusValueByPatient((s) => ({ ...s, [key]: e.target.value }))
+                                  let v = String(e.target.value).replace(/[^0-9.]/g, '')
+                                  const parts = v.split('.')
+                                  if (parts.length > 1) v = parts.shift() + '.' + parts.join('')
+                                  setBonusValueByPatient((s) => ({ ...s, [key]: v }))
                                   setEditedByPatient((s) => ({ ...s, [key]: true }))
                                 }}
-                                inputMode="numeric"
+                                inputMode="decimal"
                               />
                             ) : (
                               <span className="text-gray-700 dark:text-white">{bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '-')}</span>
@@ -1368,9 +1462,8 @@ const BonusPage = () => {
                             {(() => {
                               const key = String(patient.id)
                               const b = bonusRowsByLocation[key]
-                              const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
-                              const computed = computeBonusAmount(patient)
-                              const has = (dbAmt !== null ? dbAmt > 0 : computed > 0)
+                              // Use explicit boolean `bonus_eligibility` from the bonus row for display
+                              const has = !!(b && b.bonus_eligibility === true)
                               return (
                                 <div className="mt-1">
                                   <span className="text-gray-500 dark:text-gray-400">Bonus generated:</span>
@@ -1390,9 +1483,8 @@ const BonusPage = () => {
                             {(() => {
                               const key = String(patient.id)
                               const b = bonusRowsByLocation[key]
-                              const dbAmt = (b && b.bonus_amount !== undefined && b.bonus_amount !== null) ? Number(b.bonus_amount) : null
-                              const computed = computeBonusAmount(patient)
-                              const isGenerated = (dbAmt !== null) ? (dbAmt > 0) : (computed > 0)
+                              // Use explicit boolean `bonus_eligibility` from the bonus row for button enablement
+                              const isGenerated = !!(b && b.bonus_eligibility === true)
                               const isPaid = !!(paidByPatient[key] ?? false)
                               return (
                                 <Button
@@ -1405,14 +1497,32 @@ const BonusPage = () => {
                                       ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                                       : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
                                   }
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     if (!isGenerated) return
                                     e.stopPropagation()
-                                    setPaidByPatient((s) => ({ ...s, [key]: !isPaid }))
+                                    const newPaid = !isPaid
+                                    setPaidByPatient((s) => ({ ...s, [key]: newPaid }))
+                                    try {
+                                      const selectedDate = columnFilters.date ?? getYesterdayYMD()
+                                      const resp = await fetch('/api/bonuses/update-paid', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ items: [{ location_id: Number(key), date: (b?.date ?? selectedDate), paid: newPaid }] })
+                                      })
+                                      if (!resp.ok) {
+                                        setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
+                                        toast.error('Failed to update paid status')
+                                      } else {
+                                        toast.success(newPaid ? 'Marked as paid' : 'Marked as unpaid')
+                                        try { fetchData() } catch (_) {}
+                                      }
+                                    } catch (err) {
+                                      setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
+                                      toast.error('Failed to update paid status')
+                                    }
                                   }}
                                   aria-pressed={isPaid}
                                 >
-                                  <Eye className={`w-4 h-4 mr-1 ${isPaid ? 'text-gray-700' : 'text-white'}`} />
                                   <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
                                 </Button>
                               )
@@ -1438,110 +1548,100 @@ const BonusPage = () => {
     <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
       <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh] p-6">
         <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Set limits</h2>
-   
+        {/* Replace single-location form with a table of all locations for bulk editing */}
+        <div className="overflow-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Location</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Flat / Percentage</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Value</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Bonus Threshold</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {(patients || []).map((p: any) => {
+                const key = String(p.id)
+                const row = limitsByLocation[key] || { flat_percentage: 'FLAT' as const, value: '', bonus_threshold: '' }
+                return (
+                  <tr key={key} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-sm text-gray-700">{p.title ?? `Location ${p.id}`}</td>
+                    <td className="px-4 py-2">
+                      <select
+                        className="rounded border border-gray-200 px-2 py-1 text-sm bg-transparent"
+                        value={row.flat_percentage}
+                        onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), flat_percentage: (e.target.value as 'FLAT' | 'PERCENTAGE'), edited: true } }))}
+                      >
+                        <option value="FLAT">FLAT</option>
+                        <option value="PERCENTAGE">PERCENTAGE</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="relative">
+                        {/* Prefix or suffix depending on FLAT / PERCENTAGE */}
+                        {((row.flat_percentage ?? 'FLAT') === 'FLAT') && (
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700">$</span>
+                        )}
+                        <input
+                          className={"w-full rounded border border-gray-200 px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
+                          value={row.value ?? ''}
+                          onChange={(e) => {
+                            let v = String(e.target.value).replace(/[^0-9.]/g, '')
+                            const parts = v.split('.')
+                            if (parts.length > 1) v = parts.shift() + '.' + parts.join('')
+                            // If PERCENTAGE, clamp to 0-100
+                            const type = (row.flat_percentage ?? 'FLAT')
+                            if (v !== '' && type === 'PERCENTAGE') {
+                              const n = Number(v)
+                              if (!Number.isNaN(n)) {
+                                if (n < 0) v = '0'
+                                else if (n > 100) v = '100'
+                                else {
+                                  // keep as-is but remove leading zeros except zero before decimal
+                                  v = String(n)
+                                }
+                              }
+                            }
+                            setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), value: v, edited: true } }))
+                          }}
+                          inputMode="decimal"
+                        />
+                        {((row.flat_percentage ?? 'FLAT') === 'PERCENTAGE') && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700">%</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        className="w-full rounded border border-gray-200 px-2 py-1 text-sm bg-transparent"
+                        value={row.bonus_threshold ?? ''}
+                        onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), bonus_threshold: e.target.value, edited: true } }))}
+                        inputMode="numeric"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <Button size="sm" className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600" onClick={async (ev) => {
+                        ev.stopPropagation()
+                        const toSave = { location_id: Number(key), flat_percentage: row.flat_percentage, value: row.value === '' ? null : Number(row.value), bonus_threshold: row.bonus_threshold === '' ? null : Number(row.bonus_threshold) }
+                        try {
+                          setSetLimitSubmitting(true)
+                          const resp = await fetch('/api/bonuses/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bonuses: [toSave], configOnly: true }) })
+                          if (!resp.ok) { try { toast.error('Failed to save configuration') } catch(_) {} return }
+                          try { toast.success('Configuration saved') } catch(_) {}
+                          setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), edited: false } }))
+                        } catch (err) {
+                          try { toast.error('Failed to save configuration') } catch(_) {}
+                        } finally { setSetLimitSubmitting(false) }
+                      }}>Save</Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
 
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
-            <Select
-              value={setLimitLocation}
-              onValueChange={(v) => { setSetLimitLocation(v); setSetLimitSearch('') }}
-            >
-              <SelectTrigger className="mt-1 mb-2">
-                <SelectValue placeholder="Select a location" />
-              </SelectTrigger>
-              <SelectContent side="bottom" position="popper" className="w-[min(28rem,90vw)]">
-                {/* Search box inside dropdown for better UX */}
-                <div className="px-3 pt-2">
-                  <input
-                    type="search"
-                    value={setLimitSearch}
-                    onChange={(e) => setSetLimitSearch(e.target.value)}
-                    placeholder="Search locations..."
-                    className="w-full text-sm px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#07101a] dark:text-white outline-none focus:ring-2 focus:ring-blue-300"
-                  />
-                </div>
-                <div className="max-h-60 overflow-auto py-1">
-                  {filteredLimitPatients && filteredLimitPatients.length > 0 ? (
-                    filteredLimitPatients.map((p: any) => (
-                      <SelectItem key={String(p.id)} value={String(p.id)} className="px-3 py-2 text-sm">
-                        <div className="flex flex-col">
-                          <span className="truncate font-medium">{p.title ?? `Location ${p.id}`}</span>
-                          {p.city && <span className="text-xs text-gray-500 dark:text-gray-400">{p.city}</span>}
-                        </div>
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-sm text-gray-500">No locations</div>
-                  )}
-                </div>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Flat / Percentage</label>
-            <select
-              className="mt-1 block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white"
-              value={setLimitType}
-              onChange={(e) => setSetLimitType((e.target.value as 'FLAT' | 'PERCENTAGE'))}
-            >
-              <option value="FLAT">FLAT</option>
-              <option value="PERCENTAGE">PERCENTAGE</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
-            <div className="mt-1 relative">
-              <input
-                type="text"
-                inputMode="decimal"
-                className="block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white pr-10"
-                placeholder={setLimitType === 'PERCENTAGE' ? '0-100' : 'Numeric value (e.g. 100)'}
-                value={setLimitValue}
-                onChange={(e) => handleSetLimitValueChange(e.target.value)}
-              />
-              {/* suffix/prefix */}
-              {setLimitType === 'FLAT' ? (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">$</span>
-              ) : (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">%</span>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bonus Threshold</label>
-            <div className="mt-1 relative">
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                className="block w-full rounded border border-gray-200 dark:border-gray-700 px-3 py-2 bg-transparent text-sm dark:text-white"
-                placeholder="Numeric (e.g. 100.50)"
-                value={setLimitThreshold}
-                onChange={(e) => handleSetLimitThresholdChange(e.target.value)}
-                onBlur={() => {
-                  if (setLimitThreshold !== '') {
-                    const n = Number(setLimitThreshold)
-                    if (!Number.isNaN(n)) setSetLimitThreshold(String(Math.round(n * 100) / 100))
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <Button
-            size="sm"
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border-green-600"
-            onClick={(e) => { e.stopPropagation(); handleSetLimitSubmit(); }}
-            disabled={setLimitSubmitting}
-          >
-            {setLimitSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
+          {/* Bulk Save removed: per-row Save is used to persist each location's config */}
         </div>
       </div>
     </div>
@@ -1549,24 +1649,7 @@ const BonusPage = () => {
 
       {activeTab === 'transactions' && (
         <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {/* Transactions toolbar: date selector so transactions update as user picks a date */}
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-end gap-3">
-            <label className="text-sm text-gray-600 dark:text-gray-300 mr-2">Date:</label>
-            <input
-              type="date"
-              className="text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
-              value={columnFilters.date ?? ''}
-              onChange={(e) => {
-                const v = e.target.value
-                setColumnFilters((s) => ({ ...s, date: v }))
-                // reset pagination to first page when date changes (useEffect also does this)
-                setCurrentPage(1)
-              }}
-              // match calculation tab behaviour: prevent future dates by capping to yesterday
-              max={getYesterdayYMD()}
-              aria-label="Select date for transactions"
-            />
-          </div>
+          
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
@@ -1581,20 +1664,22 @@ const BonusPage = () => {
               </TableRow>
             </TableHeader>
             {(() => {
-              const selectedDate = columnFilters.date ?? getYesterdayYMD()
-              // Use the raw paid rows list and show every paid bonus row for the selected date
-              const paidRowsForDate = (paidBonusRows || []).filter((r: any) => {
-                if (!r) return false
-                if (!r.paid) return false
-                const pd = r.paid_date ?? r.paidDate ?? r.paid_at ?? r.date
-                if (!pd) return false
-                return String(pd).slice(0, 10) === selectedDate
+              // Show all paid bonus rows (ignore the date picker). The helper now returns only rows where paid === true.
+              const paidRows = (paidBonusRows || []).filter((r: any) => r && r.paid)
+              // Sort by paid_date desc when available so newest paid appear first
+              paidRows.sort((a: any, b: any) => {
+                const pa = String(a?.paid_date ?? a?.paidDate ?? a?.paid_at ?? '')
+                const pb = String(b?.paid_date ?? b?.paidDate ?? b?.paid_at ?? '')
+                if (!pa && !pb) return 0
+                if (!pa) return 1
+                if (!pb) return -1
+                return pa < pb ? 1 : (pa > pb ? -1 : 0)
               })
 
               return (
                 <TableBody className="dark:bg-[#0e1725]">
-                  {paidRowsForDate.length > 0 ? (
-                    paidRowsForDate.map((b: any, idx: number) => {
+                  {paidRows.length > 0 ? (
+                    paidRows.map((b: any, idx: number) => {
                       const locId = String(b.location_id ?? b.locationid ?? b.location ?? '')
                       const patient = patients.find((p) => String(p.id) === String(locId))
                       const displayName = patient ? (patient.title || patient.name || `Location ${patient.id}`) : (b.location_name ?? `Location ${locId}`)
@@ -1637,7 +1722,7 @@ const BonusPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">No paid bonuses for selected date</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">No paid bonuses</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

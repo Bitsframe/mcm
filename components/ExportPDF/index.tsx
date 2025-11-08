@@ -85,7 +85,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 // --- DEBUG: fetch bonus rows and compute totals on frontend ---
                 try {
                     // Use direct supabase queries here to select only required columns and avoid heavy payloads
-                    const selectCols = 'id, bonus_amount, date, paid, paid_date, location_id, total_sales, bonus_generated, bonus_config_history_id';
+                    const selectCols = 'id, bonus_amount, date, paid, paid_date, location_id, total_sales, bonus_eligibility, bonus_config_history_id';
 
                     // Fetch all bonus rows for the selected location where `date` is within the selected range
                     const { data: bonusRows, error: bonusError } = await supabase

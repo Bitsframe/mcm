@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     // Insert rows into `bonus` table. Expect each item to have the shape:
     // { bonus_limit, flat_percentage, value, bonus_amount, date, paid, location_id }
     // NOTE: This environment does not use a separate threshold_history table —
-    // incoming `bonus_limit` from the client will be used when computing bonus_generated.
+  // incoming `bonus_limit` from the client will be used when computing bonus_eligibility.
     try {
       console.log('[api/bonuses/save] service role key present?:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
       // Primary behavior: update existing rows by (location_id, date).
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
           }
 
           if (Array.isArray(upData) && upData.length > 0) {
-            // Recalculate bonus_generated based on total_sales vs threshold_amount
+            // Recalculate bonus_eligibility based on total_sales vs threshold_amount
             const updatedRows: any[] = []
             for (const r of upData) {
               try {
@@ -163,15 +163,15 @@ export async function POST(req: Request) {
                 const bonusGenerated = Number(totalSales) > Number(threshAmount)
                 const { data: genData, error: genErr } = await supabase
                   .from('bonus')
-                  .update({ bonus_generated: bonusGenerated })
+                  .update({ bonus_eligibility: bonusGenerated })
                   .eq('id', r.id)
                   .select()
                 if (genErr) {
-                  console.error('[api/bonuses/save] error updating bonus_generated', genErr)
+                  console.error('[api/bonuses/save] error updating bonus_eligibility', genErr)
                 }
                 updatedRows.push({ ...(genData && genData[0] ? genData[0] : r) })
               } catch (e) {
-                console.error('[api/bonuses/save] error recalculating bonus_generated for updated row', e)
+                console.error('[api/bonuses/save] error recalculating bonus_eligibility for updated row', e)
                 updatedRows.push(r)
               }
             }
@@ -198,21 +198,21 @@ export async function POST(req: Request) {
           }
 
           if (Array.isArray(insData) && insData.length > 0) {
-            // Recalculate bonus_generated for the newly inserted row
+            // Recalculate bonus_eligibility for the newly inserted row
             try {
               const newRow = insData[0]
               const totalSales = newRow.total_sales ?? 0
               const bonusGenerated = Number(totalSales) > Number(newThreshold)
               const { data: genData, error: genErr } = await supabase
                 .from('bonus')
-                .update({ bonus_generated: bonusGenerated })
+                .update({ bonus_eligibility: bonusGenerated })
                 .eq('id', newRow.id)
                 .select()
-              if (genErr) console.error('[api/bonuses/save] error setting bonus_generated on insert', genErr)
+              if (genErr) console.error('[api/bonuses/save] error setting bonus_eligibility on insert', genErr)
               if (Array.isArray(genData) && genData.length > 0) inserted.push(...genData)
               else inserted.push(newRow)
-            } catch (e) {
-              console.error('[api/bonuses/save] error recalculating bonus_generated after insert', e)
+              } catch (e) {
+              console.error('[api/bonuses/save] error recalculating bonus_eligibility after insert', e)
               inserted.push(insData[0])
             }
           }
