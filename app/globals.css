@@ -30,15 +30,11 @@ body {
 }
 
 
+/* Keep input borders controlled by Tailwind utilities; only remove native focus outline/shadow if desired */
 input:focus-visible{
-  border-style:none  !important; 
-  
-}
-input{
-  border-style:none !important; 
+  outline: none !important;
 }
 input:focus{
-  border-style:none !important; 
   box-shadow: none !important;
 }
 

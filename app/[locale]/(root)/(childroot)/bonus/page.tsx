@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import BonusFilterSheet from "@/components/BonusFilterSheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
@@ -55,6 +56,7 @@ const BonusPage = () => {
 
   type ActiveTab = 'calculation' | 'transactions' | 'set-limits'
   const [activeTab, setActiveTab] = useState<ActiveTab>('calculation')
+  
   
 
 
@@ -498,7 +500,7 @@ const BonusPage = () => {
     setCurrentPage(pageNumber)
   }
 
-  const { t } = useTranslation(translationConstant.TRANSACTION)
+  const { t } = useTranslation(translationConstant.BONUS)
   const isSetLimits = activeTab === 'set-limits'
   const isCalcOrSet = activeTab === 'calculation' || activeTab === 'set-limits'
 
@@ -587,6 +589,18 @@ const BonusPage = () => {
 
 
   const todayStr = new Date().toLocaleDateString()
+
+  // Display date next to Filter button: use selected filter date or yesterday by default
+  const displayDateRaw = columnFilters.date ?? getYesterdayYMD()
+  const displayDate = (() => {
+    try {
+      const d = new Date(displayDateRaw)
+      if (isNaN(d.getTime())) return displayDateRaw
+      return d.toLocaleDateString()
+    } catch (_) {
+      return displayDateRaw
+    }
+  })()
 
 
   const handleSave = () => {
@@ -890,25 +904,25 @@ const BonusPage = () => {
 
 
 
-      <div className="mb-4">
+          <div className="mb-4">
         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('calculation')}
             className={`${activeTab === 'calculation' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
           >
-            Bonus calculation
+            {t('Bonus_k2')}
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
             className={`${(activeTab as any) === 'transactions' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
           >
-            Bonus transactions
+            {t('Bonus_k3')}
           </button>
           <button
             onClick={() => setActiveTab('set-limits')}
             className={`${activeTab === 'set-limits' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
           >
-            Set limits
+            {t('Bonus_k4')}
           </button>
         </div>
       </div>
@@ -918,15 +932,19 @@ const BonusPage = () => {
   {activeTab === 'calculation' && (
         loadingPatients ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-gray-500 dark:text-gray-300">Loading bonuses...</div>
+            <div className="text-gray-500 dark:text-gray-300">{t('Bonus_k45')}</div>
           </div>
         ) : (
           <>
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh]">
-              {/* Toolbar: right-aligned filter button */}
-              <div className="flex justify-end p-4">
+              {/* Toolbar: date on left, filter button on right */}
+              <div className="flex justify-between items-center p-4 gap-4">
+                <div className="flex items-center text-lg text-gray-700 dark:text-gray-300">
+                  <span className="mr-3 font-semibold">{t('Bonus_k5')}</span>
+                  <span className="font-semibold text-lg">{displayDate}</span>
+                </div>
                 <Button
                   size="sm"
                   className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600"
@@ -934,22 +952,22 @@ const BonusPage = () => {
                   aria-label="Open filters"
                   title="Open filters"
                 >
-                  Filter
+                  {t('Bonus_k6')}
                 </Button>
               </div>
               <Table>
                   <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
-                    <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">Name</TableHead>
-                    {!isSetLimits && <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">Total Sales</TableHead>}
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Bonus Threshold</TableHead>
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Flat/Percentage</TableHead>
-                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Value</TableHead>
-                    {!isSetLimits && <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Bonus amount</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Date</TableHead>}
-                    {(activeTab as any) === 'transactions' && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Paid date</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Bonus Eligibility</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">Status</TableHead>}
+                    <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
+                    {!isSetLimits && <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>}
+                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
+                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
+                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
+                    {!isSetLimits && <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k12')}</TableHead>}
+
+                    {(activeTab as any) === 'transactions' && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k13')}</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k14')}</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t('Bonus_k15')}</TableHead>}
                   </TableRow>
                   {/* Inline filters removed - use Filter modal instead */}
                 </TableHeader>
@@ -1000,7 +1018,7 @@ const BonusPage = () => {
                               return (
                                 isSetLimits ? (
                                   <input
-                                    className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                    className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
                                     placeholder="Min"
                                     inputMode="numeric"
                                     value={bonusLimitByPatient[String(patient.id)] ?? ''}
@@ -1020,7 +1038,7 @@ const BonusPage = () => {
                             {/* Flat/Percentage: editable select (initialized from DB) */}
                             { isSetLimits ? (
                               <select
-                                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
                                 value={bonusTypeByPatient[String(patient.id)] ?? 'FLAT'}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1041,7 +1059,7 @@ const BonusPage = () => {
                               <div className="flex items-center">
                                 <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                                 <input
-                                  className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                  className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
                                   placeholder="Value"
                                   inputMode="decimal"
                                   value={bonusValueByPatient[String(patient.id)] ?? ''}
@@ -1086,7 +1104,8 @@ const BonusPage = () => {
                               })()}
                             </TableCell>
                           )}
-                          {!isSetLimits && (
+                          {/* Date column removed from calculation tab; show only when not in calculation */}
+                          {(activeTab as any) !== 'calculation' && (
                             <TableCell>
                               {(() => {
                                 const b = bonusRowsByLocation[String(patient.id)]
@@ -1180,7 +1199,7 @@ const BonusPage = () => {
                                     }}
                                     aria-pressed={isPaid}
                                   >
-                                    <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
+                                    <span className="text-white">{isPaid ? t('Bonus_k36') : t('Bonus_k37')}</span>
                                   </Button>
                                 )
                               })()}
@@ -1192,7 +1211,7 @@ const BonusPage = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-8 text-gray-400 dark:text-gray-300">
-                        No bonuses found
+                        {t('Bonus_k43')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -1201,124 +1220,17 @@ const BonusPage = () => {
               </div>
             </div>
 
-            {/* Filter Sheet / Modal for desktop */}
-            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
-                <SheetHeader>
-                  <SheetTitle className="text-xl font-semibold dark:text-white">Filters</SheetTitle>
-                </SheetHeader>
-
-                <div className="p-4 space-y-3">
-                    <div>
-                      <label className="block text-sm text-gray-700 dark:text-gray-300">Name</label>
-                      <select
-                        id="filter-name-input-modal"
-                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                        value={filterDraft.name ?? ''}
-                        onChange={(e) => setFilterDraft((s) => ({ ...s, name: e.target.value }))}
-                      >
-                        <option value="">All locations</option>
-                        {patients && patients.map((p: any) => {
-                          const display = `${p.firstname || ''} ${p.lastname || ''} ${p.title || p.name || ''}`.trim()
-                          return (
-                            <option key={String(p.id)} value={display}>{display || `Location ${p.id}`}</option>
-                          )
-                        })}
-                      </select>
-                    </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm text-gray-700 dark:text-gray-300">Total sales (min)</label>
-                      <input
-                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                        placeholder="Min"
-                        value={filterDraft.totalMin ?? ''}
-                        onChange={(e) => setFilterDraft((s) => ({ ...s, totalMin: e.target.value }))}
-                        inputMode="numeric"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus threshold (min)</label>
-                      <input
-                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                        placeholder="Min"
-                        value={filterDraft.limitMin ?? ''}
-                        onChange={(e) => setFilterDraft((s) => ({ ...s, limitMin: e.target.value }))}
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm text-gray-700 dark:text-gray-300">Type</label>
-                      <select
-                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                        value={filterDraft.type ?? 'ALL'}
-                        onChange={(e) => setFilterDraft((s) => ({ ...s, type: e.target.value }))}
-                      >
-                        <option value="ALL">All</option>
-                        <option value="FLAT">FLAT</option>
-                        <option value="PERCENTAGE">PERCENTAGE</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-700 dark:text-gray-300">Value (min)</label>
-                      <input
-                        className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                        placeholder="Min"
-                        value={filterDraft.valueMin ?? ''}
-                        onChange={(e) => setFilterDraft((s) => ({ ...s, valueMin: e.target.value }))}
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus amount (min)</label>
-                    <input
-                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                      placeholder="Min"
-                      value={filterDraft.bonusMin ?? ''}
-                      onChange={(e) => setFilterDraft((s) => ({ ...s, bonusMin: e.target.value }))}
-                      inputMode="numeric"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300">Bonus Eligibility</label>
-                    <select
-                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                      value={filterDraft.bonusEligibility ?? ''}
-                      onChange={(e) => setFilterDraft((s) => ({ ...s, bonusEligibility: e.target.value }))}
-                      aria-label="Filter by bonus eligibility"
-                    >
-                      <option value="">Any</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300">Date (up to yesterday)</label>
-                    <input
-                      type="date"
-                      className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white mt-1"
-                      value={filterDraft.date ?? ''}
-                      onChange={(e) => setFilterDraft((s) => ({ ...s, date: e.target.value }))}
-                      max={getYesterdayYMD()}
-                      aria-label="Filter by date (up to yesterday)"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button size="sm" variant="outline" onClick={() => setFilterDraft({})}>Clear</Button>
-                    <Button size="sm" onClick={() => { setColumnFilters({ ...filterDraft }); setIsFilterOpen(false) }}>Apply</Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            {/* Filter Sheet / Modal for desktop (extracted) */}
+            <BonusFilterSheet
+              open={isFilterOpen}
+              onOpenChange={setIsFilterOpen}
+              filterDraft={filterDraft}
+              setFilterDraft={setFilterDraft}
+              onApply={() => { setColumnFilters({ ...filterDraft }); setIsFilterOpen(false) }}
+              onClear={() => setFilterDraft({})}
+              patients={patients}
+              getYesterdayYMD={getYesterdayYMD}
+            />
 
           {/* Save button removed: Pay button will persist paid status immediately. */}
 
@@ -1347,16 +1259,16 @@ const BonusPage = () => {
                       <div className="grid grid-cols-1 gap-3 text-sm mb-4">
                         {!isSetLimits && (
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-500 dark:text-gray-400">Total Sales:</span>
-                            <span className="font-semibold text-green-600 dark:text-green-400">{ bonusRowsByLocation[String(patient.id)]?.total_sales !== undefined ? `$${Number(bonusRowsByLocation[String(patient.id)].total_sales).toFixed(2)}` : '-' }</span>
+                              <DollarSign className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k8')}:</span>
+                              <span className="font-semibold text-green-600 dark:text-green-400">{ bonusRowsByLocation[String(patient.id)]?.total_sales !== undefined ? `$${Number(bonusRowsByLocation[String(patient.id)].total_sales).toFixed(2)}` : '-' }</span>
                           </div>
                         )}
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Flat/Percentage:</span>
+                          <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k10')}:</span>
                           { isSetLimits ? (
                             <select
-                              className="ml-2 text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                              className="ml-2 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
                               value={bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT')}
                               onChange={(e) => {
                                 const key = String(patient.id)
@@ -1372,12 +1284,12 @@ const BonusPage = () => {
                           ) }
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Value:</span>
+                          <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k11')}:</span>
                           <span className="ml-2 dark:text-white">
                             <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                             { isSetLimits ? (
                               <input
-                                className="w-24 text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white inline"
+                                className="w-24 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white inline"
                                 value={bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '')}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1412,7 +1324,7 @@ const BonusPage = () => {
                             }
                             return (isSetLimits ? (
                               <input
-                                className="ml-2 w-28 text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                className="ml-2 w-28 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
                                 value={bonusLimitByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.bonus_limit ?? '')}
                                 onChange={(e) => {
                                   const key2 = String(patient.id)
@@ -1470,7 +1382,7 @@ const BonusPage = () => {
                                   {has ? (
                                     <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">Yes</span>
                                   ) : (
-                                    <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">No</span>
+                                    <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">{t('Bonus_k31')}</span>
                                   )}
                                 </div>
                               )
@@ -1523,7 +1435,7 @@ const BonusPage = () => {
                                   }}
                                   aria-pressed={isPaid}
                                 >
-                                  <span className="text-white">{isPaid ? 'Paid' : 'Pay'}</span>
+                                  <span className="text-white">{isPaid ? t('Bonus_k36') : t('Bonus_k37')}</span>
                                 </Button>
                               )
                             })()}
@@ -1534,7 +1446,7 @@ const BonusPage = () => {
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-400 dark:text-gray-300">No locations found</div>
+              <div className="text-center py-8 text-gray-400 dark:text-gray-300">{t('Bonus_k44')}</div>
             )}
           </div>
 
@@ -1569,12 +1481,12 @@ const BonusPage = () => {
                     <td className="px-4 py-2 text-sm text-gray-700">{p.title ?? `Location ${p.id}`}</td>
                     <td className="px-4 py-2">
                       <select
-                        className="rounded border border-gray-200 px-2 py-1 text-sm bg-transparent"
+                        className="rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent"
                         value={row.flat_percentage}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), flat_percentage: (e.target.value as 'FLAT' | 'PERCENTAGE'), edited: true } }))}
                       >
-                        <option value="FLAT">FLAT</option>
-                        <option value="PERCENTAGE">PERCENTAGE</option>
+                              <option value="FLAT">{t('Bonus_k34')}</option>
+                              <option value="PERCENTAGE">{t('Bonus_k35')}</option>
                       </select>
                     </td>
                     <td className="px-4 py-2">
@@ -1584,7 +1496,7 @@ const BonusPage = () => {
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700">$</span>
                         )}
                         <input
-                          className={"w-full rounded border border-gray-200 px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
+                          className={"w-full rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
                           value={row.value ?? ''}
                           onChange={(e) => {
                             let v = String(e.target.value).replace(/[^0-9.]/g, '')
@@ -1614,26 +1526,37 @@ const BonusPage = () => {
                     </td>
                     <td className="px-4 py-2">
                       <input
-                        className="w-full rounded border border-gray-200 px-2 py-1 text-sm bg-transparent"
+                        className="w-full rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent"
                         value={row.bonus_threshold ?? ''}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), bonus_threshold: e.target.value, edited: true } }))}
                         inputMode="numeric"
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <Button size="sm" className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600" onClick={async (ev) => {
-                        ev.stopPropagation()
-                        const toSave = { location_id: Number(key), flat_percentage: row.flat_percentage, value: row.value === '' ? null : Number(row.value), bonus_threshold: row.bonus_threshold === '' ? null : Number(row.bonus_threshold) }
-                        try {
-                          setSetLimitSubmitting(true)
-                          const resp = await fetch('/api/bonuses/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bonuses: [toSave], configOnly: true }) })
-                          if (!resp.ok) { try { toast.error('Failed to save configuration') } catch(_) {} return }
-                          try { toast.success('Configuration saved') } catch(_) {}
-                          setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), edited: false } }))
-                        } catch (err) {
-                          try { toast.error('Failed to save configuration') } catch(_) {}
-                        } finally { setSetLimitSubmitting(false) }
-                      }}>Save</Button>
+                      <Button
+                        size="sm"
+                        disabled={!row?.edited || setLimitSubmitting}
+                        aria-disabled={!row?.edited || setLimitSubmitting}
+                        className={(!row?.edited || setLimitSubmitting)
+                          ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200 px-3 py-1'
+                          : 'px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600'
+                        }
+                        onClick={async (ev) => {
+                          ev.stopPropagation()
+                          const toSave = { location_id: Number(key), flat_percentage: row.flat_percentage, value: row.value === '' ? null : Number(row.value), bonus_threshold: row.bonus_threshold === '' ? null : Number(row.bonus_threshold) }
+                          try {
+                            setSetLimitSubmitting(true)
+                            const resp = await fetch('/api/bonuses/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bonuses: [toSave], configOnly: true }) })
+                            if (!resp.ok) { try { toast.error('Failed to save configuration') } catch(_) {} return }
+                            try { toast.success(t('Bonus_k42')) } catch(_) {}
+                            setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), edited: false } }))
+                          } catch (err) {
+                            try { toast.error('Failed to save configuration') } catch(_) {}
+                          } finally { setSetLimitSubmitting(false) }
+                        }}
+                      >
+                        {t('Bonus_k41')}
+                      </Button>
                     </td>
                   </tr>
                 )
@@ -1653,14 +1576,14 @@ const BonusPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
-                <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">Name</TableHead>
-                <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">Total Sales</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Bonus Threshold</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Flat/Percentage</TableHead>
-                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Value</TableHead>
-                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Bonus amount</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Paid Date</TableHead>
-                <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">Status</TableHead>
+                <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
+                <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
+                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
+                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k12')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k13')}</TableHead>
+                <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t('Bonus_k15')}</TableHead>
               </TableRow>
             </TableHeader>
             {(() => {
