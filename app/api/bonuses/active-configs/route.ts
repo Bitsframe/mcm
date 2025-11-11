@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+// Force this route to be dynamic so Next doesn't attempt static prerendering
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(req: Request) {

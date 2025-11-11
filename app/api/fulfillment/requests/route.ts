@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+// Mark this route as dynamic so Next won't attempt to statically prerender it
+export const dynamic = 'force-dynamic';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    // Use request.nextUrl for server-safe access to URL/search params
+    // (avoids using request.url which prevents static prerendering)
+    const searchParams = request.nextUrl.searchParams;
     const locationId = searchParams.get('locationId');
 
     console.log('Incoming request to /api/fulfillment/requests');
