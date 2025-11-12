@@ -298,6 +298,7 @@ const Products = () => {
             ...modalData,
             stock: modalData.unlimited ? 0 : modalData.stock,
             price: parseFloat(modalData.price) || 0,
+              bonus_eligible: !!modalData.bonus_eligible,
           },
         });
 
@@ -313,7 +314,8 @@ const Products = () => {
           category_id: +modalData.category_id,
           product_name: modalData.product_name,
           unlimited: modalData.unlimited || false,
-          stock: modalData.unlimited ? 0 : modalData.stock,
+            stock: modalData.unlimited ? 0 : modalData.stock,
+            bonus_eligible: !!modalData.bonus_eligible,
           price: parseFloat(modalData.price) || 0,
         };
         const res_data = await update_content_service({
@@ -1051,22 +1053,42 @@ const Products = () => {
                 </div>
               );
             })}
-            <div className="col-span-2 flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="unlimited"
-                checked={modalData.unlimited}
-                onChange={(e) =>
-                  modalInputChangeHandle("unlimited", e.target.checked)
-                }
-                className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
-              />
-              <label
-                htmlFor="unlimited"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                {t("Inventory_k43")}
-              </label>
+            <div className="col-span-2 flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="unlimited"
+                  checked={modalData.unlimited}
+                  onChange={(e) =>
+                    modalInputChangeHandle("unlimited", e.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                />
+                <label
+                  htmlFor="unlimited"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {t("Inventory_k43")}
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="bonus_eligible"
+                  checked={!!modalData.bonus_eligible}
+                  onChange={(e) =>
+                    modalInputChangeHandle("bonus_eligible", e.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                />
+                <label
+                  htmlFor="bonus_eligible"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Bonus-eligible
+                </label>
+              </div>
             </div>
           </div>
         )}

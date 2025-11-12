@@ -142,8 +142,28 @@ export const Add_Appointment_Modal = ({
         base.location_id = (selectedLocation as any).id;
       }
       // mark new patients as approved by default when opening the modal
-      return { ...base, in_office_patient: "true", new_patient: "true", isApproved: true };
+      // also reset personal/scheduling fields so previous selected coming-back patient
+      // does not persist when opening the modal again
+      return {
+        ...base,
+        in_office_patient: "true",
+        new_patient: "true",
+        isApproved: true,
+        first_name: "",
+        last_name: "",
+        email_address: "",
+        phone: "",
+        sex: "",
+        service: "",
+        date_and_time: "",
+      };
     });
+
+    // clear any previously selected coming-back patient so modal always opens fresh
+    setSelectedComingBackPatient(null);
+    // clear any stale coming-back results; they'll be refetched if user selects "Coming Back"
+    setComingBackData([]);
+
     setOpen(true);
   };
   const isValidEmail = (email: string): boolean => {

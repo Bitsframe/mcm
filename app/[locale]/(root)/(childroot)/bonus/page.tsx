@@ -960,6 +960,8 @@ const BonusPage = () => {
                   <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
                     <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
                     {!isSetLimits && <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>}
+                    {/* New column: Bonus Sales (shows sales that count toward bonus calculation) */}
+                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k46')}</TableHead>}
                     <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
                     <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
                     <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
@@ -995,6 +997,22 @@ const BonusPage = () => {
                                     return renderBigDash('text-gray-400')
                                   })()
                                 }
+                              </span>
+                            </TableCell>
+                          )}
+                          {/* Bonus Sales column (new) */}
+                          {!isSetLimits && (
+                            <TableCell className="dark:text-white">
+                              <span className="font-semibold text-green-600 dark:text-green-400">
+                                {(() => {
+                                  const b = bonusRowsByLocation[String(patient.id)]
+                                  // prefer explicit `bonus_sales` field when available, otherwise show '-'
+                                  if (b && (b.bonus_sales !== undefined && b.bonus_sales !== null)) {
+                                    return `$${Number(b.bonus_sales).toFixed(2)}`
+                                  }
+                                  // Fallback: if total_sales is present but no bonus_sales field, render dash (or change to total if desired)
+                                  return renderBigDash('text-gray-400')
+                                })()}
                               </span>
                             </TableCell>
                           )}
@@ -1578,6 +1596,7 @@ const BonusPage = () => {
               <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
                 <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
                 <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k46')}</TableHead>
                 <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
                 <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
                 <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
@@ -1613,6 +1632,9 @@ const BonusPage = () => {
                           <TableCell className="font-medium dark:text-white">{displayName}</TableCell>
                           <TableCell className="dark:text-white">
                             <span className="font-semibold text-green-600 dark:text-green-400">{ b?.total_sales !== undefined ? `$${Number(b.total_sales).toFixed(2)}` : '-' }</span>
+                          </TableCell>
+                          <TableCell className="dark:text-white">
+                            <span className="font-semibold text-green-600 dark:text-green-400">{ b && (b.bonus_sales !== undefined && b.bonus_sales !== null) ? `$${Number(b.bonus_sales).toFixed(2)}` : '-' }</span>
                           </TableCell>
                           <TableCell className="dark:text-white">
                             <span className="text-gray-700 dark:text-white">{ (cfg && typeof cfg.bonus_threshold !== 'undefined' && cfg.bonus_threshold !== null) ? Number(cfg.bonus_threshold).toFixed(2) : (b && Object.prototype.hasOwnProperty.call(b, 'bonus_limit') ? Number(b.bonus_limit).toFixed(2) : '-') }</span>

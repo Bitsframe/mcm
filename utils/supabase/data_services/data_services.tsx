@@ -82,10 +82,13 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
       .from('Appoinments')
       .select('*')
       .eq('location_id', locationId)
-      .eq('isApproved', true);
+      .eq('isApproved', true)
+      // return latest first
+      .order('id', { ascending: false });
 
     if (error) throw error;
-  return data;
+
+    return data;
   } catch (error) {
     console.error('Error fetching approved appointments:', error);
     return [];
@@ -98,7 +101,9 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
     .from('Appoinments')
       .select('*')
       .eq('location_id', locationId)
-    .eq('isApproved', false); 
+    .eq('isApproved', false)
+    // return latest first
+    .order('id', { ascending: false });
 
     if (error) throw error;
     return data;
@@ -164,7 +169,8 @@ export async function fetch_content_service({
       
       if (userLocations && userLocations.length > 0) {
         const locationIds = userLocations.map(loc => loc.location_id);
-        query = query.in('locationid', locationIds);
+        // ensure we filter by the correct column name used across the DB
+        query = query.in('location_id', locationIds);
       }
     }
   }
