@@ -83,8 +83,9 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
       .select('*')
       .eq('location_id', locationId)
       .eq('isApproved', true)
-      // return latest first
       .order('id', { ascending: false });
+
+    console.log('Fetched Approved Appointments:', data); // Log fetched data
 
     if (error) throw error;
 
@@ -115,8 +116,8 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
 
 export async function ApproveAppointment  (id: number) {
   const { data, error } = await supabase
-    .from('Appoinments')
-    .update({isApproved:true})
+    .from('"Appoinments"')
+    .update({ "isApproved": true })
     .eq('id', id)
     .select('*')
 
@@ -158,7 +159,7 @@ export async function fetch_content_service({
   // Add location filtering for tables that have location_id
   // Note: `sales_history` rows reference `inventory_id` and may not have a `locationid` column
   // so we exclude it here to avoid SQL errors when adding a location filter.
-  const locationBasedTables = ['allpatients', 'Appoinments', 'pos', 'inventory'];
+  const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
   if (locationBasedTables.includes(table)) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -281,7 +282,7 @@ export async function create_content_service({ table, language = '', post_data, 
 
 export async function delete_appointment_service(id: number) {
   const query = await supabase
-    .from('Appoinments')
+    .from('Appointments')
     .delete()
     .eq('id', id)
 
@@ -311,7 +312,7 @@ export async function delete_content_service({ table, keyByDelete = 'id', id }: 
 
 export async function update_appointment_service(id: number, value: string) {
   const query = await supabase
-    .from('Appoinments')
+    .from('Appointments')
     // @ts-ignore
     .update({ date_and_time: value })
     .eq('id', id)

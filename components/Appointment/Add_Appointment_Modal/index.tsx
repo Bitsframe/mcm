@@ -199,9 +199,9 @@ export const Add_Appointment_Modal = ({
           }
 
           const { data, error } = await supabase
-            .from('allpatients')
+            .from('Appoinments')
             .select('*')
-            .eq('locationid', selectedLocation.id);
+            .eq('location_id', selectedLocation.id);
 
           // raw response available in `data`/`error`
           if (error) {
@@ -219,6 +219,11 @@ export const Add_Appointment_Modal = ({
           setComingBackData([]);
         }
       })();
+
+      // Update isApproved to true for "Coming Back" patients
+      setFormData((pre: any) => {
+        return { ...pre, isApproved: true };
+      });
     } else if (key === "new_patient" && val === "true") {
       // clear coming back data and any selected patient when switching back to New
       setComingBackData([]);
@@ -271,6 +276,7 @@ export const Add_Appointment_Modal = ({
       date_and_time,
       service,
     } = formData;
+
     let appointmentDetails: any = {
       location_id,
       first_name,
@@ -281,8 +287,10 @@ export const Add_Appointment_Modal = ({
       sex: sex,
       phone: phone,
       service: service,
-      date_and_time,
+      date_and_time: date_and_time,
     };
+
+    console.log("Appointment Details being sent to Supabase:", appointmentDetails);
 
     // Build required fields depending on whether this is a new patient
     const baseRequired = [
@@ -295,15 +303,12 @@ export const Add_Appointment_Modal = ({
       "phone",
     ];
 
-    // If new_patient is true (new patient), require additional personal and scheduling fields
-  const isNew = new_patient === "true" || new_patient === true;
-    // If a coming-back patient is selected, we still require scheduling fields
+    const isNew = new_patient === "true" || new_patient === true;
     const requireScheduling = isNew || selectedComingBackPatient;
     const requiredFields = isNew
       ? baseRequired.concat(["sex", "service", "date_and_time"])
       : baseRequired;
 
-    // If we need scheduling (either new patient or selected coming-back), ensure service & slot are required
     if (requireScheduling) {
       if (!requiredFields.includes("service")) requiredFields.push("service");
       if (!requiredFields.includes("date_and_time")) requiredFields.push("date_and_time");
@@ -340,15 +345,23 @@ export const Add_Appointment_Modal = ({
         const updatePayload: any = {
           service: appointmentDetails.service,
           date_and_time: appointmentDetails.date_and_time,
+          isApproved: true, // Ensure isApproved is set to true for "Coming Back" patients
         };
+
+        console.log("Update Payload for Coming Back Patient:", updatePayload);
 
         const { data: updatedData, error: updateError } = await supabase
           .from('Appoinments')
-          .update(updatePayload)
-          .eq('id', selectedComingBackPatient.id)
+          .update({
+            service: appointmentDetails.service,
+            date_and_time: appointmentDetails.date_and_time,
+            isApproved: true,
+          })
+          .eq("id", selectedComingBackPatient.id)
           .select();
 
-        // Notify parent and show toasts similar to insert path
+        console.log("Supabase Response for Update:", { updatedData, updateError });
+
         newAddedRow(updatedData?.[0]);
 
         if (updateError) {
@@ -398,6 +411,9 @@ export const Add_Appointment_Modal = ({
           } catch (e) {
             console.error('Error triggering appointment email (update):', e);
           }
+
+          // Trigger UI update for booked time slots
+          newAddedRow(updatedData?.[0]);
           close_handle();
         }
       } catch (e) {
@@ -487,15 +503,29 @@ export const Add_Appointment_Modal = ({
 
   useEffect(() => {
     const fetchServices = async () => {
-      let { data, error } = await supabase.from("services").select("title");
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("title");
 
-      if (data) {
-        const serviceData = data.map((item) => item.title);
-        setServices(serviceData);
+        if (error) {
+          console.error("Error fetching services:", error);
+          setServices([]); // Ensure services state is reset on error
+          return;
+        }
+
+        if (data) {
+          const serviceData = data.map((item) => item.title);
+          setServices(serviceData); // Populate services state
+        }
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+        setServices([]); // Reset services state on failure
       }
     };
 
     fetchServices();
+
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
