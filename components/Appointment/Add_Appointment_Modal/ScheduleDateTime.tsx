@@ -112,16 +112,19 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                 // Debug: log retrieved rows so we can see why a newly-inserted appointment
                 // may not appear in the fetched set (helps diagnose RLS / filtering issues).
                 try {
-                    console.debug('[ScheduleDateTime] fetched appointments count=', (rows || []).length);
-                    console.debug('[ScheduleDateTime] sample date_and_time values=', (rows || []).slice(0,10).map(r => r?.date_and_time));
+                    const rowsAny = (rows || []) as any[];
+                    console.debug('[ScheduleDateTime] fetched appointments count=', rowsAny.length);
+                    console.debug('[ScheduleDateTime] sample date_and_time values=', rowsAny.slice(0,10).map(r => r?.date_and_time));
                 } catch (e) {}
 
                 const selDayStrDMY = format(date, 'dd-MM-yyyy');
                 const selDayStrYMD = format(date, 'yyyy-MM-dd');
 
                 // More tolerant parsing: handle prefixes like '3|29-10-2025 - 11:00 AM'
-                const times = (rows || [])
-                    .map(r => r?.date_and_time as string)
+                const rowsAny = (rows || []) as any[];
+
+                const times = rowsAny
+                    .map((r: any) => (r && r.date_and_time) as string)
                     .filter(Boolean)
                     .map((s: string) => s.trim())
                     .map((s: string) => {

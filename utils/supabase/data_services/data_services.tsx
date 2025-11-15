@@ -116,7 +116,7 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
 
 export async function ApproveAppointment  (id: number) {
   const { data, error } = await supabase
-    .from('"Appoinments"')
+    .from('Appoinments')
     .update({ "isApproved": true })
     .eq('id', id)
     .select('*')
@@ -282,7 +282,7 @@ export async function create_content_service({ table, language = '', post_data, 
 
 export async function delete_appointment_service(id: number) {
   const query = await supabase
-    .from('Appointments')
+    .from('Appoinments')
     .delete()
     .eq('id', id)
 
@@ -312,7 +312,7 @@ export async function delete_content_service({ table, keyByDelete = 'id', id }: 
 
 export async function update_appointment_service(id: number, value: string) {
   const query = await supabase
-    .from('Appointments')
+    .from('Appoinments')
     // @ts-ignore
     .update({ date_and_time: value })
     .eq('id', id)
