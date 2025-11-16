@@ -446,6 +446,17 @@ const Orders = () => {
   const [discountPct, setDiscountPct] = useState<number>(0);
 const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
+    // Sales person modal state
+    const [salesPersonModalOpen, setSalesPersonModalOpen] = useState(false);
+    const [selectedSalesPersons, setSelectedSalesPersons] = useState<{ id: number; name: string }[]>([]);
+
+    const openSalesPersonModal = () => {
+      try {
+        console.debug("[POS page] opening Sales Person modal for locationId:", selectedLocation?.id);
+      } catch (e) {}
+      setSalesPersonModalOpen(true);
+    };
+
 
   const router = useRouter();
 
@@ -1158,6 +1169,15 @@ const addToCartHandle = () => {
         </div>
 
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1 w-full mt-2 md:mt-0">
+          <div className="p-2 flex justify-end">
+            <button
+              type="button"
+              onClick={openSalesPersonModal}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Sales Person
+            </button>
+          </div>
           <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100 flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -1714,6 +1734,37 @@ transition-colors`}
           </div>
         </div>
       </Modal>
+
+      {/* Sales Person modal (PosFields component) */}
+      {/* Lazy-load simple PosFields modal component for selecting/adding sales persons */}
+      {/* @ts-ignore */}
+      <React.Suspense fallback={null}>
+        {/* Dynamic import to avoid increasing bundle for now */}
+        {/* We'll import normally */}
+      </React.Suspense>
+
+      {/* Use the new PosFields component */}
+      {/* Import placed at top via static import to keep things simple */}
+      {/* @ts-ignore */}
+      {typeof window !== "undefined" && (
+        // require ensures component only used in client runtime
+        (() => {
+          const PosFields = require("@/components/POS/PosFields").default;
+          return (
+            <PosFields
+              isOpen={salesPersonModalOpen}
+              onClose={() => setSalesPersonModalOpen(false)}
+              initialSelected={selectedSalesPersons}
+              locationId={selectedLocation?.id}
+              onSave={(sel: { id: number; name: string }[]) => {
+                setSelectedSalesPersons(sel);
+                toast.success(`Selected ${sel.length} sales person(s)`);
+                setSalesPersonModalOpen(false);
+              }}
+            />
+          );
+        })()
+      )}
 
       {/* <SplitToLocationModal
         isOpen={showSplitModal}

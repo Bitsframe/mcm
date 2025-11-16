@@ -421,10 +421,28 @@ const Products = () => {
     if (action === modalStateEnum.DELETE) {
       setActiveDeleteId(elem.product_id);
     } else if (action === modalStateEnum.UPDATE) {
-      setModalData(elem);
+      const normalized = {
+        ...elem,
+        bonus_eligible:
+          elem?.bonus_eligible === true ||
+          elem?.bonus_eligible === "TRUE" ||
+          elem?.bonus_eligible === "true"
+            ? true
+            : false,
+      };
+      setModalData(normalized);
       openModalHandle(modalStateEnum.UPDATE);
     } else if (action === modalStateEnum.ASSIGN) {
-      setModalData(elem);
+      const normalizedAssign = {
+        ...elem,
+        bonus_eligible:
+          elem?.bonus_eligible === true ||
+          elem?.bonus_eligible === "TRUE" ||
+          elem?.bonus_eligible === "true"
+            ? true
+            : false,
+      };
+      setModalData(normalizedAssign);
       setAssignModalData({ location_ids: [], quantity: 0 });
       openModalHandle(modalStateEnum.ASSIGN);
     }
