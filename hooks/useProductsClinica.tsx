@@ -74,17 +74,27 @@ export function useProductsClinica(locationId?: number) {
                     { operator: 'not', column: 'products', value: null },
                     { operator: 'neq', column: 'products.price', value: 0 }
                     ] })
-                const formattedData = data.filter((elem)=>elem.quantity > 0 || elem.products.unlimited && elem.products.price > 0).map(({ quantity, inventory_id, product_id,  products: { price, product_name, category_id, unlimited } }: any) => {
-                    return {
-                        product_id: inventory_id,
-                        category_id,
-                        product_name: product_name,
-                        price,
-                        quantity_available: quantity,
-                        unlimited,
-                        main_product_id: product_id,
-                    }
-                })
+                const formattedData = data
+                    .filter((elem) => elem.quantity > 0 || (elem.products.unlimited && elem.products.price > 0))
+                    .map(({ quantity, inventory_id, product_id, products: { price, product_name, category_id, unlimited } }: any) => {
+                        const formatted = {
+                            product_id: inventory_id,
+                            category_id,
+                            product_name: product_name,
+                            price,
+                            quantity_available: quantity,
+                            unlimited,
+                            main_product_id: product_id,
+                        };
+                        // Debug: log raw inventory element and the formatted product so we can trace where availability comes from
+                        try {
+                            // eslint-disable-next-line no-console
+                            console.log('[useProductsClinica] inventory raw:', { inventory_id, quantity, product_id, products: { price, product_name, category_id, unlimited } });
+                            // eslint-disable-next-line no-console
+                            console.log('[useProductsClinica] formatted product:', formatted);
+                        } catch (e) {}
+                        return formatted;
+                    });
 
                 setdata(formattedData);
                 setLoading(false)

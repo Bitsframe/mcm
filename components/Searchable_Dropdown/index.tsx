@@ -19,6 +19,7 @@ interface Props {
     start_empty?: boolean;
     disabled?: boolean;
     initialValue?: any;
+    placeholder?: string;
 }
 
 export const Searchable_Dropdown = ({
@@ -31,6 +32,7 @@ export const Searchable_Dropdown = ({
     start_empty = false,
     //@ts-ignore
     initialValue = '' || 0,
+    placeholder,
 }: Props) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
@@ -102,7 +104,7 @@ export const Searchable_Dropdown = ({
                         value={showDropdown ? searchTerm : options_arr.find((opt) => opt.value === selectedValue)?.label || ''}
                         onChange={handleInputChange}
                         onFocus={() => setShowDropdown(true)}
-                        placeholder={'Search...'}
+                        placeholder={placeholder ?? t(label as any) ?? 'Search...'}
                         className="w-full p-1 border-b border-gray-300 dark:border-gray-600 rounded-t text-gray-900 dark:text-gray-100 bg-[#f1f4f9] dark:bg-[#122136] text-sm"
                         disabled={disabled}
                         required={required}

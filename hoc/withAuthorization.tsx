@@ -8,7 +8,7 @@ const withAuthorization = (Component: any) => {
   return function AuthenticatedComponent(props: any) {
     const pathname = usePathname();
     const router = useRouter();
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(true);
     const [loading, setLoading] = useState(true);
 
     const { userRole, permissions } = useContext(AuthContext);
@@ -22,17 +22,24 @@ const withAuthorization = (Component: any) => {
         }
 
         const findRouteByPath = (path: string, routes: any[]): any => {
+          const cleanedPath = path.replace(/^\/es(?=\/|$)/, "");
           for (const route of routes) {
-            if (route.route === path ||
-              (path.startsWith('/warehouse/') && route.route === '/warehouse/manage') ||
-              (path.startsWith('/controls/') && route.route === '/controls') || 
-              (path.startsWith('/controls/') && route.route === '/controls/emailtemplates') ||
-              (path.startsWith('/inventory/') && route.route === '/inventory/manage') ||
-              (path.startsWith('/pos/') && route.route === '/pos/sales')) {
+            if (
+              route.route === cleanedPath ||
+              (cleanedPath.startsWith("/warehouse/") &&
+                route.route === "/warehouse/manage") ||
+              (cleanedPath.startsWith("/controls/") &&
+                route.route === "/controls") ||
+              (cleanedPath.startsWith("/controls/") &&
+                route.route === "/controls/emailtemplates") ||
+              (cleanedPath.startsWith("/inventory/") &&
+                route.route === "/inventory/manage") ||
+              (cleanedPath.startsWith("/pos/") && route.route === "/pos/sales")
+            ) {
               return route;
             }
             if (route.children) {
-              const found = findRouteByPath(path, route.children);
+              const found = findRouteByPath(cleanedPath, route.children);
               if (found) return found;
             }
           }
@@ -62,9 +69,11 @@ const withAuthorization = (Component: any) => {
             return true;
           }
 
-          if ((pathname.startsWith('/inventory/') && permLower === 'inventory') ||
-            (pathname.startsWith('/controls/') && permLower === 'controls') ||
-            (pathname.startsWith('/pos/') && permLower === 'pos')) {
+          if (
+            (pathname.startsWith("/inventory/") && permLower === "inventory") ||
+            (pathname.startsWith("/controls/") && permLower === "controls") ||
+            (pathname.startsWith("/pos/") && permLower === "pos")
+          ) {
             return true;
           }
 
@@ -74,8 +83,8 @@ const withAuthorization = (Component: any) => {
         if (!hasPermission) {
           const findFirstAllowedRoute = (routes: any[]): string | null => {
             for (const route of routes) {
-              const hasRoutePermission = permissions.some(perm =>
-                route.name.toLowerCase() === perm.toLowerCase()
+              const hasRoutePermission = permissions.some(
+                (perm) => route.name.toLowerCase() === perm.toLowerCase()
               );
 
               if (hasRoutePermission) {

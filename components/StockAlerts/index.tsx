@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { 
-  ChartContainer, 
-  ChartTooltip, 
+import {
+  ChartContainer,
+  ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
-  ChartLegendContent 
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
-
+import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 
 interface StockAlert {
   uuid: string;
@@ -22,7 +22,7 @@ interface StockAlert {
   location_id: number;
   quantity: number;
   threshold: number;
-  priority: 'Critical' | 'Warning' | 'Healthy';
+  priority: "Critical" | "Warning" | "Healthy";
   message: string;
   anomaly_severity: string;
   anomaly_message: string;
@@ -41,8 +41,6 @@ interface DataListInterface {
   [key: string]: any;
 }
 
-
-
 const StockAlertsComponent: React.FC = () => {
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
@@ -51,30 +49,33 @@ const StockAlertsComponent: React.FC = () => {
   const ITEMS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState<DataListInterface | null>(null);
-  const [processingStatus, setProcessingStatus] = useState<{isProcessing: boolean; processed: number; total: number}>({isProcessing: false, processed: 0, total: 0});
-
+  const [selectedAlert, setSelectedAlert] = useState<DataListInterface | null>(
+    null
+  );
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({
+    key: "",
+    direction: "asc",
+  });
   const { selectedLocation } = useContext(LocationContext);
   const { t } = useTranslation(translationConstant.STOCKPANEL);
-
-
 
   const fetchStockAlerts = async (location_id: number) => {
     setLoading(true);
     console.log("🔍 Fetching stock alerts for location_id:", location_id);
-    
+
     try {
       let fetched_data = await fetch_content_service({
         table: "stock_alerts",
         language: "",
-        selectParam: "inventory_id, product_id, location_id, quantity, threshold, priority, message, anomaly_severity, anomaly_message, forecasted_runout_months, created_at, inventory(products(product_name))",
-        matchCase: [
-          { key: "location_id", value: location_id }
-        ],
+        selectParam: ", inventory(products(product_name))",
+        matchCase: [{ key: "location_id", value: location_id }],
         sortOptions: {
           column: "created_at",
-          order: "desc"
-        }
+          order: "desc",
+        },
       });
 
       if (!fetched_data || fetched_data.length === 0) {
@@ -85,42 +86,49 @@ const StockAlertsComponent: React.FC = () => {
           matchCase: null,
           sortOptions: {
             column: "created_at",
-            order: "desc"
-          }
+            order: "desc",
+          },
         });
-        
+
         if (all_data && all_data.length > 0) {
           fetched_data = all_data;
         }
       }
 
-      setDataList(fetched_data || []);
-      setAllData(fetched_data || []);
+      const normalizedData = (fetched_data || []).map((item: StockAlert) => ({
+        ...item,
+        product_name:
+          item.inventory?.products?.product_name ?? item.product_name ?? "",
+      }));
+
+      setDataList(normalizedData);
+      setAllData(normalizedData);
       setLoading(false);
-      
     } catch (error) {
       console.error(" Error fetching stock alerts:", error);
       setDataList([]);
       setAllData([]);
       setLoading(false);
-      setProcessingStatus({isProcessing: false, processed: 0, total: 0});
     }
   };
+
+  const getProductName = (item: DataListInterface) =>
+    (
+      item.inventory?.products?.product_name ||
+      item.product_name ||
+      ""
+    ).toString();
 
   const onSearchHandle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchTerm(val);
-    
+
     let filteredData = allData;
 
     if (val !== "") {
+      const searchTermLower = val.toLowerCase();
       filteredData = filteredData.filter((elem) =>
-        (elem.inventory_id?.toString() || "").includes(val) ||
-        (elem.product_id?.toString() || "").includes(val) ||
-        (elem.priority?.toLowerCase() || "").includes(val.toLowerCase()) ||
-        (elem.message?.toLowerCase() || "").includes(val.toLowerCase()) ||
-        (elem.inventory?.products?.product_name?.toLowerCase() || "").includes(val.toLowerCase()) ||
-        (elem.product_name?.toLowerCase() || "").includes(val.toLowerCase())
+        getProductName(elem).toLowerCase().includes(searchTermLower)
       );
     }
 
@@ -128,13 +136,130 @@ const StockAlertsComponent: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const totalPages = Math.ceil((dataList?.length || 0) / ITEMS_PER_PAGE) || 1;
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
-  const currentData = dataList.slice(startIndex, endIndex);
+  const priorityRank = (priority: string | undefined) => {
+    switch ((priority || "").toLowerCase()) {
+      case "critical":
+        return 3;
+      case "warning":
+        return 2;
+      case "healthy":
+        return 1;
+      default:
+        return 0;
+    }
+  };
 
-  const handlePreviousPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const anomalyRank = (severity: string | undefined) => {
+    switch ((severity || "").toLowerCase()) {
+      case "high":
+        return 3;
+      case "medium":
+        return 2;
+      case "low":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+
+  const sortedData = useMemo(() => {
+    const data = [...dataList];
+
+    if (!sortConfig.key) {
+      return data;
+    }
+
+    return data.sort((a, b) => {
+      const multiplier = sortConfig.direction === "asc" ? 1 : -1;
+
+      switch (sortConfig.key) {
+        case "product_name": {
+          const aName = getProductName(a).toLowerCase();
+          const bName = getProductName(b).toLowerCase();
+          return aName.localeCompare(bName) * multiplier;
+        }
+        case "quantity": {
+          const aQty = Number(a.quantity ?? 0);
+          const bQty = Number(b.quantity ?? 0);
+          return (aQty - bQty) * multiplier;
+        }
+        case "threshold": {
+          const aThreshold = Number(a.threshold ?? 0);
+          const bThreshold = Number(b.threshold ?? 0);
+          return (aThreshold - bThreshold) * multiplier;
+        }
+        case "priority": {
+          const diff = priorityRank(a.priority) - priorityRank(b.priority);
+          if (diff !== 0) {
+            return diff * multiplier;
+          }
+          return (
+            getProductName(a)
+              .toLowerCase()
+              .localeCompare(getProductName(b).toLowerCase()) * multiplier
+          );
+        }
+        case "anomaly_severity": {
+          const diff =
+            anomalyRank(a.anomaly_severity) - anomalyRank(b.anomaly_severity);
+          if (diff !== 0) {
+            return diff * multiplier;
+          }
+          return (
+            getProductName(a)
+              .toLowerCase()
+              .localeCompare(getProductName(b).toLowerCase()) * multiplier
+          );
+        }
+        default:
+          return 0;
+      }
+    });
+  }, [dataList, sortConfig]);
+
+  const totalPages = Math.ceil((sortedData?.length || 0) / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedData.length);
+  const currentData = sortedData.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage((prev) => Math.min(prev, totalPages));
+  }, [totalPages]);
+
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        };
+      }
+
+      return {
+        key,
+        direction: "asc",
+      };
+    });
+
+    setCurrentPage(1);
+  };
+
+  const renderSortIcon = (columnKey: string) => {
+    if (sortConfig.key !== columnKey) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+
+    if (sortConfig.direction === "asc") {
+      return <ChevronUp className="w-4 h-4 text-blue-500" />;
+    }
+
+    return <ChevronDown className="w-4 h-4 text-blue-500" />;
+  };
+
+  const handlePreviousPage = () =>
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
   const openModal = (alert: DataListInterface) => {
     setSelectedAlert(alert);
@@ -144,51 +269,6 @@ const StockAlertsComponent: React.FC = () => {
   const closeModal = () => {
     setModalOpen(false);
     setSelectedAlert(null);
-  };
-
-  const handleRefreshData = async () => {
-    if (processingStatus.isProcessing) {
-      return;
-    }
-
-    if (!selectedLocation?.id) {
-      return;
-    }
-
-    setProcessingStatus({isProcessing: true, processed: 0, total: 0});
-    
-    try {
-      fetch('/api/stockpanel-AI')
-        .then(async (response) => {
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("❌ Stock AI API call failed:", errorText);
-            setProcessingStatus({isProcessing: false, processed: 0, total: 0});
-            return;
-          }
-
-          const result = await response.json();
-          console.log("✅ Stock AI API processed:", result.totalProcessed, "items");
-          
-          setProcessingStatus({isProcessing: false, processed: result.totalProcessed, total: result.totalProcessed});
-          
-          console.log(" Background processing completed successfully!");
-          
-          if (selectedLocation?.id) {
-            await fetchStockAlerts(selectedLocation.id);
-          }
-        })
-        .catch((error) => {
-          console.error("❌ Error during background processing:", error);
-          setProcessingStatus({isProcessing: false, processed: 0, total: 0});
-        });
-      
-      
-    } catch (error) {
-      console.error("❌ Error starting background processing:", error);
-      setProcessingStatus({isProcessing: false, processed: 0, total: 0});
-      alert("An error occurred while starting background processing. Please try again.");
-    }
   };
 
   useEffect(() => {
@@ -203,75 +283,43 @@ const StockAlertsComponent: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'Warning':
-        return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      case "Critical":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      case "Warning":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
       default:
-        return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
+        return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400";
     }
   };
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'Critical':
-        return 'Critical';
-      case 'Warning':
-        return 'High';
+      case "Critical":
+        return "Critical";
+      case "Warning":
+        return "High";
       default:
-        return 'Medium';
+        return "Medium";
     }
   };
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-[#0e1725] rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
-                <span>AI-Powered Stock Alerts</span>
-                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                </svg>
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Intelligent inventory monitoring with predictive insights
-              </p>
-            </div>
-          </div>
-          
-          {/* Refresh Data Button */}
-          <button
-            onClick={handleRefreshData}
-            disabled={processingStatus.isProcessing}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-              processingStatus.isProcessing
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
-            }`}
-          >
-            <svg 
-              className={`w-4 h-4 ${processingStatus.isProcessing ? 'animate-spin' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <span>{processingStatus.isProcessing ? 'Processing...' : 'Start AI Analysis'}</span>
-          </button>
-        </div>
-        
+      <div className="bg-white dark:bg-[#0e1725] rounded-2xl shadow-sm mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           </div>
           <input
@@ -284,36 +332,14 @@ const StockAlertsComponent: React.FC = () => {
         </div>
       </div>
 
-      {processingStatus.isProcessing && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4 mb-4 border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-blue-700 dark:text-blue-400 font-medium">AI Analysis running in background...</span>
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-300">
-              {processingStatus.processed > 0 ? `${processingStatus.processed} items processed` : 'Starting...'}
-            </div>
-          </div>
-          <div className="mt-2 bg-blue-100 dark:bg-blue-800/50 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-              style={{
-                width: processingStatus.total > 0 
-                  ? `${(processingStatus.processed / processingStatus.total) * 100}%` 
-                  : '10%'
-              }}
-            ></div>
-          </div>
-        </div>
-      )}
-      
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="text-gray-600 dark:text-gray-400">Loading AI Analysis...</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                Loading AI Analysis...
+              </span>
             </div>
           </div>
         ) : (
@@ -321,45 +347,101 @@ const StockAlertsComponent: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-[#0e1725]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Inventory ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Name</th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Threshold</th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Anomaly</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("product_name")}
+                      className="flex items-center gap-1"
+                    >
+                      Product Name
+                      {renderSortIcon("product_name")}
+                    </button>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("quantity")}
+                      className="flex items-center justify-center gap-1 w-full"
+                    >
+                      Stock
+                      {renderSortIcon("quantity")}
+                    </button>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("threshold")}
+                      className="flex items-center justify-center gap-1 w-full"
+                    >
+                      Threshold
+                      {renderSortIcon("threshold")}
+                    </button>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("priority")}
+                      className="flex items-center justify-center gap-1 w-full"
+                    >
+                      Priority
+                      {renderSortIcon("priority")}
+                    </button>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("anomaly_severity")}
+                      className="flex items-center justify-center gap-1 w-full"
+                    >
+                      Anomaly
+                      {renderSortIcon("anomaly_severity")}
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-[#0e1725] divide-y divide-gray-200 dark:divide-gray-700">
                 {currentData.map((item, index) => {
                   const isLowStock = item.quantity <= item.threshold;
                   return (
-                    <tr 
-                      key={index} 
+                    <tr
+                      key={index}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                       onClick={() => openModal(item)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
-                        {item.inventory_id || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
-                        {item.product_id || "-"}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         <div className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                          <span>{item.inventory?.products?.product_name || item.product_name || "-"}</span>
+                          <span>
+                            {item.inventory?.products?.product_name ||
+                              item.product_name ||
+                              "-"}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center space-x-1">
                           {isLowStock && (
-                            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            <svg
+                              className="w-4 h-4 text-orange-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                              />
                             </svg>
                           )}
-                          <span className={`text-sm font-medium ${isLowStock ? 'text-orange-500' : 'text-gray-900 dark:text-white'}`}>
+                          <span
+                            className={`text-sm font-medium ${
+                              isLowStock
+                                ? "text-orange-500"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
                             {item.quantity || 0}
                           </span>
                         </div>
@@ -368,21 +450,24 @@ const StockAlertsComponent: React.FC = () => {
                         {item.threshold || 0}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                            item.priority
+                          )}`}
+                        >
                           {getPriorityText(item.priority)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {item.message ? `${item.message.substring(0, 20)}...` : "-"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          item.anomaly_severity === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                          item.anomaly_severity === 'Medium' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            item.anomaly_severity === "High"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : item.anomaly_severity === "Medium"
+                              ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          }`}
+                        >
                           {item.anomaly_severity || "-"}
                         </span>
                       </td>
@@ -391,12 +476,14 @@ const StockAlertsComponent: React.FC = () => {
                 })}
               </tbody>
             </table>
-            
+
             <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] px-4">
               <div>
-                {dataList.length === 0
+                {sortedData.length === 0
                   ? `Showing 0 to 0 of 0`
-                  : `Showing ${startIndex + 1} to ${endIndex} of ${dataList.length}`}
+                  : `Showing ${startIndex + 1} to ${endIndex} of ${
+                      sortedData.length
+                    }`}
               </div>
               <div className="flex space-x-2">
                 <button
@@ -410,9 +497,11 @@ const StockAlertsComponent: React.FC = () => {
                 </button>
                 <button
                   onClick={handleNextPage}
-                  disabled={currentPage === totalPages || dataList.length === 0}
+                  disabled={
+                    currentPage === totalPages || sortedData.length === 0
+                  }
                   className={`px-3 py-1 rounded text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
-                    currentPage === totalPages || dataList.length === 0
+                    currentPage === totalPages || sortedData.length === 0
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}
@@ -425,81 +514,101 @@ const StockAlertsComponent: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 mt-6 border border-blue-200 dark:border-blue-700/50">
-        <div className="flex items-start space-x-4">
-          <div className="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 p-3 rounded-full">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Insight</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              Based on usage patterns, 3 critical items need immediate attention.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {modalOpen && selectedAlert && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Stock Alert Details</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Stock Alert Details
+              </h3>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Inventory ID</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.inventory_id || "-"}</p>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Product Name
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedAlert.inventory?.products?.product_name ||
+                        selectedAlert.product_name ||
+                        "-"}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product ID</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.product_id || "-"}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Quantity
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedAlert.quantity || 0}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.quantity || 0}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Threshold
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedAlert.threshold || 0}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Threshold</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.threshold || 0}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Priority
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedAlert.priority || "-"}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.priority || "-"}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Severity</label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_severity || "-"}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Anomaly Severity
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      {selectedAlert.anomaly_severity || "-"}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.message || "-"}</p>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Anomaly Message
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedAlert.anomaly_message || "-"}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Anomaly Message</label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.anomaly_message || "-"}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Forecasted Runout (Months)</label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">{selectedAlert.forecasted_runout_months || "-"}</p>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Forecasted Runout (Months)
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {selectedAlert.forecasted_runout_months || "-"}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">Stock Trend Analysis</h4>
+                <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+                  Stock Trend Analysis
+                </h4>
                 <div className="h-[300px]">
                   {/* Shadcn Chart Component */}
                   <ChartContainer
@@ -524,25 +633,84 @@ const StockAlertsComponent: React.FC = () => {
                           name: "Current",
                           quantity: selectedAlert.quantity,
                           threshold: selectedAlert.threshold,
-                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1))),
+                          forecast: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months || 1)
+                              )
+                          ),
                         },
                         {
                           name: "1 Month",
-                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1))),
+                          quantity: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months || 1)
+                              )
+                          ),
                           threshold: selectedAlert.threshold,
-                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 2)),
+                          forecast: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                (selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months ||
+                                    1)) *
+                                  2
+                              )
+                          ),
                         },
                         {
                           name: "2 Months",
-                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 2)),
+                          quantity: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                (selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months ||
+                                    1)) *
+                                  2
+                              )
+                          ),
                           threshold: selectedAlert.threshold,
-                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 3)),
+                          forecast: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                (selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months ||
+                                    1)) *
+                                  3
+                              )
+                          ),
                         },
                         {
                           name: "3 Months",
-                          quantity: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 3)),
+                          quantity: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                (selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months ||
+                                    1)) *
+                                  3
+                              )
+                          ),
                           threshold: selectedAlert.threshold,
-                          forecast: Math.max(0, selectedAlert.quantity - Math.round(selectedAlert.quantity / (selectedAlert.forecasted_runout_months || 1) * 4)),
+                          forecast: Math.max(
+                            0,
+                            selectedAlert.quantity -
+                              Math.round(
+                                (selectedAlert.quantity /
+                                  (selectedAlert.forecasted_runout_months ||
+                                    1)) *
+                                  4
+                              )
+                          ),
                         },
                       ]}
                       margin={{
@@ -552,7 +720,10 @@ const StockAlertsComponent: React.FC = () => {
                         left: 20,
                       }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
+                      />
                       <XAxis dataKey="name" className="text-sm" />
                       <YAxis className="text-sm" />
                       <ChartTooltip
@@ -567,7 +738,7 @@ const StockAlertsComponent: React.FC = () => {
                           r: 6,
                           style: { fill: "#2563eb", opacity: 0.8 },
                         }}
-                        className="stroke-[--color-quantity] fill-[--color-quantity]"                        
+                        className="stroke-[--color-quantity] fill-[--color-quantity]"
                       />
                       <Line
                         type="monotone"
@@ -578,7 +749,7 @@ const StockAlertsComponent: React.FC = () => {
                           r: 6,
                           style: { fill: "#dc2626", opacity: 0.8 },
                         }}
-                        className="stroke-[--color-threshold] fill-[--color-threshold]"                        
+                        className="stroke-[--color-threshold] fill-[--color-threshold]"
                       />
                       <Line
                         type="monotone"
@@ -589,14 +760,20 @@ const StockAlertsComponent: React.FC = () => {
                           r: 6,
                           style: { fill: "#16a34a", opacity: 0.8 },
                         }}
-                        className="stroke-[--color-forecast] fill-[--color-forecast]"                        
+                        className="stroke-[--color-forecast] fill-[--color-forecast]"
                       />
                       <ChartLegend content={<ChartLegendContent />} />
                     </LineChart>
                   </ChartContainer>
                 </div>
                 <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                  <p>Projected to run out in <span className="font-medium text-blue-600 dark:text-blue-400">{selectedAlert.forecasted_runout_months || "unknown"}</span> months based on current usage patterns.</p>
+                  <p>
+                    Projected to run out in{" "}
+                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                      {selectedAlert.forecasted_runout_months || "unknown"}
+                    </span>{" "}
+                    months based on current usage patterns.
+                  </p>
                 </div>
               </div>
             </div>

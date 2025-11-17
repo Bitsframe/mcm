@@ -131,8 +131,32 @@ const Returns: FC<Props> = () => {
   };
 
   const detailsViewHandle = (param_data: DataListInterface) => {
+    // Log the raw data arriving to the details view for quick debugging
+    try {
+      console.log('[Returns] detailsViewHandle - raw param_data:', param_data);
+      try {
+        const derived = detailsArray(param_data);
+        console.log('[Returns] detailsViewHandle - derived detailsArray:', derived);
+      } catch (e) {
+        console.log('[Returns] detailsViewHandle - error deriving detailsArray', e);
+      }
+    } catch (e) {
+      // ignore in non-browser env
+    }
+
     setDataDetails(param_data);
   };
+
+  // Also log whenever dataDetails state changes (helpful when set from other places)
+  React.useEffect(() => {
+    if (dataDetails) {
+      try {
+        console.log('[Returns] dataDetails changed:', dataDetails);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [dataDetails]);
 
   const fetch_handle = async (location_id: any) => {
     setLoading(true);

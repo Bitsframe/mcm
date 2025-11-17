@@ -1,18 +1,35 @@
 export const grandTotalHandle = (
   cart: any[],
   discount = 0
-): { amount: number; discountAmount: number } => {
-  const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discountAmount = (amount * discount) / 100;
-  const total = amount - discountAmount;
+): { amount: number; discountAmount: number; productTotal: number; productTotalOriginalPrice: number } => {
+  // Calculate product total using the original price of the items, no discount applied
+  const productTotalOriginalPrice = cart.reduce(
+    (sum, item) => sum + item.original_price * item.quantity,
+    0
+  );
+
+  // Calculate product-level discounts (this uses the original price to apply the discount)
+  const productLevelTotal = cart.reduce((sum, item) => {
+    const productDiscount = item.discount_percent
+      ? (item.original_price * item.quantity * item.discount_percent) / 100
+      : 0;
+    const discountedProductTotal = item.original_price * item.quantity - productDiscount;
+    return sum + discountedProductTotal;
+  }, 0);
+
+  // Apply cart-level discount to the subtotal after product-level discounts
+  const discountAmount = (productLevelTotal * discount) / 100;
+  const total = productLevelTotal - discountAmount;
+
   return {
-    amount: total,
-    discountAmount,
+    amount: total, // Total after cart-level discount
+    discountAmount, // Amount of discount applied at the cart level
+    productTotal: productLevelTotal, // Product total after product-level discount
+    productTotalOriginalPrice, // Product total using original price (no discount)
   };
 };
 
-
-
+// Balance Calculation Logic (remains the same but now uses the updated grandTotalHandle)
 type BalanceCalcResult = {
   totalAfterDiscount: number;
   totalPaid: number;
@@ -39,7 +56,7 @@ export function calculateNewBalance({
   creditUsed: number;
   selectedLocation: { balance: number };
 }): BalanceCalcResult {
-  const totalAfterDiscount = grandTotalHandle(cartArray, appliedDiscount).amount;
+  const { amount: totalAfterDiscount, productTotalOriginalPrice, productTotal } = grandTotalHandle(cartArray, appliedDiscount);
   const totalPaid = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
   let newBalance: number;

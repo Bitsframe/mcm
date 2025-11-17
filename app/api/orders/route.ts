@@ -18,6 +18,10 @@ export async function POST(request: Request) {
       selectedLocation,
     } = await request.json();
 
+
+     console.log("Cart Array Data:", cartArray); 
+     console.log(appliedDiscount);
+
 //     // Calculate all amounts
 //     const subtotalAmount = cartArray.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
 //     const discountAmount = (subtotalAmount * appliedDiscount) / 100;
@@ -90,6 +94,51 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
     if (orderError) throw new Error(orderError.message);
     if (!orderData?.length) throw new Error('Failed to create order');
     const order_id = orderData[0].order_id;
+
+
+        // Insert Cart-Level Discount into Discounts Table (if applicable)
+    if (appliedDiscount > 0) {
+      const cartDiscount = {
+        order_id: order_id,
+        discount_type: 'cart',
+        discount_amount: appliedDiscount,
+        discount_value: discountAmount,  // Discount amount applied to cart
+        product_id: null, // No product ID for cart-wide discount
+      };
+      
+      await create_content_service({
+        table: 'discounts',
+        post_data: cartDiscount,
+      });
+    }
+
+    // Insert Product-Level Discounts into Discounts Table (if applicable)
+    for (const item of cartArray) {
+      if (item.discount_percent > 0) {
+        const productDiscount = {
+          order_id: order_id,
+          discount_type: 'product',
+          discount_amount: item.discount_percent,
+          discount_value: (item.original_price * item.discount_percent) / 100,  // Product-level discount value
+          product_id: item.main_product_id,
+        };
+
+        await create_content_service({
+          table: 'discounts',
+          post_data: productDiscount,
+        });
+      }
+    }
+
+
+
+
+
+
+
+
+
+
 
     // --- 2. Create sales history for POS location ---
     if (posCart.length) {

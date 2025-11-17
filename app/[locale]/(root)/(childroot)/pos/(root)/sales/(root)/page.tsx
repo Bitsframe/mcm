@@ -6,10 +6,17 @@ import React, {
   useState,
   useMemo,
 } from "react";
+
 import { Quantity_Field } from "@/components/Quantity_Field";
+import { FaCreditCard } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
+import { Select } from "flowbite-react";
+
 import { PiCaretCircleRightFill } from "react-icons/pi";
+import { FaArrowsAltV } from "react-icons/fa";
+import { BsCashCoin } from "react-icons/bs";
+
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
 import { useRouter } from "next/navigation";
@@ -18,6 +25,10 @@ import { currencyFormatHandle } from "@/helper/common_functions";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import PromoCodeComponent from "@/components/PromoCodeComponent";
+import DiscountModal from "@/components/modals/DiscountModal";
+// import SplitToLocationModal from "@/components/SplitToLocationModal";
+import Product from "@/components/POS/Product";
+
 import type { PromoCodeDataInterface } from "@/types/typesInterfaces";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { useTranslation } from "react-i18next";
@@ -32,14 +43,10 @@ import {
 } from "@/utils/supabase/data_services/data_services";
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import ProductListModal from '@/components/POS/ProductListModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
-import SplitToLocationModal from "@/components/SplitToLocationModal";
-import { BsCashCoin } from "react-icons/bs";
-import { FaCreditCard } from "react-icons/fa6";
-import { FiMinus, FiPlus } from "react-icons/fi";
-import { FaArrowsAltV } from "react-icons/fa";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -50,10 +57,12 @@ interface CartItemComponentInterface {
     price: number,
     index: number
   ) => void;
+  updateDiscountPercent: (index: number, discount: number) => void;
 }
 
 interface CartArrayInterface {
   product_id: number;
+  main_product_id: number;
   quantity: number;
   product_name: string;
   category_name: string;
@@ -62,6 +71,9 @@ interface CartArrayInterface {
   quantity_available: number;
   fulfillment_location_id: number;
   fulfillment_location_name: string;
+
+  original_price: number; // original price before discount
+  discount_percent: number; // discount applied
 }
 
 const render_details = [
@@ -89,10 +101,13 @@ const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
 };
 
+
+
 const CartItemComponent: FC<CartItemComponentInterface> = ({
   data,
   controllProductQtyHandle,
   index,
+  updateDiscountPercent,
 }) => {
   const {
     product_name,
@@ -100,7 +115,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     quantity,
     quantity_available,
     product_id,
-    price,
+    price: initialPrice,
+    original_price,
+    discount_percent,  // Existing discount_percent from the backend or initial value
     fulfillment_location_id,
     fulfillment_location_name,
   } = data;
@@ -108,6 +125,20 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   const { selectedLocation } = useContext(LocationContext);
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
 
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountPct, setDiscountPct] = useState(discount_percent);  // The modal value will update this
+  const [price, setPrice] = useState(initialPrice); // Price after discount applied
+
+  // Recalculate price whenever discountPct, original_price, or quantity changes
+  useEffect(() => {
+    let totalPrice = original_price * quantity; // Total price before discount
+    if (discountPct > 0) {
+      totalPrice = totalPrice * (1 - discountPct / 100); // Apply the discount for the specific product
+    }
+    setPrice(Number(totalPrice.toFixed(2))); // Set the price after discount
+  }, [discountPct, original_price, quantity]); // Recalculate when discountPct, original_price, or quantity changes
+
+  // Function to handle quantity change
   const qtyHandle = (type: string) => {
     let newQty = quantity;
     if (type === "inc") {
@@ -118,8 +149,24 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     controllProductQtyHandle(product_id, newQty, price, index);
   };
 
+  // Function to remove item
   const removeItemHandle = () => {
     controllProductQtyHandle(product_id, 0, price, index);
+  };
+
+  // Handle the removal of the discount
+  const handleRemoveDiscount = () => {
+    setDiscountPct(0); // Reset discount for the product
+    setPrice(original_price * quantity); // Recalculate the price to the original price
+  };
+
+  // Handle when the discount modal is applied
+  const handleApplyDiscount = (pct: number) => {
+    setDiscountPct(pct); // Set the discountPct for the product
+    const discountedPrice = (original_price * quantity) * (1 - pct / 100); // Calculate the new price after discount
+    setPrice(Number(discountedPrice.toFixed(2))); // Set the new discounted price
+    updateDiscountPercent(index, pct); // Update parent cartArray
+    setIsDiscountModalOpen(false); // Close the modal after applying the discount
   };
 
   return (
@@ -164,15 +211,29 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             </dd>
             {isOtherLocation && (
               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
-                Fulfillment at: {fulfillment_location_name}
+                Fulfilled at: {fulfillment_location_name}
               </dd>
             )}
           </dl>
         </div>
+
+        {/* Price Section */}
         <div className="flex items-center space-x-3">
-          <p className="font-bold text-[#121111] dark:text-white">
-            {calcTotalAmount(price, quantity)}
-          </p>
+          {discountPct > 0 ? (
+            <>
+              <p className="text-sm text-gray-500 line-through dark:text-gray-400">
+                ${original_price * quantity} {/* original price before discount */}
+              </p>
+              <p className="font-bold text-[#121111] dark:text-white">
+                ${price} {/* discounted price for total quantity */}
+              </p>
+            </>
+          ) : (
+            <p className="font-bold text-[#121111] dark:text-white">
+              ${original_price * quantity} {/* Total price without discount */}
+            </p>
+          )}
+
           <div>
             <button onClick={removeItemHandle}>
               <IoCloseOutline
@@ -183,9 +244,45 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
           </div>
         </div>
       </div>
+
+      {/* Discount Section */}
+      <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 dark:text-gray-300">Discount</span>
+          <span className="text-emerald-600 dark:text-emerald-400">
+            {discountPct > 0 ? `${discountPct}% off` : "0% "}
+          </span>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsDiscountModalOpen(true)}
+            className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+          >
+            {discountPct > 0 ? "Change discount" : "Add discount"}
+          </button>
+          {discountPct > 0 && (
+            <button
+              onClick={handleRemoveDiscount} // Removes the discount
+              className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+            >
+              Remove discount
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Discount Modal */}
+      <DiscountModal
+        isOpen={isDiscountModalOpen}
+        initialValue={discountPct}
+        onApply={handleApplyDiscount}  // Use the updated function to apply the discount
+        onClose={() => setIsDiscountModalOpen(false)}
+      />
     </div>
   );
 };
+
 
 const Orders = () => {
   const { categories } = useCategoriesClinica(true);
@@ -202,10 +299,9 @@ const Orders = () => {
   const [otherLocationProductQty, setOtherLocationProductQty] =
     useState<number>(1);
   const [otherLocationProducts, setOtherLocationProducts] = useState<any[]>([]);
-  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>(
-    []
-  );
+  const [otherLocationCategories, setOtherLocationCategories] = useState<any[]>([]);
 
+  // Split to location modal state
   const [showSplitModal, setShowSplitModal] = useState(false);
 
   const [cashInput, setCashInput] = useState("");
@@ -224,9 +320,111 @@ const Orders = () => {
     selectProductHandle,
   } = useProductsClinica();
 
+  // Modal & products-for-location state
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [allProductsForLocation, setAllProductsForLocation] = useState<any[]>([]);
+  const [loadingAllProducts, setLoadingAllProducts] = useState(false);
+  const [modalQtyMap, setModalQtyMap] = useState<Record<number, number>>({});
+
+  const openProductModal = async () => {
+    setProductModalOpen(true);
+    // fetch products for the selected location (no category filter)
+    await fetchAllProductsForLocation();
+  };
+
+  const closeProductModal = () => {
+    setProductModalOpen(false);
+    setAllProductsForLocation([]);
+    setModalQtyMap({});
+  };
+
+  const fetchAllProductsForLocation = async () => {
+    if (!selectedLocation?.id) return;
+    setLoadingAllProducts(true);
+    try {
+      const data: any = await fetch_content_service({
+        table: 'inventory',
+        matchCase: [
+          { key: 'location_id', value: selectedLocation.id },
+          { key: 'archived', value: false },
+          { key: 'products.archived', value: false },
+        ],
+        selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+        filterOptions: [
+          { operator: 'not', column: 'products', value: null },
+          { operator: 'neq', column: 'products.price', value: 0 },
+        ],
+      });
+
+      const formatted = (data || [])
+        .filter((elem: any) => elem.quantity > 0 || (elem.products?.unlimited && elem.products?.price > 0))
+        .map((item: any) => {
+          const formattedItem = {
+            product_id: item.inventory_id,
+            main_product_id: item.product_id,
+            product_name: item.products?.product_name,
+            price: item.products?.price,
+            quantity_available: item.quantity,
+            unlimited: item.products?.unlimited,
+          };
+          try {
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] raw inventory item:', item);
+            // eslint-disable-next-line no-console
+            console.log('[fetchAllProductsForLocation] formatted item:', formattedItem);
+          } catch (e) {}
+          return formattedItem;
+        });
+
+      setAllProductsForLocation(formatted);
+    } catch (err) {
+      console.error('Error fetching products for location', err);
+      setAllProductsForLocation([]);
+    } finally {
+      setLoadingAllProducts(false);
+    }
+  };
+
+  const modalSetQty = (id: number, qty: number) => setModalQtyMap(prev => ({ ...prev, [id]: qty }));
+
+  const addFromModalToCart = (p: any) => {
+    const qty = modalQtyMap[p.product_id] ?? 0;
+    if (qty <= 0) return; // nothing to add
+    // mirror existing addToCartFor behaviour but with explicit qty
+    if (!selectedLocation) return;
+    const findCategory: any = categories.find(({ category_id }: any) => +p.category_id === +category_id);
+    // findCategory will usually be present only if categories were previously loaded; but we can attempt to derive category_name
+    const basePrice = p.price;
+    let finalUnitPrice = basePrice;
+    const discount_percent = discountPct || 0;
+    if (discount_percent > 0) {
+      finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+    }
+
+    const addProduct: CartArrayInterface = {
+      product_id: p.product_id,
+      main_product_id: p.main_product_id,
+      product_name: p.product_name,
+      quantity: qty,
+      category_name: findCategory?.category_name || p.category_name || '',
+      category_id: findCategory?.category_id || p.category_id || 0,
+      quantity_available: p.quantity_available,
+      price: finalUnitPrice,
+      original_price: basePrice,
+      discount_percent,
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+    };
+
+    setCartArray(prev => [...prev, addProduct]);
+    // reset modal qty for that product
+    setModalQtyMap(prev => ({ ...prev, [p.product_id]: 0 }));
+  };
+
   const [fetchingDataLoading, setfetchingDataLoading] = useState(true);
   const [cartArray, setCartArray] = useState<CartArrayInterface[]>([]);
   const [productQty, setProductQty] = useState<number>(0);
+  const [productQtyMap, setProductQtyMap] = useState<Record<number, number>>({});
   const [placeOrderLoading, setPlaceOrderLoading] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [promoCodeData, setPromoCode] = useState<PromoCodeDataInterface | null>(
@@ -245,6 +443,9 @@ const Orders = () => {
   const [discountInput, setDiscountInput] = useState<string>("");
   const [addAmount, setAddAmount] = useState(0);
   const [addAmountInput, setAddAmountInput] = useState("");
+  const [discountPct, setDiscountPct] = useState<number>(0);
+const [discountModalOpen, setDiscountModalOpen] = useState(false);
+
 
   const router = useRouter();
 
@@ -252,6 +453,7 @@ const Orders = () => {
     const value = e.target.value;
     getCategoriesByLocationId(value);
     setProductQty(0);
+    setProductQtyMap({});
   };
 
   const select_product_change_handle = (e: any) => {
@@ -317,36 +519,107 @@ const Orders = () => {
     setProductQty(qty);
   };
 
-  const addToCartHandle = () => {
+  const setRowQuantity = (product_id: number, qty: number) => {
+    setProductQtyMap((prev) => ({ ...prev, [product_id]: qty }));
+  };
+
+  // Keep legacy behavior working by syncing a selected row
+  const handleSelectProduct = (p: any) => {
+    selectProductHandle(p.product_id);
+    setProductQty(productQtyMap[p.product_id] || 0);
+  };
+
+  const handleRowQuantityChange = (p: any, q: number) => {
+    setRowQuantity(p.product_id, q);
+    // Also update legacy states so buttons relying on selectedProduct/productQty work
+    selectProductHandle(p.product_id);
+    setProductQty(q);
+  };
+
+  const addToCartFor = (p: any) => {
     const findCategory: any = categories.find(
-      ({ category_id }: any) => +selectedProduct.category_id === +category_id
+      ({ category_id }: any) => +p.category_id === +category_id
     );
 
-    let addProduct: CartArrayInterface | null = null;
-
     if (findCategory && selectedLocation) {
-      addProduct = {
-        product_id: selectedProduct.product_id,
-        product_name: selectedProduct.product_name,
-        quantity: productQty,
+      const basePrice = p.price;
+      let finalUnitPrice = basePrice;
+      const discount_percent = discountPct || 0;
+
+      if (discount_percent > 0) {
+        finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2));
+      }
+
+      const qty = productQtyMap[p.product_id] || 0;
+      if (qty <= 0) return;
+
+      const addProduct: CartArrayInterface = {
+        product_id: p.product_id,
+        main_product_id: p.main_product_id,
+        product_name: p.product_name,
+        quantity: qty,
         category_name: findCategory.category_name,
         category_id: findCategory.category_id,
-        quantity_available: selectedProduct.quantity_available,
-        price: selectedProduct.price,
+        quantity_available: p.quantity_available,
+        price: finalUnitPrice,
+        original_price: basePrice,
+        discount_percent,
         fulfillment_location_id: selectedLocation.id,
         fulfillment_location_name:
           selectedLocation.title || selectedLocation.name || "Unknown",
       };
 
-      if (addProduct) {
-        cartArray.push(addProduct);
-        setCartArray([...cartArray]);
-        selectProductHandle(0);
-        setProductQty(0);
-        getCategoriesByLocationId(0);
-      }
+      cartArray.push(addProduct);
+      setCartArray([...cartArray]);
+
+      // reset row qty
+      setProductQtyMap((prev) => ({ ...prev, [p.product_id]: 0 }));
     }
   };
+
+  
+const addToCartHandle = () => {
+  const findCategory: any = categories.find(
+    ({ category_id }: any) => +selectedProduct.category_id === +category_id
+  );
+
+  if (findCategory && selectedLocation) {
+    const basePrice = selectedProduct.price;
+    let finalUnitPrice = basePrice;
+    const discount_percent = discountPct || 0;  // You already have discountPct in the component
+
+    if (discount_percent > 0) {
+      finalUnitPrice = Number((basePrice * (1 - discount_percent / 100)).toFixed(2)); // Apply discount if needed
+    }
+
+    // Creating the product object with discount_percent included
+    const addProduct: CartArrayInterface = {
+      product_id: selectedProduct.product_id,
+      main_product_id: selectedProduct.main_product_id,
+      product_name: selectedProduct.product_name,
+      quantity: productQty,
+      category_name: findCategory.category_name,
+      category_id: findCategory.category_id,
+      quantity_available: selectedProduct.quantity_available,
+      price: finalUnitPrice,
+      original_price: basePrice,
+      discount_percent,  // Add the discount here
+      fulfillment_location_id: selectedLocation.id,
+      fulfillment_location_name:
+        selectedLocation.title || selectedLocation.name || "Unknown",
+    };
+
+    cartArray.push(addProduct);  // Add the product to the cart array
+    setCartArray([...cartArray]); // Re-render the cart
+
+    selectProductHandle(0);  // Reset selected product after adding
+    setProductQty(0);        // Reset quantity
+    setDiscountPct(0);       // Reset discount
+    getCategoriesByLocationId(0);  // Fetch categories (if necessary)
+  }
+};
+
+
 
   const openOtherLocationModal = () => {
     setShowOtherLocationModal(true);
@@ -386,6 +659,11 @@ const Orders = () => {
         { operator: "neq", column: "products.price", value: 0 },
       ],
     }).then((data: any[]) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[handleOtherLocationCategoryChange] raw data length:', data?.length);
+      } catch (e) {}
+
       const formattedData = data
         .filter(
           (elem) =>
@@ -399,6 +677,10 @@ const Orders = () => {
             product_id,
             products: { price, product_name, category_id, unlimited },
           }: any) => {
+            try {
+              // eslint-disable-next-line no-console
+              console.log('[handleOtherLocationCategoryChange] raw item:', { inventory_id, quantity, product_id, products: { price, product_name, category_id, unlimited } });
+            } catch (e) {}
             return {
               product_id: inventory_id,
               category_id,
@@ -431,12 +713,15 @@ const Orders = () => {
     if (findCategory && fulfillmentLocation && selectedProduct) {
       addProduct = {
         product_id: selectedProduct.product_id,
+        main_product_id: selectedProduct.main_product_id,
         product_name: selectedProduct.product_name,
         quantity: otherLocationProductQty,
         category_name: findCategory.category_name,
         category_id: findCategory.category_id,
         quantity_available: selectedProduct.quantity_available,
         price: selectedProduct.price,
+        original_price: selectedProduct.price,
+        discount_percent: 0,
         fulfillment_location_id: fulfillmentLocation.id,
         fulfillment_location_name:
           fulfillmentLocation.title || fulfillmentLocation.name || "Unknown",
@@ -450,37 +735,30 @@ const Orders = () => {
     }
   };
 
-  const handleAddFromSplitModal = (
-    product: any,
-    location: any,
-    quantity: number
-  ) => {
-    const findCategory: any = categories.find(
-      ({ category_id }: any) => +product.category_id === +category_id
-    );
-
+  const handleAddFromSplitModal = (product: any, location: any, quantity: number) => {
+    const findCategory: any = categories.find(({ category_id }: any) => +product.category_id === +category_id);
     let addProduct: CartArrayInterface | null = null;
-
     if (findCategory) {
       addProduct = {
         product_id: product.product_id,
+        main_product_id: product.main_product_id,
         product_name: product.product_name,
         quantity: quantity,
         category_name: findCategory.category_name,
         category_id: findCategory.category_id,
         quantity_available: product.quantity_available,
         price: product.price,
+        original_price: product.price,
+        discount_percent: 0,
         fulfillment_location_id: location.location_id,
         fulfillment_location_name: location.location_name,
       };
-
       if (addProduct) {
+        // Add to cart as a separate item (even if same product from different location)
         cartArray.push(addProduct);
         setCartArray([...cartArray]);
         setShowSplitModal(false);
-        toast.success(
-          `Added ${quantity} ${product.product_name} from ${location.location_name}`
-        );
+        toast.success(`Added ${quantity} ${product.product_name} from ${location.location_name}`);
       }
     }
   };
@@ -505,6 +783,7 @@ const Orders = () => {
       setIsBalanceLoading(true);
 
       if (!selectedPatient || !cartArray.length) return;
+      
 
       const { data } = await axios.post("/api/orders", {
         patient_id: selectedPatient.id,
@@ -518,7 +797,7 @@ const Orders = () => {
         selectedPatient,
         selectedLocation,
       });
-
+  
       toast.success(data.message, {
         style: {
           background: "white",
@@ -589,7 +868,7 @@ const Orders = () => {
       console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {
         style: {
-          background: "var(--background)",
+          background: "#FFFFFF",
           color: "var(--foreground)",
           border: "1px solid var(--border)",
         },
@@ -721,263 +1000,154 @@ const Orders = () => {
   const totalPaid =
     (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
 
-  const isValidPayment = () => {
-    if (!selectedLocation || cartArray.length === 0) return false;
 
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const totalPaid = receivedAmount + cardAmount;
-    const patientBalance = selectedLocation.balance;
-
-    if (totalPaid > totalDue) {
-      const overpay = totalPaid - totalDue;
-      const resultBalance = patientBalance - overpay;
-      return resultBalance >= 0;
-    } else {
-      const creditShort = totalDue - totalPaid;
-      const resultBalance = patientBalance + creditUsed + creditShort;
-      return resultBalance >= 0;
-    }
-  };
 
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
-          {/* Header with fulfillment button */}
-          {fetchingDataLoading ? (
-            <div className="w-full flex flex-col justify-center h-full space-y-1">
-              <CircularProgress size={16} className="dark:text-white" />
-              <h1 className="text-xs text-gray-400 dark:text-gray-300">
-                Fetching patient details
-              </h1>
-            </div>
-          ) : (
-            <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold mb-2 dark:text-white">
-                  {t("POS-Sales_k3")}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={openOtherLocationModal}
-                    type="button"
-                  >
-                    {t("POS-Sales_k82")}
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
-                    onClick={() => setIsAddBalanceModalOpen(true)}
-                    disabled={!selectedPatient}
-                    type="button"
-                  >
-                    {t("POS-Sales_k83")}
-                  </button>
-                </div>
-
-                <Custom_Modal
-                  is_open={isAddBalanceModalOpen}
-                  close_handle={() => setIsAddBalanceModalOpen(false)}
-                  create_new_handle={handleAddBalance}
-                  loading={addBalanceLoading}
-                  Title="Add Balance"
-                  buttonLabel="Add"
-                  submit_button_color="blue"
-                  disabled={
-                    addBalanceLoading || !addAmount || addAmount > creditAmount
-                  }
-                >
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
-                        Current Balance
-                      </label>
-                      <div className="p-2 rounded font-bold">
-                        {creditAmount}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Add Amount
-                      </label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={addAmountInput}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (/^\d*\.?\d{0,2}$/.test(raw)) {
-                            setAddAmountInput(raw);
-                            const parsed = Number.parseFloat(raw);
-                            setAddAmount(isNaN(parsed) ? 0 : parsed); 
-                          }
-                          if (raw === "") {
-                            setAddAmountInput("");
-                            setAddAmount(0);
-                          }
-                        }}
-                        placeholder="Enter amount"
-                        className="w-full border border-black"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="block text-sm font-medium mb-1">
-                        New Balance
-                      </label>
-                      <div
-                        className={`
-                            p-3 rounded font-bold text-lg
-                             ${
-                               creditAmount + (addAmount || 0) >= 0
-                                 ? "bg-green-100 text-green-700"
-                                 : "bg-red-100 text-red-700"
-                             }
-                          `}
-                      >
-                        {Math.max(0, creditAmount - (addAmount || 0)).toFixed(
-                          2
-                        )}
-                      </div>
-                    </div>
+            {/* Header with fulfillment button */}
+            {fetchingDataLoading ? (
+              <div className="w-full flex flex-col justify-center h-full space-y-1">
+                <CircularProgress size={16} className="dark:text-white" />
+                <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                  Fetching patient details
+                </h1>
+              </div>
+            ) : (
+              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+                    {t("POS-Sales_k3")}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={openOtherLocationModal}
+                      type="button"
+                    >
+                      Add from Other Location
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      onClick={() => setIsAddBalanceModalOpen(true)}
+                      disabled={!selectedPatient}
+                      type="button"
+                    >
+                      Add Balance
+                    </button>
                   </div>
-                </Custom_Modal>
-              </div>
-
-              {selectedPatient ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {render_details.map(({ label, key, render_value }, ind) => {
-                    const extracted_val = render_value
-                      ? render_value(selectedPatient)
-                      : selectedPatient[key];
-                    return (
-                      <div
-                        key={ind}
-                        className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
-                      >
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {label}
-                        </p>
-                        <p className="text-sm font-medium dark:text-white">
-                          {extracted_val}
-                        </p>
+                  <Custom_Modal
+                    is_open={isAddBalanceModalOpen}
+                    close_handle={() => setIsAddBalanceModalOpen(false)}
+                    create_new_handle={handleAddBalance}
+                    loading={addBalanceLoading}
+                    Title="Add Balance"
+                    buttonLabel="Add"
+                    submit_button_color="blue"
+                    disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
+                  >
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div>
-                  <h1 className="text-red-600 dark:text-red-400 text-xs">
-                    {t("POS-Sales_k4")}
-                  </h1>
-                </div>
-              )}
-            </div>
-          )}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={addAmount}
+                          onChange={e => setAddAmount(Number(e.target.value))}
+                          className="w-full border border-black"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <div
+                          className={`
+                          p-3 rounded font-bold text-lg 
+                          ${creditAmount + (addAmount || 0) >= 0
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"}
+                        `}
+                        >
 
-          <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
-            <h2 className="text-sm font-semibold mb-2 dark:text-white">
-              {t("POS-Sales_k5")}
-            </h2>
-            <div className="space-y-2">
-              <div>
-                <Searchable_Dropdown
-                  disabled={!selectedPatient}
-                  initialValue={0}
-                  value={selectedCategory}
-                  //@ts-ignore
-                  dark_bg_color="gray.700"
-                  start_empty={true}
-                  options_arr={categories.map(
-                    ({ category_id, category_name }: any) => ({
-                      value: category_id,
-                      label: category_name,
-                    })
-                  )}
-                  required={true}
-                  on_change_handle={category_change_handle}
-                  label="POS-Sales_k6"
-                />
-              </div>
-              <div>
-                {loadingProducts ? (
-                  <div className="text-xs text-black dark:text-white">
-                    {selectedCategory ? "Loading..." : "Select Category.."}
+                          {Math.max(0, creditAmount - (addAmount || 0)).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </Custom_Modal>
+
+                </div>
+                {selectedPatient ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {render_details.map(({ label, key, render_value }, ind) => {
+                      const extracted_val = render_value
+                        ? render_value(selectedPatient)
+                        : selectedPatient[key];
+                      return (
+                        <div
+                          key={ind}
+                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                        >
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {label}
+                          </p>
+                          <p className="text-sm font-medium dark:text-white">
+                            {extracted_val}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <Searchable_Dropdown
-                    disabled={!selectedPatient}
-                    initialValue={0}
-                    //@ts-ignore
-                    dark_bg_color="gray.700"
-                    start_empty={true}
-                    options_arr={products.map(
-                      ({ product_id, product_name }: any) => ({
-                        value: product_id,
-                        label: product_name,
-                      })
-                    )}
-                    required={true}
-                    value={selectedProduct ? selectedProduct.product_id : 0}
-                    on_change_handle={select_product_change_handle}
-                    label="Select Product"
-                  />
+                  <div>
+                    <h1 className="text-red-600 dark:text-red-400 text-xs">
+                      {t("POS-Sales_k4")}
+                    </h1>
+                  </div>
                 )}
               </div>
+            )}
+
+          <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
+            <div className="space-y-2">
               <div>
-                <div className="space-y-0.5">
-                  <Quantity_Field
+                {/* Replaced product details table with a simple Add Product button that opens the product list modal */}
+                <div className="flex">
+                  <button
+                    type="button"
                     disabled={!selectedPatient}
-                    maxAvailability={
-                      selectedProduct ? selectedProduct.quantity_available : 0
-                    }
-                    quantity={productQty}
-                    quantityHandle={quantityHandle}
-                    unlimited={selectedProduct?.unlimited}
-                  />
-                  {selectedProduct ? (
-                    <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 pl-0.5">
-                      <div className="text-xs flex items-center space-x-3">
-                        <p>
-                          {currencyFormatHandle(selectedProduct?.price || 0)}
-                          /unit
-                        </p>
-                        <p>
-                          Total Cost{" "}
-                          {currencyFormatHandle(
-                            (selectedProduct?.price || 0) * productQty
-                          )}
-                        </p>
-                      </div>
-                      {selectedProduct.unlimited ? (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          Unlimited
-                        </div>
-                      ) : (
-                        <div className="text-xs text-amber-600 dark:text-amber-400">
-                          {selectedProduct.quantity_available - productQty} left
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
+                    onClick={openProductModal}
+                    className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    style={{ minWidth: 0 }}
+                  >
+                    Add Product
+                  </button>
                 </div>
               </div>
-              <div className="flex gap-2">
+
+
+
+              {/* Add to Cart button is now handled within Product component */}
+              <ProductListModal
+                isOpen={productModalOpen}
+                onClose={closeProductModal}
+                loading={loadingAllProducts}
+                products={allProductsForLocation}
+                qtyMap={modalQtyMap}
+                onQtyChange={modalSetQty}
+                onAddToCart={addFromModalToCart}
+                disabled={!selectedPatient}
+                title={t('POS-Sales_k5') || 'Product Details'}
+                formatPrice={currencyFormatHandle}
+              />
+              <div className="mb-2">
                 <button
-                  disabled={!productQty}
-                  onClick={addToCartHandle}
-                  className="bg-[#0066FF] my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
-                  type="submit"
-                >
-                  {t("POS-Sales_k8")}
-                </button>
-                <button
-                  disabled={
-                    !selectedProduct ||
-                    selectedProduct.quantity_available - productQty > 0 ||
-                    selectedProduct?.unlimited
-                  }
+                  disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
                   onClick={() => setShowSplitModal(true)}
-                  className="bg-blue-600 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
                   type="button"
                 >
                   {t("POS-Sales_k82")}
@@ -1000,21 +1170,20 @@ const Orders = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h1 className="text-[11px] text-gray-700 dark:text-gray-300 ">
-                  {t("POS-Sales_k30")}:{" "}
-                  <span className={`font-bold`}>
-                    {/* Calculate and display adjusted Balance Limit if Final Credit is negative */}
-                    {/* Display calculated adjusted Balance Limit */}
-                    {`${selectedLocation?.credit_limit?.toFixed(2)}`}
-                  </span>
-                </h1>
+    {t("POS-Sales_k30")}: {" "}
+    <span className="font-bold">
+      {`${selectedLocation?.credit_limit?.toFixed(2)}`}
+    </span>
+</h1>
+
               </div>
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
                   {t("POS-Sales_k29")}:{" "}
                   <span
-                    className={`font-bold ${
-                      displayedBalanceLimit < 0
-                        ? "text-red-500 dark:text-red-400"
+                    className={`font-bold px-1 rounded ${
+                      displayedBalanceLimit === 0
+                        ? "bg-red-600 text-white dark:bg-red-800"
                         : ""
                     }`}
                   >
@@ -1042,6 +1211,11 @@ const Orders = () => {
                   data={data}
                   key={ind}
                   controllProductQtyHandle={controllProductQtyHandle}
+                  updateDiscountPercent={(idx, discount) => {
+                    const updatedCart = [...cartArray];
+                    updatedCart[idx].discount_percent = discount;
+                    setCartArray(updatedCart);
+                  }}
                 />
               ))}
             </div>
@@ -1071,97 +1245,107 @@ const Orders = () => {
                   {t("POS-Sales_k76")}
                 </h1>
                 <p className="text-xs">
-                  ${grandTotalHandle(cartArray, 0).amount.toFixed(2)}
+                  ${grandTotalHandle(cartArray, 0).productTotalOriginalPrice.toFixed(2)}
                 </p>
               </div>
+<div className="flex items-center justify-between">
+  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+    {t("POS-Sales_k13")} %
+  </h1>
+  <div className="flex items-center gap-2">
+    <p className="text-xs">
+      {appliedDiscount
+        ? `${Math.abs(
+            grandTotalHandle(cartArray, appliedDiscount).discountAmount
+          ).toFixed(2)} (${appliedDiscount}%)`
+        : "NILL"}
+    </p>
+    {appliedDiscount > 0 && (
+      <button
+        onClick={() => {
+          setAppliedDiscount(0);  // Reset the discount
+          setDiscountInput("");    // Clear discount input field
+          toast.success("Discount removed");  // Show success message
+        }}
+        className="text-xs text-red-500"
+      >
+        X {/* Cross symbol to remove discount */}
+      </button>
+    )}
+    <button
+      className={`text-xs px-2 py-0.5 rounded ${
+        cartArray.length === 0
+          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+          : "bg-blue-500 text-white"
+      }`}
+      disabled={cartArray.length === 0}
+      onClick={() => {
+        setDiscountInput(appliedDiscount !== 0 ? String(appliedDiscount) : "");
+        setIsDiscountModalOpen(true);
+      }}
+    >
+      Add
+    </button>
+  </div>
+</div>
 
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k13")} %
-                </h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs">
-                    {appliedDiscount
-                      ? `${Math.abs(
-                          grandTotalHandle(cartArray, appliedDiscount)
-                            .discountAmount
-                        ).toFixed(2)} (${appliedDiscount}%)`
-                      : "NILL"}
-                  </p>
-                  <button
-                    className={`text-xs px-2 py-0.5 rounded ${
-                      cartArray.length === 0
-                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        : "bg-blue-500 text-white"
-                    }`}
-                    disabled={cartArray.length === 0}
-                    onClick={() => {
-                      setDiscountInput(
-                        appliedDiscount !== 0 ? String(appliedDiscount) : ""
-                      );
-                      setIsDiscountModalOpen(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
+{/* Discount Modal */}
+{isDiscountModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
+      <div>
+        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+          Enter Discount % (0 - 100)
+        </h2>
+        <input
+          type="text"
+          value={discountInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "") {
+              setDiscountInput("");
+              return;
+            }
+            if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+              const num = Number.parseFloat(value);
+              if (num <= 100) {
+                setDiscountInput(value);
+              }
+            }
+          }}
+          placeholder="Enter % of discount"
+          className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
+        />
+      </div>
+      <div className="flex justify-end gap-2 mt-4">
+        <button
+          className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
+          onClick={() => setIsDiscountModalOpen(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+          onClick={() => {
+            const numValue =
+              typeof discountInput === "string"
+                ? Number.parseFloat(discountInput)
+                : discountInput;
+            if (numValue >= 0 && numValue <= 100) {
+              setAppliedDiscount(numValue);  // Apply the discount
+              setIsDiscountModalOpen(false);
+            } else {
+              toast.error("Discount must be between 0 and 100%");
+            }
+          }}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-              {isDiscountModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-                        Enter Discount % (0 - 100)
-                      </h2>
-                      <input
-                        type="text"
-                        value={discountInput}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "") {
-                            setDiscountInput("");
-                            return;
-                          }
-                          if (/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
-                            const num = Number.parseFloat(value);
-                            if (num <= 100) {
-                              setDiscountInput(value);
-                            }
-                          }
-                        }}
-                        placeholder="Enter % of discount"
-                        className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
-                        onClick={() => setIsDiscountModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
-                        onClick={() => {
-                          const numValue =
-                            typeof discountInput === "string"
-                              ? Number.parseFloat(discountInput)
-                              : discountInput;
-                          if (numValue >= 0 && numValue <= 100) {
-                            setAppliedDiscount(numValue);
-                            setIsDiscountModalOpen(false);
-                          } else {
-                            toast.error("Discount must be between 0 and 100%");
-                          }
-                        }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center justify-between">
                 <h1 className="text-xs text-gray-700 dark:text-gray-300">
@@ -1422,7 +1606,7 @@ transition-colors`}
           {otherLocationId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Category
+                Select Product
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1431,7 +1615,7 @@ transition-colors`}
                   handleOtherLocationCategoryChange(Number(e.target.value))
                 }
               >
-                <option value="">Select Category</option>
+                <option value="">Select Product</option>
                 {otherLocationCategories.map((cat: any) => (
                   <option
                     key={String(cat.category_id)}
@@ -1531,16 +1715,14 @@ transition-colors`}
         </div>
       </Modal>
 
-      <SplitToLocationModal
+      {/* <SplitToLocationModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         selectedProduct={selectedProduct}
-        selectedCategory={categories.find(
-          (cat: any) => cat.category_id === selectedCategory
-        )}
+        selectedCategory={categories.find((cat: any) => cat.category_id === selectedCategory)}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
-      />
+      /> */}
     </main>
   );
 };

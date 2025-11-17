@@ -378,10 +378,13 @@ const Patients = () => {
 
     setModalLoading(true);
     try {
+      // Remove updated_at if it exists to avoid schema errors
+      const { updated_at, ...updateData } = actionData;
+      
       const data = await update_content_service({
         table: "allpatients",
         language: "",
-        post_data: actionData,
+        post_data: updateData,
       });
       if (data?.length) {
         toast.success("Updated successfully");
@@ -425,53 +428,71 @@ const Patients = () => {
         break;
     }
   };
+const createNewDataHandle = async () => {
+  const requiredFields = [
+    "locationid",
+    "firstname",
+    "lastname",
+    "email",
+    "gender",
+    "phone",  
+    "treatmenttype",
+  ];
 
-  const createNewDataHandle = async () => {
-    const requiredFields = [
-      "locationid",
-      "firstname",
-      "lastname",
-      "email",
-      "gender",
-      "phone",
-      "treatmenttype",
-    ];
+  // Log form data before validation
+  console.log("Form Data Before Validation:", createActionData);
 
-    const validateData = validateFormData(createActionData);
+  // Validate the form data
+  const validateData = validateFormData(createActionData);
+  console.log("Validation Result:", validateData);
 
-    if (!validateData) {
-      return;
-    }
+  if (!validateData) {
+    console.log("Validation Failed");
+    return;
+  }
 
-    if (createActionData.email && !isValidEmail(createActionData.email)) {
-      toast.error("Please enter a valid email address.");
-      return;
-    }
+  // Check for valid email
+  if (createActionData.email && !isValidEmail(createActionData.email)) {
+    console.log("Invalid Email Address:", createActionData.email);
+    toast.error("Please enter a valid email address.");
+    return;
+  }
 
-    const postData = {
-      ...createActionData,
-      locationid: selectedLocation?.id || "",
-      onsite: true
-    };
-    for (const field of requiredFields) {
-      if (!postData[field]) {
-        toast.warning(`Please fill in the ${field}`);
-        return;
-      }
-    }
-    try {
-      const response = await axios.post("/api/user", postData);
-
-      if (response) {
-        toast.success("Patient successfully added!");
-        setCreateActionData({});
-        setEmailError("");
-        fetch_handle(selectedLocation?.id);
-      }
-    } catch (error) {
-      toast.error("Failed to add patient. Please try again.");
-    }
+  // Prepare post data
+  const postData = {
+    ...createActionData,
+    locationid: selectedLocation?.id || "",
+    onsite: true
   };
+
+  // Log the post data before checking for missing fields
+  console.log("Post Data Before Checking Required Fields:", postData);
+
+  // Check if all required fields are present
+  for (const field of requiredFields) {
+    if (!postData[field]) {
+      console.log(`Missing field: ${field}`);
+      toast.warning(`Please fill in the ${field}`);
+      return;
+    }
+  }
+
+  try {
+    console.log("Making POST request with data:", postData);
+    const response = await axios.post("/api/user", postData);
+
+    if (response) {
+      console.log("Response received:", response);
+      toast.success("Patient successfully added!");
+      setCreateActionData({});
+      setEmailError("");
+      fetch_handle(selectedLocation?.id);
+    }
+  } catch (error) {
+    console.error("Error adding patient:", error);
+    toast.error("Failed to add patient. Please try again.");
+  }
+};
 
   const { t } = useTranslation(translationConstant.POSSALES);
 

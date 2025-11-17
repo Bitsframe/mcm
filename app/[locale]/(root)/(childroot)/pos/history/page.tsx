@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import moment from "moment";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { currencyFormatHandle } from "@/helper/common_functions";
@@ -18,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import { Eye } from "lucide-react";
+import ConfirmDeleteModal from '@/components/Modal_Components/ConfirmDeleteModal';
 
 interface DataListInterface {
   [key: string]: any;
@@ -26,59 +21,28 @@ interface DataListInterface {
 const tableHeader = [
   {
     id: "order_id",
-    label: "POS-Historyk4",
+    label: "Order ID",
     align: "text-center",
     flex: "flex-1",
   },
   {
-    id: "order_date",
-    label: "POS-Historyk5",
-    render_value: (val: string) =>
-      moment(val, "YYYY-MM-DD HH:mm:ss")
-        .subtract(6, "hours")
-        .format("DD-MMMM-YYYY"),
+    id: "patient_name",
+    label: "Patient Name",
+    render_value: (_val: any, elem?: any) => `${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`,
+    align: "text-center",
+    flex: "flex-1",
   },
   {
-    id: "name",
-    label: "POS-Historyk6",
-    render_value: (val: any, elem?: any) =>
-      `${elem?.pos?.firstname} ${elem?.pos?.lastname}`,
+    id: "phone",
+    label: "Phone Number",
+    render_value: (_val: any, elem?: any) => elem?.pos?.phone || '',
+    align: "text-center",
+    flex: "flex-1",
   },
   {
-    id: "total_price",
-    label: "POS-Historyk7",
-    render_value: (val: any, elem?: any) => {
-      const totalVal = elem.sales_history?.reduce(
-        (a: number, b: { total_price: number }) => a + b?.total_price,
-        0
-      );
-      return currencyFormatHandle(totalVal);
-    },
-  },
-  {
-    id: "payment_type",
-    label: "POS-Historyk8",
-    render_value: (_val: string, elem: any) =>
-      <div className="space-x-1">
-    {elem.cash ? <span className="text-sm">Cash</span> : null}
-    {elem.cash && elem.card ? <span>/</span> : null}
-    {elem.card ? <span className="text-sm">Card</span> : null}
-  </div>
-  },
-  {
-    id: "last_updated",
-    label: "POS-Historyk9",
-    render_value: (_val: string, elem: any, openModal: Function) => (
-      <button
-        onClick={() => openModal(elem)}
-        className="bg-[#cce0ff] text-[#0066ff] border-2 border-[#0066ff] text-base px-2 py-1 rounded-md transition-colors w-full"
-      >
-        <div className="flex justify-center items-center gap-2">
-          <Eye className="w-4 h-4" />
-          Details
-        </div>
-      </button>
-    ),
+    id: "email",
+    label: "Email",
+    render_value: (_val: any, elem?: any) => elem?.pos?.email || '',
     align: "text-center",
     flex: "flex-1",
   },
@@ -89,11 +53,15 @@ const SalesHistory = () => {
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<DataListInterface | null>(
-    null
-  );
+  const [selectedOrder, setSelectedOrder] = useState<DataListInterface | null>(null);
   const { selectedLocation } = useContext(LocationContext);
   const [preDefinedReasonList, setPreDefinedReasonList] = useState([]);
+  // Search states for each column
+  const [orderIdSearch, setOrderIdSearch] = useState("");
+  const [patientNameSearch, setPatientNameSearch] = useState("");
+  const [phoneSearch, setPhoneSearch] = useState("");
+  const [emailSearch, setEmailSearch] = useState("");
+  const [dobSearch, setDobSearch] = useState("");
 
   const fetchReasonsList = useCallback(async () => {
     try {
@@ -113,12 +81,16 @@ const SalesHistory = () => {
   const fetch_handle = useCallback(async (location_id: number) => {
     setLoading(true);
     try {
+      
       const fetched_data = await fetch_content_service({
         table: "orders",
         language: "",
-        selectParam: `,pos:allpatients (
+        selectParam: `, order_date, paid_amount, cash, card, pos:allpatients (
           lastname,
           firstname,
+          email,
+          phone,
+          dob,
           locationid,
           patientid:id
         ),
@@ -133,9 +105,14 @@ const SalesHistory = () => {
           key: "pos.locationid",
           value: location_id,
         },
-        filterOptions: [{ operator: "not", column: "pos", value: null }, { operator: "not", column: "allpatients.id", value: null }],
+        filterOptions: [
+          { operator: "not", column: "pos", value: null },
+          { operator: "not", column: "allpatients.id", value: null },
+        ],
       });
+      
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
+      
       setDataList(filteredData);
       setAllData(filteredData);
     } catch (error) {
@@ -144,6 +121,47 @@ const SalesHistory = () => {
       setLoading(false);
     }
   }, []);
+
+
+  // Filtering logic
+  useEffect(() => {
+    let filtered = allData;
+    if (orderIdSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        String(item.order_id).toLowerCase().includes(orderIdSearch.toLowerCase())
+      );
+    }
+    if (patientNameSearch.trim() !== "") {
+      filtered = filtered.filter((item) => {
+        const name = `${item?.pos?.firstname || ''} ${item?.pos?.lastname || ''}`.toLowerCase();
+        return name.includes(patientNameSearch.toLowerCase());
+      });
+    }
+    if (phoneSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        (item?.pos?.phone || "").toLowerCase().includes(phoneSearch.toLowerCase())
+      );
+    }
+    if (emailSearch.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        (item?.pos?.email || "").toLowerCase().includes(emailSearch.toLowerCase())
+      );
+    }
+    if (dobSearch.trim() !== "") {
+      filtered = filtered.filter((item) => {
+        if (!item?.order_date) return false;
+        
+        // Convert order_date from UTC to CST and format as YYYY-MM-DD
+        const orderDate = new Date(item.order_date);
+        const cstOffset = -6; // CST is UTC-6
+        const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
+        const orderDateString = orderDateCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+        
+        return orderDateString === dobSearch;
+      });
+    }
+    setDataList(filtered);
+  }, [orderIdSearch, patientNameSearch, phoneSearch, emailSearch, dobSearch, allData]);
 
   useEffect(() => {
     if (selectedLocation) {
@@ -155,28 +173,79 @@ const SalesHistory = () => {
     fetchReasonsList();
   }, [fetchReasonsList]);
 
+  // Delete workflow: open confirm modal, then perform delete
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const requestDelete = (orderId: number) => {
+    try {
+      console.log("SalesHistory.requestDelete called", { orderId, ts: new Date().toISOString() });
+    } catch (e) {
+      // ignore in non-browser
+    }
+    setOrderToDelete(orderId);
+    setDeleteModalOpen(true);
+  };
+
+  const performDelete = async () => {
+    if (!orderToDelete) return;
+    try {
+      setDeleteLoading(true);
+      try {
+        console.log("SalesHistory.performDelete: sending delete request", { orderToDelete });
+      } catch (e) {}
+
+      const res = await fetch('/api/orders/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderToDelete }),
+      });
+      const data = await res.json();
+      try {
+        console.log("SalesHistory.performDelete: delete response", { status: res.status, body: data });
+      } catch (e) {}
+
+      if (!res.ok || !data.success) {
+        console.error('Failed to delete order', data);
+        alert(data.message || 'Failed to delete order');
+      } else {
+        // refresh list
+        if (selectedLocation) {
+          fetch_handle(selectedLocation.id);
+        }
+        setDeleteModalOpen(false);
+        setOrderToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting order', error);
+      alert('Error deleting order');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const openModal = useCallback((orderDetails: DataListInterface) => {
     setSelectedOrder(orderDetails);
     setModalOpen(true);
+    try {
+      // Log info to console for debugging instead of alert
+      const dateFilter = dobSearch ? dobSearch : "All dates";
+      console.log("SalesHistory.openModal called", {
+        dateFilter,
+        selectedOrder: orderDetails,
+        // include a note about what goes into the PDF
+        pdfFields: ["Order ID", "Date", "Patient Name", "Total Amount", "Payment Type"],
+      });
+    } catch (e) {
+      // ignore in non-browser environments
+    }
   }, []);
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
     setSelectedOrder(null);
   }, []);
-
-  const onChangeHandle = useCallback(
-    (e: any) => {
-      const val = e.target.value;
-      if (val === "") {
-        setDataList([...allData]);
-      } else {
-        const filteredData = allData.filter((elem) => elem.order_id === +val);
-        setDataList(filteredData);
-      }
-    },
-    [allData]
-  );
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
 
@@ -202,19 +271,177 @@ const SalesHistory = () => {
         </div>
       </div>
 
-      <div className="w-full overflow-auto px-4">
-        <TableComponent
-          tableHeader={tableHeader}
-          loading={loading}
-          dataList={dataList}
-          openModal={openModal}
-          searchHandle={onChangeHandle}
-          searchInputplaceholder={t("POS-Historyk3")}
-          tableBodyHeight="h-[50dvh]"
-          tableHeight="h-[67dvh] md:h-[58dvh]"
-          itemPerPage={6}
-        />
+      {/* Statistics Cards Container */}
+      <div className="px-4 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1 - Products Sold Today */}
+          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Products Sold {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {(() => {
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
+                    
+                    let totalProductsSold = 0;
+                    
+                    dataList.forEach((order) => {
+                      if (order.sales_history) {
+                        order.sales_history.forEach((sale: any) => {
+                          // Convert UTC time to CST
+                          const saleDate = new Date(sale.date_sold);
+                          const cstOffset = -6; // CST is UTC-6
+                          const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
+                          const saleDateString = saleDateCST.toISOString().split('T')[0];
+                          
+                          // If sale date matches target date, add the quantity
+                          if (saleDateString === targetDateString) {
+                            totalProductsSold += sale.quantity_sold || 0;
+                          }
+                        });
+                      }
+                    });
+                    
+                    return totalProductsSold;
+                  })()}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2 - Total Amount Received Today */}
+          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Amount Received {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  ${(() => {
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
+                    
+                    let totalAmount = 0;
+                    
+                    allData.forEach((order) => {
+                      if (!order?.order_date) return;
+                      
+                      // Convert order_date from UTC to CST
+                      const orderDate = new Date(order.order_date);
+                      const cstOffset = -6; // CST is UTC-6
+                      const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
+                      const orderDateString = orderDateCST.toISOString().split('T')[0];
+                      
+                      // If order date matches target date, add the paid_amount
+                      if (orderDateString === targetDateString) {
+                        const paidAmount = order.paid_amount || 0;
+                        totalAmount += paidAmount;
+                      }
+                    });
+                    
+                    return totalAmount.toFixed(2);
+                  })()}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                <svg className="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3 - Total Sales */}
+          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Sales {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  ${(() => {
+                    // Use selected date or today's date
+                    const targetDateString = dobSearch || (() => {
+                      const today = new Date();
+                      const cstOffset = -6; // CST is UTC-6
+                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
+                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    })();
+                    
+                    let totalSales = 0;
+                    
+                    dataList.forEach((order) => {
+                      if (order.sales_history) {
+                        order.sales_history.forEach((sale: any) => {
+                          // Convert UTC time to CST
+                          const saleDate = new Date(sale.date_sold);
+                          const cstOffset = -6; // CST is UTC-6
+                          const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
+                          const saleDateString = saleDateCST.toISOString().split('T')[0];
+                          
+                          // If sale date matches target date, add the total_price
+                          if (saleDateString === targetDateString) {
+                            totalSales += sale.total_price || 0;
+                          }
+                        });
+                      }
+                    });
+                    
+                    return totalSales.toFixed(2);
+                  })()}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                <svg className="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Table Component */}
+      <TableComponent
+        tableHeader={tableHeader}
+        loading={loading}
+        dataList={dataList}
+        openModal={openModal}
+        onDelete={requestDelete}
+        tableBodyHeight="h-[50dvh]"
+        tableHeight="h-[67dvh] md:h-[58dvh]"
+        itemPerPage={6}
+        searchInputs={{
+          orderIdSearch,
+          setOrderIdSearch,
+          patientNameSearch,
+          setPatientNameSearch,
+          phoneSearch,
+          setPhoneSearch,
+          emailSearch,
+          setEmailSearch,
+          dobSearch,
+          setDobSearch,
+        }}
+      />
 
       {selectedOrder && (
         <OrderDetailsModal
@@ -224,6 +451,18 @@ const SalesHistory = () => {
           orderDetails={selectedOrder}
         />
       )}
+      {/* Confirm delete modal */}
+      <ConfirmDeleteModal
+        is_open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setOrderToDelete(null);
+        }}
+        onConfirm={performDelete}
+        loading={deleteLoading}
+        title="Delete Order"
+        description="Are you sure you want to delete this order? This action cannot be undone."
+      />
     </main>
   );
 };

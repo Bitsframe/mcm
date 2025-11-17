@@ -79,7 +79,7 @@ export async function POST(req: any) {
     // If templateBody is provided, use it directly (DB template)
     if (templateBody) {
       const payload = {
-        from: process.env.SENDER_BROADCAST_EMAIL || "test@alerts.myclinicmd.com",
+        from: process.env.SENDER_BROADCAST_EMAIL || "clinicasanmichel@alerts.myclinicmd.com",
         recipients: email.map((recipient: any) => recipient.email),
         subject,
         html: templateBody,
@@ -136,9 +136,10 @@ export async function POST(req: any) {
       })
     );
 
+
     // Create a payload that includes all recipients
     const payload = {
-      from: process.env.SENDER_BROADCAST_EMAIL || "test@alerts.myclinicmd.com",
+      from: process.env.SENDER_BROADCAST_EMAIL || "clinicasanmiguel@alerts.myclinicmd.com",
       recipients: email.map((recipient: any) => recipient.email),
       subject,
       html: emailHtmls,

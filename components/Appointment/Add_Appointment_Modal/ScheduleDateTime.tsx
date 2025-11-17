@@ -1,12 +1,14 @@
 import { translationConstant } from '@/utils/translationConstants';
 import { renderFormattedDate } from '@/helper/common_functions';
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar } from "@/components/ui/calendar"; // shadcn calendar component
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { LocationContext } from '@/context';
 
 type DayTimings = {
     mon_timing: string;
@@ -28,6 +30,9 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
     const [availableTimes, setAvailableTimes] = useState<string[]>([]);
     const [isClosed, setIsClosed] = useState<boolean>(false);
     const [selectedSlot, setSelectedSlot] = useState('')
+    const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+
+    const { selectedLocation } = useContext(LocationContext);
 
     const getTimingKey = (date: Date): keyof DayTimings => {
         const days = ['sunday_timing', 'mon_timing', 'tuesday_timing', 'wednesday_timing', 'thursday_timing', 'friday_timing', 'saturday_timing'] as const;
@@ -78,6 +83,48 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         selectDateTimeSlotHandle('')
     }, [date, data]);
 
+    // Fetch already-booked slots for the selected date and location
+    useEffect(() => {
+        const fetchBooked = async () => {
+            try {
+                if (!selectedLocation?.id || !date) {
+                    setBookedTimes([]);
+                    return;
+                }
+                const rows: any[] = await fetch_content_service({
+                    table: 'Appoinments',
+                    matchCase: [{ key: 'location_id', value: Number(selectedLocation.id) }],
+                });
+
+                const selDayStrDMY = format(date, 'dd-MM-yyyy');
+                const selDayStrYMD = format(date, 'yyyy-MM-dd');
+
+                const times = (rows || [])
+                    .map(r => r?.date_and_time as string)
+                    .filter(Boolean)
+                    .map((s: string) => s.trim())
+                    .filter((s: string) => s.includes(' - '))
+                    .map((s: string) => {
+                        const core = s.includes('|') ? s.split('|')[1] : s; // remove any leading location id
+                        const [datePart, timePartRaw] = core.split(' - ').map(t => t.trim());
+                        // Keep only those matching the selected date in either DMY or YMD
+                        const matches = datePart === selDayStrDMY || datePart === selDayStrYMD;
+                        const timePart = (timePartRaw || '').toUpperCase();
+                        return matches ? timePart : '';
+                    })
+                    .filter((t: string) => !!t);
+
+                setBookedTimes(times);
+            } catch (e) {
+                console.error('Failed to fetch booked slots', e);
+                setBookedTimes([]);
+            }
+        };
+        fetchBooked();
+    }, [selectedLocation, date]);
+
+    const bookedSet = useMemo(() => new Set(bookedTimes.map(t => t.trim().toUpperCase())), [bookedTimes]);
+
     const dateTimeChangeHandle = (selectedDate: Date | undefined) => {
         if (selectedDate) {
             setDate(selectedDate);
@@ -114,11 +161,20 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                         availableTimes.length > 0 ? <> <option value='' className="bg-white dark:bg-[#122136] text-black dark:text-white">
                             Select Slot
                         </option> {
-                                availableTimes.map((time, index) => (
-                                    <option key={index} value={time} className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        {time}
-                                    </option>
-                                ))
+                                availableTimes.map((time, index) => {
+                                    const timeKey = String(time).trim().toUpperCase();
+                                    const isBooked = bookedSet.has(timeKey);
+                                    return (
+                                        <option
+                                            key={index}
+                                            value={time}
+                                            disabled={isBooked}
+                                            className={`bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 ${isBooked ? 'opacity-60' : ''}`}
+                                        >
+                                            {time}{isBooked ? ' (Booked)' : ''}
+                                        </option>
+                                    );
+                                })
                             }</> : (
                             <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">No available times</option>
                         )
