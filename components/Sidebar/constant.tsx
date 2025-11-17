@@ -138,6 +138,10 @@ export const routeList: Route[] = [
     label: "Bonus",
     icon: Calculator,
     route: ROUTES.BONUS,
+    children: [
+      { id: 'bonus-team', name: 'bonus-team', label: 'Team Bonus', route: '/bonus/team' },
+      { id: 'bonus-individual', name: 'bonus-individual', label: 'Individual Bonus', route: '/bonus/individual' },
+    ],
   },
   {
     id: 'inventory',
