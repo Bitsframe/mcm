@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
+import { fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services'
 
 export default function IndividualBonusPage() {
   const [loading, setLoading] = useState(false)
@@ -40,8 +40,10 @@ export default function IndividualBonusPage() {
         const mapped = (bonusRows || []).map((r: any) => ({
           id: r.id,
           staff_id: r.staff_id,
+          sales_team_id: r.sales_team_id ?? null,
           staff_name: staffMap[Number(r.staff_id)] || String(r.staff_id),
           bonus: r.bonus ?? r.amount ?? r.bonus_amount ?? 0,
+          paid: Boolean(r.paid),
           bonus_date: r.bonus_date ?? r.date ?? r.created_at ?? null,
         }))
 
@@ -58,6 +60,31 @@ export default function IndividualBonusPage() {
     load()
   }, [])
 
+  const handlePay = async (row: any) => {
+    if (row.paid) return
+
+    // optimistic UI: mark as paying
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paying: true } : r)))
+
+    try {
+      // call update service to set paid = true in individual_bonus table
+      console.log('Pay clicked for row (persisting):', row)
+      const res = await update_content_service({ table: 'individual_bonus', post_data: { id: row.id, paid: true } })
+      // supabase returns updated row(s) in res; if successful, update UI
+      if (res && Array.isArray(res) && res.length > 0) {
+        setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paid: true, paying: false } : r)))
+      } else {
+        // fallback: still mark as paid if service didn't return rows but no error thrown
+        setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paid: true, paying: false } : r)))
+      }
+    } catch (err) {
+      console.error('Error paying bonus', err)
+      // clear paying flag on error
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paying: false } : r)))
+      // Optionally: surface an error to user (toast/modal) — left as TODO
+    }
+  }
+
   return (
     <main className="p-4">
       <h1 className="text-xl font-semibold">Individual Bonus</h1>
@@ -70,6 +97,7 @@ export default function IndividualBonusPage() {
               <th className="px-2 py-1 border-b">Staff</th>
               <th className="px-2 py-1 border-b">Bonus</th>
               <th className="px-2 py-1 border-b">Bonus Date</th>
+              <th className="px-2 py-1 border-b">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -77,8 +105,25 @@ export default function IndividualBonusPage() {
               <tr key={r.id}>
                 <td className="px-2 py-2 border-b">{r.id}</td>
                 <td className="px-2 py-2 border-b">{r.staff_name}</td>
+                <td className="px-2 py-2 border-b">{r.sales_team_id ?? ''}</td>
                 <td className="px-2 py-2 border-b">{Number(r.bonus).toFixed(2)}</td>
                 <td className="px-2 py-2 border-b">{r.bonus_date ? new Date(r.bonus_date).toLocaleString() : ''}</td>
+                <td className="px-2 py-2 border-b">
+                  <button
+                    type="button"
+                    onClick={() => handlePay(r)}
+                    disabled={Boolean(r.paid) || Boolean(r.paying)}
+                    className={
+                      (r.paid || r.paying)
+                        ? 'bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded'
+                    }
+                    aria-disabled={Boolean(r.paid) || Boolean(r.paying)}
+                    title={r.paid ? 'Already paid' : r.paying ? 'Processing payment' : 'Pay bonus'}
+                  >
+                    {r.paid ? 'Paid' : r.paying ? 'Paying...' : 'Pay'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
