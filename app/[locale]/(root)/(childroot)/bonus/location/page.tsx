@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
 import { Plus, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Phone, Mail, User, DollarSign } from "lucide-react"
 import { toast, ToastContainer } from 'react-toastify'
+import supabase from '@/utils/supabaseClient'
 import 'react-toastify/dist/ReactToastify.css'
 
 const BonusPage = () => {
@@ -22,6 +23,7 @@ const BonusPage = () => {
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingPatients, setLoadingPatients] = useState(false)
+  const [calcRunning, setCalcRunning] = useState(false)
   const [totalsByLocation, setTotalsByLocation] = useState<Record<string, { locationId: string | number, total: number, count: number }>>({})
   const [bonusRowsByLocation, setBonusRowsByLocation] = useState<Record<string, any>>({})
   const [thresholdsByLocation, setThresholdsByLocation] = useState<Record<string, any>>({})
@@ -944,6 +946,36 @@ const BonusPage = () => {
                 <div className="flex items-center text-lg text-gray-700 dark:text-gray-300">
                   <span className="mr-3 font-semibold">{t('Bonus_k5')}</span>
                   <span className="font-semibold text-lg">{displayDate}</span>
+                  <div className="ml-4 flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-100"
+                      onClick={async () => {
+                        try {
+                          setColumnFilters((s) => ({ ...s, date: getTodayYMD() }))
+                          if (typeof fetchData === 'function') await fetchData()
+                        } catch (_) {}
+                      }}
+                      aria-label="Show today"
+                      title="Show today"
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-100"
+                      onClick={async () => {
+                        try {
+                          setColumnFilters((s) => ({ ...s, date: getYesterdayYMD() }))
+                          if (typeof fetchData === 'function') await fetchData()
+                        } catch (_) {}
+                      }}
+                      aria-label="Show yesterday"
+                      title="Show yesterday"
+                    >
+                      Yesterday
+                    </Button>
+                  </div>
                 </div>
                 <Button
                   size="sm"
@@ -953,6 +985,33 @@ const BonusPage = () => {
                   title="Open filters"
                 >
                   {t('Bonus_k6')}
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={calcRunning}
+                  className={`${calcRunning ? 'opacity-60 cursor-wait' : ''} px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600`}
+                  onClick={async () => {
+                    setCalcRunning(true)
+                    try {
+                      const { data: updateBonusData, error: updateBonusError } = await supabase.rpc('update_bonus_totalsales')
+                      if (updateBonusError) {
+                        console.error('RPC update_bonus_totalsales error:', updateBonusError)
+                        toast.error('Failed to trigger calculation')
+                      } else {
+                        toast.success('Calculation triggered')
+                        try { if (typeof fetchData === 'function') await fetchData() } catch(_){}
+                      }
+                    } catch (err) {
+                      console.error('Failed to call RPC:', err)
+                      toast.error('Failed to trigger calculation')
+                    } finally {
+                      setCalcRunning(false)
+                    }
+                  }}
+                  aria-label="Calculate bonuses"
+                  title="Calculate bonuses"
+                >
+                  {calcRunning ? 'Calculating...' : 'Calculate'}
                 </Button>
               </div>
               <Table>
