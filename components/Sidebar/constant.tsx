@@ -141,6 +141,7 @@ export const routeList: Route[] = [
     children: [
       { id: 'bonus-team', name: 'bonus-team', label: 'Team Bonus', route: '/bonus/team' },
       { id: 'bonus-individual', name: 'bonus-individual', label: 'Individual Bonus', route: '/bonus/individual' },
+      { id: 'bonus-location', name: 'bonus-location', label: 'Location Bonus', route: '/bonus/location' },
     ],
   },
   {
