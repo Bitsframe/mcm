@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import BonusSummaryCards from '@/components/BonusSummaryCards'
 import { fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services'
 import supabase from '@/utils/supabaseClient'
 import { toast, ToastContainer } from 'react-toastify'
@@ -10,19 +11,81 @@ export default function IndividualBonusPage() {
   const [loading, setLoading] = useState(false)
   const [rows, setRows] = useState<any[]>([])
   const [calcRunning, setCalcRunning] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [filterMode, setFilterMode] = useState<'staff' | 'location'>('staff')
+  const [filterStaffName, setFilterStaffName] = useState<string>('')
+  const [staffOptions, setStaffOptions] = useState<Array<{ full_name: string; location_id?: string[] }>>([])
+  const [locationOptions, setLocationOptions] = useState<Array<{ id: string; title: string }>>([])
+  const [allLocations, setAllLocations] = useState<Array<{ id: string; title: string }>>([])
+  const [filterLocationIds, setFilterLocationIds] = useState<string[]>([])
+  const [locDropdownOpen, setLocDropdownOpen] = useState<boolean>(false)
+  const [filterBonusStart, setFilterBonusStart] = useState<string | null>(null)
+  const [filterBonusEnd, setFilterBonusEnd] = useState<string | null>(null)
+  const [filterPaidStart, setFilterPaidStart] = useState<string | null>(null)
+  const [filterPaidEnd, setFilterPaidEnd] = useState<string | null>(null)
+  const [pickerMode, setPickerMode] = useState<'week' | 'month'>('week')
+  const [weekStart, setWeekStart] = useState<string | null>(null)
+  const [monthValue, setMonthValue] = useState<string | null>(null)
+  const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
+  const [appliedFilters, setAppliedFilters] = useState<any>(null)
+  const isWeekActive = (() => {
+    if (pickerMode === 'week' && pickerOpen) return true
+    if (!selectedRange) return false
+    try {
+      const s = new Date(selectedRange.start)
+      const e = new Date(selectedRange.end)
+      const diff = (e.getTime() - s.getTime()) / (24*3600*1000)
+      return diff === 7
+    } catch (e) { return false }
+  })()
+  const isMonthActive = (() => {
+    if (pickerMode === 'month' && pickerOpen) return true
+    if (!selectedRange) return false
+    try {
+      const s = new Date(selectedRange.start)
+      const e = new Date(selectedRange.end)
+      // month range: start is first of month and end is first of next month
+      return s.getUTCDate() === 1 && e.getUTCDate() === 1 && (e.getUTCMonth() !== s.getUTCMonth() || e.getUTCFullYear() !== s.getUTCFullYear())
+    } catch (e) { return false }
+  })()
 
-  const fetchRows = async () => {
+  type ClientFilters = {
+    staffName?: string | null
+    locationIds?: string[] | null
+    bonusStart?: string | null
+    bonusEnd?: string | null
+    paidStart?: string | null
+    paidEnd?: string | null
+  }
+
+  const fetchRows = async (clientFilters?: ClientFilters) => {
     try {
       setLoading(true)
 
       // Try the expected table name first, fall back to a generic 'individual' table
       let bonusRows: any[] = []
       try {
-        bonusRows = await fetch_content_service({ table: 'individual_bonus' })
+        // if user selected a date range (week/month), pass filterOptions
+        if (selectedRange) {
+          bonusRows = await fetch_content_service({ table: 'individual_bonus', filterOptions: [
+            { column: 'bonus_date', operator: 'gte', value: selectedRange.start },
+            { column: 'bonus_date', operator: 'lt', value: selectedRange.end },
+          ] })
+        } else {
+          bonusRows = await fetch_content_service({ table: 'individual_bonus' })
+        }
       } catch (e) {
         // fallback
         try {
-          bonusRows = await fetch_content_service({ table: 'individual' })
+          if (selectedRange) {
+            bonusRows = await fetch_content_service({ table: 'individual', filterOptions: [
+              { column: 'bonus_date', operator: 'gte', value: selectedRange.start },
+              { column: 'bonus_date', operator: 'lt', value: selectedRange.end },
+            ] })
+          } else {
+            bonusRows = await fetch_content_service({ table: 'individual' })
+          }
         } catch (err) {
           console.warn('Neither individual_bonus nor individual table available', err)
           bonusRows = []
@@ -40,10 +103,28 @@ export default function IndividualBonusPage() {
         staffRows?.forEach((s: any) => { staffMap[Number(s.id)] = s.full_name })
       }
 
+      // collect sales_team_ids and map to location_id
+      const salesTeamIds = Array.from(new Set((bonusRows || []).map((r: any) => Number(r.sales_team_id)).filter(Boolean)))
+      let salesTeamMap: Record<number, number> = {}
+      let locationMap: Record<number, string> = {}
+      if (salesTeamIds.length > 0) {
+        const salesTeamRows = await fetch_content_service({ table: 'sales_team', filterOptions: [{ column: 'id', operator: 'in', value: salesTeamIds }], selectParam: 'location_id' })
+        salesTeamRows?.forEach((s: any) => { salesTeamMap[Number(s.id)] = s.location_id })
+
+        const locationIds = Array.from(new Set(salesTeamRows.map((st: any) => Number(st.location_id)).filter(Boolean)))
+        if (locationIds.length > 0) {
+          const locRows = await fetch_content_service({ table: 'Locations', filterOptions: [{ column: 'id', operator: 'in', value: locationIds }], selectParam: 'title' })
+          locRows?.forEach((l: any) => { locationMap[Number(l.id)] = l.title })
+        }
+      }
+
       const mapped = (bonusRows || []).map((r: any) => ({
         id: r.id,
         staff_id: r.staff_id,
         sales_team_id: r.sales_team_id ?? null,
+        // include the location_id from sales_team (if available) so client filtering can use it
+        location_id: salesTeamMap[Number(r.sales_team_id)] ? String(salesTeamMap[Number(r.sales_team_id)]) : null,
+        location_name: salesTeamMap[Number(r.sales_team_id)] ? (locationMap[salesTeamMap[Number(r.sales_team_id)]] || '') : '',
         staff_name: staffMap[Number(r.staff_id)] || String(r.staff_id),
         bonus: r.bonus ?? r.amount ?? r.bonus_amount ?? 0,
         paid: Boolean(r.paid),
@@ -53,7 +134,51 @@ export default function IndividualBonusPage() {
       }))
 
       console.log('mapped individual bonuses:', mapped)
-      setRows(mapped)
+
+      // apply client-side filters if provided
+      let filtered = mapped
+      if (clientFilters) {
+        const { staffName, locationIds, bonusStart, bonusEnd, paidStart, paidEnd } = clientFilters
+
+        if (staffName) {
+          const s = staffName.toLowerCase()
+          filtered = filtered.filter((r: any) => (r.staff_name || '').toLowerCase().includes(s))
+        }
+        if (locationIds && Array.isArray(locationIds) && locationIds.length > 0) {
+          // filter by the sales_team -> location_id stored on the mapped row
+          filtered = filtered.filter((r: any) => (r.location_id ? locationIds.includes(String(r.location_id)) : false))
+        }
+
+        const hasBonusRange = Boolean(bonusStart || bonusEnd)
+        const hasPaidRange = Boolean(paidStart || paidEnd)
+
+        const inRange = (dateStr: any, startStr?: string | null, endStr?: string | null) => {
+          if (!dateStr) return false
+          try {
+            const d = new Date(dateStr)
+            if (startStr) {
+              const s = new Date(startStr)
+              if (d < s) return false
+            }
+            if (endStr) {
+              const e = new Date(endStr)
+              if (d > e) return false
+            }
+            return true
+          } catch (e) { return false }
+        }
+
+        if (hasBonusRange && hasPaidRange) {
+          // when both ranges are provided, include rows where bonus_date is in bonus range OR paid_date is in paid range
+          filtered = filtered.filter((r: any) => inRange(r.bonus_date, bonusStart, bonusEnd) || inRange(r.paid_date, paidStart, paidEnd))
+        } else if (hasBonusRange) {
+          filtered = filtered.filter((r: any) => inRange(r.bonus_date, bonusStart, bonusEnd))
+        } else if (hasPaidRange) {
+          filtered = filtered.filter((r: any) => inRange(r.paid_date, paidStart, paidEnd))
+        }
+      }
+
+      setRows(filtered)
     } catch (e) {
       console.error('Error loading individual bonuses', e)
       setRows([])
@@ -63,6 +188,156 @@ export default function IndividualBonusPage() {
   }
 
   useEffect(() => { fetchRows() }, [])
+
+  // load staff names for dropdown
+  useEffect(() => {
+    const loadStaffNames = async () => {
+      try {
+        // fetch full_name and location_id (array) from staff
+        const staffRows = await fetch_content_service({ table: 'staff', selectParam: 'full_name,location_id' })
+        if (Array.isArray(staffRows)) {
+          const mapped = staffRows.map((s: any) => ({ full_name: s.full_name, location_id: Array.isArray(s.location_id) ? s.location_id : (s.location_id ? [s.location_id] : []) }))
+          setStaffOptions(mapped.filter((s: any) => s.full_name))
+        }
+      } catch (err) {
+        console.error('Failed to load staff names for dropdown', err)
+      }
+    }
+    loadStaffNames()
+  }, [])
+
+  // load all Locations (for location-mode dropdown)
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const locRows = await fetch_content_service({ table: 'Locations', selectParam: 'id,title' })
+        if (Array.isArray(locRows)) setAllLocations(locRows.map((l: any) => ({ id: String(l.id), title: l.title })))
+      } catch (err) {
+        console.error('Failed to load Locations', err)
+      }
+    }
+    loadLocations()
+  }, [])
+
+  // when switching to location mode, clear staff and set locationOptions to allLocations
+  useEffect(() => {
+    if (filterMode === 'location') {
+      setFilterStaffName('')
+      setLocationOptions(allLocations)
+      setFilterLocationIds([])
+    } else {
+      // when switching back to staff mode, clear any global location selection
+      setFilterLocationIds([])
+    }
+  }, [filterMode, allLocations])
+
+  const summaryCards = useMemo(() => {
+    // If a location filter was applied, show stats specific to that location(s)
+    if (appliedFilters && appliedFilters.mode === 'location') {
+      const locTitles: string[] = Array.isArray(appliedFilters.locationTitles) ? appliedFilters.locationTitles : []
+      if (locTitles.length > 0) {
+        const rowsForLoc = rows.filter((r) => locTitles.includes(r.location_name))
+        const totalToLocation = rowsForLoc.reduce((acc, r) => acc + Number(r.bonus || 0), 0)
+        const totalPaidToLocation = rowsForLoc.reduce((acc, r) => acc + (r.paid ? Number(r.bonus || 0) : 0), 0)
+
+        // compute total per staff within these locations
+        const byStaff: Record<string, number> = {}
+        rowsForLoc.forEach((r) => {
+          const person = r.staff_name || String(r.staff_id || 'Unknown')
+          byStaff[person] = (byStaff[person] || 0) + Number(r.bonus || 0)
+        })
+
+        // find highest total and all names with that value
+        let highestAmount = 0
+        Object.values(byStaff).forEach((amt) => { if (amt > highestAmount) highestAmount = amt })
+        const highestNames = highestAmount > 0 ? Object.entries(byStaff).filter(([, amt]) => amt === highestAmount).map(([name]) => name) : []
+
+        const titleLocation = locTitles.length === 1 ? locTitles[0] : locTitles.join(', ')
+
+        return [
+          { id: 'total', title: `Total Bonus to ${titleLocation}`, value: `$${totalToLocation.toFixed(2)}` },
+          { id: 'total_paid', title: `Total Bonus Paid to ${titleLocation}`, value: `$${totalPaidToLocation.toFixed(2)}` },
+          { id: 'highest_staff', title: 'Highest Bonus Staff on Location', value: `$${highestAmount.toFixed(2)}`, subtitle: highestNames.length > 0 ? highestNames.join(', ') : '-' },
+        ]
+      }
+    }
+    // If a staff filter was applied, show stats specific to that staff
+    if (appliedFilters && appliedFilters.mode === 'staff' && appliedFilters.staffName) {
+      const staffName = appliedFilters.staffName
+      const staffRows = rows.filter((r) => (r.staff_name || '') === staffName)
+      const totalToStaff = staffRows.reduce((acc, r) => acc + Number(r.bonus || 0), 0)
+      const totalPaidToStaff = staffRows.reduce((acc, r) => acc + (r.paid ? Number(r.bonus || 0) : 0), 0)
+
+      // compute highest bonus at selected location(s) if provided
+      let maxAmt = 0
+      let maxLoc = '-'
+      const locTitles: string[] = Array.isArray(appliedFilters.locationTitles) ? appliedFilters.locationTitles : []
+      let rowsForLoc: any[] = []
+      if (locTitles.length > 0) {
+        rowsForLoc = rows.filter((r) => locTitles.includes(r.location_name))
+      } else {
+        // fallback to staffRows
+        rowsForLoc = staffRows
+      }
+      if (rowsForLoc.length > 0) {
+        const maxRow = rowsForLoc.reduce((p, c) => (Number(p.bonus || 0) >= Number(c.bonus || 0) ? p : c))
+        maxAmt = Number(maxRow.bonus || 0)
+        maxLoc = maxRow.location_name || '-'
+      }
+
+      return [
+        { id: 'total', title: `Total Bonus to ${staffName}`, value: `$${totalToStaff.toFixed(2)}` },
+        { id: 'total_paid', title: `Total Bonus Paid to ${staffName}`, value: `$${totalPaidToStaff.toFixed(2)}` },
+        { id: 'highest_loc', title: 'Highest Bonus at Selected Location', value: `$${maxAmt.toFixed(2)}`, subtitle: maxLoc },
+      ]
+    }
+
+    // default behaviour when no staff-specific filter applied
+    const totalCount = rows.length
+    const totalPaid = rows.reduce((acc, r) => acc + (r.paid ? Number(r.bonus || 0) : 0), 0)
+    const totalUnpaid = rows.reduce((acc, r) => acc + (!r.paid ? Number(r.bonus || 0) : 0), 0)
+
+    // compute total paid per location
+    const paidByLocation: Record<string, number> = {}
+    rows.forEach((r) => {
+      if (r.paid) {
+        const loc = r.location_name || 'Unknown'
+        paidByLocation[loc] = (paidByLocation[loc] || 0) + Number(r.bonus || 0)
+      }
+    })
+
+    // find highest paid location
+    let highestLocation = { name: '-', amount: 0 }
+    Object.entries(paidByLocation).forEach(([loc, amt]) => {
+      if (amt > highestLocation.amount) {
+        highestLocation = { name: loc, amount: amt }
+      }
+    })
+
+    // compute total paid per person (staff)
+    const paidByPerson: Record<string, number> = {}
+    rows.forEach((r) => {
+      if (r.paid) {
+        const person = r.staff_name || String(r.staff_id || 'Unknown')
+        paidByPerson[person] = (paidByPerson[person] || 0) + Number(r.bonus || 0)
+      }
+    })
+
+    // find highest paid amount among persons and collect all names with that amount
+    let highestPersonAmount = 0
+    Object.values(paidByPerson).forEach((amt) => { if (amt > highestPersonAmount) highestPersonAmount = amt })
+    const highestPersonNames = highestPersonAmount > 0
+      ? Object.entries(paidByPerson).filter(([, amt]) => amt === highestPersonAmount).map(([name]) => name)
+      : []
+
+    const highestPersonSubtitle = highestPersonNames.length > 0 ? highestPersonNames.join(', ') : '-'
+
+    return [
+      { id: 'total', title: 'Total bonus paid', value: `$${totalPaid.toFixed(2)}` },
+      { id: 'highest_location_paid', title: 'Highest Location Bonus Paid', value: `$${highestLocation.amount.toFixed(2)}`, subtitle: highestLocation.name },
+      { id: 'highest_person_paid', title: 'Highest Person Bonus Paid', value: `$${highestPersonAmount.toFixed(2)}`, subtitle: highestPersonSubtitle },
+    ]
+  }, [rows, appliedFilters])
 
   const handlePay = async (row: any) => {
     if (row.paid) return
@@ -94,7 +369,70 @@ export default function IndividualBonusPage() {
     <main className="p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Individual Bonus</h1>
-        <div>
+          <div className="relative flex items-center gap-3">
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
+              onClick={() => { setPickerMode('week'); setPickerOpen(true); if (!weekStart) setWeekStart(new Date().toISOString().slice(0,10)) }}
+            >
+              Week
+            </button>
+            <button
+              type="button"
+              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
+              onClick={() => { setPickerMode('month'); setPickerOpen(true); if (!monthValue) setMonthValue(new Date().toISOString().slice(0,7)) }}
+            >
+              Month
+            </button>
+          </div>
+
+          {pickerOpen && (
+            <div className="absolute right-0 z-20 mt-10 w-72 bg-white rounded border border-gray-200 p-3 shadow-lg">
+              <div className="mb-2 text-sm font-medium">Select {pickerMode === 'week' ? 'week start' : 'month'}</div>
+              {pickerMode === 'week' ? (
+                <div className="space-y-2">
+                  <input className="w-full border p-1 rounded" type="date" value={weekStart ?? ''} onChange={(e) => setWeekStart(e.target.value)} />
+                  <div className="text-xs text-gray-500">Selected week: {weekStart ? `${weekStart} → ${new Date(new Date(weekStart).getTime() + 6*24*3600*1000).toISOString().slice(0,10)}` : '-'}</div>
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>Cancel</button>
+                    <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
+                      if (weekStart) {
+                        const s = new Date(weekStart)
+                        const startIso = new Date(Date.UTC(s.getFullYear(), s.getMonth(), s.getDate(), 0,0,0)).toISOString()
+                        const end = new Date(s.getTime() + 7*24*3600*1000)
+                        const endIso = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(), 0,0,0)).toISOString()
+                        setSelectedRange({ start: startIso, end: endIso })
+                        setPickerOpen(false)
+                        fetchRows().catch(() => {})
+                      }
+                    }}>Apply</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <input className="w-full border p-1 rounded" type="month" value={monthValue ?? ''} onChange={(e) => setMonthValue(e.target.value)} />
+                  <div className="text-xs text-gray-500">Selected month: {monthValue ?? '-'}</div>
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>Cancel</button>
+                    <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
+                      if (monthValue) {
+                        const [y, m] = monthValue.split('-').map(Number)
+                        const start = new Date(Date.UTC(y, m-1, 1, 0,0,0))
+                        const end = new Date(Date.UTC(y, m, 1, 0,0,0))
+                        setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
+                        setPickerOpen(false)
+                        fetchRows().catch(() => {})
+                      }
+                    }}>Apply</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          
+
           <button
             className={`px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 rounded ${calcRunning ? 'opacity-60 cursor-wait' : ''}`}
             disabled={calcRunning}
@@ -121,16 +459,231 @@ export default function IndividualBonusPage() {
           >
             {calcRunning ? 'Calculating...' : 'Calculate'}
           </button>
+          
         </div>
       </div>
+
+      {appliedFilters && (
+        <div className="mt-4 mb-4 p-3 bg-gray-50 rounded border">
+          <div className="text-sm text-gray-600">Filtered by ({appliedFilters.mode === 'staff' ? 'Staff' : 'Location'})</div>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {appliedFilters.staffName && <div className="px-2 py-1 bg-blue-50 text-blue-800 rounded">Name: {appliedFilters.staffName}</div>}
+            {appliedFilters.locationTitles && appliedFilters.locationTitles.length > 0 && (
+              <div className="px-2 py-1 bg-green-50 text-green-800 rounded">Locations: {appliedFilters.locationTitles.join(', ')}</div>
+            )}
+            {(appliedFilters.bonusStart || appliedFilters.bonusEnd) && (
+              <div className="px-2 py-1 bg-yellow-50 text-yellow-800 rounded">Bonus: {appliedFilters.bonusStart ? appliedFilters.bonusStart.slice(0,10) : '-'} → {appliedFilters.bonusEnd ? appliedFilters.bonusEnd.slice(0,10) : '-'}</div>
+            )}
+            {(appliedFilters.paidStart || appliedFilters.paidEnd) && (
+              <div className="px-2 py-1 bg-purple-50 text-purple-800 rounded">Paid: {appliedFilters.paidStart ? appliedFilters.paidStart.slice(0,10) : '-'} → {appliedFilters.paidEnd ? appliedFilters.paidEnd.slice(0,10) : '-'}</div>
+            )}
+            <button className="ml-auto text-sm text-red-600" onClick={async () => { setAppliedFilters(null); setSelectedRange(null); try { await fetchRows() } catch(_){} }}>Clear</button>
+          </div>
+        </div>
+      )}
+
+      <BonusSummaryCards cards={summaryCards} />
+
+      <div className="flex items-center justify-start gap-4 mt-4 mb-4">
+        <button
+          type="button"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded min-w-[140px]"
+          onClick={() => setFilterModalOpen(true)}
+          title="Filter"
+        >
+          Filter
+        </button>
+
+        {selectedRange && (
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {new Date(selectedRange.end).toISOString().slice(0,10)}</div>
+            <button className="text-xs text-red-600" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>Clear</button>
+          </div>
+        )}
+      </div>
+
+      {/* Filter modal */}
+      {filterModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/40">
+          <div className="w-full max-w-3xl max-h-[80vh] overflow-auto bg-white rounded shadow-lg p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Filter bonuses</h3>
+              <button className="text-sm text-gray-600" onClick={() => setFilterModalOpen(false)}>Close</button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-6">
+                <label className="inline-flex items-center gap-2">
+                  <input type="radio" name="filterMode" checked={filterMode === 'staff'} onChange={() => setFilterMode('staff')} />
+                  <span>Staff</span>
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input type="radio" name="filterMode" checked={filterMode === 'location'} onChange={() => setFilterMode('location')} />
+                  <span>Location</span>
+                </label>
+              </div>
+
+              {/* Staff dropdown shown only when staff mode is active */}
+              {filterMode === 'staff' && (
+                <div>
+                  <label className="text-sm">Staff name</label>
+                  <select
+                    className="mt-1 w-full border p-3 rounded text-base"
+                    value={filterStaffName}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      setFilterStaffName(val)
+                      // find staff record to get its location_ids
+                      const staffRec = staffOptions.find((s) => s.full_name === val)
+                      if (staffRec && Array.isArray(staffRec.location_id) && staffRec.location_id.length > 0) {
+                        try {
+                          const locRows = await fetch_content_service({ table: 'Locations', filterOptions: [{ column: 'id', operator: 'in', value: staffRec.location_id }], selectParam: 'id,title' })
+                          if (Array.isArray(locRows)) {
+                            setLocationOptions(locRows.map((l: any) => ({ id: String(l.id), title: l.title })))
+                            // reset selected locations when staff changes
+                            setFilterLocationIds([])
+                          } else {
+                            setLocationOptions([])
+                          }
+                        } catch (err) {
+                          console.error('Failed to load locations for staff', err)
+                          setLocationOptions([])
+                        }
+                        } else {
+                        setLocationOptions([])
+                        setFilterLocationIds([])
+                      }
+                    }}
+                  >
+                    <option value="">-- Any --</option>
+                    {staffOptions.map((s) => (
+                      <option key={s.full_name} value={s.full_name}>{s.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm">Location</label>
+                  {/* Location select: multi-select when in staff mode, single-select when in location mode */}
+                  {filterMode === 'staff' ? (
+                    <div className="relative">
+                      <div className="mt-1 w-full border rounded p-2 cursor-pointer" onClick={() => setLocDropdownOpen((s) => !s)}>
+                        <div className="flex flex-wrap gap-2">
+                          {filterLocationIds.length === 0 && <div className="text-gray-500">(select staff to show locations)</div>}
+                          {filterLocationIds.map((id) => {
+                            const loc = locationOptions.find((l) => l.id === id)
+                            return loc ? (
+                              <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
+                                <span className="text-sm">{loc.title}</span>
+                                <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
+                              </span>
+                            ) : null
+                          })}
+                          <div className="ml-auto text-gray-400">▾</div>
+                        </div>
+                      </div>
+
+                      {locDropdownOpen && (
+                        <div className="absolute z-40 mt-1 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
+                          {locationOptions.length > 0 ? (
+                            locationOptions.map((loc) => (
+                              <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" onClick={() => { setFilterLocationIds(prev => prev.includes(loc.id) ? prev : [...prev, loc.id]); setLocDropdownOpen(false) }}>
+                                <div className="text-sm">{loc.title}</div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">(no locations)</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <select className="mt-1 w-full border p-2 rounded" value={filterLocationIds[0] ?? ''} onChange={(e) => setFilterLocationIds(e.target.value ? [e.target.value] : [])}>
+                      <option value="">-- Any --</option>
+                      {locationOptions.length > 0 ? (
+                        locationOptions.map((loc) => (
+                          <option key={loc.id} value={loc.id}>{loc.title}</option>
+                        ))
+                      ) : (
+                        <option value="">(select staff to show locations)</option>
+                      )}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-sm">Bonus date (start)</label>
+                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusStart ?? ''} onChange={(e) => setFilterBonusStart(e.target.value || null)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm">Bonus date (end)</label>
+                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusEnd ?? ''} onChange={(e) => setFilterBonusEnd(e.target.value || null)} />
+                </div>
+                <div>
+                  <label className="text-sm">Paid date (start)</label>
+                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidStart ?? ''} onChange={(e) => setFilterPaidStart(e.target.value || null)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm">Paid date (end)</label>
+                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidEnd ?? ''} onChange={(e) => setFilterPaidEnd(e.target.value || null)} />
+                </div>
+                <div />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setFilterModalOpen(false)}>Cancel</button>
+                <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={async () => {
+                  const clientFilters = {
+                    staffName: filterStaffName || null,
+                    locationIds: (filterLocationIds && filterLocationIds.length > 0) ? filterLocationIds : null,
+                    bonusStart: filterBonusStart ? new Date(filterBonusStart).toISOString() : null,
+                    bonusEnd: filterBonusEnd ? new Date(filterBonusEnd).toISOString() : null,
+                    paidStart: filterPaidStart ? new Date(filterPaidStart).toISOString() : null,
+                    paidEnd: filterPaidEnd ? new Date(filterPaidEnd).toISOString() : null,
+                  }
+                  // compute human-readable location titles for display
+                  const locTitles = (clientFilters.locationIds || []).map((id) => {
+                    const found = locationOptions.find((l) => String(l.id) === String(id)) || allLocations.find((l) => String(l.id) === String(id))
+                    return found ? found.title : String(id)
+                  })
+
+                  setFilterModalOpen(false)
+                  // store the applied filter snapshot for UI summary
+                  setAppliedFilters({ ...clientFilters, mode: filterMode, locationTitles: locTitles })
+                  try {
+                    await fetchRows(clientFilters)
+                  } catch (e) {
+                    console.error('Filter fetch error', e)
+                  } finally {
+                    // clear modal fields so modal is refreshed next time it's opened
+                    setFilterStaffName('')
+                    setFilterLocationIds([])
+                    setFilterBonusStart(null)
+                    setFilterBonusEnd(null)
+                    setFilterPaidStart(null)
+                    setFilterPaidEnd(null)
+                  }
+                }}>Apply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6">
         <table className="w-full table-auto border-collapse">
           <thead>
             <tr className="text-left">
-              <th className="px-2 py-1 border-b">ID</th>
               <th className="px-2 py-1 border-b">Staff</th>
-              <th className="px-2 py-1 border-b">Bonus Team ID</th>
+              <th className="px-2 py-1 border-b">Location</th>
               <th className="px-2 py-1 border-b">Bonus amount</th>
                 <th className="px-2 py-1 border-b">DATE</th>
                 <th className="px-2 py-1 border-b">Paid date</th>
@@ -140,9 +693,8 @@ export default function IndividualBonusPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td className="px-2 py-2 border-b">{r.id}</td>
                 <td className="px-2 py-2 border-b">{r.staff_name}</td>
-                <td className="px-2 py-2 border-b">{r.sales_team_id ?? ''}</td>
+                <td className="px-2 py-2 border-b">{r.location_name ?? ''}</td>
                 <td className="px-2 py-2 border-b">{Number(r.bonus).toFixed(2)}</td>
                 <td className="px-2 py-2 border-b">{r.bonus_date ? new Date(r.bonus_date).toLocaleDateString() : '-'}</td>
                 <td className="px-2 py-2 border-b">{r.paid_date ? new Date(r.paid_date).toLocaleDateString() : '-'}</td>
