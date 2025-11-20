@@ -190,8 +190,8 @@ export const Add_Appointment_Modal = ({
     if (key === "new_patient" && val === "false") {
       (async () => {
         try {
-          // For 'Coming Back' select existing patients from the central allpatients table
-          // filtered by selected location id.
+          // For 'Coming Back' select existing patients from the `allpatients` table
+          // filtered by the selected location id. Only fetch the fields we need.
           if (!selectedLocation || !selectedLocation.id) {
             console.warn('[Add_Appointment_Modal] selectedLocation is not set, cannot fetch coming back patients by location');
             setComingBackData([]);
@@ -199,9 +199,10 @@ export const Add_Appointment_Modal = ({
           }
 
           const { data, error } = await supabase
-            .from('Appoinments')
-            .select('*')
-            .eq('location_id', selectedLocation.id);
+            .from('allpatients')
+            .select('id, firstname, lastname, email, phone, gender')
+            .eq('locationid', selectedLocation.id);
+            
 
           // raw response available in `data`/`error`
           if (error) {
@@ -210,9 +211,7 @@ export const Add_Appointment_Modal = ({
             return;
           }
 
-          // no-op: data may be empty or contain rows
-
-          // Use the raw allpatients rows directly (no extra conditions or mapping)
+          // Use the fetched allpatients rows directly
           setComingBackData(data || []);
         } catch (err) {
           console.error('Failed to fetch returning patients from allpatients', err);
@@ -220,6 +219,7 @@ export const Add_Appointment_Modal = ({
         }
       })();
 
+   
       // Update isApproved to true for "Coming Back" patients
       setFormData((pre: any) => {
         return { ...pre, isApproved: true };
@@ -247,6 +247,7 @@ export const Add_Appointment_Modal = ({
       }));
     }
   };
+  
   const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {
     if (formData.location_id) {
       let dbSlot = "";

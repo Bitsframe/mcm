@@ -131,6 +131,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
                       disabled={disabled}
                       minQuantity={0}
                       formatPrice={formatPrice}
+                      bonusEligible={!!p.bonus_eligible}
                     />
                   ))}
                 </tbody>

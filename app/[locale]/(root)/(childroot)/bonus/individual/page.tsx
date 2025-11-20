@@ -47,6 +47,7 @@ export default function IndividualBonusPage() {
         staff_name: staffMap[Number(r.staff_id)] || String(r.staff_id),
         bonus: r.bonus ?? r.amount ?? r.bonus_amount ?? 0,
         paid: Boolean(r.paid),
+        paid_date: r.paid_date ?? null,
         // Use the canonical `bonus_date` column when present. Do not fall back to created_at.
         bonus_date: r.bonus_date ?? r.date ?? null,
       }))
@@ -131,8 +132,9 @@ export default function IndividualBonusPage() {
               <th className="px-2 py-1 border-b">Staff</th>
               <th className="px-2 py-1 border-b">Bonus Team ID</th>
               <th className="px-2 py-1 border-b">Bonus amount</th>
-              <th className="px-2 py-1 border-b">DATE</th>
-                 <th className="px-2 py-1 border-b">Action</th>
+                <th className="px-2 py-1 border-b">DATE</th>
+                <th className="px-2 py-1 border-b">Paid date</th>
+                  <th className="px-2 py-1 border-b">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -142,7 +144,8 @@ export default function IndividualBonusPage() {
                 <td className="px-2 py-2 border-b">{r.staff_name}</td>
                 <td className="px-2 py-2 border-b">{r.sales_team_id ?? ''}</td>
                 <td className="px-2 py-2 border-b">{Number(r.bonus).toFixed(2)}</td>
-                <td className="px-2 py-2 border-b">{r.bonus_date ? new Date(r.bonus_date).toLocaleDateString() : ''}</td>
+                <td className="px-2 py-2 border-b">{r.bonus_date ? new Date(r.bonus_date).toLocaleDateString() : '-'}</td>
+                <td className="px-2 py-2 border-b">{r.paid_date ? new Date(r.paid_date).toLocaleDateString() : '-'}</td>
                 <td className="px-2 py-2 border-b">
                   <button
                     type="button"

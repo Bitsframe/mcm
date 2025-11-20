@@ -434,8 +434,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
           <div className="flex items-center gap-2 text-xs">
             <Mail className="h-3 w-3 text-gray-500 dark:text-gray-400" />
-            <span className="text-gray-700 dark:text-gray-300 truncate">
-              {patient.email}
+            <span className="relative inline-block group">
+              <span
+                className="text-gray-700 dark:text-gray-300 truncate"
+                title={patient.email || undefined}
+                aria-label={patient.email || undefined}
+              >
+                {patient.email}
+              </span>
+              <span className="pointer-events-none absolute left-0 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1">
+                {patient.email}
+              </span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
@@ -1024,11 +1033,20 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                         {formatPhoneNumber(patient.phone)}
                       </TableCell>
                       <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
-                        <div className="break-words whitespace-normal">
-                          {patient.email ? 
-                            patient.email.split('@')[0] + '@' + (patient.email.includes('@') ? '...' : '')
-                            : "-"
-                          }
+                        <div className="relative inline-block group">
+                          <div
+                            className="break-words whitespace-normal"
+                            title={patient.email || undefined}
+                            aria-label={patient.email || undefined}
+                          >
+                            {patient.email ? 
+                              patient.email.split('@')[0] + '@' + (patient.email.includes('@') ? '...' : '')
+                              : "-"
+                            }
+                          </div>
+                          <div className="pointer-events-none absolute left-1/2 transform -translate-x-1/2 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1 max-w-[240px] overflow-hidden text-ellipsis">
+                            {patient.email}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
@@ -1601,7 +1619,12 @@ const PatientDetails: FC<{
             {t("Patients_k10")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.email}
+            <span className="relative inline-block group">
+              <span title={patient.email || undefined} aria-label={patient.email || undefined}>{patient.email}</span>
+              <span className="pointer-events-none absolute left-0 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1">
+                {patient.email}
+              </span>
+            </span>
           </p>
         </div>
 

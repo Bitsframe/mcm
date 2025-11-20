@@ -175,7 +175,7 @@ const Products = () => {
     quantity: 0,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 12;
   const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const calculateTotalAssigned = useCallback(() => {
@@ -574,10 +574,11 @@ const Products = () => {
           <div className="pt-5">
             <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-hidden">
               {/* Table for larger screens */}
-              <div className="hidden md:block">
-                <Table className="w-full">
-                  <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700">
-                    <TableRow className="flex hover:bg-transparent dark:hover:bg-gray-800">
+              <div className="hidden md:block overflow-x-auto">
+                <div className="min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
+                  <Table className="min-w-full">
+                    <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700 sticky top-0 z-10">
+                      <TableRow className="flex hover:bg-transparent">
                       <TableHead className="w-8 p-2"></TableHead>
                       {tableHeader.map(
                         ({ label, align, can_sort, id }, index) => (
@@ -624,20 +625,20 @@ const Products = () => {
                     </TableRow>
                   </TableHeader>
 
-                  <TableBody className="h-[255px] overflow-y-auto block">
-                    {loading ? (
-                      <TableRow className="flex h-full">
-                        <TableCell className="h-[60dvh] w-full flex flex-col justify-center items-center">
-                          <Spinner size="xl" className="dark:text-white" />
-                        </TableCell>
-                      </TableRow>
-                    ) : dataList.length === 0 ? (
-                      <TableRow className="flex h-full">
-                        <TableCell className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
-                          <h1>No Product is available</h1>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
+                    <TableBody className="bg-white dark:bg-[#0e1725]">
+                      {loading ? (
+                        <TableRow className="flex h-[70dvh]">
+                          <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center">
+                            <Spinner size="xl" className="dark:text-white" />
+                          </TableCell>
+                        </TableRow>
+                      ) : dataList.length === 0 ? (
+                        <TableRow className="flex h-[70dvh]">
+                          <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                            <h1>No Product is available</h1>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
                       paginatedData.map((elem: DataListInterface, index) => (
                         <TableRow
                           key={index}
@@ -662,13 +663,32 @@ const Products = () => {
                             ) : (
                               <div
                                 className={
-                                  width === 1 ? "w-1/2 truncate" : "truncate"
+                                  width === 1
+                                    ? "w-1/2 truncate"
+                                    : "truncate"
                                 }
                                 title={elem[id]}
                               >
-                                {render_value
-                                  ? render_value(elem[id], elem)
-                                  : elem[id]}
+                                {id === "product_name" ? (
+                                  <div className="flex items-center gap-2">
+                                    {elem?.bonus_eligible ? (
+                                      <img
+                                        src="/assets/bonusicon.png"
+                                        alt="bonus"
+                                        width={18}
+                                        height={18}
+                                        className="inline-block w-4 h-4 object-contain"
+                                      />
+                                    ) : null}
+                                    <span className="truncate">
+                                      {render_value
+                                        ? render_value(elem[id], elem)
+                                        : elem[id]}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  render_value ? render_value(elem[id], elem) : elem[id]
+                                )}
                               </div>
                             );
 
@@ -755,18 +775,19 @@ const Products = () => {
                           })}
                         </TableRow>
                       ))
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
 
               <div className="md:hidden space-y-4 p-4">
                 {loading ? (
-                  <div className="h-[60dvh] w-full flex flex-col justify-center items-center">
+                  <div className="h-[70dvh] w-full flex flex-col justify-center items-center">
                     <Spinner size="xl" className="dark:text-white" />
                   </div>
                 ) : dataList.length === 0 ? (
-                  <div className="h-[30dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                  <div className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
                     <h1>No Product is available</h1>
                   </div>
                 ) : (

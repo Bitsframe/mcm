@@ -14,6 +14,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
@@ -22,7 +23,7 @@ const StaffControlsPage: React.FC = () => {
   const { t } = useTranslation(translationConstant.CONTROLS);
   const { locations, update_loading } = useLocationClinica();
   const [fullName, setFullName] = useState("");
-  const [locationId, setLocationId] = useState<number | null>(null);
+  const [locationIds, setLocationIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [viewLocationId, setViewLocationId] = useState<number | null>(null);
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -37,7 +38,18 @@ const StaffControlsPage: React.FC = () => {
       }
       try {
         setLoadingStaff(true);
-        const data = await fetch_content_service({ table: 'staff', matchCase: { key: 'location_id', value: viewLocationId } });
+        // staff.location_id is now stored as an array — fetch rows where the array contains the selected location id
+        const { data, error } = await (supabase as any)
+          .from('staff')
+          .select('*')
+          .contains('location_id', [String(viewLocationId)]);
+
+        if (error) {
+          console.error('Error fetching staff list', error);
+          setStaffList([]);
+          return;
+        }
+
         setStaffList(data || []);
       } catch (err) {
         console.error('Error fetching staff list', err);
@@ -51,8 +63,8 @@ const StaffControlsPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !locationId) {
-      toast.error("Please provide full name and location");
+    if (!fullName || !locationIds || locationIds.length === 0) {
+      toast.error("Please provide full name and at least one location");
       return;
     }
     try {
@@ -60,7 +72,7 @@ const StaffControlsPage: React.FC = () => {
       const res = await fetch(`/api/controls/staff/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: fullName, location_id: Number(locationId) }),
+        body: JSON.stringify({ full_name: fullName, location_id: locationIds }),
       });
       const payload = await res.json();
       if (!res.ok) {
@@ -69,7 +81,7 @@ const StaffControlsPage: React.FC = () => {
       } else {
         toast.success("Staff created successfully");
         setFullName("");
-        setLocationId(null);
+        setLocationIds([]);
       }
     } catch (err: any) {
       console.error(err);
@@ -77,6 +89,13 @@ const StaffControlsPage: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toggleLocation = (id: string) => {
+    setLocationIds((prev) => {
+      if (prev.includes(id)) return prev.filter((p) => p !== id);
+      return [...prev, id];
+    });
   };
 
   return (
@@ -100,33 +119,45 @@ const StaffControlsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Location</label>
-                  <div>
-                    <Select
-                      value={locationId ? String(locationId) : ""}
-                      onValueChange={(val) => setLocationId(val ? Number(val) : null)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select location" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {locations?.map((loc: any) => (
-                            <SelectItem key={loc.id} value={String(loc.id)}>
-                              {loc.title}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <label className="block text-sm font-medium mb-1">Location(s)</label>
+                    <div>
+                      <div className="w-full rounded border bg-white text-sm p-2 max-h-64 overflow-auto">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-600">Select one or more locations</span>
+                          <button
+                            type="button"
+                            className="text-xs text-blue-600 hover:underline"
+                            onClick={() => setLocationIds(locations?.map((l: any) => String(l.id)) || [])}
+                          >
+                            Select all
+                          </button>
+                        </div>
+                        <div className="space-y-1">
+                          {locations?.map((loc: any) => {
+                            const id = String(loc.id);
+                            const checked = locationIds.includes(id);
+                            return (
+                              <label key={id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleLocation(id)}
+                                  className="h-4 w-4"
+                                />
+                                <span className="text-sm">{loc.title}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                 </div>
 
                 <div className="flex gap-2">
                   <Button type="submit" disabled={submitting} className="bg-blue-600">
                     {submitting ? "Saving..." : "Create Staff"}
                   </Button>
-                  <Button type="button" onClick={() => { setFullName(""); setLocationId(null); }} className="bg-gray-300">
+                  <Button type="button" onClick={() => { setFullName(""); setLocationIds([]); }} className="bg-gray-300">
                     Reset
                   </Button>
                 </div>

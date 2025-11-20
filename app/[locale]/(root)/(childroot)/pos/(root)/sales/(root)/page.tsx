@@ -349,7 +349,7 @@ const Orders = () => {
           { key: 'archived', value: false },
           { key: 'products.archived', value: false },
         ],
-        selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+        selectParam: ',products(price,category_id, product_name,archived, unlimited, bonus_eligible)',
         filterOptions: [
           { operator: 'not', column: 'products', value: null },
           { operator: 'neq', column: 'products.price', value: 0 },
@@ -366,6 +366,7 @@ const Orders = () => {
             price: item.products?.price,
             quantity_available: item.quantity,
             unlimited: item.products?.unlimited,
+            bonus_eligible: item.products?.bonus_eligible,
           };
           try {
             // eslint-disable-next-line no-console
