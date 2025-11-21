@@ -57,7 +57,10 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
         style={{ height: '72vh' }}
       >
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <div className="flex items-baseline gap-3">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{`Showing ${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}</span>
+          </div>
           <button
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             onClick={onClose}

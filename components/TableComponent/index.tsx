@@ -224,7 +224,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       placeholder="Search Order ID"
                       value={searchInputs.orderIdSearch}
                       onChange={e => {
@@ -236,7 +236,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                     <input
                       type="text"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       placeholder="Search Patient Name"
                       value={searchInputs.patientNameSearch}
                       onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
@@ -245,7 +245,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                     <input
                       type="date"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       value={searchInputs.dobSearch}
                       onChange={e => searchInputs.setDobSearch(e.target.value)}
                     />
@@ -257,7 +257,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                         placeholder="Phone Number"
                         value={searchInputs.phoneSearch}
                         onChange={e => {
@@ -272,7 +272,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     <input
                       type="text"
                       className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
-                      ${!isEmailValid && emailTouched ? 'bg-red-100 border-black' : 'bg-gray-100 border-black'}`}
+                      ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300 dark:border-gray-700'}`}
                       placeholder="Search Email"
                       value={emailValue}
                       onChange={e => {

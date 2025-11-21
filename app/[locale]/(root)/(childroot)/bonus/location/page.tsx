@@ -1095,7 +1095,7 @@ const BonusPage = () => {
                               return (
                                 isSetLimits ? (
                                   <input
-                                    className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
+                                    className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                                     placeholder="Min"
                                     inputMode="numeric"
                                     value={bonusLimitByPatient[String(patient.id)] ?? ''}
@@ -1115,7 +1115,7 @@ const BonusPage = () => {
                             {/* Flat/Percentage: editable select (initialized from DB) */}
                             { isSetLimits ? (
                               <select
-                                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
+                                className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                                 value={bonusTypeByPatient[String(patient.id)] ?? 'FLAT'}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1136,7 +1136,7 @@ const BonusPage = () => {
                               <div className="flex items-center">
                                 <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                                 <input
-                                  className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
+                                  className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                                   placeholder="Value"
                                   inputMode="decimal"
                                   value={bonusValueByPatient[String(patient.id)] ?? ''}
@@ -1345,7 +1345,7 @@ const BonusPage = () => {
                           <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k10')}:</span>
                           { isSetLimits ? (
                             <select
-                              className="ml-2 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
+                              className="ml-2 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                               value={bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT')}
                               onChange={(e) => {
                                 const key = String(patient.id)
@@ -1366,7 +1366,7 @@ const BonusPage = () => {
                             <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                             { isSetLimits ? (
                               <input
-                                className="w-24 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white inline"
+                                className="w-24 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white inline"
                                 value={bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '')}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1401,7 +1401,7 @@ const BonusPage = () => {
                             }
                             return (isSetLimits ? (
                               <input
-                                className="ml-2 w-28 text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white"
+                                className="ml-2 w-28 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
                                 value={bonusLimitByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.bonus_limit ?? '')}
                                 onChange={(e) => {
                                   const key2 = String(patient.id)
@@ -1558,7 +1558,7 @@ const BonusPage = () => {
                     <td className="px-4 py-2 text-sm text-gray-700">{p.title ?? `Location ${p.id}`}</td>
                     <td className="px-4 py-2">
                       <select
-                        className="rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent"
+                        className="rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent"
                         value={row.flat_percentage}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), flat_percentage: (e.target.value as 'FLAT' | 'PERCENTAGE'), edited: true } }))}
                       >
@@ -1573,7 +1573,7 @@ const BonusPage = () => {
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700">$</span>
                         )}
                         <input
-                          className={"w-full rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
+                          className={"w-full rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
                           value={row.value ?? ''}
                           onChange={(e) => {
                             let v = String(e.target.value).replace(/[^0-9.]/g, '')
@@ -1603,7 +1603,7 @@ const BonusPage = () => {
                     </td>
                     <td className="px-4 py-2">
                       <input
-                        className="w-full rounded border border-black dark:border-black px-2 py-1 text-sm bg-transparent"
+                        className="w-full rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent"
                         value={row.bonus_threshold ?? ''}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), bonus_threshold: e.target.value, edited: true } }))}
                         inputMode="numeric"

@@ -11,7 +11,7 @@ import {
 } from "react";
 import { Label, Spinner } from "flowbite-react";
 import moment from "moment";
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service, fetchLocations } from "@/utils/supabase/data_services/data_services";
 import { PiCaretUpDownBold } from "react-icons/pi";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { LocationContext } from "@/context";
@@ -112,6 +112,10 @@ const QUERIES = {
 
 const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const { selectedLocation } = useContext(LocationContext);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [locationFilter, setLocationFilter] = useState<number | null>(
+    (selectedLocation as any)?.id ?? null
+  );
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -188,39 +192,67 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
   };
 
-  const fetchPatients = useCallback(
-    async (locationId: number) => {
-      setLoading(true);
-      try {
-        const fetchedData = await fetch_content_service({
-          table: "allpatients",
-          language: "",
-          selectParam: ",note",
-          matchCase: [
-            QUERIES[renderType] as any,
-            { key: "locationid", value: locationId },
-          ],
-          filterOptions: [
-            { column: "deleted_at", operator: "is", value: null },
-          ],
-        });
-        console.log("Raw Supabase Data:", fetchedData);
-        setPatients(fetchedData);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-      } finally {
-        setLoading(false);
+  const fetchPatients = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Build matchCase: always include renderType (onsite/offsite) if present.
+      const baseMatch = QUERIES[renderType] as any;
+
+      // Prefer an explicit location filter selected by the user (locationFilter).
+      // If not set, fallback to app-level selectedLocation; otherwise return across all locations.
+      let matchCase: any = null;
+      const chosenLocationId = locationFilter ?? (selectedLocation as any)?.id ?? null;
+      if (chosenLocationId) {
+        if (baseMatch) {
+          matchCase = [baseMatch, { key: "locationid", value: chosenLocationId }];
+        } else {
+          matchCase = { key: "locationid", value: chosenLocationId };
+        }
+      } else {
+        matchCase = baseMatch || null;
       }
-    },
-    [renderType]
-  );
+
+      const fetchedData = await fetch_content_service({
+        table: "allpatients",
+        language: "",
+        selectParam: ",note",
+        matchCase,
+        filterOptions: [{ column: "deleted_at", operator: "is", value: null }],
+        // skip implicit user-location scoping so we return patients across all locations
+        // when no specific location is selected. If a location is selected we still skip
+        // the implicit user scoping because we explicitly pass the desired location.
+        skipLocationFilter: true,
+      });
+      console.log("Raw Supabase Data:", fetchedData);
+      setPatients(fetchedData);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [renderType, (selectedLocation as any)?.id, locationFilter]);
 
   useEffect(() => {
-    if (selectedLocation?.id) {
-      fetchPatients(selectedLocation.id);
-      fetchServiceList();
-    }
-  }, [selectedLocation?.id, fetchPatients]);
+    // Fetch patients (either all locations or a specific selected location) and refresh services list.
+    fetchPatients();
+    fetchServiceList();
+  }, [fetchPatients]);
+
+  // Load all locations for the location filter dropdown
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const locs = await fetchLocations();
+        if (mounted) setLocations(locs || []);
+      } catch (err) {
+        console.error("Failed to load locations", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -343,7 +375,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         note: patientData.note,
       });
 
-      fetchPatients(selectedLocation.id);
+      fetchPatients();
       setIsModalOpen(false);
 
       if (response) {
@@ -571,7 +603,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
-        <div className="flex items-center gap-2 w-full sm:w-[500px]">
+        <div className="flex items-center gap-2 w-full sm:w-[700px]">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
             {t("Patients_k55")}
           </span>
@@ -617,6 +649,25 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </SelectItem>
             </SelectContent>
           </Select>
+          {/* Location filter dropdown */}
+          <div className="ml-2">
+            <Select
+              value={locationFilter ? String(locationFilter) : ""}
+              onValueChange={(v: string) => setLocationFilter(v === "ALL" || v === "" ? null : Number(v))}
+            >
+              <SelectTrigger className="w-48 bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white [&>span]:text-gray-900 dark:[&>span]:text-white focus:ring-blue-500 dark:focus:ring-blue-400">
+                <SelectValue placeholder="All locations" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-[#122136] border border-gray-200 dark:border-gray-700">
+                <SelectItem value="ALL">All locations</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={String(loc.id)}>
+                    {loc.title || loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
             =
           </span>
@@ -1268,6 +1319,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     renderType={renderType}
                     formatDate={formatDate}
                     serviceList={serviceList}
+                    locations={locations}
                   />
                 )}
               </ScrollArea>
@@ -1566,8 +1618,13 @@ const PatientDetails: FC<{
   serviceList: { title: string }[];
   renderType: Props["renderType"];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate }) => {
+  locations?: any[];
+}> = ({ patient, renderType, formatDate, locations = [] }) => {
   const { t } = useTranslation(translationConstant.PATIENTS);
+
+  const patientLocation = (locations || []).find(
+    (l: any) => l.id === (patient as any).locationid || l.id === (patient as any).location_id
+  );
 
   return (
     <div className="space-y-2 py-4">
@@ -1625,6 +1682,13 @@ const PatientDetails: FC<{
                 {patient.email}
               </span>
             </span>
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k36")}</p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patientLocation ? (patientLocation.title || patientLocation.name) : "Unknown"}
           </p>
         </div>
 

@@ -17,6 +17,7 @@ interface FetchContentServiceInterface {
   matchCase?: MatchCase | MatchCase[] | null;
   sortOptions?: SortOptions | null;
   filterOptions?: { column: string; operator: string; value: any }[] | null;
+  skipLocationFilter?: boolean;
 }
 interface UpdateContentServiceInterface {
   table: string;
@@ -156,11 +157,12 @@ export async function fetch_content_service({
     }
   }
 
-  // Add location filtering for tables that have location_id
+  // Add location filtering for tables that have location_id, unless caller requests skip
   // Note: `sales_history` rows reference `inventory_id` and may not have a `locationid` column
   // so we exclude it here to avoid SQL errors when adding a location filter.
   const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
-  if (locationBasedTables.includes(table)) {
+  // @ts-ignore
+  if (!((arguments[0] && arguments[0].skipLocationFilter) || false) && locationBasedTables.includes(table)) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: userLocations } = await supabase
