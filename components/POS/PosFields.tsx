@@ -35,7 +35,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       }
       try {
         const selectCols = "id, full_name, location_id";
-        const { data, error } = await (supabase as any).from("staff").select(selectCols).eq("location_id", locationId);
+        // `location_id` in `staff` is stored as a Postgres array (e.g. ['6','16']).
+        // Use the `contains` operator so we find staff rows whose location_id array
+        // contains the selected `locationId`. Ensure we pass an array value.
+        const { data, error } = await (supabase as any)
+          .from("staff")
+          .select(selectCols)
+          .contains("location_id", [String(locationId)]);
         if (error) {
           console.error("Failed to fetch staff", error);
           setSalesPeople([]);

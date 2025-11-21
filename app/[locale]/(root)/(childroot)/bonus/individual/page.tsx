@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { translationConstant } from '@/utils/translationConstants'
 import BonusSummaryCards from '@/components/BonusSummaryCards'
 import { fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services'
 import supabase from '@/utils/supabaseClient'
@@ -8,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export default function IndividualBonusPage() {
+  const { t } = useTranslation(translationConstant.BONUS)
   const [loading, setLoading] = useState(false)
   const [rows, setRows] = useState<any[]>([])
   const [calcRunning, setCalcRunning] = useState(false)
@@ -246,10 +249,7 @@ export default function IndividualBonusPage() {
           const person = r.staff_name || String(r.staff_id || 'Unknown')
           byStaff[person] = (byStaff[person] || 0) + Number(r.bonus || 0)
         })
-
-        // find highest total and all names with that value
         let highestAmount = 0
-        Object.values(byStaff).forEach((amt) => { if (amt > highestAmount) highestAmount = amt })
         const highestNames = highestAmount > 0 ? Object.entries(byStaff).filter(([, amt]) => amt === highestAmount).map(([name]) => name) : []
 
         const titleLocation = locTitles.length === 1 ? locTitles[0] : locTitles.join(', ')
@@ -368,7 +368,7 @@ export default function IndividualBonusPage() {
   return (
     <main className="p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Individual Bonus</h1>
+        <h1 className="text-xl font-semibold">{t('Bonus_k47')}</h1>
           <div className="relative flex items-center gap-3">
           <div className="flex items-center space-x-2">
             <button
@@ -376,26 +376,26 @@ export default function IndividualBonusPage() {
               className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
               onClick={() => { setPickerMode('week'); setPickerOpen(true); if (!weekStart) setWeekStart(new Date().toISOString().slice(0,10)) }}
             >
-              Week
+              {t('Bonus_k48')}
             </button>
             <button
               type="button"
               className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
               onClick={() => { setPickerMode('month'); setPickerOpen(true); if (!monthValue) setMonthValue(new Date().toISOString().slice(0,7)) }}
             >
-              Month
+              {t('Bonus_k49')}
             </button>
           </div>
 
           {pickerOpen && (
             <div className="absolute right-0 z-20 mt-10 w-72 bg-white rounded border border-gray-200 p-3 shadow-lg">
-              <div className="mb-2 text-sm font-medium">Select {pickerMode === 'week' ? 'week start' : 'month'}</div>
+              <div className="mb-2 text-sm font-medium">{pickerMode === 'week' ? t('Bonus_k50') : t('Bonus_k51')}</div>
               {pickerMode === 'week' ? (
                 <div className="space-y-2">
                   <input className="w-full border p-1 rounded" type="date" value={weekStart ?? ''} onChange={(e) => setWeekStart(e.target.value)} />
-                  <div className="text-xs text-gray-500">Selected week: {weekStart ? `${weekStart} → ${new Date(new Date(weekStart).getTime() + 6*24*3600*1000).toISOString().slice(0,10)}` : '-'}</div>
+                  <div className="text-xs text-gray-500">{t('Bonus_k52')} {weekStart ? `${weekStart} → ${new Date(new Date(weekStart).getTime() + 6*24*3600*1000).toISOString().slice(0,10)}` : '-'}</div>
                   <div className="flex justify-end gap-2 mt-2">
-                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>Cancel</button>
+                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
                     <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
                       if (weekStart) {
                         const s = new Date(weekStart)
@@ -406,15 +406,15 @@ export default function IndividualBonusPage() {
                         setPickerOpen(false)
                         fetchRows().catch(() => {})
                       }
-                    }}>Apply</button>
+                    }}>{t('Bonus_k27')}</button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <input className="w-full border p-1 rounded" type="month" value={monthValue ?? ''} onChange={(e) => setMonthValue(e.target.value)} />
-                  <div className="text-xs text-gray-500">Selected month: {monthValue ?? '-'}</div>
+                  <div className="text-xs text-gray-500">{t('Bonus_k53')} {monthValue ?? '-'}</div>
                   <div className="flex justify-end gap-2 mt-2">
-                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>Cancel</button>
+                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
                     <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
                       if (monthValue) {
                         const [y, m] = monthValue.split('-').map(Number)
@@ -424,7 +424,7 @@ export default function IndividualBonusPage() {
                         setPickerOpen(false)
                         fetchRows().catch(() => {})
                       }
-                    }}>Apply</button>
+                    }}>{t('Bonus_k27')}</button>
                   </div>
                 </div>
               )}
@@ -442,9 +442,9 @@ export default function IndividualBonusPage() {
                 const { data: distributeBonusData, error: distributeBonusError } = await supabase.rpc('distribute_individual_bonus_daily')
                 if (distributeBonusError) {
                   console.error('RPC distribute_individual_bonus_daily error:', distributeBonusError)
-                  toast.error('Failed to trigger distribution')
+                  toast.error(t('Bonus_k57'))
                 } else {
-                  toast.success('Distribution triggered')
+                  toast.success(t('Bonus_k58'))
                   try { await fetchRows() } catch (_) {}
                 }
               } catch (err) {
@@ -465,19 +465,19 @@ export default function IndividualBonusPage() {
 
       {appliedFilters && (
         <div className="mt-4 mb-4 p-3 bg-gray-50 rounded border">
-          <div className="text-sm text-gray-600">Filtered by ({appliedFilters.mode === 'staff' ? 'Staff' : 'Location'})</div>
+          <div className="text-sm text-gray-600">{t('Bonus_k59')} ({appliedFilters.mode === 'staff' ? t('Bonus_k16') : t('Bonus_k38')})</div>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            {appliedFilters.staffName && <div className="px-2 py-1 bg-blue-50 text-blue-800 rounded">Name: {appliedFilters.staffName}</div>}
+            {appliedFilters.staffName && <div className="px-2 py-1 bg-blue-50 text-blue-800 rounded">{t('Bonus_k7')}: {appliedFilters.staffName}</div>}
             {appliedFilters.locationTitles && appliedFilters.locationTitles.length > 0 && (
-              <div className="px-2 py-1 bg-green-50 text-green-800 rounded">Locations: {appliedFilters.locationTitles.join(', ')}</div>
+              <div className="px-2 py-1 bg-green-50 text-green-800 rounded">{t('Bonus_k60')} {appliedFilters.locationTitles.join(', ')}</div>
             )}
             {(appliedFilters.bonusStart || appliedFilters.bonusEnd) && (
-              <div className="px-2 py-1 bg-yellow-50 text-yellow-800 rounded">Bonus: {appliedFilters.bonusStart ? appliedFilters.bonusStart.slice(0,10) : '-'} → {appliedFilters.bonusEnd ? appliedFilters.bonusEnd.slice(0,10) : '-'}</div>
+              <div className="px-2 py-1 bg-yellow-50 text-yellow-800 rounded">{t('Bonus_k61')} {appliedFilters.bonusStart ? appliedFilters.bonusStart.slice(0,10) : '-'} → {appliedFilters.bonusEnd ? appliedFilters.bonusEnd.slice(0,10) : '-'}</div>
             )}
             {(appliedFilters.paidStart || appliedFilters.paidEnd) && (
-              <div className="px-2 py-1 bg-purple-50 text-purple-800 rounded">Paid: {appliedFilters.paidStart ? appliedFilters.paidStart.slice(0,10) : '-'} → {appliedFilters.paidEnd ? appliedFilters.paidEnd.slice(0,10) : '-'}</div>
+              <div className="px-2 py-1 bg-purple-50 text-purple-800 rounded">{t('Bonus_k36')}: {appliedFilters.paidStart ? appliedFilters.paidStart.slice(0,10) : '-'} → {appliedFilters.paidEnd ? appliedFilters.paidEnd.slice(0,10) : '-'}</div>
             )}
-            <button className="ml-auto text-sm text-red-600" onClick={async () => { setAppliedFilters(null); setSelectedRange(null); try { await fetchRows() } catch(_){} }}>Clear</button>
+            <button className="ml-auto text-sm text-red-600" onClick={async () => { setAppliedFilters(null); setSelectedRange(null); try { await fetchRows() } catch(_){} }}>{t('Bonus_k26')}</button>
           </div>
         </div>
       )}
@@ -489,15 +489,15 @@ export default function IndividualBonusPage() {
           type="button"
           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded min-w-[140px]"
           onClick={() => setFilterModalOpen(true)}
-          title="Filter"
+          title={t('Bonus_k6')}
         >
-          Filter
+          {t('Bonus_k6')}
         </button>
 
         {selectedRange && (
           <div className="flex items-center gap-2">
             <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {new Date(selectedRange.end).toISOString().slice(0,10)}</div>
-            <button className="text-xs text-red-600" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>Clear</button>
+            <button className="text-xs text-red-600" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>{t('Bonus_k26')}</button>
           </div>
         )}
       </div>
@@ -507,26 +507,26 @@ export default function IndividualBonusPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/40">
           <div className="w-full max-w-3xl max-h-[80vh] overflow-auto bg-white rounded shadow-lg p-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Filter bonuses</h3>
-              <button className="text-sm text-gray-600" onClick={() => setFilterModalOpen(false)}>Close</button>
+              <h3 className="text-lg font-medium">{t('Bonus_k62')}</h3>
+              <button className="text-sm text-gray-600" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k63')}</button>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-6">
                 <label className="inline-flex items-center gap-2">
                   <input type="radio" name="filterMode" checked={filterMode === 'staff'} onChange={() => setFilterMode('staff')} />
-                  <span>Staff</span>
+                  <span>{t('Bonus_k16')}</span>
                 </label>
                 <label className="inline-flex items-center gap-2">
                   <input type="radio" name="filterMode" checked={filterMode === 'location'} onChange={() => setFilterMode('location')} />
-                  <span>Location</span>
+                  <span>{t('Bonus_k38')}</span>
                 </label>
               </div>
 
               {/* Staff dropdown shown only when staff mode is active */}
               {filterMode === 'staff' && (
                 <div>
-                  <label className="text-sm">Staff name</label>
+                  <label className="text-sm">{t('Bonus_k26')}</label>
                   <select
                     className="mt-1 w-full border p-3 rounded text-base"
                     value={filterStaffName}
@@ -555,7 +555,7 @@ export default function IndividualBonusPage() {
                       }
                     }}
                   >
-                    <option value="">-- Any --</option>
+                    <option value="">{t('Bonus_k27')}</option>
                     {staffOptions.map((s) => (
                       <option key={s.full_name} value={s.full_name}>{s.full_name}</option>
                     ))}
@@ -565,13 +565,13 @@ export default function IndividualBonusPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm">Location</label>
+                  <label className="text-sm">{t('Bonus_k38')}</label>
                   {/* Location select: multi-select when in staff mode, single-select when in location mode */}
                   {filterMode === 'staff' ? (
                     <div className="relative">
                       <div className="mt-1 w-full border rounded p-2 cursor-pointer" onClick={() => setLocDropdownOpen((s) => !s)}>
                         <div className="flex flex-wrap gap-2">
-                          {filterLocationIds.length === 0 && <div className="text-gray-500">(select staff to show locations)</div>}
+                          {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
                           {filterLocationIds.map((id) => {
                             const loc = locationOptions.find((l) => l.id === id)
                             return loc ? (
@@ -601,7 +601,7 @@ export default function IndividualBonusPage() {
                     </div>
                   ) : (
                     <select className="mt-1 w-full border p-2 rounded" value={filterLocationIds[0] ?? ''} onChange={(e) => setFilterLocationIds(e.target.value ? [e.target.value] : [])}>
-                      <option value="">-- Any --</option>
+                      <option value="">{t('Bonus_k27')}</option>
                       {locationOptions.length > 0 ? (
                         locationOptions.map((loc) => (
                           <option key={loc.id} value={loc.id}>{loc.title}</option>
@@ -614,32 +614,32 @@ export default function IndividualBonusPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm">Bonus date (start)</label>
+                  <label className="text-sm">{t('Bonus_k64')}</label>
                   <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusStart ?? ''} onChange={(e) => setFilterBonusStart(e.target.value || null)} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm">Bonus date (end)</label>
+                  <label className="text-sm">{t('Bonus_k65')}</label>
                   <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusEnd ?? ''} onChange={(e) => setFilterBonusEnd(e.target.value || null)} />
                 </div>
                 <div>
-                  <label className="text-sm">Paid date (start)</label>
+                  <label className="text-sm">{t('Bonus_k66')}</label>
                   <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidStart ?? ''} onChange={(e) => setFilterPaidStart(e.target.value || null)} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm">Paid date (end)</label>
+                  <label className="text-sm">{t('Bonus_k67')}</label>
                   <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidEnd ?? ''} onChange={(e) => setFilterPaidEnd(e.target.value || null)} />
                 </div>
                 <div />
               </div>
 
               <div className="flex justify-end gap-3">
-                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setFilterModalOpen(false)}>Cancel</button>
+                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k54')}</button>
                 <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={async () => {
                   const clientFilters = {
                     staffName: filterStaffName || null,
@@ -671,7 +671,7 @@ export default function IndividualBonusPage() {
                     setFilterPaidStart(null)
                     setFilterPaidEnd(null)
                   }
-                }}>Apply</button>
+                }}>{t('Bonus_k27')}</button>
               </div>
             </div>
           </div>
@@ -681,13 +681,13 @@ export default function IndividualBonusPage() {
       <div className="mt-6">
         <table className="w-full table-auto border-collapse">
           <thead>
-            <tr className="text-left">
-              <th className="px-2 py-1 border-b">Staff</th>
-              <th className="px-2 py-1 border-b">Location</th>
-              <th className="px-2 py-1 border-b">Bonus amount</th>
-                <th className="px-2 py-1 border-b">DATE</th>
-                <th className="px-2 py-1 border-b">Paid date</th>
-                  <th className="px-2 py-1 border-b">Action</th>
+                <tr className="text-left">
+              <th className="px-2 py-1 border-b">{t('Bonus_k7')}</th>
+              <th className="px-2 py-1 border-b">{t('Bonus_k38')}</th>
+              <th className="px-2 py-1 border-b">{t('Bonus_k12')}</th>
+                <th className="px-2 py-1 border-b">{t('Bonus_k81')}</th>
+                <th className="px-2 py-1 border-b">{t('Bonus_k13')}</th>
+                  <th className="px-2 py-1 border-b">{t('Bonus_k40')}</th>
             </tr>
           </thead>
           <tbody>
@@ -709,17 +709,17 @@ export default function IndividualBonusPage() {
                         : 'bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded'
                     }
                     aria-disabled={Boolean(r.paid) || Boolean(r.paying)}
-                    title={r.paid ? 'Already paid' : r.paying ? 'Processing payment' : 'Pay bonus'}
+                    title={r.paid ? t('Bonus_k72') : r.paying ? t('Bonus_k73') : t('Bonus_k71')}
                   >
-                    {r.paid ? 'Paid' : r.paying ? 'Paying...' : 'Pay'}
+                    {r.paid ? t('Bonus_k36') : r.paying ? t('Bonus_k70') : t('Bonus_k71')}
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {loading && <div className="text-sm text-gray-500 mt-2">Loading individual bonuses...</div>}
-        {!loading && rows.length === 0 && <div className="text-sm text-gray-500 mt-2">No individual bonuses found.</div>}
+        {loading && <div className="text-sm text-gray-500 mt-2">{t('Bonus_k68')}</div>}
+        {!loading && rows.length === 0 && <div className="text-sm text-gray-500 mt-2">{t('Bonus_k69')}</div>}
         <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </main>
