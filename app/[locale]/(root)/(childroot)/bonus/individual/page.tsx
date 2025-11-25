@@ -8,6 +8,7 @@ import { fetch_content_service, update_content_service } from '@/utils/supabase/
 import supabase from '@/utils/supabaseClient'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import RangeDatePicker from '@/components/RangeDatePicker'
 
 export default function IndividualBonusPage() {
   const { t } = useTranslation(translationConstant.BONUS)
@@ -505,7 +506,7 @@ export default function IndividualBonusPage() {
       {/* Filter modal */}
       {filterModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/40">
-          <div className="w-full max-w-3xl max-h-[80vh] overflow-auto bg-white rounded shadow-lg p-8">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-auto bg-white rounded shadow-lg p-10">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">{t('Bonus_k62')}</h3>
               <button className="text-sm text-gray-600" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k63')}</button>
@@ -526,7 +527,7 @@ export default function IndividualBonusPage() {
               {/* Staff dropdown shown only when staff mode is active */}
               {filterMode === 'staff' && (
                 <div>
-                  <label className="text-sm">{t('Bonus_k26')}</label>
+                  <label className="text-sm">Staff name</label>
                   <select
                     className="mt-1 w-full border p-3 rounded text-base"
                     value={filterStaffName}
@@ -555,7 +556,7 @@ export default function IndividualBonusPage() {
                       }
                     }}
                   >
-                    <option value="">{t('Bonus_k27')}</option>
+                    <option value="">Select staff</option>
                     {staffOptions.map((s) => (
                       <option key={s.full_name} value={s.full_name}>{s.full_name}</option>
                     ))}
@@ -563,7 +564,7 @@ export default function IndividualBonusPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4 items-center">
                 <div>
                   <label className="text-sm">{t('Bonus_k38')}</label>
                   {/* Location select: multi-select when in staff mode, single-select when in location mode */}
@@ -614,32 +615,42 @@ export default function IndividualBonusPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm">{t('Bonus_k64')}</label>
-                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusStart ?? ''} onChange={(e) => setFilterBonusStart(e.target.value || null)} />
+                  <label className="text-sm">Bonus date</label>
+                  <RangeDatePicker
+                    start={filterBonusStart}
+                    end={filterBonusEnd}
+                    onChange={(s, e) => {
+                      setFilterBonusStart(s)
+                      setFilterBonusEnd(e)
+                    }}
+                  />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm">{t('Bonus_k65')}</label>
-                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterBonusEnd ?? ''} onChange={(e) => setFilterBonusEnd(e.target.value || null)} />
+                  <label className="text-sm">Paid date</label>
+                  <RangeDatePicker
+                    start={filterPaidStart}
+                    end={filterPaidEnd}
+                    onChange={(s, e) => {
+                      setFilterPaidStart(s)
+                      setFilterPaidEnd(e)
+                    }}
+                  />
                 </div>
-                <div>
-                  <label className="text-sm">{t('Bonus_k66')}</label>
-                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidStart ?? ''} onChange={(e) => setFilterPaidStart(e.target.value || null)} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm">{t('Bonus_k67')}</label>
-                  <input type="date" className="mt-1 w-full border p-2 rounded" value={filterPaidEnd ?? ''} onChange={(e) => setFilterPaidEnd(e.target.value || null)} />
-                </div>
-                <div />
               </div>
 
               <div className="flex justify-end gap-3">
-                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k54')}</button>
+                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => {
+                  // Reset modal fields (does not apply filters)
+                  setFilterStaffName('')
+                  setFilterLocationIds([])
+                  setFilterBonusStart(null)
+                  setFilterBonusEnd(null)
+                  setFilterPaidStart(null)
+                  setFilterPaidEnd(null)
+                  setLocationOptions(allLocations)
+                  setLocDropdownOpen(false)
+                }}>Reset</button>
                 <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={async () => {
                   const clientFilters = {
                     staffName: filterStaffName || null,
