@@ -103,7 +103,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         // (for example an external user), show their email instead of an empty name.
         if (team.auth_member) {
           const authId = Number(team.auth_member);
-          const alreadyIncluded = mapped.some((m) => Number(m.id) === authId);
+          const alreadyIncluded = mapped.some((m: { id: number; name: string }) => Number(m.id) === authId);
           if (!alreadyIncluded) {
             mapped.push({ id: authId || -1, name: team.auth_email ?? String(team.auth_member) });
           }
