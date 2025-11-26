@@ -545,6 +545,22 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 </div>
               </div>
             </div>
+      
+                  {/* Sales Person Section */}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Sales Person</h3>
+                    <div className="p-3 bg-gray-50 dark:bg-[#071025] border rounded">
+                      {dataList?.sales_team_members && dataList.sales_team_members.length > 0 ? (
+                        <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                          {dataList.sales_team_members.map((name: string, idx: number) => (
+                            <li key={idx} className="py-1">{name}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="text-sm text-gray-500">No sales person assigned</div>
+                      )}
+                    </div>
+                  </div>
 
             {/* Order Summary */}
             <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">

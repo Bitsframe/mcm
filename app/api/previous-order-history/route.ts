@@ -54,6 +54,39 @@ export const POST = async (req: Request) => {
 
     const inventoryIds = salesHistory.map((sale: any) => sale.inventory_id);
 
+      // Step 4.5: Fetch any sales_team rows referenced by orders (so we can resolve member ids -> staff names)
+      const salesTeamIds = orders.map((o: any) => o.sales_team_id).filter(Boolean);
+      let salesTeams: any[] = [];
+      let staffRows: any[] = [];
+      if (salesTeamIds && salesTeamIds.length > 0) {
+        salesTeams = await fetch_content_service({
+          table: 'sales_team',
+          filterOptions: [{ column: 'id', operator: 'in', value: salesTeamIds }]
+        }) || [];
+
+        // collect all member ids from all teams
+        const allMemberIds: number[] = [];
+        salesTeams.forEach((t: any) => {
+          const mem = t.members;
+          if (!mem) return;
+          // members might be text array or JSON string; normalize
+          let arr: any[] = [];
+          if (Array.isArray(mem)) arr = mem;
+          else {
+            try { arr = JSON.parse(String(mem)); } catch (e) { arr = [] }
+          }
+          arr.forEach((m) => { const idNum = Number(m); if (!Number.isNaN(idNum)) allMemberIds.push(idNum); });
+        });
+
+        const uniqueStaffIds = Array.from(new Set(allMemberIds));
+        if (uniqueStaffIds.length > 0) {
+          staffRows = await fetch_content_service({
+            table: 'staff',
+            filterOptions: [{ column: 'id', operator: 'in', value: uniqueStaffIds }]
+          }) || [];
+        }
+      }
+
     // Step 5: Fetch inventory details
     const inventoryData = await fetch_content_service({
       table: 'inventory',
@@ -140,7 +173,27 @@ export const POST = async (req: Request) => {
             treatmenttype: pos.treatmenttype,
             Locations: { title: pos.Locations.title }
           },
-          sales_history: salesDetails
+          sales_history: salesDetails,
+          // include sales_team id and resolved member names (if available)
+          sales_team_id: order.sales_team_id ?? null,
+          sales_team_members: (() => {
+            try {
+              if (!order.sales_team_id) return [];
+              const team = salesTeams.find((st: any) => Number(st.id) === Number(order.sales_team_id));
+              if (!team || !team.members) return [];
+              let arr: any[] = [];
+              if (Array.isArray(team.members)) arr = team.members;
+              else {
+                try { arr = JSON.parse(String(team.members)); } catch (e) { arr = []; }
+              }
+              return arr.map((mid) => {
+                const midNum = Number(mid);
+                const s = staffRows.find((sr: any) => Number(sr.id) === Number(midNum));
+                return s ? (s.full_name || `${s.id}`) : String(mid);
+              });
+            } catch (e) { return []; }
+          })(),
+        
         };
       });
     }).flat();

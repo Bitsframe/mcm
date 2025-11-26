@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import moment from "moment";
+import { supabase } from "@/services/supabase";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { currencyFormatHandle } from "@/helper/common_functions";
 import OrderDetailsModal from "../../../../../../components/salesHistory/OrderDetailsModal";
@@ -81,6 +82,12 @@ const SalesHistory = () => {
   const fetch_handle = useCallback(async (location_id: number) => {
     setLoading(true);
     try {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log("POS History - current user:", user?.id);
+      } catch (e) {
+        console.debug("POS History - could not read user from supabase client", e);
+      }
       
       const fetched_data = await fetch_content_service({
         table: "orders",

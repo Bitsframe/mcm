@@ -65,9 +65,10 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       setCurrentTeam([]);
       if (!isOpen || !locationId) return;
       try {
+        // also select auth_member/auth_email so we can show the saving user's email
         const { data: teamRows, error: teamErr } = await (supabase as any)
           .from('sales_team')
-          .select('members')
+          .select('members, auth_member, auth_email')
           .eq('location_id', locationId)
           .is('valid_to', null)
           .limit(1);
@@ -97,6 +98,17 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           const s = staff.find((x) => Number(x.id) === Number(id));
           return { id, name: s?.full_name ?? String(id) };
         });
+
+        // If the team row was created by an auth_member that is not in the staff list
+        // (for example an external user), show their email instead of an empty name.
+        if (team.auth_member) {
+          const authId = Number(team.auth_member);
+          const alreadyIncluded = mapped.some((m) => Number(m.id) === authId);
+          if (!alreadyIncluded) {
+            mapped.push({ id: authId || -1, name: team.auth_email ?? String(team.auth_member) });
+          }
+        }
+
         setCurrentTeam(mapped);
       } catch (e) {
         console.error('[PosFields] unexpected error fetching current team', e);
@@ -166,61 +178,57 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
   };
 
   const handleSave = () => {
+    // Optimistic UI: capture selection, reset modal state and notify parent immediately,
+    // then perform the server call in background so the modal closes instantly.
+    if (!locationId) {
+      console.error('[PosFields] Cannot save: no location selected');
+      return;
+    }
+
+    const savedSelected = selected;
+    const memberIds = savedSelected.map((s) => s.id);
+    const now = new Date().toISOString();
+
+    // reset local modal fields so next open is clean BEFORE notifying parent
+    try {
+      setSelected([]);
+      setQuery("");
+      setCurrentTeam([]);
+      setSalesPeople([]);
+      setAuthUserId(null);
+    } catch (e) {
+      // swallow any errors resetting local state
+    }
+
+    // notify parent and close modal immediately
+    try {
+      onSave(savedSelected);
+    } catch (e) {
+      console.error('[PosFields] error calling onSave', e);
+    }
+    try {
+      onClose();
+    } catch (e) {
+      console.error('[PosFields] error calling onClose', e);
+    }
+
+    // background server call
     (async () => {
       try {
-        if (!locationId) {
-          console.error('[PosFields] Cannot save: no location selected');
-          return;
-        }
-
-        const memberIds = selected.map((s) => s.id);
-        const now = new Date().toISOString();
-
-        console.debug('[PosFields] saving sales_team for location', locationId, { memberIds, now });
-
-        // 1) check for existing open sales_team for this location (valid_to IS NULL)
-        const { data: openRows, error: selError } = await (supabase as any)
-          .from('sales_team')
-          .select('id')
-          .eq('location_id', locationId)
-          .is('valid_to', null)
-          .limit(1);
-
-        if (selError) {
-          console.error('[PosFields] error checking open sales_team', selError);
-          // still attempt to continue
-        }
-
-        if (openRows && openRows.length > 0) {
-          const openId = (openRows[0] as any).id;
-          console.debug('[PosFields] found open sales_team id, closing it:', openId);
-          const { error: updErr } = await (supabase as any)
-            .from('sales_team')
-            .update({ valid_to: now })
-            .eq('id', openId);
-          if (updErr) console.error('[PosFields] error closing previous sales_team', updErr);
-        }
-
-        // 2) insert new sales_team record
-        const insertPayload = {
-          members: memberIds,
-          location_id: locationId,
-          valid_from: now,
-          valid_to: null,
-        } as any;
-
-        const { data: insData, error: insErr } = await (supabase as any).from('sales_team').insert(insertPayload).select();
-        if (insErr) {
-          console.error('[PosFields] error inserting new sales_team', insErr);
+        const res = await fetch('/api/sales-team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location_id: locationId, members: memberIds, valid_from: now }),
+          credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          console.error('[PosFields] server failed to save sales_team', json);
         } else {
-          console.debug('[PosFields] inserted sales_team', insData);
+          console.debug('[PosFields] server saved sales_team', json);
         }
-
-        // call parent onSave with selected (ids + names) as before
-        onSave(selected);
-        onClose();
       } catch (e) {
-        console.error('[PosFields] unexpected error when saving sales_team', e);
+        console.error('[PosFields] error calling /api/sales-team', e);
       }
     })();
   };
@@ -242,9 +250,9 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
           {/* Left: search + list */}
-          <div className="md:col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-h-0">
             <label className="block text-sm font-medium mb-2">Sales Person Name</label>
             {/* Current active team for this location */}
             {currentTeam.length > 0 ? (
@@ -268,7 +276,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
               className="w-full border rounded p-2 text-sm mb-2"
             />
 
-            <div className="border rounded flex-1 overflow-auto p-2 bg-white">
+            <div className="border rounded flex-1 overflow-auto p-2 bg-white min-h-0">
               {salesPeople.length === 0 && <div className="p-2 text-xs text-gray-500">No staff found for this location</div>}
 
               {salesPeople
@@ -288,9 +296,9 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           </div>
 
           {/* Right: selected summary */}
-          <div className="md:col-span-1 border rounded p-3 bg-gray-50 flex flex-col">
+          <div className="md:col-span-1 border rounded p-3 bg-gray-50 flex flex-col min-h-0">
             <div className="mb-2 font-medium">Selected</div>
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto min-h-0">
               {selected.length === 0 && <div className="text-xs text-gray-500">No selection</div>}
               {selected.map((s) => (
                 <div key={s.id} className="flex items-center justify-between p-2">
