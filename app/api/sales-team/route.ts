@@ -35,14 +35,13 @@ export async function POST(req: Request) {
     // Normalize members to strings to match DB array types, then insert
     const membersNormalized = Array.isArray(members) ? members.map((m: any) => String(m)) : [];
 
-    const insertPayload = {
-      members: membersNormalized,
-      location_id,
-      valid_from: valid_from ?? now,
-      valid_to: null,
-      auth_member: user.id,
-      auth_email: user.email ?? null,
-    } as any;
+      const insertPayload = {
+        members: membersNormalized,
+        location_id,
+        valid_from: valid_from ?? now,
+        valid_to: null,
+        auth_member: user.id,
+      } as any;
 
     const { data, error } = await supabase
       .from('sales_team')

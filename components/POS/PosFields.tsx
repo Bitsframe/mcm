@@ -24,8 +24,10 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
   const [currentTeam, setCurrentTeam] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
-    setSelected(initialSelected || []);
-  }, [initialSelected]);
+    // Only apply initialSelected when the modal is open to avoid
+    // immediately re-populating local state after an optimistic reset
+    if (isOpen) setSelected(initialSelected || []);
+  }, [initialSelected, isOpen]);
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -65,10 +67,10 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       setCurrentTeam([]);
       if (!isOpen || !locationId) return;
       try {
-        // also select auth_member/auth_email so we can show the saving user's email
+        // select auth_member so we can show the saving user's name via profiles
         const { data: teamRows, error: teamErr } = await (supabase as any)
           .from('sales_team')
-          .select('members, auth_member, auth_email')
+          .select('members, auth_member')
           .eq('location_id', locationId)
           .is('valid_to', null)
           .limit(1);
@@ -102,10 +104,24 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         // If the team row was created by an auth_member that is not in the staff list
         // (for example an external user), show their email instead of an empty name.
         if (team.auth_member) {
-          const authId = Number(team.auth_member);
-          const alreadyIncluded = mapped.some((m: { id: number; name: string }) => Number(m.id) === authId);
+          const authIdStr = String(team.auth_member);
+          const alreadyIncluded = mapped.some((m: { id: number | string; name: string }) => String(m.id) === authIdStr);
           if (!alreadyIncluded) {
-            mapped.push({ id: authId || -1, name: team.auth_email ?? String(team.auth_member) });
+            // try to resolve the auth_member id to a human name from profiles.full_name
+            try {
+              const { data: profileRow, error: profileErr } = await (supabase as any)
+                .from('profiles')
+                .select('full_name')
+                .eq('id', authIdStr)
+                .limit(1)
+                .single();
+
+              const fallbackName = profileRow?.full_name ?? authIdStr;
+              mapped.push({ id: authIdStr, name: fallbackName });
+            } catch (pe) {
+              // if profiles lookup fails, fall back to the raw id string
+              mapped.push({ id: authIdStr, name: authIdStr });
+            }
           }
         }
 
@@ -200,16 +216,19 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       // swallow any errors resetting local state
     }
 
-    // notify parent and close modal immediately
-    try {
-      onSave(savedSelected);
-    } catch (e) {
-      console.error('[PosFields] error calling onSave', e);
-    }
+    // Close modal first so parent/state updates cannot keep this component
+    // mounted or re-populate local state before we've reset it.
     try {
       onClose();
     } catch (e) {
       console.error('[PosFields] error calling onClose', e);
+    }
+
+    // notify parent about the saved selection (do this after closing)
+    try {
+      onSave(savedSelected);
+    } catch (e) {
+      console.error('[PosFields] error calling onSave', e);
     }
 
     // background server call
