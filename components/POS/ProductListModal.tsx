@@ -71,7 +71,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
         </div>
 
   <div className="p-4 flex-1 overflow-y-auto">
-          <div className="mb-3 flex items-center gap-2 justify-between">
+          <div className="sticky top-0 z-20 bg-white dark:bg-[#0E1725] mb-3 flex items-center gap-2 justify-between py-3 border-b">
             <div className="flex items-center gap-2 flex-1">
               <input
                 type="text"

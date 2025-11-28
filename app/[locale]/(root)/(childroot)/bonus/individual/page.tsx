@@ -63,18 +63,20 @@ export default function IndividualBonusPage() {
     paidEnd?: string | null
   }
 
-  const fetchRows = async (clientFilters?: ClientFilters) => {
+  const fetchRows = async (clientFilters?: ClientFilters, rangeOverride?: { start: string; end: string }) => {
     try {
       setLoading(true)
 
       // Try the expected table name first, fall back to a generic 'individual' table
       let bonusRows: any[] = []
       try {
+        // Determine which date range to use: explicit override (preferred) or current selectedRange state
+        const activeRange = rangeOverride ?? selectedRange
         // if user selected a date range (week/month), pass filterOptions
-        if (selectedRange) {
+        if (activeRange) {
           bonusRows = await fetch_content_service({ table: 'individual_bonus', filterOptions: [
-            { column: 'bonus_date', operator: 'gte', value: selectedRange.start },
-            { column: 'bonus_date', operator: 'lt', value: selectedRange.end },
+            { column: 'bonus_date', operator: 'gte', value: activeRange.start },
+            { column: 'bonus_date', operator: 'lt', value: activeRange.end },
           ] })
         } else {
           bonusRows = await fetch_content_service({ table: 'individual_bonus' })
@@ -375,14 +377,44 @@ export default function IndividualBonusPage() {
             <button
               type="button"
               className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
-              onClick={() => { setPickerMode('week'); setPickerOpen(true); if (!weekStart) setWeekStart(new Date().toISOString().slice(0,10)) }}
+              onClick={() => {
+                // Auto-filter to last 7 days (including today). Do not open modal.
+                try {
+                  const today = new Date()
+                  // start = today - 6 days, at UTC 00:00:00
+                  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 6, 0, 0, 0))
+                  // end = tomorrow UTC 00:00:00 (exclusive)
+                  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
+                  setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
+                  // Ensure any open picker is closed
+                  setPickerOpen(false)
+                  // refresh rows using the computed range (avoid waiting for state)
+                  fetchRows(undefined, { start: start.toISOString(), end: end.toISOString() }).catch(() => {})
+                } catch (err) {
+                  console.error('Failed to apply week filter', err)
+                }
+              }}
             >
               {t('Bonus_k48')}
             </button>
             <button
               type="button"
               className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
-              onClick={() => { setPickerMode('month'); setPickerOpen(true); if (!monthValue) setMonthValue(new Date().toISOString().slice(0,7)) }}
+              onClick={() => {
+                // Auto-filter to past 30 days (including today). Do not open modal.
+                try {
+                  const today = new Date()
+                  // start = today - 29 days, at UTC 00:00:00
+                  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 29, 0, 0, 0))
+                  // end = tomorrow UTC 00:00:00 (exclusive)
+                  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
+                  setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
+                  setPickerOpen(false)
+                  fetchRows(undefined, { start: start.toISOString(), end: end.toISOString() }).catch(() => {})
+                } catch (err) {
+                  console.error('Failed to apply month filter', err)
+                }
+              }}
             >
               {t('Bonus_k49')}
             </button>
@@ -405,7 +437,8 @@ export default function IndividualBonusPage() {
                         const endIso = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(), 0,0,0)).toISOString()
                         setSelectedRange({ start: startIso, end: endIso })
                         setPickerOpen(false)
-                        fetchRows().catch(() => {})
+                        // pass the same range to fetchRows to avoid relying on state update timing
+                        fetchRows(undefined, { start: startIso, end: endIso }).catch(() => {})
                       }
                     }}>{t('Bonus_k27')}</button>
                   </div>
@@ -423,7 +456,8 @@ export default function IndividualBonusPage() {
                         const end = new Date(Date.UTC(y, m, 1, 0,0,0))
                         setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
                         setPickerOpen(false)
-                        fetchRows().catch(() => {})
+                        // pass the same range to fetchRows to avoid relying on state update timing
+                        fetchRows(undefined, { start: start.toISOString(), end: end.toISOString() }).catch(() => {})
                       }
                     }}>{t('Bonus_k27')}</button>
                   </div>

@@ -97,7 +97,7 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
                 } cursor-pointer `}
                 onClick={() => setFansRemovePeriod("week")}
               >
-                week
+                This week
               </div>
               <div
                 className={`${

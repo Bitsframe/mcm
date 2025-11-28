@@ -47,7 +47,7 @@ const PageFanRemove = () => {
             } cursor-pointer px-1 `}
             onClick={() => setFansRemovePeriod("week")}
           >
-            week
+            This week
           </div>
           <div
             className={`${
@@ -55,7 +55,7 @@ const PageFanRemove = () => {
             } cursor-pointer  px-1`}
             onClick={() => setFansRemovePeriod("days_28")}
           >
-            month
+            This month
           </div>
         </div>
       </div>

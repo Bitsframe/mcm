@@ -146,6 +146,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [cardInput, setCardInput] = useState<string>("");
   // When splitting totals between cash & card this holds the total that must be preserved
   const [splitTotal, setSplitTotal] = useState<number>(0);
+  // Track whether amounts have been saved (render as non-editable)
+  const [amountsSaved, setAmountsSaved] = useState<boolean>(false);
+  // When true the cash/card inputs are editable (entered by clicking the amount)
+  const [amountsEditable, setAmountsEditable] = useState<boolean>(false);
 
   // Initialize dropdown from database values when data loads
   useEffect(() => {
@@ -186,6 +190,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
       // Optimistically update local state
       setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard }));
+      // mark amounts saved so fields render as text
+      setAmountsSaved(true);
     } catch (e: any) {
       console.error("Failed to persist cash/card amounts", e);
       toast.error(e?.message || "Failed to save amounts");
@@ -261,66 +267,42 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
-                      <div className="flex items-center gap-2">
-                        {/* If both payment types exist in DB, show an indicator */}
-                        {dataList?.cash && dataList?.card ? (
-                          <span className="text-xs text-muted-foreground hidden sm:inline">(Card & Cash)</span>
-                        ) : null}
+                        <div className="flex items-center gap-2">
+                        {/* indicator removed: no inline '(Card & Cash)' label */}
                         <Select
                           value={paymentMethodUI}
                           onValueChange={async (v: PaymentOption) => {
                             try {
-                              setPaymentMethodUI(v);
-                              const currentCash = Number(dataList?.cash) || 0;
-                              const currentCard = Number(dataList?.card) || 0;
-
                               // If user selects combined option, enable editable inputs immediately
                               if (v === "Card & Cash") {
+                                setPaymentMethodUI(v);
+                                setAmountsSaved(false);
                                 setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
                                 setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
-                                setSplitTotal(Number((currentCash + currentCard).toFixed(2)));
+                                setSplitTotal(Number((Number(dataList?.cash || 0) + Number(dataList?.card || 0)).toFixed(2)));
                                 return;
                               }
 
-                              // If both are zero, nothing to transfer
-                              if (currentCash === 0 && currentCard === 0) return;
-
-                              // If both have values, user said don't do anything
-                              if (currentCash > 0 && currentCard > 0) return;
-
-                              let newCash = currentCash;
-                              let newCard = currentCard;
-
+                              // For singular modes (Card or Cash) move the full total to the selected side and persist immediately
+                              const total = Number(dataList?.cash || 0) + Number(dataList?.card || 0);
+                              let newCash = 0;
+                              let newCard = 0;
                               if (v === "Cash") {
-                                // Move any card amount to cash, set card to 0
-                                if (currentCard > 0 && currentCash === 0) {
-                                  newCash = currentCard;
-                                  newCard = 0;
-                                } else if (currentCard > 0 && currentCash > 0) {
-                                  // both present - skip per requirement
-                                  return;
-                                } else if (currentCard === 0 && currentCash > 0) {
-                                  // already cash, no change
-                                  return;
-                                }
+                                newCash = total;
+                                newCard = 0;
                               } else if (v === "Card") {
-                                // Move any cash amount to card, set cash to 0
-                                if (currentCash > 0 && currentCard === 0) {
-                                  newCard = currentCash;
-                                  newCash = 0;
-                                } else if (currentCash > 0 && currentCard > 0) {
-                                  // both present - skip per requirement
-                                  return;
-                                } else if (currentCash === 0 && currentCard > 0) {
-                                  // already card, no change
-                                  return;
-                                }
+                                newCard = total;
+                                newCash = 0;
                               }
 
-                              // If values didn't change, skip update
-                              if (newCash === currentCash && newCard === currentCard) return;
+                              // If values didn't change, just set the UI and return
+                              if (newCash === Number(dataList?.cash || 0) && newCard === Number(dataList?.card || 0)) {
+                                setPaymentMethodUI(v);
+                                setAmountsSaved(true);
+                                return;
+                              }
 
-                              // Persist using update_content_service on orders by order_id
+                              // Persist immediately
                               await update_content_service({
                                 table: "orders",
                                 post_data: {
@@ -331,8 +313,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 matchKey: "order_id",
                               });
 
-                              // Optimistically update local state
+                              // Update UI state
                               setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard }));
+                              setPaymentMethodUI(v);
+                              setAmountsSaved(true);
+                              // also update inputs in case user switches back to Card & Cash
+                              setCashInput(String(newCash.toFixed(2)));
+                              setCardInput(String(newCard.toFixed(2)));
                             } catch (e: any) {
                               console.error("Failed to update payment method", e);
                               toast.error(e?.message || "Failed to update payment method");
@@ -350,30 +337,67 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             </SelectGroup>
                           </SelectContent>
                         </Select>
+                        {/* Save button next to Payment Method - visible only when editing split amounts */}
+                        {paymentMethodUI === "Card & Cash" && !amountsSaved && amountsEditable && (
+                          <button
+                            type="button"
+                            onClick={() => persistCashCard(cashInput, cardInput)}
+                            disabled={(() => {
+                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
+                              const currentCard = Number(Number(cardInput || 0).toFixed(2));
+                              const sum = Number((currentCash + currentCard).toFixed(2));
+                              const matchesTotal = Math.abs(sum - Number(splitTotal)) < 0.005;
+                              const unchanged =
+                                Number(dataList?.cash || 0) === currentCash &&
+                                Number(dataList?.card || 0) === currentCard;
+                              return !(matchesTotal && !unchanged);
+                            })()}
+                            aria-label="Save"
+                            title="Save"
+                            className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                              <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414L8 11.086l6.793-6.793a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     </div>
                     
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Cash Amount:</span>
                       {paymentMethodUI === "Card & Cash" ? (
-                        <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                          <span className="text-gray-600">$</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={cashInput}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              const parsed = raw === "" ? 0 : Number(raw);
-                              const clamped = isNaN(parsed) ? 0 : parsed;
-                              // compute the complementary card value so sum equals splitTotal
-                              const other = Number((splitTotal - clamped).toFixed(2));
-                              setCashInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
-                              setCardInput(String(Math.max(0, other).toFixed(2)));
+                        amountsSaved || !amountsEditable ? (
+                          <span
+                            onClick={() => {
+                              if (!amountsSaved) setAmountsEditable(true);
                             }}
-                            className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
-                          />
-                        </div>
+                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                          >
+                            ${(() => {
+                              const cashAmt = Number(dataList?.cash) || 0;
+                              return cashAmt.toFixed(2);
+                            })()}
+                          </span>
+                        ) : (
+                          <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                            <span className="text-gray-600">$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={cashInput}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                const other = Number((splitTotal - clamped).toFixed(2));
+                                setCashInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
+                                setCardInput(String(Math.max(0, other).toFixed(2)));
+                              }}
+                              className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                            />
+                          </div>
+                        )
                       ) : (
                         <span className="font-medium text-gray-800 dark:text-gray-200">
                           ${(() => {
@@ -387,53 +411,50 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Card Amount:</span>
                       {paymentMethodUI === "Card & Cash" ? (
-                        <div className="font-medium text-gray-800 dark:text-gray-200 flex flex-col gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600">$</span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              value={cardInput}
-                              onChange={(e) => {
-                                const raw = e.target.value;
-                                const parsed = raw === "" ? 0 : Number(raw);
-                                const clamped = isNaN(parsed) ? 0 : parsed;
-                                const other = Number((splitTotal - clamped).toFixed(2));
-                                setCardInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
-                                setCashInput(String(Math.max(0, other).toFixed(2)));
-                              }}
-                              className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => persistCashCard(cashInput, cardInput)}
-                              disabled={(() => {
-                                const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                                const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                                const sum = Number((currentCash + currentCard).toFixed(2));
-                                const matchesTotal = Math.abs(sum - Number(splitTotal)) < 0.005;
-                                const unchanged =
-                                  Number(dataList?.cash || 0) === currentCash &&
-                                  Number(dataList?.card || 0) === currentCard;
-                                return !(matchesTotal && !unchanged);
-                              })()}
-                              className="ml-2 inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Save
-                            </button>
+                        amountsSaved || !amountsEditable ? (
+                          <span
+                            onClick={() => {
+                              if (!amountsSaved) setAmountsEditable(true);
+                            }}
+                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                          >
+                            ${(() => {
+                              const cardAmt = Number(dataList?.card) || 0;
+                              return cardAmt.toFixed(2);
+                            })()}
+                          </span>
+                        ) : (
+                          <div className="font-medium text-gray-800 dark:text-gray-200 flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={cardInput}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  const parsed = raw === "" ? 0 : Number(raw);
+                                  const clamped = isNaN(parsed) ? 0 : parsed;
+                                  const other = Number((splitTotal - clamped).toFixed(2));
+                                  setCardInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
+                                  setCashInput(String(Math.max(0, other).toFixed(2)));
+                                }}
+                                className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                              />
+                            </div>
+                            {(() => {
+                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
+                              const currentCard = Number(Number(cardInput || 0).toFixed(2));
+                              const sum = Number((currentCash + currentCard).toFixed(2));
+                              if (Math.abs(sum - Number(splitTotal)) > 0.005) {
+                                return (
+                                  <div className="text-sm text-red-600">{"Sum must equal $" + Number(splitTotal).toFixed(2)}</div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
-                          {(() => {
-                            const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                            const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                            const sum = Number((currentCash + currentCard).toFixed(2));
-                            if (Math.abs(sum - Number(splitTotal)) > 0.005) {
-                              return (
-                                <div className="text-sm text-red-600">{"Sum must equal $" + Number(splitTotal).toFixed(2)}</div>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </div>
+                        )
                       ) : (
                         <span className="font-medium text-gray-800 dark:text-gray-200">
                           ${(() => {
@@ -546,21 +567,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               </div>
             </div>
       
-                  {/* Sales Person Section */}
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Sales Person</h3>
-                    <div className="p-3 bg-gray-50 dark:bg-[#071025] border rounded">
-                      {dataList?.sales_team_members && dataList.sales_team_members.length > 0 ? (
-                        <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
-                          {dataList.sales_team_members.map((name: string, idx: number) => (
-                            <li key={idx} className="py-1">{name}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="text-sm text-gray-500">No sales person assigned</div>
-                      )}
-                    </div>
-                  </div>
+                  {/* Sales Person Section — moved below to sit above the table */}
 
             {/* Order Summary */}
             <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
@@ -594,19 +601,36 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="mb-4">
-              <div className="relative">
-                <CiSearch
-                  size={20}
-                  className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
-                />
-                <input
-                  onChange={searchProductHandle}
-                  type="text"
-                  placeholder={t("POS-Historyk33")}
-                  className=" pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
-                />
+            {/* Search + Sales Person (same row on md+, stacked on small screens) */}
+            <div className="mb-4 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="flex-1">
+                <div className="relative max-w-xl">
+                  <CiSearch
+                    size={20}
+                    className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
+                  />
+                  <input
+                    onChange={searchProductHandle}
+                    type="text"
+                    placeholder={t("POS-Historyk33")}
+                    className="w-full pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                  />
+                </div>
+              </div>
+
+              <div className="md:shrink-0 w-full md:w-72">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sales Person</h3>
+                <div className="p-2 bg-gray-50 dark:bg-[#071025] border rounded text-sm">
+                  {dataList?.sales_team_members && dataList.sales_team_members.length > 0 ? (
+                    <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                      {dataList.sales_team_members.map((name: string, idx: number) => (
+                        <li key={idx} className="py-0.5">{name}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-xs text-gray-500">No sales person assigned</div>
+                  )}
+                </div>
               </div>
             </div>
 
