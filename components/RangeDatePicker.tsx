@@ -15,26 +15,14 @@ function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth()+1, 
 function formatISO(d: Date) { return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString().slice(0,10) }
 
 export default function RangeDatePicker({ start, end, onChange }: Props) {
-  const [visible, setVisible] = useState(false)
   const [month, setMonth] = useState<Date>(() => start ? new Date(start) : new Date())
   const [selStart, setSelStart] = useState<string | null>(start ?? null)
   const [selEnd, setSelEnd] = useState<string | null>(end ?? null)
   const ref = useRef<HTMLDivElement | null>(null)
-  const buttonRef = useRef<HTMLButtonElement | null>(null)
-  const [popupStyle, setPopupStyle] = useState<React.CSSProperties | undefined>(undefined)
 
   useEffect(() => { setSelStart(start ?? null); setSelEnd(end ?? null) }, [start, end])
 
-  useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!(e.target instanceof Node)) return
-      if (ref.current && ref.current.contains(e.target as Node)) return
-      if (buttonRef.current && buttonRef.current.contains(e.target as Node)) return
-      setVisible(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [])
+  // Keep the picker visible inline; no document click listener needed.
 
   const weeks = useMemo(() => {
     const startM = startOfMonth(month)
@@ -65,7 +53,7 @@ export default function RangeDatePicker({ start, end, onChange }: Props) {
       } else {
         setSelEnd(iso)
         onChange(selStart, iso)
-        setVisible(false)
+        // keep calendar visible (do not auto-close)
       }
     }
   }
@@ -82,55 +70,39 @@ export default function RangeDatePicker({ start, end, onChange }: Props) {
 
   return (
     <div className="relative inline-block" ref={ref}>
-      <button ref={buttonRef} type="button" className="w-full text-left border p-2 rounded bg-white flex items-center justify-between" onClick={() => {
-        // compute popup position to avoid being clipped by modal overflow
-        const btn = buttonRef.current
-        if (btn) {
-          const r = btn.getBoundingClientRect()
-          const left = Math.max(8, r.left)
-          const top = r.bottom + 8
-          setPopupStyle({ position: 'fixed', left: `${left}px`, top: `${top}px`, minWidth: `${Math.max(240, r.width)}px`, zIndex: 9999 })
-        }
-        setVisible(v => !v)
-      }}>
-        <div className="text-sm text-gray-700 truncate">{displayLabel || 'Select date range'}</div>
-        <div className="ml-2 text-gray-400">▾</div>
-      </button>
-      {visible && (
-        <div ref={ref} style={popupStyle} className="bg-white p-3 rounded shadow-2xl border">
-          <div className="flex items-center justify-between mb-2">
-            <button className="px-2 py-1 text-sm" onClick={() => setMonth(m => new Date(m.getFullYear(), m.getMonth()-1, 1))}>‹</button>
-            <div className="text-sm font-semibold">{month.toLocaleString(undefined,{ month: 'long', year: 'numeric' })}</div>
-            <button className="px-2 py-1 text-sm" onClick={() => setMonth(m => new Date(m.getFullYear(), m.getMonth()+1, 1))}>›</button>
-          </div>
-          <div className="grid grid-cols-7 gap-1 text-xs text-center text-gray-500">
-            {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=> <div key={d}>{d}</div>)}
-          </div>
-          <div className="mt-2">
-            {weeks.map((week, i) => (
-              <div key={i} className="grid grid-cols-7 gap-1">
-                {week.map((cell, idx) => (
-                  <div key={idx} className="h-8">
+      <div className="w-full text-left">
+        {displayLabel ? <div className="text-sm text-gray-700 truncate mb-2">{displayLabel}</div> : null}
+      </div>
+      <div className="bg-white p-4 rounded shadow border w-72">
+        <div className="flex items-center justify-between mb-3">
+          <button className="px-3 py-1.5 text-base" onClick={() => setMonth(m => new Date(m.getFullYear(), m.getMonth()-1, 1))}>‹</button>
+          <div className="text-base font-semibold">{month.toLocaleString(undefined,{ month: 'long', year: 'numeric' })}</div>
+          <button className="px-3 py-1.5 text-base" onClick={() => setMonth(m => new Date(m.getFullYear(), m.getMonth()+1, 1))}>›</button>
+        </div>
+          <div className="grid grid-cols-7 gap-2 text-sm text-center text-gray-500">
+          {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=> <div key={d}>{d}</div>)}
+        </div>
+          <div className="mt-3">
+          {weeks.map((week, i) => (
+            <div key={i} className="grid grid-cols-7 gap-2">
+              {week.map((cell, idx) => (
+                  <div key={idx} className="h-10">
                     {cell ? (
-                        <button
+                      <button
                         type="button"
                         onClick={() => handleDateClick(cell)}
-                        className={`w-full h-8 rounded ${isInRange(cell) ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'} flex items-center justify-center`}
+                        className={`w-full h-10 rounded ${isInRange(cell) ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'} flex items-center justify-center`}
                       >
-                        <span className="text-sm">{cell.getDate()}</span>
+                        <span className="text-base">{cell.getDate()}</span>
                       </button>
                     ) : <div />}
                   </div>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-end gap-2 mt-3">
-            <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => { setVisible(false); setSelStart(start ?? null); setSelEnd(end ?? null) }}>Cancel</button>
-            <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => { onChange(selStart, selEnd); setVisible(false) }}>Apply</button>
-          </div>
+              ))}
+            </div>
+          ))}
         </div>
-      )}
+        {/* Footer buttons removed: selection is applied immediately when end date is chosen */}
+      </div>
     </div>
   )
 }

@@ -340,46 +340,42 @@ export const Add_Appointment_Modal = ({
       postData.isApproved = true;
       postData.new_patient = false;
     }
-    // If a coming-back patient is selected, update the existing appointment row instead of inserting
+    // If a coming-back patient is selected, INSERT a new appointment row (do not update existing)
     if (selectedComingBackPatient && selectedComingBackPatient.id) {
       try {
-        const updatePayload: any = {
-          service: appointmentDetails.service,
-          date_and_time: appointmentDetails.date_and_time,
-          isApproved: true, // Ensure isApproved is set to true for "Coming Back" patients
+        // Build post data from appointmentDetails and enforce DB values for coming-back
+        const comingBackPost = {
+          ...appointmentDetails,
+          isApproved: true,
+          new_patient: false,
         };
 
-        console.log("Update Payload for Coming Back Patient:", updatePayload);
+        console.log("Inserting new appointment for Coming Back patient:", comingBackPost);
 
-        const { data: updatedData, error: updateError } = await supabase
-          .from('Appoinments')
-          .update({
-            service: appointmentDetails.service,
-            date_and_time: appointmentDetails.date_and_time,
-            isApproved: true,
-          })
-          .eq("id", selectedComingBackPatient.id)
+        const { data: insertData, error: insertError } = await supabase
+          .from("Appoinments")
+          .insert([comingBackPost])
           .select();
 
-        console.log("Supabase Response for Update:", { updatedData, updateError });
+        console.log("Supabase Response for Coming Back Insert:", { insertData, insertError });
 
-        newAddedRow(updatedData?.[0]);
+        newAddedRow(insertData?.[0]);
 
-        if (updateError) {
+        if (insertError) {
           if (
-            updateError?.message ===
+            insertError?.message ===
             'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
           ) {
             toast.error(
               `Sorry, Appointment time slot is not available, Please select any other time slot`
             );
           } else {
-            toast.error(`Error updating appointment: ${updateError?.message}`);
+            toast.error(`Error submitting appointment: ${insertError?.message}`);
           }
         } else {
           toast.success(
             <div className="flex justify-between">
-              <p>Appointment updated successfully.</p>
+              <p>Appointment scheduled successfully.</p>
               <button
                 onClick={() => toast.dismiss()}
                 className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -389,7 +385,7 @@ export const Add_Appointment_Modal = ({
             </div>
           );
 
-          // Trigger server-side email via API route
+          // Trigger server-side email via API route for the new appointment
           try {
             const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails;
             const appointmentDate = date_and_time && date_and_time.includes('|')
@@ -410,16 +406,16 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.error('Error triggering appointment email (update):', e);
+            console.error('Error triggering appointment email (coming back insert):', e);
           }
 
           // Trigger UI update for booked time slots
-          newAddedRow(updatedData?.[0]);
+          newAddedRow(insertData?.[0]);
           close_handle();
         }
       } catch (e) {
-        console.error('Error updating appointment', e);
-        toast.error('An error occurred while updating the appointment');
+        console.error('Error inserting appointment for coming back patient', e);
+        toast.error('An error occurred while submitting the appointment');
       }
 
       setLoading(false);

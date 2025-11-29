@@ -24,6 +24,7 @@ export default function IndividualBonusPage() {
   const [allLocations, setAllLocations] = useState<Array<{ id: string; title: string }>>([])
   const [filterLocationIds, setFilterLocationIds] = useState<string[]>([])
   const [locDropdownOpen, setLocDropdownOpen] = useState<boolean>(false)
+  const [staffSearchOpen, setStaffSearchOpen] = useState<boolean>(false)
   const [filterBonusStart, setFilterBonusStart] = useState<string | null>(null)
   const [filterBonusEnd, setFilterBonusEnd] = useState<string | null>(null)
   const [filterPaidStart, setFilterPaidStart] = useState<string | null>(null)
@@ -124,6 +125,20 @@ export default function IndividualBonusPage() {
         }
       }
 
+      // collect auth_member UUIDs appearing directly on bonus (individual) rows only
+      const authMemberIds = Array.from(new Set(((bonusRows || []).map((r: any) => r.auth_member).filter(Boolean) || [])))
+
+      // fetch profiles for those auth_member ids so we can display full_name when staff_id is null
+      let profileMap: Record<string, string> = {}
+      if (authMemberIds.length > 0) {
+        try {
+          const profileRows = await fetch_content_service({ table: 'profiles', filterOptions: [{ column: 'id', operator: 'in', value: authMemberIds }], selectParam: 'id,full_name' })
+          profileRows?.forEach((p: any) => { if (p && p.id) profileMap[String(p.id)] = p.full_name })
+        } catch (err) {
+          console.warn('Failed to load profiles for auth_member mapping', err)
+        }
+      }
+
       const mapped = (bonusRows || []).map((r: any) => ({
         id: r.id,
         staff_id: r.staff_id,
@@ -131,7 +146,7 @@ export default function IndividualBonusPage() {
         // include the location_id from sales_team (if available) so client filtering can use it
         location_id: salesTeamMap[Number(r.sales_team_id)] ? String(salesTeamMap[Number(r.sales_team_id)]) : null,
         location_name: salesTeamMap[Number(r.sales_team_id)] ? (locationMap[salesTeamMap[Number(r.sales_team_id)]] || '') : '',
-        staff_name: staffMap[Number(r.staff_id)] || String(r.staff_id),
+        staff_name: (r.staff_id ? (staffMap[Number(r.staff_id)] || String(r.staff_id)) : (r.auth_member && profileMap[String(r.auth_member)] ? profileMap[String(r.auth_member)] : '')),
         bonus: r.bonus ?? r.amount ?? r.bonus_amount ?? 0,
         paid: Boolean(r.paid),
         paid_date: r.paid_date ?? null,
@@ -193,6 +208,32 @@ export default function IndividualBonusPage() {
     }
   }
 
+  // helper to set staff name and load its locations (used by search/select)
+  const handleStaffSelect = async (fullName: string) => {
+    setFilterStaffName(fullName)
+    // find staff record to get its location_ids
+    const staffRec = staffOptions.find((s) => s.full_name === fullName)
+    if (staffRec && Array.isArray(staffRec.location_id) && staffRec.location_id.length > 0) {
+      try {
+        const locRows = await fetch_content_service({ table: 'Locations', filterOptions: [{ column: 'id', operator: 'in', value: staffRec.location_id }], selectParam: 'id,title' })
+        if (Array.isArray(locRows)) {
+          setLocationOptions(locRows.map((l: any) => ({ id: String(l.id), title: l.title })))
+          // reset selected locations when staff changes
+          setFilterLocationIds([])
+        } else {
+          setLocationOptions([])
+        }
+      } catch (err) {
+        console.error('Failed to load locations for staff', err)
+        setLocationOptions([])
+      }
+    } else {
+      setLocationOptions([])
+      setFilterLocationIds([])
+    }
+    setStaffSearchOpen(false)
+  }
+
   useEffect(() => { fetchRows() }, [])
 
   // load staff names for dropdown
@@ -234,6 +275,18 @@ export default function IndividualBonusPage() {
     } else {
       // when switching back to staff mode, clear any global location selection
       setFilterLocationIds([])
+      // restore locationOptions to only those locations where the selected staff works
+      if (filterStaffName) {
+        const staffRec = staffOptions.find((s) => s.full_name === filterStaffName)
+        if (staffRec && Array.isArray(staffRec.location_id) && staffRec.location_id.length > 0) {
+          const staffLocIds = staffRec.location_id.map((id: any) => String(id))
+          setLocationOptions(allLocations.filter((l) => staffLocIds.includes(String(l.id))))
+        } else {
+          setLocationOptions([])
+        }
+      } else {
+        setLocationOptions([])
+      }
     }
   }, [filterMode, allLocations])
 
@@ -381,15 +434,18 @@ export default function IndividualBonusPage() {
                 // Auto-filter to last 7 days (including today). Do not open modal.
                 try {
                   const today = new Date()
-                  // start = today - 6 days, at UTC 00:00:00
+                  // start = today - 6 days, at UTC 00:00:00 (inclusive start)
                   const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 6, 0, 0, 0))
-                  // end = tomorrow UTC 00:00:00 (exclusive)
-                  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
-                  setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
+                  // endExclusive = tomorrow UTC 00:00:00 (exclusive) — used for DB query
+                  const endExclusive = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
+                  // Set selectedRange with exclusive end (for queries)
+                  setSelectedRange({ start: start.toISOString(), end: endExclusive.toISOString() })
+                  // Set weekStart so the UI shows `start → start+6` (e.g. 2025-11-23 → 2025-11-29)
+                  setWeekStart(start.toISOString().slice(0,10))
                   // Ensure any open picker is closed
                   setPickerOpen(false)
-                  // refresh rows using the computed range (avoid waiting for state)
-                  fetchRows(undefined, { start: start.toISOString(), end: end.toISOString() }).catch(() => {})
+                  // Refresh rows using the computed exclusive range (avoid waiting for state)
+                  fetchRows(undefined, { start: start.toISOString(), end: endExclusive.toISOString() }).catch(() => {})
                 } catch (err) {
                   console.error('Failed to apply week filter', err)
                 }
@@ -404,13 +460,15 @@ export default function IndividualBonusPage() {
                 // Auto-filter to past 30 days (including today). Do not open modal.
                 try {
                   const today = new Date()
-                  // start = today - 29 days, at UTC 00:00:00
+                  // start = today - 29 days, at UTC 00:00:00 (inclusive start)
                   const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 29, 0, 0, 0))
-                  // end = tomorrow UTC 00:00:00 (exclusive)
-                  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
-                  setSelectedRange({ start: start.toISOString(), end: end.toISOString() })
+                  // endExclusive = tomorrow UTC 00:00:00 (exclusive)
+                  const endExclusive = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1, 0, 0, 0))
+                  // For display, set monthValue to the month of the start (so picker shows context if opened)
+                  setMonthValue(start.toISOString().slice(0,7))
+                  setSelectedRange({ start: start.toISOString(), end: endExclusive.toISOString() })
                   setPickerOpen(false)
-                  fetchRows(undefined, { start: start.toISOString(), end: end.toISOString() }).catch(() => {})
+                  fetchRows(undefined, { start: start.toISOString(), end: endExclusive.toISOString() }).catch(() => {})
                 } catch (err) {
                   console.error('Failed to apply month filter', err)
                 }
@@ -531,7 +589,7 @@ export default function IndividualBonusPage() {
 
         {selectedRange && (
           <div className="flex items-center gap-2">
-            <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {new Date(selectedRange.end).toISOString().slice(0,10)}</div>
+            <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {(() => { const e = new Date(selectedRange.end); const incl = new Date(e.getTime() - 24*3600*1000); return incl.toISOString().slice(0,10) })()}</div>
             <button className="text-xs text-red-600" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>{t('Bonus_k26')}</button>
           </div>
         )}
@@ -558,118 +616,149 @@ export default function IndividualBonusPage() {
                 </label>
               </div>
 
-              {/* Staff dropdown shown only when staff mode is active */}
+              {/* Staff name and Location on same row for staff-mode */}
               {filterMode === 'staff' && (
-                <div>
-                  <label className="text-sm">Staff name</label>
-                  <select
-                    className="mt-1 w-full border p-3 rounded text-base"
-                    value={filterStaffName}
-                    onChange={async (e) => {
-                      const val = e.target.value
-                      setFilterStaffName(val)
-                      // find staff record to get its location_ids
-                      const staffRec = staffOptions.find((s) => s.full_name === val)
-                      if (staffRec && Array.isArray(staffRec.location_id) && staffRec.location_id.length > 0) {
-                        try {
-                          const locRows = await fetch_content_service({ table: 'Locations', filterOptions: [{ column: 'id', operator: 'in', value: staffRec.location_id }], selectParam: 'id,title' })
-                          if (Array.isArray(locRows)) {
-                            setLocationOptions(locRows.map((l: any) => ({ id: String(l.id), title: l.title })))
-                            // reset selected locations when staff changes
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-3">
+                    <label className="w-28 text-sm">Staff name</label>
+                    <div className="relative w-64">
+                      <input
+                        type="text"
+                        className="mt-1 w-full border border-gray-200 p-2 rounded text-sm focus:outline-none focus:ring-0 focus:border-gray-300 bg-white"
+                        placeholder="Search staff"
+                        value={filterStaffName}
+                        onChange={(e) => {
+                          setFilterStaffName(e.target.value)
+                          setStaffSearchOpen(true)
+                          if (!e.target.value) {
+                            setLocationOptions(allLocations)
                             setFilterLocationIds([])
-                          } else {
-                            setLocationOptions([])
                           }
-                        } catch (err) {
-                          console.error('Failed to load locations for staff', err)
-                          setLocationOptions([])
-                        }
-                        } else {
-                        setLocationOptions([])
-                        setFilterLocationIds([])
-                      }
-                    }}
-                  >
-                    <option value="">Select staff</option>
-                    {staffOptions.map((s) => (
-                      <option key={s.full_name} value={s.full_name}>{s.full_name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                        }}
+                        onFocus={() => setStaffSearchOpen(true)}
+                        onBlur={() => setTimeout(() => setStaffSearchOpen(false), 150)}
+                      />
 
-              <div className="grid grid-cols-3 gap-4 items-center">
-                <div>
-                  <label className="text-sm">{t('Bonus_k38')}</label>
-                  {/* Location select: multi-select when in staff mode, single-select when in location mode */}
-                  {filterMode === 'staff' ? (
-                    <div className="relative">
-                      <div className="mt-1 w-full border rounded p-2 cursor-pointer" onClick={() => setLocDropdownOpen((s) => !s)}>
-                        <div className="flex flex-wrap gap-2">
-                          {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
-                          {filterLocationIds.map((id) => {
-                            const loc = locationOptions.find((l) => l.id === id)
-                            return loc ? (
-                              <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
-                                <span className="text-sm">{loc.title}</span>
-                                <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
-                              </span>
-                            ) : null
-                          })}
-                          <div className="ml-auto text-gray-400">▾</div>
+                      {staffSearchOpen && filterStaffName !== '' && (
+                        <div className="absolute z-40 mt-1 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
+                          {staffOptions.filter(s => s.full_name.toLowerCase().includes(filterStaffName.toLowerCase())).length > 0 ? (
+                            staffOptions.filter(s => s.full_name.toLowerCase().includes(filterStaffName.toLowerCase())).map((s) => (
+                              <div key={s.full_name} className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm" onMouseDown={() => handleStaffSelect(s.full_name)}>
+                                {s.full_name}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">(no matches)</div>
+                          )}
                         </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <label className="w-28 text-sm">{t('Bonus_k38')}</label>
+                    <div className="mt-1 w-64 border rounded p-2 cursor-pointer relative" onClick={() => setLocDropdownOpen((s) => !s)}>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
+                        {filterLocationIds.map((id) => {
+                          const loc = locationOptions.find((l) => l.id === id)
+                          return loc ? (
+                            <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
+                              <span className="text-sm">{loc.title}</span>
+                              <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
+                            </span>
+                          ) : null
+                        })}
+                        <div className="ml-auto text-gray-400">▾</div>
                       </div>
 
                       {locDropdownOpen && (
-                        <div className="absolute z-40 mt-1 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
+                        <div className="absolute z-40 mt-1 left-0 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
                           {locationOptions.length > 0 ? (
                             locationOptions.map((loc) => (
-                              <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" onClick={() => { setFilterLocationIds(prev => prev.includes(loc.id) ? prev : [...prev, loc.id]); setLocDropdownOpen(false) }}>
-                                <div className="text-sm">{loc.title}</div>
-                              </div>
-                            ))
+                              <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.includes(loc.id) ? prev : [...prev, loc.id]); setLocDropdownOpen(false) }}>
+                                  <div className="text-sm">{loc.title}</div>
+                                </div>
+                              ))
                           ) : (
                             <div className="px-3 py-2 text-sm text-gray-500">(no locations)</div>
                           )}
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <select className="mt-1 w-full border p-2 rounded" value={filterLocationIds[0] ?? ''} onChange={(e) => setFilterLocationIds(e.target.value ? [e.target.value] : [])}>
-                      <option value="">{t('Bonus_k27')}</option>
-                      {locationOptions.length > 0 ? (
-                        locationOptions.map((loc) => (
-                          <option key={loc.id} value={loc.id}>{loc.title}</option>
-                        ))
-                      ) : (
-                        <option value="">(select staff to show locations)</option>
-                      )}
-                    </select>
-                  )}
+                  </div>
+                </div>
+              )}
+
+              {/* Location-only field (visible only when Location radio is selected).
+                  Shows all locations and allows selecting multiple without changing
+                  the existing staff-mode logic. */}
+              {filterMode === 'location' && (
+                <div className="flex items-center gap-6 mb-4">
+                  <label className="w-28 text-sm">{t('Bonus_k38')}</label>
+                  <div className="mt-1 w-96 border rounded p-2 cursor-pointer relative" onClick={() => setLocDropdownOpen((s) => !s)}>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
+                      {filterLocationIds.map((id) => {
+                        const loc = allLocations.find((l) => l.id === id)
+                        return loc ? (
+                          <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
+                            <span className="text-sm">{loc.title}</span>
+                            <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
+                          </span>
+                        ) : null
+                      })}
+                      <div className="ml-auto text-gray-400">▾</div>
+                    </div>
+
+                    {locDropdownOpen && (
+                      <div className="absolute z-40 mt-1 left-0 w-full max-h-64 overflow-auto bg-white border rounded shadow-lg">
+                        {allLocations.length > 0 ? (
+                          allLocations.map((loc) => (
+                            <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center" onClick={() => {
+                              // toggle selection but do not auto-close the dropdown
+                              setFilterLocationIds(prev => prev.includes(loc.id) ? prev.filter(x => x !== loc.id) : [...prev, loc.id])
+                            }}>
+                              <input type="checkbox" readOnly checked={filterLocationIds.includes(loc.id)} className="mr-2" />
+                              <div className="text-sm">{loc.title}</div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-sm text-gray-500">(no locations)</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 items-start">
+                <div className="flex flex-col items-center">
+                  <label className="text-sm mb-2">Bonus date</label>
+                  <div className="w-full flex justify-center">
+                    <RangeDatePicker
+                      start={filterBonusStart}
+                      end={filterBonusEnd}
+                      onChange={(s, e) => {
+                        setFilterBonusStart(s)
+                        setFilterBonusEnd(e)
+                      }}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm">Bonus date</label>
-                  <RangeDatePicker
-                    start={filterBonusStart}
-                    end={filterBonusEnd}
-                    onChange={(s, e) => {
-                      setFilterBonusStart(s)
-                      setFilterBonusEnd(e)
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm">Paid date</label>
-                  <RangeDatePicker
-                    start={filterPaidStart}
-                    end={filterPaidEnd}
-                    onChange={(s, e) => {
-                      setFilterPaidStart(s)
-                      setFilterPaidEnd(e)
-                    }}
-                  />
+                <div className="flex flex-col items-center">
+                  <label className="text-sm mb-2">Paid date</label>
+                  <div className="w-full flex justify-center">
+                    <RangeDatePicker
+                      start={filterPaidStart}
+                      end={filterPaidEnd}
+                      onChange={(s, e) => {
+                        setFilterPaidStart(s)
+                        setFilterPaidEnd(e)
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
