@@ -26,8 +26,7 @@ const templates = [
   { label: "Template 10", value: "template10", component: emailtemplate10 },
 ];
 
-
-export async function POST(req: any) {
+export async function POST(req: Request) {
   try {
     const {
       subject,
@@ -40,151 +39,61 @@ export async function POST(req: any) {
       reason,
       startDate,
       endDate,
-      email,
-      price
+      email: recipients,
+      price,
     } = await req.json();
 
-    console.log("Received email request:", {
-      subject,
-      template,
-      templateBody: !!templateBody,
-      recipientCount: email?.length,
-      hasRequiredFields: !!subject && !!name && !!price
-    });
-
-    // Validate required fields
-    if (!subject || !name) {
-      return NextResponse.json(
-        { message: "Missing required fields: subject or name" },
-        { status: 400 }
-      );
+    if (!subject || !name || !recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
-    // Only validate price for non-DB templates
     if (!templateBody && !price) {
-      return NextResponse.json(
-        { message: "Missing required field: price" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Price required for template" }, { status: 400 });
     }
 
-    // Validate email recipients
-    if (!email || !Array.isArray(email) || email.length === 0) {
-      return NextResponse.json(
-        { message: "No valid email recipients provided" },
-        { status: 400 }
-      );
+    const endpoint = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
+
+    if (!endpoint) {
+      return NextResponse.json({ message: "Email service not configured" }, { status: 500 });
     }
 
-    // If templateBody is provided, use it directly (DB template)
+    let htmlContent = "";
+
     if (templateBody) {
-      const payload = {
-        from: process.env.SENDER_BROADCAST_EMAIL || "clinicasanmichel@alerts.myclinicmd.com",
-        recipients: email.map((recipient: any) => recipient.email),
-        subject,
-        html: templateBody,
-      };
-
-      console.log("Sending email payload (DB template):", {
-        from: payload.from,
-        recipientCount: payload.recipients.length,
-        subject: payload.subject
-      });
-
-      const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email` || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
-
-      const response = await axios.post(endpoint, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log("Email service response (DB template):", {
-        status: response.status,
-        data: response.data
-      });
-
-      if (response.status !== 200) {
-        throw new Error(response.data?.message || 'Failed to send email');
+      htmlContent = templateBody;
+    } else {
+      const selected = templates.find(t => t.value === template);
+      if (!selected) {
+        return NextResponse.json({ message: "Invalid template" }, { status: 400 });
       }
-
-      return NextResponse.json(
-        { message: "Emails sent successfully", ok: true },
-        { status: 201 }
-      );
+      htmlContent = render(selected.component({
+        reason, clinicName, name, buttonText, buttonLink, endDate, startDate, price,
+      }));
     }
 
-    // Only validate template name for hardcoded templates
-    const selectedTemplate = templates.find((t) => t.value === template);
-    if (!selectedTemplate) {
-      return NextResponse.json(
-        { message: "Invalid template name provided." },
-        { status: 400 }
-      );
-    }
-
-    const emailHtmls = render(
-      selectedTemplate.component({
-        reason,
-        clinicName,
-        name,
-        buttonText,
-        buttonLink,
-        endDate,
-        startDate,
-        price,
-      })
-    );
-
-
-    // Create a payload that includes all recipients
     const payload = {
-      from: process.env.SENDER_BROADCAST_EMAIL || "clinicasanmiguel@alerts.myclinicmd.com",
-      recipients: email.map((recipient: any) => recipient.email),
+      from: process.env.SENDER_BROADCAST_EMAIL || "MyClinicMD <no-reply@alerts.myclinicmd.com>",
+      recipients: recipients.map((r: any) => r.email || r),
       subject,
-      html: emailHtmls,
+      html: htmlContent,
     };
 
-    console.log("Sending email payload (hardcoded):", {
-      from: payload.from,
-      recipientCount: payload.recipients.length,
-      subject: payload.subject
-    });
-
-    const endpoint = `${process.env.NEXT_PUBLIC_EMAIL_SENDER_URL}/send-batch-email` || "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email";
-
     const response = await axios.post(endpoint, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { "Content-Type": "application/json" },
+      timeout: 60000,
     });
-
-    console.log("Email service response (hardcoded):", {
-      status: response.status,
-      data: response.data
-    });
-
-    if (response.status !== 200) {
-      throw new Error(response.data?.message || 'Failed to send email');
-    }
 
     return NextResponse.json(
-      { message: "Emails sent successfully", ok: true },
+      { message: "Emails sent successfully!", ok: true, data: response.data },
       { status: 201 }
     );
+
   } catch (error: any) {
-    console.error("Email sending error details:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      config: error.config
-    });
-    
+    console.error("Email API Error:", error.response?.data || error.message);
     return NextResponse.json(
-      { 
-        message: error.message || "An error occurred while sending emails.",
+      {
+        message: "Failed to send emails",
         error: error.response?.data || error.message,
-        details: error.response?.data?.details || "No additional details available"
       },
       { status: 500 }
     );
