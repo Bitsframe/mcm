@@ -51,7 +51,10 @@ export default function IndividualBonusPage() {
       const s = new Date(selectedRange.start)
       const e = new Date(selectedRange.end)
       // month range: start is first of month and end is first of next month
-      return s.getUTCDate() === 1 && e.getUTCDate() === 1 && (e.getUTCMonth() !== s.getUTCMonth() || e.getUTCFullYear() !== s.getUTCFullYear())
+      const diff = (e.getTime() - s.getTime()) / (24*3600*1000)
+      // Treat either a calendar-month range (1st -> 1st of next month) or a 30-day range as 'month' active
+      const isCalendarMonth = s.getUTCDate() === 1 && e.getUTCDate() === 1 && (e.getUTCMonth() !== s.getUTCMonth() || e.getUTCFullYear() !== s.getUTCFullYear())
+      return isCalendarMonth || diff === 30
     } catch (e) { return false }
   })()
 
@@ -424,12 +427,22 @@ export default function IndividualBonusPage() {
   return (
     <main className="p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('Bonus_k47')}</h1>
-          <div className="relative flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">{t('Bonus_k47')}</h1>
+          <button
+            type="button"
+            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded min-w-[120px]"
+            onClick={() => setFilterModalOpen(true)}
+            title={t('Bonus_k6')}
+          >
+            {t('Bonus_k6')}
+          </button>
+        </div>
+        <div className="relative flex items-center gap-3">
           <div className="flex items-center space-x-2">
             <button
               type="button"
-              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
+              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium ${isWeekActive ? 'underline decoration-orange-600 underline-offset-4' : ''}`}
               onClick={() => {
                 // Auto-filter to last 7 days (including today). Do not open modal.
                 try {
@@ -455,7 +468,7 @@ export default function IndividualBonusPage() {
             </button>
             <button
               type="button"
-              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium`}
+              className={`text-sm px-2 py-1 rounded text-orange-600 font-medium ${isMonthActive ? 'underline decoration-orange-600 underline-offset-4' : ''}`}
               onClick={() => {
                 // Auto-filter to past 30 days (including today). Do not open modal.
                 try {
@@ -575,18 +588,11 @@ export default function IndividualBonusPage() {
         </div>
       )}
 
-      <BonusSummaryCards cards={summaryCards} />
+      <div className="mt-8">
+        <BonusSummaryCards cards={summaryCards} />
+      </div>
 
       <div className="flex items-center justify-start gap-4 mt-4 mb-4">
-        <button
-          type="button"
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded min-w-[140px]"
-          onClick={() => setFilterModalOpen(true)}
-          title={t('Bonus_k6')}
-        >
-          {t('Bonus_k6')}
-        </button>
-
         {selectedRange && (
           <div className="flex items-center gap-2">
             <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {(() => { const e = new Date(selectedRange.end); const incl = new Date(e.getTime() - 24*3600*1000); return incl.toISOString().slice(0,10) })()}</div>

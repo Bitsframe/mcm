@@ -1537,58 +1537,48 @@ transition-colors`}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between mt-1">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k100")}
-                </h1>
-                <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
-                  2
-                )}`}</p>
-              </div>
+              {/* Total Paid and Place Order button moved to persistent footer so they remain visible when panel is expanded/collapsed */}
+            </div>
+          </div>
 
-              <div className="flex justify-end pt-0.5">
-                <button
-                  onClick={placeOrderHandle}
-                  disabled={
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                  }
-                  className={`      rounded py-1 px-3 text-white w-1/2       flex justify-between items-center text-sm      ${
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                      ? "bg-blue-600"
-                      : "bg-blue-600"
-                  }      ${
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                      ? "opacity-50"
-                      : ""
-                  }    `}
-                >
-                  {placeOrderLoading ? (
-                    <CircularProgress size={14} color="secondary" />
-                  ) : (
-                    <>
-                      <span className="font-medium">{`${totalPaid.toFixed(
-                        2
-                      )}`}</span>
-                      <PiCaretCircleRightFill size={16} />
-                    </>
-                  )}
-                </button>
-              </div>
+          {/* Persistent footer: always visible totals and action */}
+          <div className="p-2 border-t bg-white dark:bg-[#0E1725]">
+            <div className="flex items-center justify-between mt-1">
+              <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                {t("POS-Sales_k100")}
+              </h1>
+              <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
+                2
+              )}`}</p>
+            </div>
+
+            <div className="flex justify-end pt-0.5">
+              <button
+                onClick={placeOrderHandle}
+                disabled={
+                  !cartArray.length ||
+                  totalPaid > subtotal ||
+                  creditUsed > (selectedLocation?.balance ?? 0) ||
+                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                }
+                className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm ${
+                  !cartArray.length ||
+                  totalPaid > subtotal ||
+                  creditUsed > (selectedLocation?.balance ?? 0) ||
+                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                    ? "opacity-50 bg-blue-600"
+                    : "bg-blue-600"
+                }`}
+              >
+                {placeOrderLoading ? (
+                  <CircularProgress size={14} color="secondary" />
+                ) : (
+                  <>
+                    <span className="font-medium">{`${totalPaid.toFixed(2)}`}</span>
+                    <PiCaretCircleRightFill size={16} />
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
