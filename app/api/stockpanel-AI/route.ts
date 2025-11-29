@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // 1 minute (max for Hobby plan)
+export const maxDuration = 60;
 
 let isProcessingRunning = false;
 
