@@ -1,5 +1,5 @@
 import moment from "moment";
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useCallback } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
@@ -177,7 +177,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
     }
     setSelectedSlot("");
     selectDateTimeSlotHandle("");
-  }, [date, data]);
+  }, [date, data, selectDateTimeSlotHandle]);
 
   const dateTimeChangeHandle = (date: Date | null) => {
     if (date) {
@@ -190,7 +190,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
     selectDateTimeSlotHandle(date, val);
   };
 
-  const splitDateAndTime = (returnType: string) => {
+  const splitDateAndTime = useCallback((returnType: string) => {
     if (default_data_time && default_data_time.includes("|")) {
       const parts = default_data_time.split("|");
       if (parts.length > 1) {
@@ -208,7 +208,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
       }
     }
     return "";
-  };
+  }, [default_data_time]);
 
   useEffect(() => {
     const date_default = splitDateAndTime("date");
@@ -220,7 +220,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
         setSelectedSlot(() => time_default);
       }, 1000);
     }
-  }, []);
+  }, [splitDateAndTime]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 

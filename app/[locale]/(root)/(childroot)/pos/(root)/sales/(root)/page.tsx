@@ -496,13 +496,13 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
         setLastLocationId(currentSelectedLocationId);
       }
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, lastLocationId]);
 
   useEffect(() => {
     if (selectedLocation) {
       setLastLocationId(selectedLocation.id);
     }
-  }, []);
+  }, [selectedLocation]);
 
   useEffect(() => {
     const fetchCreditBalance = async () => {
@@ -903,7 +903,7 @@ const addToCartHandle = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k19");
-  }, []);
+  }, [setActiveTitle]);
 
   const subtotal =
     grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;

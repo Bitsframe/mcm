@@ -247,7 +247,7 @@ const SalesHistory = () => {
     } catch (e) {
       // ignore in non-browser environments
     }
-  }, []);
+  }, [dobSearch]);
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
@@ -260,7 +260,7 @@ const SalesHistory = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k21");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">

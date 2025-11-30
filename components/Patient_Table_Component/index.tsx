@@ -112,6 +112,7 @@ const QUERIES = {
 
 const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const { selectedLocation } = useContext(LocationContext);
+  const selectedLocationId = (selectedLocation as any)?.id ?? null;
   const [locations, setLocations] = useState<any[]>([]);
   const [locationFilter, setLocationFilter] = useState<number | null>(
     (selectedLocation as any)?.id ?? null
@@ -181,7 +182,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     };
     setActiveTitle(keys[renderType]);
     setParentTitle("Patients");
-  }, [renderType]);
+  }, [renderType, setActiveTitle, setParentTitle]);
 
   const fetchServiceList = async () => {
     try {
@@ -201,7 +202,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       // Prefer an explicit location filter selected by the user (locationFilter).
       // If not set, fallback to app-level selectedLocation; otherwise return across all locations.
       let matchCase: any = null;
-      const chosenLocationId = locationFilter ?? (selectedLocation as any)?.id ?? null;
+      const chosenLocationId = locationFilter ?? selectedLocationId ?? null;
       if (chosenLocationId) {
         if (baseMatch) {
           matchCase = [baseMatch, { key: "locationid", value: chosenLocationId }];
@@ -230,7 +231,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     } finally {
       setLoading(false);
     }
-  }, [renderType, (selectedLocation as any)?.id, locationFilter]);
+  }, [renderType, selectedLocationId, locationFilter]);
 
   useEffect(() => {
     // Fetch patients (either all locations or a specific selected location) and refresh services list.
@@ -317,7 +318,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
 
     return result;
-  }, [patients, searchTerm, sortConfig]);
+  }, [patients, searchTerm, sortConfig, searchType]);
 
   useEffect(() => {
     const checkMobile = () => {

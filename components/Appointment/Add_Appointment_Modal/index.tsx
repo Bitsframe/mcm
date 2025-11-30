@@ -1,7 +1,7 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio, Select } from "flowbite-react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import ScheduleDateTime from "./ScheduleDateTime";
 import { supabase } from "@/services/supabase";
 import moment from "moment";
@@ -248,21 +248,30 @@ export const Add_Appointment_Modal = ({
     }
   };
   
-  const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {
-    if (formData.location_id) {
-      let dbSlot = "";
-      if (date && time) {
-        const formated_date = moment(date).format("DD-MM-YYYY");
-  const createSlotForDB = `${formData.location_id}|${formated_date} - ${time}`;
-        dbSlot = createSlotForDB;
-      }
-
+  const selectDateTimeSlotHandle = useCallback(
+    (date: Date | "", time?: string | "") => {
+      // Use functional state update to avoid reading stale closure values
       setFormData((pre: any) => {
+        // If no date provided, clear the db slot
+        if (!date) {
+          return { ...pre, date_and_time: "" };
+        }
+
+        const locationId = pre?.location_id;
+        if (!locationId) return pre;
+
+        let dbSlot = "";
+        if (date && time) {
+          const formated_date = moment(date).format("DD-MM-YYYY");
+          const createSlotForDB = `${locationId}|${formated_date} - ${time}`;
+          dbSlot = createSlotForDB;
+        }
+
         return { ...pre, date_and_time: dbSlot };
       });
-  // dbSlot prepared
-    }
-  };
+    },
+    []
+  );
   const submitHandle = async () => {
     setLoading(true);
     const {
@@ -528,7 +537,7 @@ export const Add_Appointment_Modal = ({
         location_id: selectedLocation.id,
       });
     }
-  }, []);
+  }, [selectedLocation]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 

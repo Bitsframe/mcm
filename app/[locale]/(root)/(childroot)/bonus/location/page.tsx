@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { fetchLocations, fetchBonusRowsForDate, fetchActiveThresholds, subscribeToBonusChanges, startPolling, stopPolling, fetchPaidBonusesForDate, fetchBonusConfigHistoryByIds } from './fetch'
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -47,6 +47,23 @@ const BonusPage = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [filterDraft, setFilterDraft] = useState<Record<string, string>>({})
+  // Human-friendly display of the currently selected date filter
+  const displayDate = (() => {
+    const d = columnFilters?.date ?? ''
+    if (!d) return ''
+    try {
+      const dt = new Date(d)
+      return dt.toLocaleDateString()
+    } catch (_) {
+      return d
+    }
+  })()
+  // Render a prominent dash used as a placeholder for missing values
+  const renderBigDash = (cls: string = ''): JSX.Element => (
+    <span className={`${cls} font-semibold`} aria-hidden>
+      —
+    </span>
+  )
   const [currentPage, setCurrentPage] = useState(1)
   const [patientsPerPage] = useState(6)
   const [bonusTypeByPatient, setBonusTypeByPatient] = useState<Record<string, string>>({})
@@ -64,7 +81,7 @@ const BonusPage = () => {
 
   const fetchingRef = useRef(false)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     // Prevent overlapping fetches which cause rapid UI loading flashes
     if (fetchingRef.current) {
       console.debug('[bonus/page] fetchData skipped because a fetch is already in progress')
@@ -236,18 +253,19 @@ const BonusPage = () => {
       setLoadingPatients(false)
       fetchingRef.current = false
     }
-  }
+  }, [columnFilters, activeTab])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   // When the user switches to 'transactions', refetch data so updates are shown quickly
   useEffect(() => {
   if ((activeTab as any) === 'transactions') {
       fetchData()
     }
-  }, [activeTab])
+  }, [activeTab, fetchData])
+
 
   // Re-fetch bonus rows whenever the selected date changes so the table immediately
   // shows rows for the newly-selected date (or '-' for locations without rows).
@@ -264,7 +282,7 @@ const BonusPage = () => {
     fetchData()
     // reset pagination to first page when date changes
     setCurrentPage(1)
-  }, [columnFilters.date, activeTab])
+  }, [columnFilters.date, activeTab, fetchData])
 
   // Real-time updates: subscribe to Supabase realtime changes on `bonus` for the
   // currently selected date so the UI updates the "Not generated" pill and
@@ -292,7 +310,7 @@ const BonusPage = () => {
       try { sub && sub.unsubscribe && sub.unsubscribe() } catch (e) { console.warn('[bonus/page] unsubscribe error', e) }
       try { stopPolling(pollHandle) } catch (e) { console.warn('[bonus/page] stopPolling error', e) }
     }
-  }, [columnFilters.date, activeTab])
+  }, [columnFilters.date, activeTab, fetchData])
 
   // (debug helper removed)
 
@@ -303,6 +321,8 @@ const BonusPage = () => {
   // Modal triggers removed: do not open sheet on row/card/button clicks
 
   // Filter patients (locations) by optional per-column filters
+ 
+ 
   const filteredPatients = patients.filter((patient) => {
       // (global search removed)
   // Name filter
@@ -439,9 +459,42 @@ const BonusPage = () => {
   }, [columnFilters])
 
 
+  const computeBonusAmount = useCallback((patient: any) => {
+    const total = bonusRowsByLocation[String(patient.id)]?.total_sales ?? (totalsByLocation[String(patient.id)]?.total) ?? 0
+    const type = (bonusTypeByPatient[String(patient.id)] ?? 'FLAT')
+    const valStr = (bonusValueByPatient[String(patient.id)] ?? '')
+
+    const thr = thresholdsByLocation[String(patient.id)]
+    const limitStr = thr && (thr.bonus_threshold !== undefined && thr.bonus_threshold !== null)
+      ? String(thr.bonus_threshold)
+      : (bonusLimitByPatient[String(patient.id)] ?? '')
+
+    const value = valStr === '' ? 0 : Number(valStr)
+    const limit = limitStr === '' ? null : Number(limitStr)
+    let amount = 0
+
+    if (type === 'FLAT') {
+      amount = isNaN(value) ? 0 : value
+    } else {
+      const pct = isNaN(value) ? 0 : value
+      amount = total * (pct / 100)
+    }
+
+    if (limit !== null && !isNaN(limit)) {
+      if (total <= limit) {
+        amount = 0
+      } else if (type === 'FLAT') {
+        const allowed = Math.max(0, total - limit)
+        amount = Math.min(amount, allowed)
+      }
+    }
+
+    return amount
+  }, [bonusRowsByLocation, totalsByLocation, bonusTypeByPatient, bonusValueByPatient, thresholdsByLocation, bonusLimitByPatient])
+
   useEffect(() => {
     try {
-  const selectedDate = columnFilters.date ?? getYesterdayYMD()
+      const selectedDate = columnFilters.date ?? getYesterdayYMD()
       console.debug('[bonus/page] display data', {
         selectedDate,
         totalPatients: patients.length,
@@ -472,7 +525,7 @@ const BonusPage = () => {
     } catch (err) {
       console.error('[bonus/page] display data error', err)
     }
-  }, [patients, filteredPatients.length, currentPatients.length, columnFilters.date, bonusRowsByLocation, bonusLimitByPatient, bonusValueByPatient, bonusTypeByPatient, editedByPatient])
+  }, [patients, filteredPatients.length, currentPatients, columnFilters.date, bonusRowsByLocation, bonusLimitByPatient, bonusValueByPatient, bonusTypeByPatient, editedByPatient, computeBonusAmount])
 
   
 
@@ -543,67 +596,6 @@ const BonusPage = () => {
         return "bg-gray-100 text-gray-800 hover:bg-gray-100"
     }
   }
-
-
-  const computeBonusAmount = (patient: any) => {
-    const total = bonusRowsByLocation[String(patient.id)]?.total_sales ?? (totalsByLocation[String(patient.id)]?.total) ?? 0
-  const type = (bonusTypeByPatient[String(patient.id)] ?? 'FLAT')
-  const valStr = (bonusValueByPatient[String(patient.id)] ?? '')
-
-    const thr = thresholdsByLocation[String(patient.id)]
-    const limitStr = thr && (thr.bonus_threshold !== undefined && thr.bonus_threshold !== null)
-  ? String(thr.bonus_threshold)
-  : (bonusLimitByPatient[String(patient.id)] ?? '')
-
-    const value = valStr === '' ? 0 : Number(valStr)
-    const limit = limitStr === '' ? null : Number(limitStr)
-    let amount = 0
-
-    if (type === 'FLAT') {
-        amount = isNaN(value) ? 0 : value
-    } else {
-      // PERCENTAGE
-      const pct = isNaN(value) ? 0 : value
-      // percentage is applied to the total sales (not capped)
-      amount = total * (pct / 100)
-    }
-
-   
-      if (limit !== null && !isNaN(limit)) {
-        if (total <= limit) {
-          amount = 0
-        } else if (type === 'FLAT') {
-          const allowed = Math.max(0, total - limit)
-          amount = Math.min(amount, allowed)
-        }
-        
-      }
-
-    return amount
-  }
-
-
-  const renderBigDash = (className = 'text-gray-400') => (
-    <span className={`${className} text-2xl font-semibold`} aria-hidden>
-      —
-    </span>
-  )
-
-
-  const todayStr = new Date().toLocaleDateString()
-
-  // Display date next to Filter button: use selected filter date or yesterday by default
-  const displayDateRaw = columnFilters.date ?? getYesterdayYMD()
-  const displayDate = (() => {
-    try {
-      const d = new Date(displayDateRaw)
-      if (isNaN(d.getTime())) return displayDateRaw
-      return d.toLocaleDateString()
-    } catch (_) {
-      return displayDateRaw
-    }
-  })()
-
 
   const handleSave = () => {
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
 import BonusSummaryCards from '@/components/BonusSummaryCards'
@@ -67,7 +67,12 @@ export default function IndividualBonusPage() {
     paidEnd?: string | null
   }
 
-  const fetchRows = async (clientFilters?: ClientFilters, rangeOverride?: { start: string; end: string }) => {
+  // keep a ref for selectedRange so fetchRows can be stable and avoid
+  // being re-created on every render (helps satisfy exhaustive-deps)
+  const selectedRangeRef = useRef(selectedRange)
+  useEffect(() => { selectedRangeRef.current = selectedRange }, [selectedRange])
+
+  const fetchRows = useCallback(async (clientFilters?: ClientFilters, rangeOverride?: { start: string; end: string }) => {
     try {
       setLoading(true)
 
@@ -75,7 +80,7 @@ export default function IndividualBonusPage() {
       let bonusRows: any[] = []
       try {
         // Determine which date range to use: explicit override (preferred) or current selectedRange state
-        const activeRange = rangeOverride ?? selectedRange
+        const activeRange = rangeOverride ?? selectedRangeRef.current
         // if user selected a date range (week/month), pass filterOptions
         if (activeRange) {
           bonusRows = await fetch_content_service({ table: 'individual_bonus', filterOptions: [
@@ -86,12 +91,13 @@ export default function IndividualBonusPage() {
           bonusRows = await fetch_content_service({ table: 'individual_bonus' })
         }
       } catch (e) {
-        // fallback
+        // fallback — use the ref to avoid recreating fetchRows when selectedRange changes
         try {
-          if (selectedRange) {
+          const activeFallbackRange = selectedRangeRef.current
+          if (activeFallbackRange) {
             bonusRows = await fetch_content_service({ table: 'individual', filterOptions: [
-              { column: 'bonus_date', operator: 'gte', value: selectedRange.start },
-              { column: 'bonus_date', operator: 'lt', value: selectedRange.end },
+              { column: 'bonus_date', operator: 'gte', value: activeFallbackRange.start },
+              { column: 'bonus_date', operator: 'lt', value: activeFallbackRange.end },
             ] })
           } else {
             bonusRows = await fetch_content_service({ table: 'individual' })
@@ -209,7 +215,8 @@ export default function IndividualBonusPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
 
   // helper to set staff name and load its locations (used by search/select)
   const handleStaffSelect = async (fullName: string) => {
@@ -237,7 +244,7 @@ export default function IndividualBonusPage() {
     setStaffSearchOpen(false)
   }
 
-  useEffect(() => { fetchRows() }, [])
+  useEffect(() => { fetchRows() }, [fetchRows])
 
   // load staff names for dropdown
   useEffect(() => {
@@ -291,7 +298,7 @@ export default function IndividualBonusPage() {
         setLocationOptions([])
       }
     }
-  }, [filterMode, allLocations])
+  }, [filterMode, allLocations, filterStaffName, staffOptions])
 
   const summaryCards = useMemo(() => {
     // If a location filter was applied, show stats specific to that location(s)

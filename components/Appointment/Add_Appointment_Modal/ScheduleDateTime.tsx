@@ -82,7 +82,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         }
         setSelectedSlot('')
         selectDateTimeSlotHandle('')
-    }, [date, data]);
+    }, [date, data, selectDateTimeSlotHandle]);
 
     // Fetch already-booked slots for the selected date and location
     useEffect(() => {

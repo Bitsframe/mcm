@@ -1,7 +1,7 @@
 import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { translationConstant } from "@/utils/translationConstants";
 import { CircularProgress } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CiSearch } from "react-icons/ci";
 import PatientPreviousRecord from "./PatientPreviousRecord";
@@ -35,6 +35,19 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [historyRecord, setHistoryRecord] = useState([]);
   const [returnedItems, setReturnedItems] = useState<Set<string>>(new Set());
   const { order_id, pos, patient_id } = orderDetails || {};
+
+  // Keep stable refs for values used inside the fetch effect so
+  // we don't need to add them to the effect dependency array
+  // (prevents unwanted re-fetches when page or pos.patientid change).
+  const pageRef = useRef<number>(page);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+
+  const patientIdRef = useRef<string | undefined>(pos?.patientid);
+  useEffect(() => {
+    patientIdRef.current = pos?.patientid;
+  }, [pos?.patientid]);
 
   const renderIndexHandle = (fetched_data: any, index: number) => {
     const currentOrderData = fetched_data?.[index] || {};
@@ -91,13 +104,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
       try {
         const response = await axios.post("/api/previous-order-history", {
-          patientId: pos.patientid,
+          patientId: patientIdRef.current,
           currentOrderId: order_id,
         });
 
         const fetched_data = response?.data?.data || [];
         setHistoryRecord(fetched_data);
-        renderIndexHandle(fetched_data, page - 1);
+        renderIndexHandle(fetched_data, pageRef.current - 1);
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error

@@ -672,7 +672,7 @@ const Products = () => {
                                 {id === "product_name" ? (
                                   <div className="flex items-center gap-2">
                                     {elem?.bonus_eligible ? (
-                                      <img
+                                      <Image
                                         src="/assets/bonusicon.png"
                                         alt="bonus"
                                         width={18}

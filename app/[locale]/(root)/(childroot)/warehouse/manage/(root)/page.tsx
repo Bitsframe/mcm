@@ -226,7 +226,7 @@ const Categories = () => {
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
+    [getDataArchiveType, handleActiveClick, handleArchiveClick, t]
   );
 
   const createNewHandle = async () => {
@@ -263,7 +263,7 @@ const Categories = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k11");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">

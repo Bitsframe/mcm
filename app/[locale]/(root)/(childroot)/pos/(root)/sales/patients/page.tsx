@@ -1,7 +1,7 @@
 "use client";
 import { Input_Component } from "@/components/Input_Component";
 import { Select_Dropdown } from "@/components/Select_Dropdown";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { IoCloseOutline } from "react-icons/io5";
 import { Select } from "flowbite-react";
 import { Action_Button } from "@/components/Action_Button";
@@ -228,7 +228,7 @@ const Patients = () => {
 
   const router = useRouter();
 
-  const fetch_handle = async (locationId: number) => {
+  const fetch_handle = useCallback(async (locationId: number) => {
     setLoading(true);
 
     const todayStart = moment().startOf("day").toISOString();
@@ -250,11 +250,11 @@ const Patients = () => {
     setAllData(fetched_data);
     setLoading(false);
     setCurrentPage(1);
-  };
+  }, [activeFilterBtn]);
 
   useEffect(() => {
     fetch_handle(selectedLocation?.id);
-  }, [, selectedLocation, activeFilterBtn]);
+  }, [fetch_handle, selectedLocation?.id]);
 
   useEffect(() => {
     const fetchServices = async () => {

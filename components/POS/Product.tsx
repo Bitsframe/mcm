@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 
 interface ProductProps {
   productName: string;
@@ -90,7 +91,7 @@ const Product: React.FC<ProductProps> = ({
       >
         {bonusEligible ? (
           <div className="flex items-center gap-2">
-            <img src="/assets/bonusicon.png" alt="bonus" className="w-4 h-4 object-contain inline-block" />
+            <Image src="/assets/bonusicon.png" alt="bonus" width={16} height={16} className="object-contain inline-block" />
             <span className="truncate">{productName || '-'}</span>
           </div>
         ) : (
