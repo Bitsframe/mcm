@@ -50,7 +50,7 @@ const Home = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k15");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <WebsiteContentLayout>

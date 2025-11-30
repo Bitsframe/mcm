@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import Image from 'next/image';
 import React, { useState, useRef, useContext, useEffect } from "react";
 import { AuthContext } from "@/context";
 import { toast } from "sonner";
@@ -186,16 +187,17 @@ const Profile = () => {
                 {t("Settings_k5")}
               </span>
               <div
-                className="relative w-20 h-20 cursor-pointer"
+                className="relative w-20 h-20 cursor-pointer rounded-full overflow-hidden"
                 onClick={handleImageClick}
               >
-                <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-600">
+                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
                   {profileImage ? (
                     <>
-                      <img
+                      <Image
                         src={profileImage}
                         alt="Profile"
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                       {isUploading && (
                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">

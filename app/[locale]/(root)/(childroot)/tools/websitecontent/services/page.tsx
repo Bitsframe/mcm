@@ -38,7 +38,7 @@ const Services = () => {
 
   useEffect(() => {
     setActiveTitle("Services");
-  }, []);
+  }, [setActiveTitle]);
 
   // Fetch services based on selected language
   const fetchServices = async (language: string) => {
