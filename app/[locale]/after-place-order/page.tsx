@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 const ThankYouPage: React.FC = () => {
   return (
@@ -8,9 +9,11 @@ const ThankYouPage: React.FC = () => {
       {/* Header Section */}
       <div className='max-w-3xl'>
         <div className="mb-8">
-          <img
-            src="/assets/feedback_request_icon.png" 
+          <Image
+            src="/assets/feedback_request_icon.png"
             alt="MyClinic Logo"
+            width={80}
+            height={80}
             className="w-20"
           />
         </div>

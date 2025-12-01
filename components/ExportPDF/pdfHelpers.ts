@@ -128,4 +128,6 @@ export function getOrderInfoData(orderObj: any, totals: any, colCount: number) {
     } as const;
 }
 
-export default {};
+const PdfHelpers = { buildOrderInfoBlock, getOrderInfoData } as const;
+
+export default PdfHelpers;

@@ -294,7 +294,7 @@ const Returns: FC<Props> = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k20");
-  }, []);
+  }, [setActiveTitle]);
 
   const { t } = useTranslation(translationConstant.POSRETURN);
   return (

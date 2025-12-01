@@ -270,27 +270,36 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     let result = [...patients];
 
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      const searchLower = searchTerm.trim().toLowerCase();
+
+      const safe = (val: any) => (val ?? "").toString().toLowerCase();
+
       result = result.filter((patient) => {
-        const fullName =
-          `${patient.firstname} ${patient.lastname}`.toLowerCase();
+        const first = safe(patient.firstname);
+        const last = safe(patient.lastname);
+        const fullName = `${first} ${last}`.trim();
+
+        // Support multi-token name searches (e.g. "Doe John") by requiring
+        // that each token exists somewhere in the full name.
+        const nameTokens = searchLower.split(/\s+/).filter(Boolean);
 
         switch (searchType) {
           case "name":
-            return fullName.includes(searchLower);
+            return nameTokens.every((token) => fullName.includes(token));
           case "email":
-            return patient.email.toLowerCase().includes(searchLower);
+            return safe(patient.email).includes(searchLower);
           case "phone":
-            return patient.phone.toLowerCase().includes(searchLower);
-            case "id":
-              // Allow both string and number search for id
-              return patient.id.toString().includes(searchLower);
+            return safe(patient.phone).includes(searchLower);
+          case "id":
+            // Allow both string and number search for id
+            return safe(patient.id).includes(searchLower);
           case "all":
           default:
             return (
-              fullName.includes(searchLower) ||
-              patient.email.toLowerCase().includes(searchLower) ||
-              patient.phone.toLowerCase().includes(searchLower)
+              // check name tokens against fullName
+              nameTokens.every((token) => fullName.includes(token)) ||
+              safe(patient.email).includes(searchLower) ||
+              safe(patient.phone).includes(searchLower)
             );
         }
       });

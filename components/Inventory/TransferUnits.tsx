@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
 import { Input_Component } from "@/components/Input_Component";
@@ -40,10 +40,18 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
         loadingProducts,
     } = useProductsClinica(fromLocation);
 
+    // Keep a stable ref to the categories fetcher so effects don't re-run
+    // when the function identity changes between renders.
+    const getCategoriesRef = useRef(getCategoriesByLocationId);
+    useEffect(() => {
+        getCategoriesRef.current = getCategoriesByLocationId;
+    }, [getCategoriesByLocationId]);
+
     // Reset state when modal opens/closes
     useEffect(() => {
         if (open) {
-            getCategoriesByLocationId(0)
+            // call via ref to avoid effect re-running when the function identity changes
+            try { getCategoriesRef.current?.(0); } catch (e) {}
             setFromLocation(0)
             setSelectedCategory(0);
             setSelectedProduct(0);
@@ -67,7 +75,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
         setSelectedProduct(0);
         setUnits('');
         setTransferError('');
-        if (selectedCategory) getCategoriesByLocationId(selectedCategory);
+        if (selectedCategory) {
+            try { getCategoriesRef.current?.(selectedCategory); } catch (e) {}
+        }
     }, [selectedCategory]);
 
     // When product changes, update available units

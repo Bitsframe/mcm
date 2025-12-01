@@ -67,10 +67,13 @@ export default function MenuWithAvatar() {
         <div className="flex items-center justify-between dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] min-w-[230px] px-3 py-1 border-[1px] border-[#E0E0E0]">
           <div className="relative w-12 h-12 overflow-hidden rounded-full">
             {userProfile?.profile_pictures ? (
-              <img
+              <Image
                 src={userProfile.profile_pictures}
-                alt="User Avatar"
-                className="w-full h-full object-cover"
+                alt={userProfile?.full_name || "User Avatar"}
+                fill
+                className="object-cover"
+                // allow external URLs without requiring next.config change
+                unoptimized
               />
             ) : (
               <Image

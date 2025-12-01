@@ -294,7 +294,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k17");
-  }, []);
+  }, [setActiveTitle]);
 
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
