@@ -300,7 +300,7 @@ export const Add_Appointment_Modal = ({
       date_and_time: date_and_time,
     };
 
-    console.log("Appointment Details being sent to Supabase:", appointmentDetails);
+
 
     // Build required fields depending on whether this is a new patient
     const baseRequired = [
@@ -359,7 +359,7 @@ export const Add_Appointment_Modal = ({
           new_patient: false,
         };
 
-        console.log("Inserting new appointment for Coming Back patient:", comingBackPost);
+       
 
         const { data: insertData, error: insertError } = await supabase
           .from("Appoinments")

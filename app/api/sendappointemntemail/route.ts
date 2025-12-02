@@ -18,7 +18,12 @@ export async function POST(req: Request) {
     // Validate required fields for a single email call
     if (!to || !appointmentDate || !appointmentTime) {
       console.error('[sendappointemntemail] missing required fields', { to, appointmentDate, appointmentTime });
-      return NextResponse.json({ error: 'Missing required fields: to, appointmentDate, appointmentTime' }, { status: 400 });
+      // Return what was actually received to help debug deployed vs local mismatch
+      return NextResponse.json({
+        error: 'Missing required fields: to, appointmentDate, appointmentTime',
+        received: { to, appointmentDate, appointmentTime },
+        rawBody: data,
+      }, { status: 400 });
     }
 
     // Construct the request body for the edge function
@@ -80,6 +85,20 @@ export async function POST(req: Request) {
     const errAny: any = error;
     console.error("Error while sending email:", errAny && (errAny.stack || errAny));
 
-    return NextResponse.json({ error: errAny?.message || String(errAny) }, { status: 500 });
+    // Try to include useful info in the response (temporary, for debugging)
+    let message = errAny?.message || String(errAny);
+    // If the message looks like JSON, include the parsed JSON as well
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(message);
+    } catch (e) {
+      // ignore
+    }
+
+    return NextResponse.json({
+      error: message,
+      parsedError: parsed,
+      stack: errAny?.stack,
+    }, { status: 500 });
   }
 }

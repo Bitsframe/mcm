@@ -86,7 +86,7 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
       .eq('isApproved', true)
       .order('id', { ascending: false });
 
-    console.log('Fetched Approved Appointments:', data); // Log fetched data
+ 
 
     if (error) throw error;
 
