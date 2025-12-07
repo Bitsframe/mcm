@@ -13,6 +13,7 @@ import { LocationContext, TabContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { Archive, ShieldCheck, Filter } from "lucide-react";
+import StockAlerts from "@/components/StockAlerts";
 
 interface DataListInterface {
   [key: string]: any;
@@ -197,10 +198,13 @@ const StockPanel = () => {
 
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:text-white max-w-full overflow-x-hidden">
-      <h1 className="text-2xl font-bold p-3">{t("SP_k13")}</h1>
+      <h1 className="text-2xl font-bold p-3">AI-Powered Stock Panel</h1>
       <div className="w-full h-full overflow-y-auto overflow-x-hidden py-2 px-2 flex flex-col gap-4 max-w-full">
         <div className="w-full max-w-full">
           <InventoryCards archived={getDataArchiveType} />
+        </div>
+        <div className="w-full max-w-full">
+          <StockAlerts/>
         </div>
         {/* <div className="w-full max-w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-2 w-full max-w-full">

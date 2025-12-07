@@ -12,7 +12,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { CirclePlus } from "lucide-react";
 import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
 import { sendEmail } from "@/utils/emailService";
-import { LocationContext } from "@/context";
+import { LocationContext, AuthContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import ComingBackTable from "@/components/Appointment/ComingBackTable";
 
@@ -116,6 +116,7 @@ export const Add_Appointment_Modal = ({
 }) => {
   const { locations } = useLocationClinica();
   const { selectedLocation } = useContext(LocationContext);
+  const { userProfile } = useContext(AuthContext);
 
   const [formData, setFormData] = useState<any>({ phone: '' });
   const [open, setOpen] = useState(false);

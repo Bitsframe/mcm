@@ -311,7 +311,9 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={tableHeader.length + 1}>
+                  <TableCell colSpan={
+                    tableHeader.length + (openModal ? 1 : 0) + (onDelete ? 1 : 0)
+                  }>
                     <div className="h-full w-full flex items-center justify-center py-4">
                       <CircularProgress />
                     </div>

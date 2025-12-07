@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Use request.nextUrl for server-safe access to URL/search params
