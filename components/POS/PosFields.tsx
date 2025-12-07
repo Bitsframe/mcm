@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { supabase } from "@/services/supabase";
+import { AuthContext } from "@/context";
 
 interface PosFieldsModalProps {
   isOpen: boolean;
@@ -17,11 +18,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
   onSave,
   locationId,
 }) => {
+  const { userProfile } = useContext(AuthContext);
   const [salesPeople, setSalesPeople] = useState<{ id: number; name: string }[]>([]);
   const [selected, setSelected] = useState<{ id: number; name: string }[]>(initialSelected || []);
   const [query, setQuery] = useState("");
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [currentTeam, setCurrentTeam] = useState<{ id: number; name: string }[]>([]);
+  const [hasActiveTeam, setHasActiveTeam] = useState(false);
 
   useEffect(() => {
     // Only apply initialSelected when the modal is open to avoid
@@ -65,6 +68,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
   useEffect(() => {
     const fetchCurrentTeam = async () => {
       setCurrentTeam([]);
+      setHasActiveTeam(false);
       if (!isOpen || !locationId) return;
       try {
         // select auth_member so we can show the saving user's name via profiles
@@ -79,7 +83,10 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           return;
         }
         const team = (teamRows && teamRows[0]) as any;
-        if (!team || !team.members || team.members.length === 0) return;
+        if (!team) return;
+        setHasActiveTeam(true);
+
+        if (!team.members || team.members.length === 0) return;
 
         // members may be stored as text array; coerce to numbers
         const memberIds = (team.members || []).map((m: any) => Number(m)).filter(Boolean);
@@ -138,31 +145,34 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
     const fetchAuth = async () => {
       if (!isOpen) return;
       try {
+        let userId: string | null = null;
+
         // Try getSession (v2)
         if (supabase.auth && typeof (supabase.auth as any).getSession === "function") {
           const { data: sessionData } = await (supabase.auth as any).getSession();
-          const userId = sessionData?.session?.user?.id ?? null;
+          userId = sessionData?.session?.user?.id ?? null;
           if (userId) {
             setAuthUserId(userId);
-            return;
           }
         }
 
         // Try getUser (v2)
-        if (supabase.auth && typeof (supabase.auth as any).getUser === "function") {
+        if (!userId && supabase.auth && typeof (supabase.auth as any).getUser === "function") {
           const { data } = await (supabase.auth as any).getUser();
-          setAuthUserId(data?.user?.id ?? null);
-          return;
+          userId = data?.user?.id ?? null;
+          setAuthUserId(userId);
         }
 
         // Try user() (v1)
-        if (supabase.auth && typeof (supabase.auth as any).user === "function") {
+        if (!userId && supabase.auth && typeof (supabase.auth as any).user === "function") {
           const user = (supabase.auth as any).user();
-          setAuthUserId(user?.id ?? null);
-          return;
+          userId = user?.id ?? null;
+          setAuthUserId(userId);
         }
 
-        setAuthUserId(null);
+        if (!userId) {
+          setAuthUserId(null);
+        }
       } catch (e) {
         console.error("[PosFields] error fetching auth user id:", e);
         setAuthUserId(null);
@@ -193,6 +203,31 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
     }
   };
 
+  const handleResetTeam = async () => {
+    try {
+      const res = await fetch('/api/sales-team/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location_id: locationId }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        console.error('[PosFields] Reset failed:', error);
+        return;
+      }
+      
+      // Clear state after successful reset
+      setCurrentTeam([]);
+      setHasActiveTeam(false);
+      setSelected([]);
+      setQuery('');
+      console.log('[PosFields] Team reset successful');
+    } catch (e) {
+      console.error('[PosFields] Error resetting team:', e);
+    }
+  };
+
   const handleSave = () => {
     // Optimistic UI: capture selection, reset modal state and notify parent immediately,
     // then perform the server call in background so the modal closes instantly.
@@ -202,7 +237,8 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
     }
 
     const savedSelected = selected;
-    const memberIds = savedSelected.map((s) => s.id);
+    // Allow empty members array if no current team exists
+    const memberIds = savedSelected.length > 0 ? savedSelected.map((s) => s.id) : null;
     const now = new Date().toISOString();
 
     // reset local modal fields so next open is clean BEFORE notifying parent
@@ -274,17 +310,27 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           <div className="md:col-span-2 flex flex-col min-h-0">
             <label className="block text-sm font-medium mb-2">Sales Person Name</label>
             {/* Current active team for this location */}
-            {currentTeam.length > 0 ? (
+            {hasActiveTeam ? (
               <div className="mb-3 p-2 bg-gray-50 border rounded">
                 <div className="text-sm font-medium mb-1">Current Team</div>
                 <div className="text-sm">
+                  {currentTeam.length === 0 && <div className="py-1 text-gray-500 text-xs">No members assigned</div>}
                   {currentTeam.map((m) => (
                     <div key={m.id} className="py-1">{m.name}</div>
                   ))}
                 </div>
+                <button
+                  onClick={handleResetTeam}
+                  className="mt-2 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition"
+                >
+                  Reset Team
+                </button>
               </div>
             ) : (
-              <div className="mb-3 text-xs text-gray-500">No active team for this location</div>
+              <div className="mb-3 p-2 bg-blue-50 border rounded">
+                <div className="text-sm font-medium mb-1">Current User</div>
+                <div className="text-sm text-gray-700">{userProfile?.full_name || 'Loading...'}</div>
+              </div>
             )}
 
             <input
@@ -340,7 +386,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           <button className="px-3 py-1 bg-gray-300 rounded" onClick={onClose}>
             Cancel
           </button>
-          <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={handleSave}>
+          <button 
+            className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed" 
+            onClick={handleSave}
+            disabled={hasActiveTeam && selected.length === 0}
+            title={hasActiveTeam && selected.length === 0 ? "Select at least one person or keep current team" : "Save team"}
+          >
             Save
           </button>
         </div>

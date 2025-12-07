@@ -552,7 +552,16 @@ export default function IndividualBonusPage() {
             onClick={async () => {
               setCalcRunning(true)
               try {
-                const { data: distributeBonusData, error: distributeBonusError } = await supabase.rpc('distribute_individual_bonus_daily')
+                // First, calculate team bonuses
+                const { error: teamBonusError } = await supabase.rpc('calculate_team_bonus_daily')
+                if (teamBonusError) {
+                  console.error('RPC calculate_team_bonus_daily error:', teamBonusError)
+                  toast.error('Team bonus calculation failed')
+                  return
+                }
+
+                // Then, distribute individual bonuses
+                const { error: distributeBonusError } = await supabase.rpc('distribute_individual_bonus_daily')
                 if (distributeBonusError) {
                   console.error('RPC distribute_individual_bonus_daily error:', distributeBonusError)
                   toast.error(t('Bonus_k57'))
@@ -788,6 +797,15 @@ export default function IndividualBonusPage() {
                   setLocDropdownOpen(false)
                 }}>Reset</button>
                 <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={async () => {
+                  // Validate staff selection: only allow names that exist in the dropdown list.
+                  if (filterMode === 'staff' && filterStaffName.trim()) {
+                    const exists = staffOptions.some((s) => s.full_name === filterStaffName.trim())
+                    if (!exists) {
+                      toast.error('Please select a staff from the list')
+                      return
+                    }
+                  }
+
                   const clientFilters = {
                     staffName: filterStaffName || null,
                     locationIds: (filterLocationIds && filterLocationIds.length > 0) ? filterLocationIds : null,

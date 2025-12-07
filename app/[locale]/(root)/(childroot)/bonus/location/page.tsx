@@ -750,6 +750,12 @@ const BonusPage = () => {
   const [setLimitThreshold, setSetLimitThreshold] = useState<string>('')
   const [setLimitSubmitting, setSetLimitSubmitting] = useState(false)
 
+  // Translate flat/percentage values based on current locale
+  const formatFlatPercentage = (value: any) => {
+    const norm = String(value || 'FLAT').toUpperCase()
+    return norm === 'PERCENTAGE' ? t('Bonus_k35') : t('Bonus_k34')
+  }
+
   const [setLimitSearch, setSetLimitSearch] = useState<string>('')
   const filteredLimitPatients = (patients || []).filter((p: any) => {
     if (!setLimitSearch) return true
@@ -1119,7 +1125,7 @@ const BonusPage = () => {
                                 <option value="PERCENTAGE">PERCENTAGE</option>
                               </select>
                             ) : (
-                              <span className="text-gray-700 dark:text-white">{String(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT')).toUpperCase()}</span>
+                              <span className="text-gray-700 dark:text-white">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
                             ) }
                           </TableCell>
                           <TableCell className="dark:text-white">
@@ -1349,7 +1355,7 @@ const BonusPage = () => {
                               <option value="PERCENTAGE">PERCENTAGE</option>
                             </select>
                           ) : (
-                            <span className="ml-2 text-gray-700 dark:text-white">{String(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT')).toUpperCase()}</span>
+                            <span className="ml-2 text-gray-700 dark:text-white">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
                           ) }
                         </div>
                         <div>
@@ -1691,7 +1697,7 @@ const BonusPage = () => {
                             <span className="text-gray-700 dark:text-white">{ (cfg && typeof cfg.bonus_threshold !== 'undefined' && cfg.bonus_threshold !== null) ? Number(cfg.bonus_threshold).toFixed(2) : (b && Object.prototype.hasOwnProperty.call(b, 'bonus_limit') ? Number(b.bonus_limit).toFixed(2) : '-') }</span>
                           </TableCell>
                           <TableCell className="dark:text-white">
-                            <span className="text-gray-700 dark:text-white">{ (cfg && cfg.flat_percentage) ? cfg.flat_percentage : (b?.flat_percentage ?? '-') }</span>
+                            <span className="text-gray-700 dark:text-white">{ formatFlatPercentage((cfg && cfg.flat_percentage) ? cfg.flat_percentage : (b?.flat_percentage ?? '-')) }</span>
                           </TableCell>
                           <TableCell className="dark:text-white">
                             <div className="flex items-center">

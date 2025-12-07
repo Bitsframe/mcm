@@ -132,6 +132,7 @@ const SalesHistory = () => {
 
   // Filtering logic
   useEffect(() => {
+    console.log('[FILTER] dobSearch:', dobSearch, 'allData.length:', allData.length, 'first order_date:', allData[0]?.order_date);
     let filtered = allData;
     if (orderIdSearch.trim() !== "") {
       filtered = filtered.filter((item) =>
@@ -158,11 +159,12 @@ const SalesHistory = () => {
       filtered = filtered.filter((item) => {
         if (!item?.order_date) return false;
         
-        // Convert order_date from UTC to CST and format as YYYY-MM-DD
-        const orderDate = new Date(item.order_date);
-        const cstOffset = -6; // CST is UTC-6
-        const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
-        const orderDateString = orderDateCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+        // Convert UTC date to local timezone then extract date
+        const utcDate = new Date(item.order_date);
+        const year = utcDate.getFullYear();
+        const month = String(utcDate.getMonth() + 1).padStart(2, '0');
+        const day = String(utcDate.getDate()).padStart(2, '0');
+        const orderDateString = `${year}-${month}-${day}`;
         
         return orderDateString === dobSearch;
       });
@@ -292,10 +294,12 @@ const SalesHistory = () => {
                   {(() => {
                     // Use selected date or today's date
                     const targetDateString = dobSearch || (() => {
+                      // If no date selected, show today
                       const today = new Date();
-                      const cstOffset = -6; // CST is UTC-6
-                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
-                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                      const year = today.getFullYear();
+                      const month = String(today.getMonth() + 1).padStart(2, '0');
+                      const day = String(today.getDate()).padStart(2, '0');
+                      return `${year}-${month}-${day}`;
                     })();
                     
                     let totalProductsSold = 0;
@@ -303,11 +307,13 @@ const SalesHistory = () => {
                     dataList.forEach((order) => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
-                          // Convert UTC time to CST
+                          // Convert UTC to local date
+                          if (!sale.date_sold) return;
                           const saleDate = new Date(sale.date_sold);
-                          const cstOffset = -6; // CST is UTC-6
-                          const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
-                          const saleDateString = saleDateCST.toISOString().split('T')[0];
+                          const year = saleDate.getFullYear();
+                          const month = String(saleDate.getMonth() + 1).padStart(2, '0');
+                          const day = String(saleDate.getDate()).padStart(2, '0');
+                          const saleDateString = `${year}-${month}-${day}`;
                           
                           // If sale date matches target date, add the quantity
                           if (saleDateString === targetDateString) {
@@ -341,9 +347,10 @@ const SalesHistory = () => {
                     // Use selected date or today's date
                     const targetDateString = dobSearch || (() => {
                       const today = new Date();
-                      const cstOffset = -6; // CST is UTC-6
-                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
-                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                      const year = today.getFullYear();
+                      const month = String(today.getMonth() + 1).padStart(2, '0');
+                      const day = String(today.getDate()).padStart(2, '0');
+                      return `${year}-${month}-${day}`;
                     })();
                     
                     let totalAmount = 0;
@@ -351,11 +358,12 @@ const SalesHistory = () => {
                     allData.forEach((order) => {
                       if (!order?.order_date) return;
                       
-                      // Convert order_date from UTC to CST
+                      // Convert UTC to local date
                       const orderDate = new Date(order.order_date);
-                      const cstOffset = -6; // CST is UTC-6
-                      const orderDateCST = new Date(orderDate.getTime() + (cstOffset * 60 * 60 * 1000));
-                      const orderDateString = orderDateCST.toISOString().split('T')[0];
+                      const year = orderDate.getFullYear();
+                      const month = String(orderDate.getMonth() + 1).padStart(2, '0');
+                      const day = String(orderDate.getDate()).padStart(2, '0');
+                      const orderDateString = `${year}-${month}-${day}`;
                       
                       // If order date matches target date, add the paid_amount
                       if (orderDateString === targetDateString) {

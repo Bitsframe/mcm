@@ -6,8 +6,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { location_id, members, valid_from } = body;
 
-    if (!location_id || !members) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!location_id) {
+      return NextResponse.json({ error: 'Missing location_id' }, { status: 400 });
     }
 
     const supabase = createClient();
@@ -32,8 +32,10 @@ export async function POST(req: Request) {
       console.error('Error closing previous sales_team', e);
     }
 
-    // Normalize members to strings to match DB array types, then insert
-    const membersNormalized = Array.isArray(members) ? members.map((m: any) => String(m)) : [];
+    // Normalize members to strings to match DB array types, or keep NULL if no members
+    const membersNormalized = (members && Array.isArray(members) && members.length > 0) 
+      ? members.map((m: any) => String(m)) 
+      : null;
 
       const insertPayload = {
         members: membersNormalized,

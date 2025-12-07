@@ -808,6 +808,7 @@ const addToCartHandle = () => {
         promoCodeData,
         selectedPatient,
         selectedLocation,
+        selectedSalesPersons, // Pass selected sales persons to create team if needed
       });
   
       toast.success(data.message, {

@@ -110,7 +110,7 @@ const QUERIES = {
   offsite: { key: "onsite", value: false },
 } as const;
 
-const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
+const : FC<Props> = ({ renderType = "all" }) => {
   const { selectedLocation } = useContext(LocationContext);
   const selectedLocationId = (selectedLocation as any)?.id ?? null;
   const [locations, setLocations] = useState<any[]>([]);

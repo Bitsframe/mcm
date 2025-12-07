@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { create_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
 import { supabase } from '@/services/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { sendOrderEmail } from '@/utils/emailServices/sendOrderEmail';
 import { sendFulfillmentRequestEmail } from '@/utils/emailServices/sendFulfillmentRequestEmail';
 import crypto from 'crypto';
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
       promoCodeData,
       selectedPatient,
       selectedLocation,
+      selectedSalesPersons = [],
     } = await request.json();
 
 
@@ -92,6 +94,63 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
         console.error('Error fetching active sales_team', teamErr);
       } else if (teamRows && teamRows.length > 0) {
         sales_team_id = (teamRows[0] as any).id;
+        
+        // Update auth_member for existing team
+        try {
+          const serverSupabase = createClient();
+          const { data: { user } } = await serverSupabase.auth.getUser();
+          
+          if (user?.id) {
+            const { error: updateErr } = await (supabase as any)
+              .from('sales_team')
+              .update({ auth_member: user.id })
+              .eq('id', sales_team_id);
+            
+            if (updateErr) {
+              console.error('[orders] Error updating auth_member in sales_team', updateErr);
+            } else {
+              console.log('[orders] Updated auth_member for sales_team:', sales_team_id);
+            }
+          }
+        } catch (updateError) {
+          console.error('[orders] Unexpected error updating auth_member', updateError);
+        }
+      } else {
+        // No active team exists - create one
+        console.log('[orders] No active sales_team found, creating one');
+        try {
+          // Get authenticated user from server-side client
+          const serverSupabase = createClient();
+          const { data: { user } } = await serverSupabase.auth.getUser();
+          const now = new Date().toISOString();
+          
+          console.log('[orders] Creating sales_team with auth_member:', user?.id);
+          
+          // Prepare members: NULL if empty array, otherwise array of IDs as strings
+          const members = selectedSalesPersons && selectedSalesPersons.length > 0 
+            ? selectedSalesPersons.map((sp: any) => String(sp.id))
+            : null;
+
+          const { data: newTeam, error: createErr } = await (supabase as any)
+            .from('sales_team')
+            .insert({
+              location_id: posLocationId,
+              members: members,
+              valid_from: now,
+              valid_to: null,
+              auth_member: user?.id || null,
+            })
+            .select('id');
+          
+          if (createErr) {
+            console.error('[orders] Error creating sales_team', createErr);
+          } else if (newTeam && newTeam.length > 0) {
+            sales_team_id = newTeam[0].id;
+            console.log('[orders] Created sales_team with id:', sales_team_id);
+          }
+        } catch (createError) {
+          console.error('[orders] Unexpected error creating sales_team', createError);
+        }
       }
     } catch (e) {
       console.error('Unexpected error fetching sales_team', e);
