@@ -1,5 +1,6 @@
 "use client";
 import { memo, useEffect } from "react";
+import Image from "next/image";
 import { Group48 } from "@/assets/images/index";
 import moment from "moment";
 import { cronitorSampleData, render_arr } from "@/data";
@@ -66,12 +67,12 @@ const InfoCard = memo(
         <div className="mb-2">
           {icon && (
             <div className="flex justify-start mb-1.5">
-              <div
+                <div
                 className={`w-8 h-8 rounded-md ${
                   isFirstCard ? "bg-white/20" : "bg-white dark:bg-[#0E1725]"
                 } flex items-center justify-center`}
               >
-                <img src={icon} alt="icon" className="w-4 h-4 object-contain" />
+                <Image src={icon as string} alt="icon" width={16} height={16} className="w-4 h-4 object-contain" />
               </div>
             </div>
           )}
@@ -87,7 +88,7 @@ const InfoCard = memo(
         <div className="mt-auto">
           {type === "image" ? (
             <div className="flex justify-start">
-              <img src={Group48.src} alt={label} className="w-26 h-5" />
+              <Image src={Group48.src} alt={label} width={104} height={20} className="w-26 h-5" />
             </div>
           ) : (
             <div className="text-left">

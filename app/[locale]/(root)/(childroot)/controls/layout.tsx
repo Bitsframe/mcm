@@ -15,7 +15,7 @@ export default function ControlsLayout({
   const { t } = useTranslation(translationConstant.CONTROLS);
   useEffect(() => {
     setActiveTitle("Sidebar_k22");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <div>

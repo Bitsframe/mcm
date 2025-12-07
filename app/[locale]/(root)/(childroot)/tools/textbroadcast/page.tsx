@@ -195,7 +195,7 @@ const TextBroadcast = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k23");
-  }, []);
+  }, [setActiveTitle]);
 
 
   const [message, setMessage] = useState("");

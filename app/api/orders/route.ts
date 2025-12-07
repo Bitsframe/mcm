@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { create_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
+import { supabase } from '@/services/supabase';
 import { sendOrderEmail } from '@/utils/emailServices/sendOrderEmail';
 import { sendFulfillmentRequestEmail } from '@/utils/emailServices/sendFulfillmentRequestEmail';
 import crypto from 'crypto';
@@ -78,9 +79,28 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
     const posCart = cartByLocation[posLocationId] || [];
     const otherLocationIds = Object.keys(cartByLocation).filter(id => id !== String(posLocationId));
 
+    // find current active sales_team for this location (valid_to IS NULL)
+    let sales_team_id: number | null = null;
+    try {
+      const { data: teamRows, error: teamErr } = await (supabase as any)
+        .from('sales_team')
+        .select('id')
+        .eq('location_id', posLocationId)
+        .is('valid_to', null)
+        .limit(1);
+      if (teamErr) {
+        console.error('Error fetching active sales_team', teamErr);
+      } else if (teamRows && teamRows.length > 0) {
+        sales_team_id = (teamRows[0] as any).id;
+      }
+    } catch (e) {
+      console.error('Unexpected error fetching sales_team', e);
+    }
+
     const orderCreatePostData = {
       patient_id: patient_id,
       previous_credit_amount: Number(creditAmount.toFixed(2)),
+      ...(sales_team_id !== null ? { sales_team_id } : {}),
       credit_balance: newCreditBalance,
       paid_amount: paidAmount,
       cash: Number(cashAmount.toFixed(2)),

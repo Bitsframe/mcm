@@ -103,7 +103,7 @@ const Categories = () => {
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
   const [page, setPage] = useState(1);
   const { t } = useTranslation(translationConstant.INVENTORY);
-  const ITEMS_PER_PAGE = 4;
+  const ITEMS_PER_PAGE = 12;
   const totalPages = Math.ceil(dataList.length / ITEMS_PER_PAGE);
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
@@ -226,7 +226,7 @@ const Categories = () => {
         </button>
       </div>
     ),
-    [getDataArchiveType, handleActiveClick, handleArchiveClick]
+    [getDataArchiveType, handleActiveClick, handleArchiveClick, t]
   );
 
   const createNewHandle = async () => {
@@ -263,7 +263,7 @@ const Categories = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k11");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
@@ -277,7 +277,7 @@ const Categories = () => {
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("Inventory_k4")}
-                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-[#122136] border-2 border-gray-600 focus:border-blue-600 text-white"
+                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-[#122136] border-2 border-gray-300 dark:border-gray-500 focus:border-blue-600 text-gray-900 dark:text-white"
                   />
                 </div>
                 <button
@@ -297,7 +297,7 @@ const Categories = () => {
           <div className="px-3 pt-5">
             <div className="border rounded-md border-gray-300 dark:border-gray-700">
               <div className="hidden md:block overflow-x-auto">
-                <div className="min-h-[45dvh] max-h-[45dvh] overflow-y-auto">
+                <div className="min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
                   <Table className="min-w-full">
                     <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700 sticky top-0 z-10">
                       <TableRow className="flex hover:bg-transparent">
@@ -382,11 +382,11 @@ const Categories = () => {
               {/* Mobile View */}
               <div className="md:hidden p-4 space-y-4">
                 {loading ? (
-                  <div className="h-[45dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
                     <Spinner size="xl" />
                   </div>
                 ) : dataList.length === 0 ? (
-                  <div className="h-[45dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
                     <h1 className="text-gray-700 dark:text-white">
                       No Category is available
                     </h1>

@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useEffect, useState, FC } from "react";
+import Image from 'next/image';
 import {
   PageFansRemoves,
   PostFansLocale,
@@ -47,7 +48,7 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
     };
 
     fetchLikes();
-  }, [fansRemovePeriod, fansLocale, fansLocaleOption, countryOptions]);
+  }, [fansRemovePeriod, fansLocaleOption, fansCountryOption]);
   const localeDiv = localeOptions?.map((value, index) => (
     <div
       onClick={() => {
@@ -76,10 +77,13 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
         <div className="flex flex-col absolute rounded-[3px] top-5 right-3 ">
           <div className="w-[100px] h-[15px] text-xs   flex items-center justify-between   bg-[#F6F6F6]">
             <div className="w-[25%] text-center">{fansRemovePeriod}</div>
-            <img
+            <Image
               onClick={() => setFansRemoveMenu(!fansRemoveMenu)}
               src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAANUlEQVR4nGNgGAWjYBQMf1DOwMDwnwCup6Ul9dTxBwNWS6hmODZLqG44DDRA8SgYBaNgMAEAWBUYxRZbGDAAAAAASUVORK5CYII="
-            ></img>
+              alt="toggle menu"
+              width={16}
+              height={16}
+            />
           </div>
           {fansRemoveMenu && (
             <div className="flex flex-col w-[100px] mt-1 bg-[#F6F6F6] h-[55px] text-xs">
@@ -97,7 +101,7 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
                 } cursor-pointer `}
                 onClick={() => setFansRemovePeriod("week")}
               >
-                week
+                This week
               </div>
               <div
                 className={`${
@@ -116,10 +120,13 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
         <div className="flex flex-col absolute rounded-[3px] top-5 right-3 ">
           <div className="w-[100px] h-[15px] text-xs   flex items-center justify-between   bg-[#F6F6F6]">
             <div className="w-[25%] text-center">{fansLocaleOption}</div>
-            <img
+            <Image
               onClick={() => setFansLocaleMenu(!fansLocaleMenu)}
               src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAANUlEQVR4nGNgGAWjYBQMf1DOwMDwnwCup6Ul9dTxBwNWS6hmODZLqG44DDRA8SgYBaNgMAEAWBUYxRZbGDAAAAAASUVORK5CYII="
-            ></img>
+              alt="toggle menu"
+              width={16}
+              height={16}
+            />
           </div>
 
           {fansLocaleMenu && (
@@ -139,10 +146,13 @@ const PagePostEnagagement: FC<Card2> = ({ color, name }) => {
         <div className="flex flex-col absolute rounded-[3px] top-5 right-3 ">
           <div className="w-[100px] h-[15px] text-xs   flex items-center justify-between   bg-[#F6F6F6]">
             <div className="w-[25%] text-center">{fansCountryOption}</div>
-            <img
+            <Image
               onClick={() => setFansCountryMenu(!fansCountryMenu)}
               src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAANUlEQVR4nGNgGAWjYBQMf1DOwMDwnwCup6Ul9dTxBwNWS6hmODZLqG44DDRA8SgYBaNgMAEAWBUYxRZbGDAAAAAASUVORK5CYII="
-            ></img>
+              alt="toggle menu"
+              width={16}
+              height={16}
+            />
           </div>
 
           {fansCountryMenu && (

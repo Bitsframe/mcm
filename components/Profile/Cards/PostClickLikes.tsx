@@ -69,7 +69,7 @@ const PostClickLikes: FC<Card1> = ({ color, name }) => {
     };
 
     fetchLikes();
-  }, [engagementsPeriod, impressionsPeriod, viewsPeriod]);
+  }, [engagementsPeriod, impressionsPeriod, viewsPeriod, name]);
   return (
     <div
       className={`flex relative  flex-col items-start w-[50%] h-[150px] ${color} justify-center mr-10  rounded-[10px] p-4 cursor-pointer `}

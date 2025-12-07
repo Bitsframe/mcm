@@ -1,5 +1,6 @@
 "use client"
 import React from 'react';
+import Image from 'next/image';
 import { useSingleRowDataHandle } from '@/hooks/useSingleRowDataHandle'
 import { Select_Dropdown } from '@/components/Select_Dropdown'
 import { about_section_options, langage_list_options } from '@/utils/list_options/dropdown_list_options'
@@ -53,7 +54,13 @@ const fields: FieldsType = {
     image: ({ value, on_change_handle, label }) => {
         return <div className='flex flex-col space-y-2'>
             {/* <Label>{label}</Label> */}
-            <img className='w-1/2' src="https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z" alt='picture'/>
+            <Image
+                src="https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z"
+                alt='picture'
+                width={200}
+                height={200}
+                className='w-1/2 object-contain'
+            />
         </div>
 
     }

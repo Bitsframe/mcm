@@ -16,7 +16,7 @@ export default function SettingsLayout({
   const { t } = useTranslation(translationConstant.SETTINGS);
   useEffect(() => {
     setActiveTitle("Sidebar_k22");
-  }, []);
+  }, [setActiveTitle]);
 
   return (
     <div className="dark:bg-[#0E1725]">

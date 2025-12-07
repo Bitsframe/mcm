@@ -3,9 +3,10 @@ import autoTable from 'jspdf-autotable';
 import React, { useContext, useState } from 'react';
 import DateRangeModal from './DateRangeModal';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 import { toast } from 'react-toastify'; // Import the toast library
-import { buildOrderInfoBlock } from './pdfHelpers';
+import { buildOrderInfoBlock, getOrderInfoData } from './pdfHelpers';
 
 interface TableData {
     orderId: string;
@@ -31,6 +32,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
         setLoading(true);
 
         try {
+            // bonus totals (computed later) - keep in outer scope so header can access
+            let totalBonus = 0;
+            let totalPaidBonus = 0;
                             // Loud alert to show date range and included fields
                                         try {
                                                     // logging removed for production
@@ -78,6 +82,54 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             try {
                 console.log('[ExportAsPDF] generatePDF called', { startDate, endDate, selectedLocation });
                 console.log('[ExportAsPDF] fetched_data (raw):', fetched_data);
+                // --- DEBUG: fetch bonus rows and compute totals on frontend ---
+                try {
+                    // Use direct supabase queries here to select only required columns and avoid heavy payloads
+                    const selectCols = 'id, bonus_amount, date, paid, paid_date, location_id, total_sales, bonus_eligibility, bonus_config_history_id';
+
+                    // Fetch all bonus rows for the selected location where `date` is within the selected range
+                    const { data: bonusRows, error: bonusError } = await (supabase as any)
+                        .from('bonus')
+                        .select(selectCols)
+                        .eq('location_id', selectedLocation.id)
+                        .gte('date', startDate)
+                        .lte('date', endDate);
+
+                    if (bonusError) {
+                        console.error('ExportAsPDF: error fetching bonusRows from supabase', bonusError);
+                    }
+
+                    // Fetch paid bonus rows where paid = true and paid_date is within the selected range
+                    const { data: paidBonusRows, error: paidError } = await (supabase as any)
+                        .from('bonus')
+                        .select(selectCols)
+                        .eq('location_id', selectedLocation.id)
+                        .eq('paid', true)
+                        .gte('paid_date', startDate)
+                        .lte('paid_date', endDate);
+
+                    if (paidError) {
+                        console.error('ExportAsPDF: error fetching paidBonusRows from supabase', paidError);
+                    }
+
+                    // Compute totals on the frontend (safe numeric coercion)
+                    const toNumber = (v: any) => {
+                        const n = Number(v);
+                        return Number.isNaN(n) ? 0 : n;
+                    };
+
+                    totalBonus = (bonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
+                    totalPaidBonus = (paidBonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
+
+                    // Log detailed debug info so we can trace which rows are included
+                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows count:', (bonusRows || []).length);
+                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows (full):', bonusRows);
+                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows count:', (paidBonusRows || []).length);
+                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows (full):', paidBonusRows);
+                    console.log('[ExportAsPDF] BONUS debug: computed totals', { totalBonus: Number(totalBonus).toFixed(2), totalPaidBonus: Number(totalPaidBonus).toFixed(2) });
+                } catch (e) {
+                    console.error('ExportAsPDF: error fetching/processing bonus debug rows', e);
+                }
             } catch (e) {
                 // ignore in non-browser env
             }
@@ -165,6 +217,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             let totalAmount = 0;
             // ordersMap will hold grouped sales_history rows by order_id so we can compute totals like cash/card sums
             let ordersMap: Map<string, any> = new Map();
+            // accumulator for total sales (sum of net amounts after discounts)
+            let totalSalesNet = 0;
 
             // Populate the PDF rows using nested relations (orders, inventory.products)
             if (fetched_data && fetched_data.length > 0) {
@@ -194,7 +248,66 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const salesHistoryId = item.sales_history_id ? item.sales_history_id.toString() : '';
                     const dateStr = item.date_sold ? new Date(item.date_sold).toLocaleString() : '';
                     const patientName = item.orders?.pos ? `${item.orders.pos.firstname || ''} ${item.orders.pos.lastname || ''}`.trim() : '';
-                    const paymentType = item.paymentcash ? 'Cash' : 'Card';
+                    // Legacy: item.paymentcash was used before to decide payment type.
+                    // New logic (per requirements): determine cash/card amounts from the orders row
+                    // and set paymentType according to these rules:
+                    // 1) if card amount === 0 -> paymentType = 'Cash' and print cash amount (if present)
+                    // 2) if cash amount === 0 -> paymentType = 'Card' and print card amount (if present)
+                    // 3) if both have positive values -> paymentType = 'Card & Cash' and print both
+                    // 4) if both are 0 or missing -> paymentType = 'Cash & Card' and render 0 and 0
+
+                    // Read raw numeric values from orders row.
+                    // Prefer the explicit `cash` column over `paid_amount` so that an explicit cash=0
+                    // in the DB is respected (i.e. cash was intentionally zero).
+                    const rawCashFromOrders = (item.orders && (item.orders.cash != null ? item.orders.cash : (item.orders.paid_amount != null ? item.orders.paid_amount : null)));
+                    const rawCardFromOrders = (item.orders && item.orders.card != null ? item.orders.card : null);
+
+                    const cashNum = rawCashFromOrders != null ? Number(rawCashFromOrders) : null;
+                    const cardNum = rawCardFromOrders != null ? Number(rawCardFromOrders) : null;
+
+                    let computedPaymentType = item.paymentcash ? 'Cash' : 'Card';
+                    let computedCash: number | string | null = null;
+                    let computedCard: number | string | null = null;
+
+                    // Both missing/null -> treat as zeros per rule (4)
+                    if ((cashNum === null || isNaN(cashNum)) && (cardNum === null || isNaN(cardNum))) {
+                        computedPaymentType = 'Cash & Card';
+                        computedCash = 0;
+                        computedCard = 0;
+                        } else if (cardNum === 0 && cashNum != null && cashNum > 0) {
+                        // rule 1: card is zero, cash present
+                        computedPaymentType = 'Cash';
+                        computedCash = cashNum;
+                        computedCard = '-'; // display dash for card when not applicable
+                    } else if (cashNum === 0 && cardNum != null && cardNum > 0) {
+                        // rule 2: cash is zero, card present
+                        computedPaymentType = 'Card';
+                        computedCard = cardNum;
+                        computedCash = '-'; // display dash for cash when not applicable
+                    } else if (cardNum != null && cashNum != null && cardNum > 0 && cashNum > 0) {
+                        // rule 3: both have positive values
+                        computedPaymentType = 'Card & Cash';
+                        computedCash = cashNum;
+                        computedCard = cardNum;
+                    } else if ((cardNum === 0 && (cashNum === null || cashNum === 0)) || (cashNum === 0 && (cardNum === null || cardNum === 0))) {
+                        // fallback: at least one explicitly zero and the other missing/zero -> show both zeros
+                        computedPaymentType = 'Cash & Card';
+                        computedCash = cashNum != null ? cashNum : 0;
+                        computedCard = cardNum != null ? cardNum : 0;
+                    } else if (cardNum != null && cardNum > 0) {
+                        computedPaymentType = 'Card';
+                        computedCard = cardNum;
+                        computedCash = cashNum != null ? cashNum : '-';
+                    } else if (cashNum != null && cashNum > 0) {
+                        computedPaymentType = 'Cash';
+                        computedCash = cashNum;
+                        computedCard = cardNum != null ? cardNum : '-';
+                    } else {
+                        // final fallback: use original boolean flag and raw values
+                        computedPaymentType = item.paymentcash ? 'Cash' : 'Card';
+                        computedCash = cashNum;
+                        computedCard = cardNum;
+                    }
 
                     const productName = item.inventory?.products?.product_name || item.inventory?.product_name || '';
                     const productPriceNum = item.inventory?.products?.price ?? item.inventory?.price ?? item.price ?? 0;
@@ -208,12 +321,18 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             order_id: orderId,
                             date: dateStr,
                             patientName,
-                            paymentType,
+                            paymentType: computedPaymentType,
                             // store contact and payment info for the per-order header block
                             email: item.orders?.pos?.email || '',
                             phone: item.orders?.pos?.phone || '',
-                            cash: item.orders?.paid_amount != null ? Number(item.orders?.paid_amount || 0) : (item.orders?.cash != null ? Number(item.orders.cash) : undefined),
-                            card: item.orders?.card != null ? Number(item.orders.card) : undefined,
+                            // Set cash/card to numeric values or null according to rules above.
+                            // pdfHelpers prints lines only when the value is not null. For the "both zero" case
+                            // we intentionally set 0 so the PDF shows $0.00 for both fields.
+                            cash: computedCash,
+                            card: computedCard,
+                            // store paid_amount and credit_balance from orders if present
+                            paid_amount: item.orders?.paid_amount != null ? Number(item.orders.paid_amount) : 0,
+                            credit_balance: item.orders?.credit_balance != null ? Number(item.orders.credit_balance) : null,
                             items: [],
                         });
                     }
@@ -228,10 +347,14 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 });
 
                 // Build product-level rows for each order with a per-order header
+                // Also accumulate a gross-based Total Sales (gross - cartDiscount - productDiscount)
                 for (const [oIdStr, orderObj] of Array.from(ordersMap.entries())) {
                     const items = orderObj.items as any[];
                     const totalQty = items.reduce((s, it) => s + (it.quantityNum || 0), 0);
+                    // orderTotal: sum of rowTotalNum (this may include applied discounts / stored row total)
                     const orderTotal = items.reduce((s, it) => s + (it.rowTotalNum || 0), 0);
+                    // grossAmount: total of product price * quantity BEFORE any discounts
+                    const grossAmount = items.reduce((s, it) => s + (Number(it.productPrice || 0) * Number(it.quantityNum || 0)), 0);
 
                     // Cart discount text (presentation)
                     const cartDiscounts = cartMapLocal.get(oIdStr) || [];
@@ -302,25 +425,20 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const finalPriceNum = Math.max(0, postCartTotal - Number(productDiscountTotal || 0));
                     const finalPriceText = `$${Number(finalPriceNum).toFixed(2)}`;
 
-                    // Insert a per-order patient details / invoice summary block above the green header
-                    const totalsForBlock = { orderTotal, cartDiscountTotal, productDiscountTotal, finalPriceNum };
-                    const infoBlockRows = buildOrderInfoBlock({
-                        patientName: orderObj.patientName,
-                        email: orderObj.email,
-                        phone: orderObj.phone,
-                        date: orderObj.date,
-                        paymentType: orderObj.paymentType,
-                        cash: orderObj.cash,
-                        card: orderObj.card,
-                    }, totalsForBlock, tableColumn.length);
-                    infoBlockRows.forEach(r => tableRows.push(r as any));
+                    // Accumulate total sales as the net amount after discounts (finalPriceNum)
+                    totalSalesNet += Number(finalPriceNum || 0);
 
-                    // Insert a green header row for this order to visually separate orders
+                    // Prepare per-order totals and product rows so we can render each order separately
+                    const totalsForBlock = { orderTotal: grossAmount, cartDiscountTotal, productDiscountTotal, finalPriceNum };
+
+                    // Save totals and product rows on the order object for later per-order rendering
+                    const productRows: any[] = [];
+
+                    // Prepare the green header row for this order (used when rendering the products table)
                     const perOrderHeader = tableColumn.map((col) => ({
                         content: col,
                         styles: { halign: 'center', fillColor: [0, 150, 136], textColor: [255, 255, 255], fontStyle: 'bold' }
                     }));
-                    tableRows.push(perOrderHeader as any);
 
                     // For each product in the order, add a product-level row matching the desired table
                     for (const it of items) {
@@ -363,14 +481,12 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             `$${Number(amountAfter).toFixed(2)}`,
                         ];
 
-                        tableRows.push(productRow);
+                        productRows.push(productRow);
                     }
-
-                    // Add a spacer row after each order to create a clear white gap.
-                    // Mark it via a custom style flag so we can detect it in autoTable hooks.
-                    tableRows.push([
-                        { content: '', colSpan: tableColumn.length, styles: { minCellHeight: 18, fillColor: [255, 255, 255], isSpacer: true, cellPadding: 0 } }
-                    ]);
+                    // persist computed data to the order object for later rendering
+                    ordersMap.get(oIdStr).totals = totalsForBlock;
+                    ordersMap.get(oIdStr).productRows = productRows;
+                    ordersMap.get(oIdStr).perOrderHeader = perOrderHeader;
                     totalAmount += Number(orderTotal || 0);
                 }
             } else {
@@ -394,13 +510,12 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 console.log('[ExportAsPDF] totalAmount:', totalAmount);
             } catch (e) { /* ignore in non-browser env */ }
 
-            // Compute total sales using cash + card values from grouped orders (one-time top summary)
-            let totalSales = 0;
+            // Compute total receivables using paid_amount from grouped orders (one-time top summary)
+            let totalReceivables = 0;
             try {
                 for (const [, orderObj] of Array.from(ordersMap.entries())) {
-                    const cashVal = Number(orderObj.cash ?? 0) || 0;
-                    const cardVal = Number(orderObj.card ?? 0) || 0;
-                    totalSales += cashVal + cardVal;
+                    const paid = orderObj.paid_amount != null ? Number(orderObj.paid_amount) : 0;
+                    totalReceivables += paid;
                 }
             } catch (e) {
                 // ignore any malformed entries
@@ -417,13 +532,21 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             // Date Range (left)
             doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 30);
 
-            // Total Sales (right, shown once)
+            // Total Receivables (right, shown once)
             try {
                 // place at right margin, align right
-                doc.text(`Total Sales: $${Number(totalSales || 0).toFixed(2)}`, 195, 30, { align: 'right' });
+                doc.text(`Total Receivables: $${Number(totalReceivables || 0).toFixed(2)}`, 195, 30, { align: 'right' });
+                // Show Total Sales (sum of net amounts) below receivables
+                doc.text(`Total Sales: $${Number(totalSalesNet || 0).toFixed(2)}`, 195, 36, { align: 'right' });
+                // Bonus and Paid Bonus (right)
+                doc.text(`Bonus: $${Number(totalBonus || 0).toFixed(2)}`, 195, 42, { align: 'right' });
+                doc.text(`Paid Bonus: $${Number(totalPaidBonus || 0).toFixed(2)}`, 195, 48, { align: 'right' });
             } catch (e) {
                 // fallback: place without alignment
-                doc.text(`Total Sales: $${Number(totalSales || 0).toFixed(2)}`, 160, 30);
+                doc.text(`Total Receivables: $${Number(totalReceivables || 0).toFixed(2)}`, 160, 30);
+                doc.text(`Total Sales: $${Number(totalSalesNet || 0).toFixed(2)}`, 160, 36);
+                doc.text(`Bonus: $${Number(totalBonus || 0).toFixed(2)}`, 160, 42);
+                doc.text(`Paid Bonus: $${Number(totalPaidBonus || 0).toFixed(2)}`, 160, 48);
             }
 
             // Location Title (left, below date range)
@@ -431,7 +554,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
 
             // Add some space before the table
             doc.setLineWidth(0.5);
-            doc.line(14, 45, 195, 45); // Horizontal line after the header
+            doc.line(14, 60, 195, 60); // Horizontal line after the header (moved down to allow bonus fields)
 
             // Generate the table in the PDF
             // DEBUG: log final PDF payload that's passed into autoTable
@@ -439,42 +562,127 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 // logging removed for production
             } catch (e) { console.error('ExportAsPDF: Error logging PDF payload', e); }
 
-            // Use per-order header rows inserted into the body instead of a single global head
-            // to avoid duplicate/empty header rows being rendered at the start of each page.
-            autoTable(doc, {
-                head: [],
-                body: tableRows,
-                startY: 50,  // Starting point for the table
-                margin: { top: 20 },
-                theme: 'grid', // Optional theme for styling
-                // Ensure default head styles aren't applied since head is empty
-                didParseCell: function (data: any) {
-                    try {
-                        // Ensure spacer cells have no text
-                        if (data.cell && data.cell.styles && data.cell.styles.isSpacer) {
-                            data.cell.text = '';
-                        }
-                    } catch (e) {
-                        // ignore
+            // Render each order separately: draw the patient/invoice block manually
+            // and then render that order's product table. This lets us measure
+            // remaining space and force a page break so an order is never split.
+            const PAGE_WIDTH = doc.internal.pageSize.getWidth();
+            const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
+            const LEFT_MARGIN = 14;
+            const RIGHT_MARGIN = 14;
+            const START_Y = 66;
+            let cursorY = START_Y;
+
+            for (const [oIdStr, orderObj] of Array.from(ordersMap.entries())) {
+                try {
+                    const totals = orderObj.totals || { orderTotal: 0, cartDiscountTotal: 0, productDiscountTotal: 0, finalPriceNum: 0 };
+                    const productRows = orderObj.productRows || [];
+                    const header = orderObj.perOrderHeader || tableColumn.map((col) => ({ content: col }));
+
+                    // Get the lines and min heights for the info block
+                    const info = getOrderInfoData({
+                        patientName: orderObj.patientName,
+                        email: orderObj.email,
+                        phone: orderObj.phone,
+                        date: orderObj.date,
+                        paymentType: orderObj.paymentType,
+                        cash: orderObj.cash,
+                        card: orderObj.card,
+                    }, totals, tableColumn.length);
+
+                    const infoBlockHeight = Math.max(info.minPatientHeight, info.minInvoiceHeight);
+
+                    // Estimate product table height: header + rows
+                    const headerHeightEstimate = 12;
+                    const rowHeightEstimate = 10;
+                    const spacerAfter = 8;
+                    const productTableEstimate = headerHeightEstimate + (productRows.length * rowHeightEstimate) + spacerAfter;
+
+                    const totalNeeded = infoBlockHeight + productTableEstimate + 12; // some padding
+
+                    // If not enough space on current page, start a new page
+                    if (cursorY + totalNeeded > PAGE_HEIGHT - 20) {
+                        doc.addPage();
+                        cursorY = START_Y;
                     }
-                },
-                didDrawCell: function (data: any) {
-                    try {
-                        // Draw a white rectangle over spacer rows to fully hide any grid lines
-                        if (data.cell && data.cell.styles && data.cell.styles.isSpacer) {
-                            const cell = data.cell;
-                            const x = cell.x;
-                            const y = cell.y;
-                            const w = cell.width;
-                            const h = cell.height;
-                            doc.setFillColor(255, 255, 255);
-                            doc.rect(x, y, w, h, 'F');
+
+                    // Draw bounding box for the info block (subtle border)
+                    const contentWidth = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
+                    doc.setDrawColor(200, 200, 200);
+                    doc.rect(LEFT_MARGIN, cursorY - 6, contentWidth, infoBlockHeight + 8, 'S');
+
+                    // Draw headers
+                    const leftX = LEFT_MARGIN + 8;
+                    const rightX = LEFT_MARGIN + (contentWidth / 2) + 8;
+                    const titleY = cursorY + 6;
+                    try { doc.setFont('helvetica', 'bold'); } catch (e) {}
+                    doc.setFontSize(10);
+                    // Draw section titles in blue
+                    try { doc.setTextColor(0, 102, 204); } catch (e) {}
+                    doc.text('Patient Details', leftX, titleY);
+                    doc.text('Invoice Summary', rightX, titleY);
+                    // reset text color for content lines
+                    try { doc.setTextColor(60, 60, 67); } catch (e) {}
+
+                    // Draw patient lines (left)
+                    let yLeft = titleY + 8;
+                    doc.setFontSize(9);
+                    for (const line of info.patientLines) {
+                        const idx = line.indexOf(':');
+                        if (idx > -1) {
+                            const label = line.substring(0, idx + 1);
+                            const value = line.substring(idx + 1).trim();
+                            try { doc.setFont('helvetica', 'bold'); } catch (e) {}
+                            doc.text(label + ' ', leftX, yLeft);
+                            const labelW = doc.getTextWidth(label + ' ');
+                            try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                            doc.text(String(value), leftX + labelW, yLeft);
+                        } else {
+                            try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                            doc.text(line, leftX, yLeft);
                         }
-                    } catch (e) {
-                        // ignore
+                        yLeft += 9 * 1.0;
                     }
+
+                    // Draw invoice lines (right)
+                    let yRight = titleY + 8;
+                    doc.setFontSize(8);
+                    for (const line of info.invoiceLines) {
+                        const idx = line.indexOf(':');
+                        if (idx > -1) {
+                            const label = line.substring(0, idx + 1);
+                            const value = line.substring(idx + 1).trim();
+                            try { doc.setFont('helvetica', 'bold'); } catch (e) {}
+                            doc.text(label + ' ', rightX, yRight);
+                            const labelW = doc.getTextWidth(label + ' ');
+                            try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                            doc.text(String(value), rightX + labelW, yRight);
+                        } else {
+                            try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                            doc.text(line, rightX, yRight);
+                        }
+                        yRight += 8 * 1.0;
+                    }
+
+                    // Advance cursorY past the info block
+                    cursorY += infoBlockHeight + 12;
+
+                    // Render the product table for this order
+                    autoTable(doc, {
+                        startY: cursorY,
+                        margin: { left: LEFT_MARGIN, right: RIGHT_MARGIN },
+                        head: [header.map((h: any) => (typeof h === 'string' ? h : h.content))],
+                        body: productRows,
+                        theme: 'grid',
+                        headStyles: { fillColor: [0, 150, 136], textColor: [255, 255, 255], halign: 'center' },
+                        styles: { fontSize: 8 }
+                    });
+
+                    // Update cursorY to the end of the table
+                    cursorY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 8 : cursorY + productTableEstimate;
+                } catch (e) {
+                    console.error('ExportAsPDF: error rendering order', oIdStr, e);
                 }
-            });
+            }
 
             // Save the generated PDF
             doc.save('sales_history_report.pdf');

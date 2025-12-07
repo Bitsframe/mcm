@@ -17,6 +17,7 @@ interface FetchContentServiceInterface {
   matchCase?: MatchCase | MatchCase[] | null;
   sortOptions?: SortOptions | null;
   filterOptions?: { column: string; operator: string; value: any }[] | null;
+  skipLocationFilter?: boolean;
 }
 interface UpdateContentServiceInterface {
   table: string;
@@ -82,10 +83,14 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
       .from('Appoinments')
       .select('*')
       .eq('location_id', locationId)
-      .eq('isApproved', true);
+      .eq('isApproved', true)
+      .order('id', { ascending: false });
+
+ 
 
     if (error) throw error;
-  return data;
+
+    return data;
   } catch (error) {
     console.error('Error fetching approved appointments:', error);
     return [];
@@ -98,7 +103,9 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
     .from('Appoinments')
       .select('*')
       .eq('location_id', locationId)
-    .eq('isApproved', false); 
+    .eq('isApproved', false)
+    // return latest first
+    .order('id', { ascending: false });
 
     if (error) throw error;
     return data;
@@ -111,7 +118,7 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
 export async function ApproveAppointment  (id: number) {
   const { data, error } = await supabase
     .from('Appoinments')
-    .update({isApproved:true})
+    .update({ "isApproved": true })
     .eq('id', id)
     .select('*')
 
@@ -150,9 +157,12 @@ export async function fetch_content_service({
     }
   }
 
-  // Add location filtering for tables that have location_id
-  const locationBasedTables = ['allpatients', 'Appoinments', 'pos', 'inventory', 'sales_history'];
-  if (locationBasedTables.includes(table)) {
+  // Add location filtering for tables that have location_id, unless caller requests skip
+  // Note: `sales_history` rows reference `inventory_id` and may not have a `locationid` column
+  // so we exclude it here to avoid SQL errors when adding a location filter.
+  const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
+  // @ts-ignore
+  if (!((arguments[0] && arguments[0].skipLocationFilter) || false) && locationBasedTables.includes(table)) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: userLocations } = await supabase
@@ -162,7 +172,8 @@ export async function fetch_content_service({
       
       if (userLocations && userLocations.length > 0) {
         const locationIds = userLocations.map(loc => loc.location_id);
-        query = query.in('locationid', locationIds);
+        // ensure we filter by the correct column name used across the DB
+        query = query.in('location_id', locationIds);
       }
     }
   }

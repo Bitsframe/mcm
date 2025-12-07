@@ -40,6 +40,10 @@ const TopTabs = () => {
       title: "CT_k1",
       url: "locationlimits",
     },
+    {
+      title: "Staff",
+      url: "staff",
+    },
     // {
     //   title: "Inventory Settings",
     //   url: "inventorysettings",

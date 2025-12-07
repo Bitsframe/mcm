@@ -8,6 +8,12 @@ export async function middleware(request: NextRequest) {
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
 
+  // Bypass middleware for public assets (images, icons) so static files are served
+  // directly and not subject to auth redirects which can cause 400/401 for assets.
+  if (pathname.startsWith("/assets/") || pathname === "/favicon.ico") {
+    return NextResponse.next();
+  }
+
   // ✅ Skip auth for internal API routes (server-to-server)
   if (pathname.startsWith("/api/reminder")) {
     console.log("Bypassing middleware for /api/reminder");

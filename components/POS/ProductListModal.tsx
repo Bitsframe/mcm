@@ -57,7 +57,10 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
         style={{ height: '72vh' }}
       >
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <div className="flex items-baseline gap-3">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{`Showing ${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}</span>
+          </div>
           <button
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             onClick={onClose}
@@ -68,7 +71,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
         </div>
 
   <div className="p-4 flex-1 overflow-y-auto">
-          <div className="mb-3 flex items-center gap-2 justify-between">
+          <div className="sticky top-0 z-20 bg-white dark:bg-[#0E1725] mb-3 flex items-center gap-2 justify-between py-3 border-b">
             <div className="flex items-center gap-2 flex-1">
               <input
                 type="text"
@@ -131,6 +134,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
                       disabled={disabled}
                       minQuantity={0}
                       formatPrice={formatPrice}
+                      bonusEligible={!!p.bonus_eligible}
                     />
                   ))}
                 </tbody>

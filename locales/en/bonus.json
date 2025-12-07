@@ -1,0 +1,82 @@
+{
+  "Bonus_k1": "Bonus",
+  "Bonus_k2": "Bonus calculation",
+  "Bonus_k3": "Bonus transactions",
+  "Bonus_k4": "Set limits",
+  "Bonus_k5": "Date:",
+  "Bonus_k6": "Filter",
+  "Bonus_k7": "Name",
+  "Bonus_k8": "Total Sales",
+  "Bonus_k9": "Bonus Threshold",
+  "Bonus_k10": "Flat/Percentage",
+  "Bonus_k11": "Value",
+  "Bonus_k12": "Bonus amount",
+  "Bonus_k13": "Paid date",
+  "Bonus_k14": "Bonus Eligibility",
+  "Bonus_k15": "Status",
+  "Bonus_k16": "Staff",
+  "Bonus_k17": "Name",
+  "Bonus_k18": "All locations",
+  "Bonus_k19": "Total sales (min)",
+  "Bonus_k20": "Bonus threshold (min)",
+  "Bonus_k21": "Type",
+  "Bonus_k22": "Value (min)",
+  "Bonus_k23": "Bonus amount (min)",
+  "Bonus_k24": "Bonus Eligibility",
+  "Bonus_k25": "Date (up to yesterday)",
+  "Bonus_k26": "Clear",
+  "Bonus_k27": "Apply",
+  "Bonus_k28": "All",
+  "Bonus_k29": "Any",
+  "Bonus_k30": "Yes",
+  "Bonus_k31": "No",
+  "Bonus_k32": "Min",
+  "Bonus_k34": "FLAT",
+  "Bonus_k35": "PERCENTAGE",
+  "Bonus_k36": "Paid",
+  "Bonus_k37": "Pay",
+  "Bonus_k38": "Location",
+  "Bonus_k39": "Flat / Percentage",
+  "Bonus_k40": "Actions",
+  "Bonus_k41": "Update",
+  "Bonus_k42": "Configuration saved",
+  "Bonus_k43": "No bonuses found",
+  "Bonus_k44": "No locations found",
+  "Bonus_k45": "Loading bonuses..."
+  ,"Bonus_k46": "Bonus Sales"
+  ,"Bonus_k47": "Individual Bonus"
+  ,"Bonus_k48": "This week"
+  ,"Bonus_k49": "This month"
+  ,"Bonus_k50": "Select week start"
+  ,"Bonus_k51": "Select month"
+  ,"Bonus_k52": "Selected week:"
+  ,"Bonus_k53": "Selected month:"
+  ,"Bonus_k54": "Cancel"
+  ,"Bonus_k55": "Calculating..."
+  ,"Bonus_k56": "Distribute individual bonuses"
+  ,"Bonus_k57": "Failed to trigger distribution"
+  ,"Bonus_k58": "Distribution triggered"
+  ,"Bonus_k59": "Filtered by"
+  ,"Bonus_k60": "Locations:"
+  ,"Bonus_k61": "Bonus:"
+  ,"Bonus_k62": "Filter bonuses"
+  ,"Bonus_k63": "Close"
+  ,"Bonus_k64": "Bonus date (start)"
+  ,"Bonus_k65": "Bonus date (end)"
+  ,"Bonus_k66": "Paid date (start)"
+  ,"Bonus_k67": "Paid date (end)"
+  ,"Bonus_k68": "Loading individual bonuses..."
+  ,"Bonus_k69": "No individual bonuses found."
+  ,"Bonus_k70": "Paying..."
+  ,"Bonus_k71": "Pay"
+  ,"Bonus_k72": "Already paid"
+  ,"Bonus_k73": "Processing payment"
+  ,"Bonus_k74": "Total bonus paid"
+  ,"Bonus_k75": "Highest Location Bonus Paid"
+  ,"Bonus_k76": "Highest Person Bonus Paid"
+  ,"Bonus_k77": "Highest Bonus Staff on Location"
+  ,"Bonus_k78": "Highest Bonus at Selected Location"
+  ,"Bonus_k79": "Total Bonus to"
+  ,"Bonus_k80": "Total Bonus Paid to"
+  ,"Bonus_k81": "Bonus date"
+}

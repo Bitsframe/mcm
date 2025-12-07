@@ -66,7 +66,7 @@ const PrivateFeedbackComponent: FC = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k9");
-  }, []);
+  }, [setActiveTitle]);
 
   const onChangeHandle = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +163,7 @@ const PrivateFeedbackComponent: FC = () => {
           ))}
         </div>
       ),
-    [dataDetails]
+    [dataDetails, t]
   );
 
 

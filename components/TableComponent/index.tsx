@@ -57,8 +57,6 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   tableBodyHeight = "",
   tableHeight = "h-[82dvh]",
   searchInputs,
-  searchHandle,
-  searchInputplaceholder = "",
   RightSideComponent,
   pdf,
   resetPaginationTrigger,
@@ -150,26 +148,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   return (
     <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
       <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
-
-        <div className="flex items-center space-x-2 px-3 w-full sm:w-80 text-sm rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725] relative z-10 min-w-0">
-          <CiSearch size={18} color="gray" />
-          <input
-            onChange={searchHandle}
-            type="text"
-            //@ts-ignore
-            placeholder={
-              searchInputplaceholder
-                ? t(searchInputplaceholder)
-                : t("Search...", {
-                    ns: translationConstant.STOCKPANEL,
-                    defaultValue: "Search...",
-                  })
-            }
-            className="w-full px-1 focus:outline-none placeholder-gray-400 dark:placeholder-gray-400 bg-transparent text-sm text-black dark:text-white min-w-0"
-          />
-        </div>
-
-
+  {/* No global search bar for this table */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
           {pdf ? <ExportAsPDF /> : null}
           {RightSideComponent ? <RightSideComponent /> : null}
@@ -245,7 +224,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       placeholder="Search Order ID"
                       value={searchInputs.orderIdSearch}
                       onChange={e => {
@@ -257,7 +236,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                     <input
                       type="text"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       placeholder="Search Patient Name"
                       value={searchInputs.patientNameSearch}
                       onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
@@ -266,12 +245,10 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                     <input
                       type="date"
-                      className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                       value={searchInputs.dobSearch}
                       onChange={e => searchInputs.setDobSearch(e.target.value)}
                     />
-
-                    
                   </TableCell>
                   <TableCell className="p-1">
                     <div className="flex items-center">
@@ -280,7 +257,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        className="w-full border-2 border-black rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                         placeholder="Phone Number"
                         value={searchInputs.phoneSearch}
                         onChange={e => {
@@ -295,7 +272,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     <input
                       type="text"
                       className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
-                      ${!isEmailValid && emailTouched ? 'bg-red-100 border-black' : 'bg-gray-100 border-black'}`}
+                      ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300 dark:border-gray-700'}`}
                       placeholder="Search Email"
                       value={emailValue}
                       onChange={e => {
@@ -314,28 +291,20 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                 </TableRow>
               )}
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
-                {tableHeader.map(({ id, label, align }) => {
-                  const alignmentClass =
-                    align === "left"
-                      ? "text-left"
-                      : align === "right"
-                      ? "text-right"
-                      : "text-center";
-
-                  return (
-                    <TableHead
-                      key={id}
-                      className={`py-3 text-sm text-gray-500 dark:text-gray-300 font-medium min-w-0 ${alignmentClass}`}
-                    >
-                      {t(label, {
-                        ns: translationConstant.STOCKPANEL,
-                        defaultValue: t(label, { ns: translationConstant.POSHISTORY }),
-                      })}
-                    </TableHead>
-                  );
-                })}
-                {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
-                {onDelete && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
+                {/* Order ID */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Order ID</TableHead>
+                {/* Patient Name */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Patient Name</TableHead>
+                {/* Amount Received */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Amount Received</TableHead>
+                {/* Phone Number */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Phone Number</TableHead>
+                {/* Email */}
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Email</TableHead>
+                {/* Details column header cell for alignment */}
+                  {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
+                  {/* Delete column header (if delete handler provided) */}
+                  {onDelete && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
               </TableRow>
             </TableHeader>
 
@@ -356,28 +325,16 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                     key={startIndex + index}
                     className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700 min-w-0"
                   >
-                    {tableHeader.map(({ id, render_value, align }, headerIndex) => {
-                      const alignmentClass =
-                        align === "left"
-                          ? "text-left"
-                          : align === "right"
-                          ? "text-right"
-                          : "text-center";
-                      const rawValue = elem[id];
-                      const content = render_value
-                        ? render_value(rawValue, elem, openModal)
-                        : rawValue;
-                      return (
-                        <TableCell
-                          key={`${startIndex + index}-${id}-${headerIndex}`}
-                          className={`py-3 text-sm min-w-0 ${alignmentClass}`}
-                        >
-                          {content !== undefined && content !== null && content !== ""
-                            ? content
-                            : "-"}
-                        </TableCell>
-                      );
-                    })}
+                    {/* Order ID */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem.order_id}</TableCell>
+                    {/* Patient Name */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{`${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`}</TableCell>
+                    {/* Amount Received */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">${elem?.paid_amount || 0}</TableCell>
+                    {/* Phone Number */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.phone || ''}</TableCell>
+                    {/* Email */}
+                    <TableCell className="py-3 text-sm text-center min-w-0">{elem?.pos?.email || ''}</TableCell>
                     {/* Details Button */}
                     {openModal && (
                       <TableCell className="py-3 text-center min-w-0">

@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { type FC, useContext, useEffect, useState } from "react";
+import { type FC, useContext, useEffect, useState, useCallback } from "react";
 import {
   FaHandshake,
   FaSearch,
@@ -80,12 +80,7 @@ const FulfillmentPage = () => {
   const { setActiveTitle } = useContext(TabContext);
   const { t } = useTranslation(translationConstant.POSSALES);
 
-  useEffect(() => {
-    setActiveTitle("Sidebar_k19");
-    fetchFulfillmentRequests();
-  }, [selectedLocation]);
-
-  const fetchFulfillmentRequests = async () => {
+  const fetchFulfillmentRequests = useCallback(async () => {
     if (!selectedLocation?.id) return;
     setLoading(true);
     try {
@@ -104,7 +99,14 @@ const FulfillmentPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedLocation]);
+
+  useEffect(() => {
+    setActiveTitle("Sidebar_k19");
+    fetchFulfillmentRequests();
+  }, [selectedLocation, fetchFulfillmentRequests, setActiveTitle]);
+
+  
 
   const handleSearch = async () => {
     if (!fulfillmentOrderRef || !fulfillmentToken || !selectedLocation?.id)

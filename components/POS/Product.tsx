@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 
 interface ProductProps {
   productName: string;
@@ -24,6 +25,8 @@ interface ProductProps {
   modalTitle?: string;
   // Explicit unlimited flag (preferred to passing a sentinel number)
   unlimited?: boolean;
+  // whether product is bonus eligible (show bonus icon)
+  bonusEligible?: boolean;
 }
 
 const Product: React.FC<ProductProps> = ({
@@ -43,6 +46,7 @@ const Product: React.FC<ProductProps> = ({
   onClose,
   modalTitle,
   unlimited = false,
+  bonusEligible = false,
 }) => {
   const [internalQty, setInternalQty] = useState<number>(0);
   const qty = controlledQty !== undefined ? controlledQty : internalQty;
@@ -85,7 +89,14 @@ const Product: React.FC<ProductProps> = ({
         className="border-b p-2"
         onClick={onRowSelect}
       >
-        {productName || '-'}
+        {bonusEligible ? (
+          <div className="flex items-center gap-2">
+            <Image src="/assets/bonusicon.png" alt="bonus" width={16} height={16} className="object-contain inline-block" />
+            <span className="truncate">{productName || '-'}</span>
+          </div>
+        ) : (
+          productName || '-'
+        )}
       </td>
       <td className="border-b p-2">
         <div className="flex items-center space-x-2">

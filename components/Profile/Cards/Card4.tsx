@@ -48,19 +48,20 @@ const Card4: React.FC = () => {
 
         // Wait for all promises to resolve
         let results: any = [];
+        // Use the computed othersTotal (not the state variable which may be stale)
         setOthers(othersTotal);
         results.push({ language: "en_US", fans: fanslocaleEN });
         results.push({ language: "es_ES", fans: fanslocaleES });
-        results.push({ language: "others", fans: others });
+        results.push({ language: "others", fans: othersTotal });
         setFanData(results);
-        console.log("Fan Data", fanData);
+        console.log("Fan Data", results);
       } catch (error) {
         console.error("Error fetching likes:", error);
       }
     };
 
     fetchLikes();
-  }, [others, en, es]);
+  }, []);
 
   // Define colors for each segment
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];

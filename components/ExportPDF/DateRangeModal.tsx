@@ -28,10 +28,18 @@ export default function DateRangeModal({
     loading
 }: PropsInterface) {
     const [selectionRange, setSelectionRange] = React.useState<DateRange>({
-        startDate: new Date(),
-        endDate: new Date(),
+        startDate: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(0,0,0,0); return d })(),
+        endDate: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(23,59,59,999); return d })(),
         key: 'selection',
     });
+
+    // compute yesterday in local timezone as Date object
+    const getYesterdayDate = () => {
+        const d = new Date()
+        d.setDate(d.getDate() - 1)
+        d.setHours(0, 0, 0, 0)
+        return d
+    }
 
     const handleSelect = (ranges: RangeKeyDict) => {
         setSelectionRange(ranges.selection as DateRange);
@@ -358,6 +366,8 @@ export default function DateRangeModal({
                                     showSelectionPreview={true}
                                     showDateDisplay={false}
                                     rangeColors={['#0066FF']}
+                                    // Prevent selecting today or future dates by capping maxDate to yesterday
+                                    maxDate={getYesterdayDate()}
                                 />
                             </div>
                         </div>

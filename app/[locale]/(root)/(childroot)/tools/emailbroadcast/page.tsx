@@ -185,7 +185,7 @@ const EmailBroadcast: React.FC = () => {
       }
     };
     fetchTemplates();
-  }, []);
+  }, [setActiveTitle]);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>("template1");
   const [isEditingTemplate, setIsEditingTemplate] = useState<boolean>(false);

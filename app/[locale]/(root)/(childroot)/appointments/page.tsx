@@ -69,7 +69,7 @@ const Appointments = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k7")
-  }, [])
+  }, [setActiveTitle])
 
   const { selectedLocation } = useContext(LocationContext)
 

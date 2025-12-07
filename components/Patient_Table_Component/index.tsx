@@ -11,7 +11,7 @@ import {
 } from "react";
 import { Label, Spinner } from "flowbite-react";
 import moment from "moment";
-import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { fetch_content_service, fetchLocations } from "@/utils/supabase/data_services/data_services";
 import { PiCaretUpDownBold } from "react-icons/pi";
 import { formatPhoneNumber } from "@/utils/getCountryName";
 import { LocationContext } from "@/context";
@@ -112,6 +112,11 @@ const QUERIES = {
 
 const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const { selectedLocation } = useContext(LocationContext);
+  const selectedLocationId = (selectedLocation as any)?.id ?? null;
+  const [locations, setLocations] = useState<any[]>([]);
+  const [locationFilter, setLocationFilter] = useState<number | null>(
+    (selectedLocation as any)?.id ?? null
+  );
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -177,7 +182,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     };
     setActiveTitle(keys[renderType]);
     setParentTitle("Patients");
-  }, [renderType]);
+  }, [renderType, setActiveTitle, setParentTitle]);
 
   const fetchServiceList = async () => {
     try {
@@ -188,39 +193,67 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
   };
 
-  const fetchPatients = useCallback(
-    async (locationId: number) => {
-      setLoading(true);
-      try {
-        const fetchedData = await fetch_content_service({
-          table: "allpatients",
-          language: "",
-          selectParam: ",note",
-          matchCase: [
-            QUERIES[renderType] as any,
-            { key: "locationid", value: locationId },
-          ],
-          filterOptions: [
-            { column: "deleted_at", operator: "is", value: null },
-          ],
-        });
-        console.log("Raw Supabase Data:", fetchedData);
-        setPatients(fetchedData);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-      } finally {
-        setLoading(false);
+  const fetchPatients = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Build matchCase: always include renderType (onsite/offsite) if present.
+      const baseMatch = QUERIES[renderType] as any;
+
+      // Prefer an explicit location filter selected by the user (locationFilter).
+      // If not set, fallback to app-level selectedLocation; otherwise return across all locations.
+      let matchCase: any = null;
+      const chosenLocationId = locationFilter ?? selectedLocationId ?? null;
+      if (chosenLocationId) {
+        if (baseMatch) {
+          matchCase = [baseMatch, { key: "locationid", value: chosenLocationId }];
+        } else {
+          matchCase = { key: "locationid", value: chosenLocationId };
+        }
+      } else {
+        matchCase = baseMatch || null;
       }
-    },
-    [renderType]
-  );
+
+      const fetchedData = await fetch_content_service({
+        table: "allpatients",
+        language: "",
+        selectParam: ",note",
+        matchCase,
+        filterOptions: [{ column: "deleted_at", operator: "is", value: null }],
+        // skip implicit user-location scoping so we return patients across all locations
+        // when no specific location is selected. If a location is selected we still skip
+        // the implicit user scoping because we explicitly pass the desired location.
+        skipLocationFilter: true,
+      });
+      console.log("Raw Supabase Data:", fetchedData);
+      setPatients(fetchedData);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [renderType, selectedLocationId, locationFilter]);
 
   useEffect(() => {
-    if (selectedLocation?.id) {
-      fetchPatients(selectedLocation.id);
-      fetchServiceList();
-    }
-  }, [selectedLocation?.id, fetchPatients]);
+    // Fetch patients (either all locations or a specific selected location) and refresh services list.
+    fetchPatients();
+    fetchServiceList();
+  }, [fetchPatients]);
+
+  // Load all locations for the location filter dropdown
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const locs = await fetchLocations();
+        if (mounted) setLocations(locs || []);
+      } catch (err) {
+        console.error("Failed to load locations", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -237,27 +270,36 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     let result = [...patients];
 
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      const searchLower = searchTerm.trim().toLowerCase();
+
+      const safe = (val: any) => (val ?? "").toString().toLowerCase();
+
       result = result.filter((patient) => {
-        const fullName =
-          `${patient.firstname} ${patient.lastname}`.toLowerCase();
+        const first = safe(patient.firstname);
+        const last = safe(patient.lastname);
+        const fullName = `${first} ${last}`.trim();
+
+        // Support multi-token name searches (e.g. "Doe John") by requiring
+        // that each token exists somewhere in the full name.
+        const nameTokens = searchLower.split(/\s+/).filter(Boolean);
 
         switch (searchType) {
           case "name":
-            return fullName.includes(searchLower);
+            return nameTokens.every((token) => fullName.includes(token));
           case "email":
-            return patient.email.toLowerCase().includes(searchLower);
+            return safe(patient.email).includes(searchLower);
           case "phone":
-            return patient.phone.toLowerCase().includes(searchLower);
-            case "id":
-              // Allow both string and number search for id
-              return patient.id.toString().includes(searchLower);
+            return safe(patient.phone).includes(searchLower);
+          case "id":
+            // Allow both string and number search for id
+            return safe(patient.id).includes(searchLower);
           case "all":
           default:
             return (
-              fullName.includes(searchLower) ||
-              patient.email.toLowerCase().includes(searchLower) ||
-              patient.phone.toLowerCase().includes(searchLower)
+              // check name tokens against fullName
+              nameTokens.every((token) => fullName.includes(token)) ||
+              safe(patient.email).includes(searchLower) ||
+              safe(patient.phone).includes(searchLower)
             );
         }
       });
@@ -285,7 +327,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
 
     return result;
-  }, [patients, searchTerm, sortConfig]);
+  }, [patients, searchTerm, sortConfig, searchType]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -343,7 +385,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         note: patientData.note,
       });
 
-      fetchPatients(selectedLocation.id);
+      fetchPatients();
       setIsModalOpen(false);
 
       if (response) {
@@ -434,8 +476,17 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           </div>
           <div className="flex items-center gap-2 text-xs">
             <Mail className="h-3 w-3 text-gray-500 dark:text-gray-400" />
-            <span className="text-gray-700 dark:text-gray-300 truncate">
-              {patient.email}
+            <span className="relative inline-block group">
+              <span
+                className="text-gray-700 dark:text-gray-300 truncate"
+                title={patient.email || undefined}
+                aria-label={patient.email || undefined}
+              >
+                {patient.email}
+              </span>
+              <span className="pointer-events-none absolute left-0 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1">
+                {patient.email}
+              </span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
@@ -562,7 +613,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       </div>
 
       <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
-        <div className="flex items-center gap-2 w-full sm:w-[500px]">
+        <div className="flex items-center gap-2 w-full sm:w-[700px]">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
             {t("Patients_k55")}
           </span>
@@ -608,6 +659,25 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               </SelectItem>
             </SelectContent>
           </Select>
+          {/* Location filter dropdown */}
+          <div className="ml-2">
+            <Select
+              value={locationFilter ? String(locationFilter) : ""}
+              onValueChange={(v: string) => setLocationFilter(v === "ALL" || v === "" ? null : Number(v))}
+            >
+              <SelectTrigger className="w-48 bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white [&>span]:text-gray-900 dark:[&>span]:text-white focus:ring-blue-500 dark:focus:ring-blue-400">
+                <SelectValue placeholder="All locations" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-[#122136] border border-gray-200 dark:border-gray-700">
+                <SelectItem value="ALL">All locations</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={String(loc.id)}>
+                    {loc.title || loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
             =
           </span>
@@ -1024,11 +1094,20 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                         {formatPhoneNumber(patient.phone)}
                       </TableCell>
                       <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
-                        <div className="break-words whitespace-normal">
-                          {patient.email ? 
-                            patient.email.split('@')[0] + '@' + (patient.email.includes('@') ? '...' : '')
-                            : "-"
-                          }
+                        <div className="relative inline-block group">
+                          <div
+                            className="break-words whitespace-normal"
+                            title={patient.email || undefined}
+                            aria-label={patient.email || undefined}
+                          >
+                            {patient.email ? 
+                              patient.email.split('@')[0] + '@' + (patient.email.includes('@') ? '...' : '')
+                              : "-"
+                            }
+                          </div>
+                          <div className="pointer-events-none absolute left-1/2 transform -translate-x-1/2 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1 max-w-[240px] overflow-hidden text-ellipsis">
+                            {patient.email}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-700 w-32 text-center dark:text-gray-300">
@@ -1250,6 +1329,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     renderType={renderType}
                     formatDate={formatDate}
                     serviceList={serviceList}
+                    locations={locations}
                   />
                 )}
               </ScrollArea>
@@ -1548,8 +1628,13 @@ const PatientDetails: FC<{
   serviceList: { title: string }[];
   renderType: Props["renderType"];
   formatDate: (date: string) => string;
-}> = ({ patient, renderType, formatDate }) => {
+  locations?: any[];
+}> = ({ patient, renderType, formatDate, locations = [] }) => {
   const { t } = useTranslation(translationConstant.PATIENTS);
+
+  const patientLocation = (locations || []).find(
+    (l: any) => l.id === (patient as any).locationid || l.id === (patient as any).location_id
+  );
 
   return (
     <div className="space-y-2 py-4">
@@ -1601,7 +1686,19 @@ const PatientDetails: FC<{
             {t("Patients_k10")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.email}
+            <span className="relative inline-block group">
+              <span title={patient.email || undefined} aria-label={patient.email || undefined}>{patient.email}</span>
+              <span className="pointer-events-none absolute left-0 bottom-full mb-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 rounded bg-gray-900 text-white text-xs px-2 py-1">
+                {patient.email}
+              </span>
+            </span>
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k36")}</p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patientLocation ? (patientLocation.title || patientLocation.name) : "Unknown"}
           </p>
         </div>
 

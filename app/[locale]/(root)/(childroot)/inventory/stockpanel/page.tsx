@@ -98,7 +98,7 @@ const StockPanel = () => {
     setLoading(false);
   };
 
-  const onChangeHandle = (e: any) => {
+  const onChangeHandle = useCallback((e: any) => {
     const val = e.target.value;
     let filteredData = allData;
 
@@ -115,7 +115,7 @@ const StockPanel = () => {
     }
 
     setDataList([...filteredData]);
-  };
+  }, [allData, excludeZeroQuantity]);
 
   useEffect(() => {
     if (selectedLocation?.id) {
@@ -126,7 +126,7 @@ const StockPanel = () => {
   // Add effect to handle zero quantity filter changes
   useEffect(() => {
     onChangeHandle({ target: { value: "" } });
-  }, [excludeZeroQuantity]);
+  }, [onChangeHandle]);
 
   const handleActiveClick = useCallback(() => {
     setGetDataArchiveType(false);
@@ -142,7 +142,7 @@ const StockPanel = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k12");
-  }, []);
+  }, [setActiveTitle]);
 
   const RightSideComponent = useMemo(
     () => (
@@ -192,6 +192,7 @@ const StockPanel = () => {
       handleArchiveClick,
       excludeZeroQuantity,
       handleZeroQuantityToggle,
+      t,
     ]
   );
 

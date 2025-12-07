@@ -349,7 +349,7 @@ const Orders = () => {
           { key: 'archived', value: false },
           { key: 'products.archived', value: false },
         ],
-        selectParam: ',products(price,category_id, product_name,archived, unlimited)',
+        selectParam: ',products(price,category_id, product_name,archived, unlimited, bonus_eligible)',
         filterOptions: [
           { operator: 'not', column: 'products', value: null },
           { operator: 'neq', column: 'products.price', value: 0 },
@@ -366,6 +366,7 @@ const Orders = () => {
             price: item.products?.price,
             quantity_available: item.quantity,
             unlimited: item.products?.unlimited,
+            bonus_eligible: item.products?.bonus_eligible,
           };
           try {
             // eslint-disable-next-line no-console
@@ -446,6 +447,17 @@ const Orders = () => {
   const [discountPct, setDiscountPct] = useState<number>(0);
 const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
+    // Sales person modal state
+    const [salesPersonModalOpen, setSalesPersonModalOpen] = useState(false);
+    const [selectedSalesPersons, setSelectedSalesPersons] = useState<{ id: number; name: string }[]>([]);
+
+    const openSalesPersonModal = () => {
+      try {
+        console.debug("[POS page] opening Sales Person modal for locationId:", selectedLocation?.id);
+      } catch (e) {}
+      setSalesPersonModalOpen(true);
+    };
+
 
   const router = useRouter();
 
@@ -484,13 +496,13 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
         setLastLocationId(currentSelectedLocationId);
       }
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, lastLocationId]);
 
   useEffect(() => {
     if (selectedLocation) {
       setLastLocationId(selectedLocation.id);
     }
-  }, []);
+  }, [selectedLocation]);
 
   useEffect(() => {
     const fetchCreditBalance = async () => {
@@ -891,7 +903,7 @@ const addToCartHandle = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k19");
-  }, []);
+  }, [setActiveTitle]);
 
   const subtotal =
     grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
@@ -1158,6 +1170,15 @@ const addToCartHandle = () => {
         </div>
 
         <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1 w-full mt-2 md:mt-0">
+          <div className="p-2 flex justify-end">
+            <button
+              type="button"
+              onClick={openSalesPersonModal}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Sales Person
+            </button>
+          </div>
           <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100 flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -1516,58 +1537,48 @@ transition-colors`}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between mt-1">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k100")}
-                </h1>
-                <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
-                  2
-                )}`}</p>
-              </div>
+              {/* Total Paid and Place Order button moved to persistent footer so they remain visible when panel is expanded/collapsed */}
+            </div>
+          </div>
 
-              <div className="flex justify-end pt-0.5">
-                <button
-                  onClick={placeOrderHandle}
-                  disabled={
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                  }
-                  className={`      rounded py-1 px-3 text-white w-1/2       flex justify-between items-center text-sm      ${
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                      ? "bg-blue-600"
-                      : "bg-blue-600"
-                  }      ${
-                    !cartArray.length ||
-                    totalPaid > subtotal ||
-                    creditUsed > (selectedLocation?.balance ?? 0) ||
-                    ((payWithCash || payWithCard) &&
-                      totalPaid === 0 &&
-                      creditUsed === 0)
-                      ? "opacity-50"
-                      : ""
-                  }    `}
-                >
-                  {placeOrderLoading ? (
-                    <CircularProgress size={14} color="secondary" />
-                  ) : (
-                    <>
-                      <span className="font-medium">{`${totalPaid.toFixed(
-                        2
-                      )}`}</span>
-                      <PiCaretCircleRightFill size={16} />
-                    </>
-                  )}
-                </button>
-              </div>
+          {/* Persistent footer: always visible totals and action */}
+          <div className="p-2 border-t bg-white dark:bg-[#0E1725]">
+            <div className="flex items-center justify-between mt-1">
+              <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                {t("POS-Sales_k100")}
+              </h1>
+              <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
+                2
+              )}`}</p>
+            </div>
+
+            <div className="flex justify-end pt-0.5">
+              <button
+                onClick={placeOrderHandle}
+                disabled={
+                  !cartArray.length ||
+                  totalPaid > subtotal ||
+                  creditUsed > (selectedLocation?.balance ?? 0) ||
+                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                }
+                className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm ${
+                  !cartArray.length ||
+                  totalPaid > subtotal ||
+                  creditUsed > (selectedLocation?.balance ?? 0) ||
+                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                    ? "opacity-50 bg-blue-600"
+                    : "bg-blue-600"
+                }`}
+              >
+                {placeOrderLoading ? (
+                  <CircularProgress size={14} color="secondary" />
+                ) : (
+                  <>
+                    <span className="font-medium">{`${totalPaid.toFixed(2)}`}</span>
+                    <PiCaretCircleRightFill size={16} />
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -1714,6 +1725,37 @@ transition-colors`}
           </div>
         </div>
       </Modal>
+
+      {/* Sales Person modal (PosFields component) */}
+      {/* Lazy-load simple PosFields modal component for selecting/adding sales persons */}
+      {/* @ts-ignore */}
+      <React.Suspense fallback={null}>
+        {/* Dynamic import to avoid increasing bundle for now */}
+        {/* We'll import normally */}
+      </React.Suspense>
+
+      {/* Use the new PosFields component */}
+      {/* Import placed at top via static import to keep things simple */}
+      {/* @ts-ignore */}
+      {typeof window !== "undefined" && (
+        // require ensures component only used in client runtime
+        (() => {
+          const PosFields = require("@/components/POS/PosFields").default;
+          return (
+            <PosFields
+              isOpen={salesPersonModalOpen}
+              onClose={() => setSalesPersonModalOpen(false)}
+              initialSelected={selectedSalesPersons}
+              locationId={selectedLocation?.id}
+              onSave={(sel: { id: number; name: string }[]) => {
+                setSelectedSalesPersons(sel);
+                toast.success(`Selected ${sel.length} sales person(s)`);
+                setSalesPersonModalOpen(false);
+              }}
+            />
+          );
+        })()
+      )}
 
       {/* <SplitToLocationModal
         isOpen={showSplitModal}

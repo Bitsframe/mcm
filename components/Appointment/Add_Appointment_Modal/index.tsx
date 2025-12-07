@@ -1,7 +1,7 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio, Select } from "flowbite-react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import ScheduleDateTime from "./ScheduleDateTime";
 import { supabase } from "@/services/supabase";
 import moment from "moment";
@@ -142,8 +142,29 @@ export const Add_Appointment_Modal = ({
       if (selectedLocation && (selectedLocation as any).id) {
         base.location_id = (selectedLocation as any).id;
       }
-      return { ...base, in_office_patient: "true", new_patient: "true" };
+      // mark new patients as approved by default when opening the modal
+      // also reset personal/scheduling fields so previous selected coming-back patient
+      // does not persist when opening the modal again
+      return {
+        ...base,
+        in_office_patient: "true",
+        new_patient: "true",
+        isApproved: true,
+        first_name: "",
+        last_name: "",
+        email_address: "",
+        phone: "",
+        sex: "",
+        service: "",
+        date_and_time: "",
+      };
     });
+
+    // clear any previously selected coming-back patient so modal always opens fresh
+    setSelectedComingBackPatient(null);
+    // clear any stale coming-back results; they'll be refetched if user selects "Coming Back"
+    setComingBackData([]);
+
     setOpen(true);
   };
   const isValidEmail = (email: string): boolean => {
@@ -152,16 +173,7 @@ export const Add_Appointment_Modal = ({
   };
 
   const select_change_handle = (key: string, val: string | number) => {
-    if (key === "dob" && typeof val === "string") {
-      const selectedDate = new Date(val);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      
-      if (selectedDate > today) {
-        toast.error(t("Appoinments_k63"));
-        return;
-      }
-    }
+    // dob removed from UI — no validation here
 
     if (key === "email_address" && typeof val === "string") {
       // Email validation
@@ -179,8 +191,8 @@ export const Add_Appointment_Modal = ({
     if (key === "new_patient" && val === "false") {
       (async () => {
         try {
-          // For 'Coming Back' select existing patients from the central allpatients table
-          // filtered by selected location id.
+          // For 'Coming Back' select existing patients from the `allpatients` table
+          // filtered by the selected location id. Only fetch the fields we need.
           if (!selectedLocation || !selectedLocation.id) {
             console.warn('[Add_Appointment_Modal] selectedLocation is not set, cannot fetch coming back patients by location');
             setComingBackData([]);
@@ -189,8 +201,9 @@ export const Add_Appointment_Modal = ({
 
           const { data, error } = await supabase
             .from('allpatients')
-            .select('*')
+            .select('id, firstname, lastname, email, phone, gender')
             .eq('locationid', selectedLocation.id);
+            
 
           // raw response available in `data`/`error`
           if (error) {
@@ -199,15 +212,19 @@ export const Add_Appointment_Modal = ({
             return;
           }
 
-          // no-op: data may be empty or contain rows
-
-          // Use the raw allpatients rows directly (no extra conditions or mapping)
+          // Use the fetched allpatients rows directly
           setComingBackData(data || []);
         } catch (err) {
           console.error('Failed to fetch returning patients from allpatients', err);
           setComingBackData([]);
         }
       })();
+
+   
+      // Update isApproved to true for "Coming Back" patients
+      setFormData((pre: any) => {
+        return { ...pre, isApproved: true };
+      });
     } else if (key === "new_patient" && val === "true") {
       // clear coming back data and any selected patient when switching back to New
       setComingBackData([]);
@@ -219,35 +236,43 @@ export const Add_Appointment_Modal = ({
         location_id: selectedLocation?.id ?? pre?.location_id,
         in_office_patient: "true",
         new_patient: "true",
+        // mark new patients approved by default
+        isApproved: true,
         first_name: "",
         last_name: "",
         email_address: "",
         phone: "",
-        street_address: "",
-        dob: "",
         sex: "",
         service: "",
-        state: "",
-        zipcode: "",
         date_and_time: "",
       }));
     }
   };
-  const selectDateTimeSlotHandle = (date: Date | "", time?: string | "") => {
-    if (formData.location_id) {
-      let dbSlot = "";
-      if (date && time) {
-        const formated_date = moment(date).format("DD-MM-YYYY");
-  const createSlotForDB = `${formData.location_id}|${formated_date} - ${time}`;
-        dbSlot = createSlotForDB;
-      }
-
+  
+  const selectDateTimeSlotHandle = useCallback(
+    (date: Date | "", time?: string | "") => {
+      // Use functional state update to avoid reading stale closure values
       setFormData((pre: any) => {
+        // If no date provided, clear the db slot
+        if (!date) {
+          return { ...pre, date_and_time: "" };
+        }
+
+        const locationId = pre?.location_id;
+        if (!locationId) return pre;
+
+        let dbSlot = "";
+        if (date && time) {
+          const formated_date = moment(date).format("DD-MM-YYYY");
+          const createSlotForDB = `${locationId}|${formated_date} - ${time}`;
+          dbSlot = createSlotForDB;
+        }
+
         return { ...pre, date_and_time: dbSlot };
       });
-  // dbSlot prepared
-    }
-  };
+    },
+    []
+  );
   const submitHandle = async () => {
     setLoading(true);
     const {
@@ -255,17 +280,14 @@ export const Add_Appointment_Modal = ({
       first_name,
       last_name,
       email_address,
-      street_address,
       in_office_patient,
       new_patient,
-      dob,
       sex,
       phone,
       date_and_time,
       service,
-      state,
-      zipcode,
     } = formData;
+
     let appointmentDetails: any = {
       location_id,
       first_name,
@@ -273,13 +295,13 @@ export const Add_Appointment_Modal = ({
       email_address,
       in_office_patient: in_office_patient === "true" || false,
       new_patient: new_patient === "true" || false,
-      dob: dob,
       sex: sex,
       phone: phone,
       service: service,
-      date_and_time,
-      user_id: userProfile?.id, // Add user ID to appointment
+      date_and_time: date_and_time,
     };
+
+
 
     // Build required fields depending on whether this is a new patient
     const baseRequired = [
@@ -292,22 +314,12 @@ export const Add_Appointment_Modal = ({
       "phone",
     ];
 
-    // If new_patient is true (new patient), require additional personal and scheduling fields
     const isNew = new_patient === "true" || new_patient === true;
-    // If a coming-back patient is selected, we still require scheduling fields
     const requireScheduling = isNew || selectedComingBackPatient;
     const requiredFields = isNew
-      ? baseRequired.concat([
-          "sex",
-          "state",
-          "zipcode",
-          "street_address",
-          "service",
-          "date_and_time",
-        ])
+      ? baseRequired.concat(["sex", "service", "date_and_time"])
       : baseRequired;
 
-    // If we need scheduling (either new patient or selected coming-back), ensure service & slot are required
     if (requireScheduling) {
       if (!requiredFields.includes("service")) requiredFields.push("service");
       if (!requiredFields.includes("date_and_time")) requiredFields.push("date_and_time");
@@ -329,7 +341,6 @@ export const Add_Appointment_Modal = ({
 
     const postData = {
       ...appointmentDetails,
-      address: `${formData.street_address}, ${formData.state}, ${formData.zipcode}`,
       date_and_time,
     };
     // If user selected "New" (isNew === true), set fixed DB values as requested:
@@ -339,38 +350,42 @@ export const Add_Appointment_Modal = ({
       postData.isApproved = true;
       postData.new_patient = false;
     }
-    // If a coming-back patient is selected, update the existing appointment row instead of inserting
+    // If a coming-back patient is selected, INSERT a new appointment row (do not update existing)
     if (selectedComingBackPatient && selectedComingBackPatient.id) {
       try {
-        const updatePayload: any = {
-          service: appointmentDetails.service,
-          date_and_time: appointmentDetails.date_and_time,
+        // Build post data from appointmentDetails and enforce DB values for coming-back
+        const comingBackPost = {
+          ...appointmentDetails,
+          isApproved: true,
+          new_patient: false,
         };
 
-        const { data: updatedData, error: updateError } = await supabase
-          .from('Appoinments')
-          .update(updatePayload)
-          .eq('id', selectedComingBackPatient.id)
+       
+
+        const { data: insertData, error: insertError } = await supabase
+          .from("Appoinments")
+          .insert([comingBackPost])
           .select();
 
-        // Notify parent and show toasts similar to insert path
-        newAddedRow(updatedData?.[0]);
+        console.log("Supabase Response for Coming Back Insert:", { insertData, insertError });
 
-        if (updateError) {
+        newAddedRow(insertData?.[0]);
+
+        if (insertError) {
           if (
-            updateError?.message ===
+            insertError?.message ===
             'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
           ) {
             toast.error(
               `Sorry, Appointment time slot is not available, Please select any other time slot`
             );
           } else {
-            toast.error(`Error updating appointment: ${updateError?.message}`);
+            toast.error(`Error submitting appointment: ${insertError?.message}`);
           }
         } else {
           toast.success(
             <div className="flex justify-between">
-              <p>Appointment updated successfully.</p>
+              <p>Appointment scheduled successfully.</p>
               <button
                 onClick={() => toast.dismiss()}
                 className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -380,7 +395,7 @@ export const Add_Appointment_Modal = ({
             </div>
           );
 
-          // Trigger server-side email via API route
+          // Trigger server-side email via API route for the new appointment
           try {
             const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails;
             const appointmentDate = date_and_time && date_and_time.includes('|')
@@ -401,13 +416,16 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.error('Error triggering appointment email (update):', e);
+            console.error('Error triggering appointment email (coming back insert):', e);
           }
+
+          // Trigger UI update for booked time slots
+          newAddedRow(insertData?.[0]);
           close_handle();
         }
       } catch (e) {
-        console.error('Error updating appointment', e);
-        toast.error('An error occurred while updating the appointment');
+        console.error('Error inserting appointment for coming back patient', e);
+        toast.error('An error occurred while submitting the appointment');
       }
 
       setLoading(false);
@@ -492,21 +510,35 @@ export const Add_Appointment_Modal = ({
 
   useEffect(() => {
     const fetchServices = async () => {
-      let { data, error } = await supabase.from("services").select("title");
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("title");
 
-      if (data) {
-        const serviceData = data.map((item) => item.title);
-        setServices(serviceData);
+        if (error) {
+          console.error("Error fetching services:", error);
+          setServices([]); // Ensure services state is reset on error
+          return;
+        }
+
+        if (data) {
+          const serviceData = data.map((item) => item.title);
+          setServices(serviceData); // Populate services state
+        }
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+        setServices([]); // Reset services state on failure
       }
     };
 
     fetchServices();
+
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
       });
     }
-  }, []);
+  }, [selectedLocation]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
 
@@ -662,109 +694,24 @@ export const Add_Appointment_Modal = ({
             )}
 
             {formData.new_patient !== "false" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Date of Birth */}
-                <div className="space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k9")}
-                  </Label>
-                  <Input_Component_Appointment
-                    type="date"
-                    onChange={(e: string) => select_change_handle("dob", e)}
-                    value={formData.dob}
-                    placeholder="Enter mm/dd/yyyy"
-                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                    //@ts-ignore
-                    max={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-
-                {/* Gender */}
-                <div className="space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k8")}
-                  </Label>
-                  <RadioButtons
-                    name="sex"
-                    options={gender_options}
-                    selectedValue={formData.sex}
-                    required
-                    onChange={(e) => select_change_handle("sex", e)}
-                    className="flex gap-2 flex-wrap sm:flex-nowrap"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label className="font-medium text-gray-800 dark:text-gray-300">
+                  {t("Appoinments_k8")}
+                </Label>
+                <RadioButtons
+                  name="sex"
+                  options={gender_options}
+                  selectedValue={formData.sex}
+                  required
+                  onChange={(e) => select_change_handle("sex", e)}
+                  className="flex gap-2 flex-wrap sm:flex-nowrap"
+                />
               </div>
             )}
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
-            {formData.new_patient !== "false" && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
-                      {t("Appoinments_k6")}
-                    </Label>
-                    <select
-                      value={formData.state}
-                      onChange={(e) =>
-                        select_change_handle("state", e.target.value)
-                      }
-                      className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
-                      style={{
-                        backgroundColor:
-                          document.documentElement.classList.contains("dark")
-                            ? "#122136"
-                            : "#f1f4f9",
-                        border: "none",
-                        outline: "none",
-                      }}
-                    >
-                      <option
-                        disabled
-                        value=""
-                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
-                      >
-                        Alaska - AK
-                      </option>
-                      {usStates?.map(({ value, name }, index: any) => (
-                        <option
-                          key={index}
-                          value={name}
-                          className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >{`${name} - ${value}`}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
-                      {t("Appoinments_k5")}
-                    </Label>
-                    <Input_Component_Appointment
-                      max={5}
-                      onChange={(e: string) => select_change_handle("zipcode", e)}
-                      value={formData.zipcode}
-                      placeholder={t("Appoinments_k71")}
-                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k4")}
-                  </Label>
-                  <Input_Component_Appointment
-                    onChange={(e: string) =>
-                      select_change_handle("street_address", e)
-                    }
-                    value={formData.street_address}
-                    placeholder={t("Appoinments_k70")}
-                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                  />
-                </div>
-              </>
-            )}
+            {/* state/zipcode/street_address removed from UI per request */}
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 
@@ -779,10 +726,8 @@ export const Add_Appointment_Modal = ({
                     first_name: p.firstname ?? p.first_name ?? p.firstName ?? '',
                     last_name: p.lastname ?? p.last_name ?? p.lastName ?? '',
                     email_address: p.email ?? p.email_address ?? p.emailAddress ?? '',
-                    address: p.address ?? p.addr ?? '',
                     phone: p.phone ?? p.mobile ?? p.phone_number ?? '',
                     date_and_time: p.date_and_time ?? '',
-                    dob: p.dob ?? p.date_of_birth ?? p.birth_date ?? '',
                     sex: p.sex ?? p.gender ?? '',
                   }))}
                   onSelect={(patient) => {
@@ -794,10 +739,9 @@ export const Add_Appointment_Modal = ({
                         last_name: patient.last_name,
                         email_address: patient.email_address,
                         phone: patient.phone,
-                        street_address: patient.address,
                         // intentionally NOT setting date_and_time from selected patient
                         date_and_time: "",
-                        dob: patient.dob,
+                        // dob and address removed from UI, keep sex only
                         sex: patient.sex,
                         new_patient: "false",
                       }));
@@ -874,11 +818,8 @@ export const Add_Appointment_Modal = ({
                   <div>
                     <h3 className="font-semibold text-lg">Selected patient</h3>
                     <p className="mt-2"><strong>Name:</strong> {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
-                    <p className="mt-1"><strong>Address:</strong> {selectedComingBackPatient.address || '-'}</p>
                     <p className="mt-1"><strong>Phone:</strong> {selectedComingBackPatient.phone || '-'}</p>
-                    
-                    <p className="mt-1"><strong>Sex:</strong> {selectedComingBackPatient.sex || '-'}</p>
-                    <p className="mt-1"><strong>DOB:</strong> {selectedComingBackPatient.dob || '-'}</p>
+                      <p className="mt-1"><strong>Sex:</strong> {selectedComingBackPatient.sex || '-'}</p>
                   </div>
                   <div>
                     <button

@@ -6,8 +6,9 @@ import { Calendar } from "@/components/ui/calendar"; // shadcn calendar componen
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
+import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 
 type DayTimings = {
@@ -81,7 +82,90 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         }
         setSelectedSlot('')
         selectDateTimeSlotHandle('')
-    }, [date, data]);
+    }, [date, data, selectDateTimeSlotHandle]);
+
+    // Fetch already-booked slots for the selected date and location
+    useEffect(() => {
+        const fetchBooked = async () => {
+            try {
+                if (!selectedLocation?.id || !date) {
+                    setBookedTimes([]);
+                    return;
+                }
+
+                // Query Supabase directly for appointments matching the selected location.
+                // Some tables/rows use `location_id` while others use `locationid`.
+                // Use an OR to cover both possibilities and avoid helper-level user-location filtering.
+                const locId = Number(selectedLocation.id);
+                // Query only the existing column `location_id` to avoid SQL errors
+                const { data: rows, error } = await supabase
+                    .from('Appoinments')
+                    .select('*')
+                    .eq('location_id', locId);
+
+                if (error) {
+                    console.error('Error fetching appointments directly from Supabase', error);
+                    setBookedTimes([]);
+                    return;
+                }
+
+                // Debug: log retrieved rows so we can see why a newly-inserted appointment
+                // may not appear in the fetched set (helps diagnose RLS / filtering issues).
+                try {
+                    const rowsAny = (rows || []) as any[];
+                    console.debug('[ScheduleDateTime] fetched appointments count=', rowsAny.length);
+                    console.debug('[ScheduleDateTime] sample date_and_time values=', rowsAny.slice(0,10).map(r => r?.date_and_time));
+                } catch (e) {}
+
+                const selDayStrDMY = format(date, 'dd-MM-yyyy');
+                const selDayStrYMD = format(date, 'yyyy-MM-dd');
+
+                // More tolerant parsing: handle prefixes like '3|29-10-2025 - 11:00 AM'
+                const rowsAny = (rows || []) as any[];
+
+                const times = rowsAny
+                    .map((r: any) => (r && r.date_and_time) as string)
+                    .filter(Boolean)
+                    .map((s: string) => s.trim())
+                    .map((s: string) => {
+                        // Remove any prefix up to last pipe '|' if present
+                        const core = s.includes('|') ? s.substring(s.lastIndexOf('|') + 1).trim() : s;
+                        // Try to match patterns like '29-10-2025 - 11:00 AM' or '2025-10-29 - 11:00 AM'
+                        const m = core.match(/(\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4})\s*-\s*(\d{1,2}:\d{2}\s*[AaPp][Mm])/);
+                        if (!m) return '';
+                        const datePart = m[1];
+                        const timePartRaw = m[2];
+
+                        // Normalize date to compare with selected date
+                        let normalizedDate = '';
+                        try {
+                            // support dd-MM-yyyy and yyyy-MM-dd
+                            const d1 = parse(datePart, 'dd-MM-yyyy', new Date());
+                            if (!isNaN(d1.getTime())) normalizedDate = format(d1, 'dd-MM-yyyy');
+                            else {
+                                const d2 = parse(datePart, 'yyyy-MM-dd', new Date());
+                                if (!isNaN(d2.getTime())) normalizedDate = format(d2, 'dd-MM-yyyy');
+                            }
+                        } catch (e) {
+                            normalizedDate = '';
+                        }
+
+                        const matches = normalizedDate === selDayStrDMY || datePart === selDayStrDMY || datePart === selDayStrYMD;
+                        const timePart = (timePartRaw || '').toUpperCase().replace(/\s+/g, ' ').trim();
+                        return matches ? timePart : '';
+                    })
+                    .filter((t: string) => !!t);
+
+                setBookedTimes(times);
+            } catch (e) {
+                console.error('Failed to fetch booked slots', e);
+                setBookedTimes([]);
+            }
+        };
+        fetchBooked();
+    }, [selectedLocation, date]);
+
+    const bookedSet = useMemo(() => new Set(bookedTimes.map(t => t.trim().toUpperCase())), [bookedTimes]);
 
     // Fetch already-booked slots for the selected date and location
     useEffect(() => {

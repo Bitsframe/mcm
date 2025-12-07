@@ -9,16 +9,54 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    // Log incoming data for debugging
-    console.log("Received email data:", data);
+    // Log incoming data for debugging (show type so array-vs-object issues are clear)
+    console.log("Received email data (raw):", data);
 
-    // Extract necessary fields from the request data
-    const { to, subject, appointmentDate, appointmentTime } = data;
+    // Normalize many possible payload shapes that clients may send:
+    // - raw object { to, appointmentDate, appointmentTime }
+    // - single-item array [ { ... } ]
+    // - wrapped shape { body: { ... } } or { data: '{...}' }
+    // - stringified JSON
+    const normalize = (d: any) => {
+      if (!d) return {};
+      if (typeof d === 'string') {
+        try { return JSON.parse(d); } catch (e) { return { raw: d }; }
+      }
+      if (Array.isArray(d)) return d[0] || {};
+      // unwrap common wrappers
+      const inner = d.body ?? d.data ?? d.payload ?? d;
+      if (typeof inner === 'string') {
+        try { return JSON.parse(inner); } catch (e) { return { rawInner: inner }; }
+      }
+      return inner;
+    };
+
+    const payload = normalize(data);
+    console.log("Normalized payload:", payload);
+
+    // Accept many common field names and shapes
+    let to: any = payload?.to ?? payload?.recipients ?? payload?.email ?? payload?.toAddress ?? null;
+    if (Array.isArray(to)) to = to[0];
+    if (typeof to === 'object' && to?.email) to = to.email;
+
+    const subject = payload?.subject ?? payload?.title ?? 'Appointment Confirmation';
+    const appointmentDate = payload?.appointmentDate ?? payload?.date ?? payload?.appointment?.date ?? null;
+    const appointmentTime = payload?.appointmentTime ?? payload?.time ?? payload?.appointment?.time ?? null;
 
     // Validate required fields for a single email call
-    if (!to || !appointmentDate || !appointmentTime) {
-      console.error('[sendappointemntemail] missing required fields', { to, appointmentDate, appointmentTime });
-      return NextResponse.json({ error: 'Missing required fields: to, appointmentDate, appointmentTime' }, { status: 400 });
+    const missing: string[] = [];
+    if (!to) missing.push('to');
+    if (!appointmentDate) missing.push('appointmentDate');
+    if (!appointmentTime) missing.push('appointmentTime');
+    if (missing.length) {
+      console.error('[sendappointemntemail] missing required fields', { missing, to, appointmentDate, appointmentTime });
+      return NextResponse.json({
+        error: `Missing required fields: ${missing.join(', ')}`,
+        missing,
+        received: { to, appointmentDate, appointmentTime },
+        rawBody: data,
+        note: 'Accepted shapes: {to,appointmentDate,appointmentTime} or wrappers body/data/payload or array [obj] or recipients array',
+      }, { status: 400 });
     }
 
     // Construct the request body for the edge function
@@ -80,6 +118,20 @@ export async function POST(req: Request) {
     const errAny: any = error;
     console.error("Error while sending email:", errAny && (errAny.stack || errAny));
 
-    return NextResponse.json({ error: errAny?.message || String(errAny) }, { status: 500 });
+    // Try to include useful info in the response (temporary, for debugging)
+    let message = errAny?.message || String(errAny);
+    // If the message looks like JSON, include the parsed JSON as well
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(message);
+    } catch (e) {
+      // ignore
+    }
+
+    return NextResponse.json({
+      error: message,
+      parsedError: parsed,
+      stack: errAny?.stack,
+    }, { status: 500 });
   }
 }

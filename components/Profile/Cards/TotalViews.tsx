@@ -44,7 +44,7 @@ const PostClickLikes = () => {
           } w-[37%] text-center cursor-pointer `}
           onClick={() => setViewsPeriod("week")}
         >
-          week
+          This week
         </div>
         <div
           className={`${
@@ -53,7 +53,7 @@ const PostClickLikes = () => {
           } w-[37%] text-center cursor-pointer `}
           onClick={() => setViewsPeriod("days_28")}
         >
-          month
+          This month
         </div>
       </div>
 

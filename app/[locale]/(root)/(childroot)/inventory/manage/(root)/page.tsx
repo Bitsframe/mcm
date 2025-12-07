@@ -205,7 +205,7 @@ const Inventory = () => {
     setLoading(false);
   };
 
-  const onChangeHandle = (e: any) => {
+  const onChangeHandle = useCallback((e: any) => {
     const val = e.target.value;
     let filteredData = allData;
 
@@ -224,18 +224,16 @@ const Inventory = () => {
     }
 
     setDataList([...filteredData]);
-  };
+  }, [allData, excludeZeroQuantity]);
 
   // Add effect to handle zero quantity filter changes
   useEffect(() => {
     onChangeHandle({ target: { value: "" } });
-  }, [excludeZeroQuantity]);
+  }, [onChangeHandle]);
 
-  useEffect(() => {
-    if (selectedLocation) {
-      fetch_handle(getDataArchiveType, selectedLocation.id);
-    }
-  }, [selectedLocation]);
+  // fetch when selected location or archive type changes (handled below as well)
+  // removed duplicate effect to avoid double-fetching; the effect with [getDataArchiveType, selectedLocation]
+  // further down handles both changes.
 
   const modalInputChangeHandle = (key: string, value: string | number) => {
     if (key === "category_id") {

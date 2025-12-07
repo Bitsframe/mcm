@@ -403,7 +403,7 @@ const Page = () => {
 
   useEffect(() => {
     setActiveTitle("Sidebar_k16");
-  }, []);
+  }, [setActiveTitle]);
 
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));

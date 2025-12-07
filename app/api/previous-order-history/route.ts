@@ -54,6 +54,54 @@ export const POST = async (req: Request) => {
 
     const inventoryIds = salesHistory.map((sale: any) => sale.inventory_id);
 
+      // Step 4.5: Fetch any sales_team rows referenced by orders (so we can resolve member ids -> staff names
+      // and resolve auth_member -> profiles.full_name when present)
+      const salesTeamIds = orders.map((o: any) => o.sales_team_id).filter(Boolean);
+      let salesTeams: any[] = [];
+      let staffRows: any[] = [];
+      let profileRows: any[] = [];
+      if (salesTeamIds && salesTeamIds.length > 0) {
+        salesTeams = await fetch_content_service({
+          table: 'sales_team',
+          filterOptions: [{ column: 'id', operator: 'in', value: salesTeamIds }]
+        }) || [];
+
+        // collect all member ids from all teams and any auth_member ids
+        const allMemberIds: number[] = [];
+        const allAuthIds: string[] = [];
+        salesTeams.forEach((t: any) => {
+          const mem = t.members;
+          if (t.auth_member) {
+            allAuthIds.push(String(t.auth_member));
+          }
+          if (!mem) return;
+          // members might be text array or JSON string; normalize
+          let arr: any[] = [];
+          if (Array.isArray(mem)) arr = mem;
+          else {
+            try { arr = JSON.parse(String(mem)); } catch (e) { arr = [] }
+          }
+          arr.forEach((m) => { const idNum = Number(m); if (!Number.isNaN(idNum)) allMemberIds.push(idNum); });
+        });
+
+        const uniqueStaffIds = Array.from(new Set(allMemberIds));
+        if (uniqueStaffIds.length > 0) {
+          staffRows = await fetch_content_service({
+            table: 'staff',
+            filterOptions: [{ column: 'id', operator: 'in', value: uniqueStaffIds }]
+          }) || [];
+        }
+
+        const uniqueAuthIds = Array.from(new Set(allAuthIds)).filter(Boolean);
+        if (uniqueAuthIds.length > 0) {
+          // profiles.id may be UUID/string - fetch by id
+          profileRows = await fetch_content_service({
+            table: 'profiles',
+            filterOptions: [{ column: 'id', operator: 'in', value: uniqueAuthIds }]
+          }) || [];
+        }
+      }
+
     // Step 5: Fetch inventory details
     const inventoryData = await fetch_content_service({
       table: 'inventory',
@@ -140,7 +188,41 @@ export const POST = async (req: Request) => {
             treatmenttype: pos.treatmenttype,
             Locations: { title: pos.Locations.title }
           },
-          sales_history: salesDetails
+          sales_history: salesDetails,
+          // include sales_team id and resolved member names (if available)
+          sales_team_id: order.sales_team_id ?? null,
+          sales_team_members: (() => {
+            try {
+              if (!order.sales_team_id) return [];
+              const team = salesTeams.find((st: any) => String(st.id) === String(order.sales_team_id));
+              if (!team) return [];
+
+                  // Always include staff members (members field) first
+                  const names: string[] = [];
+                  if (team.members) {
+                    let arr: any[] = [];
+                    if (Array.isArray(team.members)) arr = team.members;
+                    else {
+                      try { arr = JSON.parse(String(team.members)); } catch (e) { arr = []; }
+                    }
+                    arr.forEach((mid) => {
+                      const midNum = Number(mid);
+                      const s = staffRows.find((sr: any) => Number(sr.id) === Number(midNum));
+                      names.push(s ? (s.full_name || `${s.id}`) : String(mid));
+                    });
+                  }
+
+                  // If auth_member exists, include that person's profile name as an additional member
+                  if (team.auth_member) {
+                    const authId = String(team.auth_member);
+                    const prof = profileRows.find((p: any) => String(p.id) === authId);
+                    names.push(prof ? (prof.full_name || authId) : authId);
+                  }
+
+                  return names;
+            } catch (e) { return []; }
+          })(),
+        
         };
       });
     }).flat();
