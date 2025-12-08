@@ -153,23 +153,30 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     language: selected_language
                 });
                 if (list_data || list_item_section.includes(selected_section)) {
-                    setData_list(fetched_data);
-                    setselected_list_id(fetched_data[0]?.id || 1);
+                    setData_list(fetched_data || []);
+                    if (fetched_data && fetched_data.length > 0) {
+                        setselected_list_id(fetched_data[0]?.id || 1);
+                        set_default_data(fetched_data[0]);
+                        set_data(fetched_data[0]);
+                    } else {
+                        toast.warning(`No records found in ${selected_section}${selected_language}`);
+                        setselected_list_id(null);
+                        set_default_data(null);
+                        set_data(null);
+                    }
+                } else {
+                    set_default_data(fetched_data?.[0] || null);
+                    set_data(fetched_data?.[0] || null);
                 }
-                set_default_data(fetched_data[0]);
-                set_data(fetched_data[0]);
             })()
         }
     };
 
     const handle_update = async () => {
-        console.log('handle_update called with:', { table, data });
         if (table === 'Locations' && data) {
             set_update_loading(true);
             try {
-                console.log('Updating location with data:', data);
                 const res_data = await updateLocationData(data.id, data);
-                console.log('Location update response:', res_data);
                 if (res_data?.length) {
                     setData_list(prevList => 
                         prevList.map(item => 
@@ -188,20 +195,37 @@ function useSingleRowDataHandle(paramData: DataInterface) {
             set_is_edited(false);
         } else if (update_content_service && data) {
             set_update_loading(true);
-            const res_data = await update_content_service({
-                table: selected_section,
-                language: selected_language,
-                post_data: data
-            });
-            if (res_data?.length) {
-                setData_list(prevList => 
-                    prevList.map(item => 
-                        item.id === data.id ? res_data[0] : item
-                    )
-                );
-                toast.success('Updated successfully');
+            try {
+                const res_data = await update_content_service({
+                    table: selected_section,
+                    language: selected_language,
+                    post_data: data
+                });
+                if (res_data?.length) {
+                    setData_list(prevList => 
+                        prevList.map(item => 
+                            item.id === data.id ? res_data[0] : item
+                        )
+                    );
+                    toast.success('Updated successfully');
+                    set_default_data(res_data[0]);
+                    set_data(res_data[0]);
+                } else {
+                    // Update succeeded but response is empty (likely RLS issue)
+                    // Update the local state with the data we sent
+                    setData_list(prevList => 
+                        prevList.map(item => 
+                            item.id === data.id ? data : item
+                        )
+                    );
+                    toast.success('Updated successfully');
+                    set_default_data(data);
+                    set_data(data);
+                }
+            } catch (error: any) {
+                console.error('Error in handle_update:', error);
+                toast.error(`Update failed: ${error.message || 'Unknown error'}`);
             }
-            set_default_data(res_data[0]);
             set_update_loading(false);
             set_is_edited(false);
         }

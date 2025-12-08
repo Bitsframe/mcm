@@ -23,6 +23,7 @@ export function buildOrderInfoBlock(orderObj: any, totals: any, colCount: number
 
     const invoiceLines = [];
     invoiceLines.push(`Invoice Date: ${formatDateOnly(orderObj.date || '')}`);
+    invoiceLines.push(`Order ID: ${orderObj.order_id || orderObj.orderId || ''}`);
     invoiceLines.push(`Payment Method: ${orderObj.paymentType || ''}`);
     if (orderObj.cash != null) {
         if (orderObj.cash === '-') invoiceLines.push(`Cash Amount: -`);
@@ -96,10 +97,14 @@ export function getOrderInfoData(orderObj: any, totals: any, colCount: number) {
     patientLines.push(`Patient Name: ${orderObj.patientName || ''}`);
     if (orderObj.phone) patientLines.push(`Phone: ${orderObj.phone}`);
     if (orderObj.email) patientLines.push(`Email: ${orderObj.email}`);
-    if (orderObj.treatment) patientLines.push(`Treatment Type: ${orderObj.treatment}`);
+    // Add Sales Person with special marker for grey background rendering - only if salesPerson is defined and not empty
+    if (orderObj.salesPerson) {
+        patientLines.push(`__SALESPERSON__Sales Person: ${orderObj.salesPerson}`);
+    }
 
     const invoiceLines: string[] = [];
     invoiceLines.push(`Invoice Date: ${formatDateOnly(orderObj.date || '')}`);
+    invoiceLines.push(`Order ID: ${orderObj.order_id || orderObj.orderId || ''}`);
     invoiceLines.push(`Payment Method: ${orderObj.paymentType || ''}`);
     if (orderObj.cash != null) {
         if (orderObj.cash === '-') invoiceLines.push(`Cash Amount: -`);

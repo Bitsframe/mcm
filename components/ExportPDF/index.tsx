@@ -55,7 +55,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 table: 'sales_history',
                 language: '',
                 selectParam: `,
-                    orders(order_id, order_date, paid_amount, cash, card, pos:allpatients (
+                    orders(order_id, order_date, paid_amount, cash, card, sales_team_id, pos:allpatients (
                         lastname,
                         firstname,
                         email,
@@ -339,6 +339,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             // store contact and payment info for the per-order header block
                             email: item.orders?.pos?.email || '',
                             phone: item.orders?.pos?.phone || '',
+                            sales_team_id: item.orders?.sales_team_id ?? null,
+                            salesPerson: item.orders?.created_by || item.orders?.user_name || 'N/A',
                             // Set cash/card to numeric values or null according to rules above.
                             // pdfHelpers prints lines only when the value is not null. For the "both zero" case
                             // we intentionally set 0 so the PDF shows $0.00 for both fields.
@@ -358,6 +360,112 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         rowTotalNum,
                         productId,
                     });
+                });
+
+                // Resolve sales team members to names for each order
+                const salesTeamIds = Array.from(new Set(Array.from(ordersMap.values()).map((o: any) => Number(o.sales_team_id)).filter(Boolean)));
+                const salesTeamMembersMap = new Map<number, string[]>();
+                if (salesTeamIds.length > 0) {
+                    try {
+                        const { data: salesTeamRows, error: salesTeamErr } = await (supabase as any)
+                            .from('sales_team')
+                            .select('id, members, auth_member')
+                            .in('id', salesTeamIds);
+                        if (salesTeamErr) {
+                            console.error('ExportAsPDF: error fetching sales_team rows', salesTeamErr);
+                        } else if (salesTeamRows && salesTeamRows.length > 0) {
+                            // Fetch staff members
+                            const memberIds = Array.from(new Set((salesTeamRows || []).flatMap((row: any) => (row.members || []).map((m: any) => Number(m)).filter(Boolean))));
+                            const staffMap = new Map<number, string>();
+                            if (memberIds.length > 0) {
+                                const { data: staffRows, error: staffErr } = await (supabase as any)
+                                    .from('staff')
+                                    .select('id, full_name')
+                                    .in('id', memberIds);
+                                if (staffErr) {
+                                    console.error('ExportAsPDF: error fetching staff rows for sales team', staffErr);
+                                } else {
+                                    (staffRows || []).forEach((s: any) => {
+                                        const sid = Number(s.id);
+                                        if (!Number.isNaN(sid)) staffMap.set(sid, s.full_name || String(sid));
+                                    });
+                                }
+                            }
+
+                            // Fetch auth_member names from profiles
+                            const authMemberIds = Array.from(new Set((salesTeamRows || []).map((row: any) => row.auth_member).filter(Boolean)));
+                            const profilesMap = new Map<string, string>();
+                            if (authMemberIds.length > 0) {
+                                const { data: profileRows, error: profileErr } = await (supabase as any)
+                                    .from('profiles')
+                                    .select('id, full_name')
+                                    .in('id', authMemberIds);
+                                if (profileErr) {
+                                    console.error('ExportAsPDF: error fetching profiles for auth_member', profileErr);
+                                } else {
+                                    (profileRows || []).forEach((p: any) => {
+                                        if (p && p.id) profilesMap.set(String(p.id), p.full_name || String(p.id));
+                                    });
+                                }
+                            }
+
+                            // Build names list based on which fields are populated
+                            (salesTeamRows || []).forEach((row: any) => {
+                                const tid = Number(row.id);
+                                if (Number.isNaN(tid)) return;
+                                const names: string[] = [];
+                                
+                                const hasMembers = row.members && Array.isArray(row.members) && row.members.length > 0;
+                                const hasAuthMember = row.auth_member != null && row.auth_member !== '';
+                                
+                                if (!hasMembers && !hasAuthMember) {
+                                    // Both null: show special message
+                                    names.push('Sales person not assigned');
+                                } else if (!hasMembers && hasAuthMember) {
+                                    // Only auth_member present
+                                    const authId = String(row.auth_member);
+                                    const authName = profilesMap.get(authId) || authId;
+                                    names.push(authName);
+                                } else if (hasMembers && !hasAuthMember) {
+                                    // Only members present
+                                    (row.members || []).forEach((m: any) => {
+                                        const mid = Number(m);
+                                        if (Number.isNaN(mid)) return;
+                                        const name = staffMap.get(mid) || String(mid);
+                                        names.push(name);
+                                    });
+                                } else {
+                                    // Both present: add staff members first, then auth_member
+                                    (row.members || []).forEach((m: any) => {
+                                        const mid = Number(m);
+                                        if (Number.isNaN(mid)) return;
+                                        const name = staffMap.get(mid) || String(mid);
+                                        names.push(name);
+                                    });
+                                    
+                                    const authId = String(row.auth_member);
+                                    const authName = profilesMap.get(authId) || authId;
+                                    // Only add if not already included as a staff member
+                                    if (!names.includes(authName)) {
+                                        names.push(authName);
+                                    }
+                                }
+                                
+                                salesTeamMembersMap.set(tid, names);
+                            });
+                        }
+                    } catch (e) {
+                        console.error('ExportAsPDF: error resolving sales team members', e);
+                    }
+                }
+
+                // Assign resolved sales person names back onto each order
+                ordersMap.forEach((orderObj: any, key: string) => {
+                    const tid = Number(orderObj.sales_team_id);
+                    const names = !Number.isNaN(tid) ? salesTeamMembersMap.get(tid) : null;
+                    // Only assign a value if header will not be shown, otherwise set undefined
+                    orderObj.salesPerson = names && names.length > 0 ? names.join(', ') : undefined;
+                    ordersMap.set(key, orderObj);
                 });
 
                 // Build product-level rows for each order with a per-order header
@@ -535,6 +643,25 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 // ignore any malformed entries
             }
 
+            // Check if all orders have the same sales person
+            const allSalesPersons = new Set<string>();
+            const allOrdersSalesPerson: string[] = [];
+            ordersMap.forEach((orderObj: any) => {
+                allOrdersSalesPerson.push(orderObj.salesPerson || 'Sales person not assigned');
+                if (orderObj.salesPerson && orderObj.salesPerson !== 'Sales person not assigned') {
+                    // Split comma-separated names and add individually
+                    const names = orderObj.salesPerson.split(',').map((n: string) => n.trim()).filter(Boolean);
+                    names.forEach((name: string) => allSalesPersons.add(name));
+                }
+            });
+            
+            // Check if all orders have identical sales person
+            const allSalesPersonsSame = allOrdersSalesPerson.length > 0 && allOrdersSalesPerson.every((sp: string) => sp === allOrdersSalesPerson[0]);
+            const salesPersonSummary = allSalesPersons.size > 0 ? Array.from(allSalesPersons).join(', ') : 'Sales person not assigned';
+            
+            // Only show header sales person if all orders have the same sales person
+            const showHeaderSalesPerson = allSalesPersonsSame && ordersMap.size > 0;
+
             // Create PDF document
             const doc = new jsPDF();
 
@@ -566,6 +693,35 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             // Location Title (left, below date range)
             doc.text(`Location: ${selectedLocation.title}`, 14, 40);  // Adjust for the selectedLocation name
 
+            // Sales Person section with grey background (below location) - only if all orders have same sales person
+            if (showHeaderSalesPerson) {
+                const salesPersonY = 50;
+                
+                doc.setFontSize(10);
+                try { doc.setFont('helvetica', 'bold'); } catch (e) {}
+                const labelText = 'Sales Person: ';
+                const labelWidth = doc.getTextWidth(labelText);
+                
+                try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                const valueWidth = doc.getTextWidth(salesPersonSummary);
+                
+                // Calculate total width needed with some padding
+                const totalWidth = labelWidth + valueWidth + 8; // 8px padding (4px on each side)
+                
+                doc.setFillColor(240, 240, 240); // Light grey background
+                doc.rect(14, salesPersonY - 6, totalWidth, 12, 'F'); // Grey background rectangle with dynamic width
+                
+                try { doc.setFont('helvetica', 'bold'); } catch (e) {}
+                try { doc.setTextColor(60, 60, 67); } catch (e) {}
+                doc.text(labelText, 16, salesPersonY);
+                
+                try { doc.setFont('helvetica', 'normal'); } catch (e) {}
+                doc.text(salesPersonSummary, 16 + labelWidth, salesPersonY);
+                
+                // Reset text color
+                try { doc.setTextColor(0, 0, 0); } catch (e) {}
+            }
+
             // Add some space before the table
             doc.setLineWidth(0.5);
             doc.line(14, 60, 195, 60); // Horizontal line after the header (moved down to allow bonus fields)
@@ -592,11 +748,13 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const productRows = orderObj.productRows || [];
                     const header = orderObj.perOrderHeader || tableColumn.map((col) => ({ content: col }));
 
-                    // Get the lines and min heights for the info block
+                    // Hide per-order sales person if header is shown (force undefined)
                     const info = getOrderInfoData({
                         patientName: orderObj.patientName,
                         email: orderObj.email,
                         phone: orderObj.phone,
+                        salesPerson: showHeaderSalesPerson ? undefined : (orderObj.salesPerson || undefined),
+                        orderId: orderObj.order_id,
                         date: orderObj.date,
                         paymentType: orderObj.paymentType,
                         cash: orderObj.cash,
@@ -641,10 +799,21 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     let yLeft = titleY + 8;
                     doc.setFontSize(9);
                     for (const line of info.patientLines) {
-                        const idx = line.indexOf(':');
+                        // Check if this is the Sales Person line (marked with special prefix)
+                        const isSalesPerson = line.startsWith('__SALESPERSON__');
+                        const displayLine = isSalesPerson ? line.replace('__SALESPERSON__', '') : line;
+                        
+                        // Draw grey background for Sales Person line
+                        if (isSalesPerson) {
+                            doc.setFillColor(240, 240, 240); // Light grey background
+                            const lineWidth = contentWidth / 2 - 16; // Half width minus padding
+                            doc.rect(leftX - 4, yLeft - 6, lineWidth, 8, 'F');
+                        }
+                        
+                        const idx = displayLine.indexOf(':');
                         if (idx > -1) {
-                            const label = line.substring(0, idx + 1);
-                            const value = line.substring(idx + 1).trim();
+                            const label = displayLine.substring(0, idx + 1);
+                            const value = displayLine.substring(idx + 1).trim();
                             try { doc.setFont('helvetica', 'bold'); } catch (e) {}
                             doc.text(label + ' ', leftX, yLeft);
                             const labelW = doc.getTextWidth(label + ' ');
@@ -652,7 +821,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             doc.text(String(value), leftX + labelW, yLeft);
                         } else {
                             try { doc.setFont('helvetica', 'normal'); } catch (e) {}
-                            doc.text(line, leftX, yLeft);
+                            doc.text(displayLine, leftX, yLeft);
                         }
                         yLeft += 9 * 1.0;
                     }
