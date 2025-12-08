@@ -48,9 +48,9 @@ export default function DateRangeModal({
     const applyHandle = () => {
         const { startDate, endDate } = selectionRange;
         
-        // Ensure both dates are set to the start of their respective days in UTC
-        const formattedStartDate = moment(startDate).startOf('day').utc().format('YYYY-MM-DD');
-        const formattedEndDate = moment(endDate).endOf('day').utc().format('YYYY-MM-DD');
+        // Extract date without timezone conversion (YYYY-MM-DD format)
+        const formattedStartDate = moment(startDate).format('YYYY-MM-DD');
+        const formattedEndDate = moment(endDate).format('YYYY-MM-DD');
 
         // Generate PDF regardless of data availability
         generatePdfHandle(formattedStartDate, formattedEndDate);

@@ -35,6 +35,14 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             // bonus totals (computed later) - keep in outer scope so header can access
             let totalBonus = 0;
             let totalPaidBonus = 0;
+            // Debug: log the requested range
+            try {
+                console.log('[ExportPDF] generatePDF range', { startDate, endDate, locationId: selectedLocation?.id });
+            } catch (e) { /* ignore in non-browser env */ }
+
+            // Normalize range to full-day timestamps so timestamp-with-tz rows match on date part
+            const startDateStart = `${startDate}T00:00:00.000Z`;
+            const endDateEnd = `${endDate}T23:59:59.999Z`;
                             // Loud alert to show date range and included fields
                                         try {
                                                     // logging removed for production
@@ -46,9 +54,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             const fetched_data = await fetch_content_service({
                 table: 'sales_history',
                 language: '',
-                // Select related records: orders (with pos/patient), inventory (with product)
                 selectParam: `,
-                    orders(order_id, paid_amount, cash, card, pos:allpatients (
+                    orders(order_id, order_date, paid_amount, cash, card, pos:allpatients (
                         lastname,
                         firstname,
                         email,
@@ -56,7 +63,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         dob,
                         locationid
                     )),
-                    inventory(inventory_id, product_id, products (
+                    inventory(inventory_id, product_id, location_id, products (
                         product_id,
                         product_name,
                         price,
@@ -69,14 +76,27 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     total_price,
                     sales_history_id
                 `,
-                matchCase: { key: 'orders.pos.locationid', value: selectedLocation.id },
+                matchCase: { key: 'inventory.location_id', value: selectedLocation.id },
                 filterOptions: [
-                    { column: 'created_at', operator: 'gte', value: startDate },
-                    { column: 'created_at', operator: 'lte', value: endDate },
                     { column: 'orders.pos', operator: 'not', value: null },
                     { column: 'orders', operator: 'not', value: null },
+                    { column: 'orders.order_date', operator: 'gte', value: startDateStart },
+                    { column: 'orders.order_date', operator: 'lte', value: endDateEnd },
+                    // explicit location filter to ensure only this location
+                    { column: 'inventory.location_id', operator: 'eq', value: selectedLocation.id },
                 ]
             });
+
+            // Additional client-side guards: location and exact date part
+            const filteredByDate = (fetched_data || []).filter((item: any) => {
+                if (!item.orders?.order_date) return false;
+                if (!item.inventory?.location_id || selectedLocation?.id == null) return false;
+                const datePart = item.orders.order_date.split('T')[0];
+                const matchesLocation = String(item.inventory.location_id) === String(selectedLocation.id);
+                return matchesLocation && datePart >= startDate && datePart <= endDate;
+            });
+
+            console.log('[ExportPDF] Fetched (DB filtered):', fetched_data?.length || 0, 'After date/location filter:', filteredByDate.length, 'Range:', startDate, 'to', endDate, 'Location:', selectedLocation?.id);
 
             // For debugging: log the fetched structure that includes sales_history rows with nested orders, inventory and products
             try {
@@ -121,12 +141,6 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     totalBonus = (bonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
                     totalPaidBonus = (paidBonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
 
-                    // Log detailed debug info so we can trace which rows are included
-                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows count:', (bonusRows || []).length);
-                    console.log('[ExportAsPDF] BONUS debug: fetched bonusRows (full):', bonusRows);
-                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows count:', (paidBonusRows || []).length);
-                    console.log('[ExportAsPDF] BONUS debug: fetched paidBonusRows (full):', paidBonusRows);
-                    console.log('[ExportAsPDF] BONUS debug: computed totals', { totalBonus: Number(totalBonus).toFixed(2), totalPaidBonus: Number(totalPaidBonus).toFixed(2) });
                 } catch (e) {
                     console.error('ExportAsPDF: error fetching/processing bonus debug rows', e);
                 }
@@ -146,9 +160,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         language: '',
                         filterOptions: [{ column: 'order_id', operator: 'in', value: orderIds }]
                     }) || [];
-                    console.log('[ExportAsPDF] discountsForOrders for orderIds', orderIds, discountsForOrders);
+
                 } else {
-                    console.log('[ExportAsPDF] no orderIds found for discounts lookup');
+
                 }
             } catch (e) {
                 console.error('ExportAsPDF: Error fetching discounts for orders:', e);
@@ -171,7 +185,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         discount_amount: d.discount_amount,
                         discount_value: d.discount_value,
                     }));
-                    console.log('[ExportAsPDF] allDiscounts summary (debug):', summary);
+   
                 } catch (e) { console.error('ExportAsPDF: error summarizing allDiscounts', e); }
             } catch (e) {
                 console.error('ExportAsPDF: Error fetching ALL discounts (debug):', e);
@@ -186,7 +200,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 let ordersRaw: any[] = [];
                 if (derivedOrderIds.length > 0) {
                     ordersRaw = await fetch_content_service({ table: 'orders', language: '', filterOptions: [{ column: 'order_id', operator: 'in', value: derivedOrderIds }] }) || [];
-                    console.log('[ExportAsPDF] ordersRaw for derivedOrderIds', derivedOrderIds, ordersRaw);
+
                 } else {
                     console.log('[ExportAsPDF] no derivedOrderIds found');
                 }
@@ -221,7 +235,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             let totalSalesNet = 0;
 
             // Populate the PDF rows using nested relations (orders, inventory.products)
-            if (fetched_data && fetched_data.length > 0) {
+            if (filteredByDate && filteredByDate.length > 0) {
                 // Build discount lookup maps locally to avoid relying on globalThis state
                 const cartMapLocal = new Map<string, any[]>();
                 const productMapLocal = new Map<string, any[]>();
@@ -242,11 +256,11 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
 
                 // Group sales_history rows by order_id
                 ordersMap = new Map<string, any>();
-                fetched_data.forEach((item: any) => {
+                filteredByDate.forEach((item: any) => {
                     const orderId = item.orders?.order_id || item.order_id || '';
                     const oIdStr = String(orderId);
                     const salesHistoryId = item.sales_history_id ? item.sales_history_id.toString() : '';
-                    const dateStr = item.date_sold ? new Date(item.date_sold).toLocaleString() : '';
+                    const dateStr = item.orders?.order_date ? item.orders.order_date.split('T')[0] : '';
                     const patientName = item.orders?.pos ? `${item.orders.pos.firstname || ''} ${item.orders.pos.lastname || ''}`.trim() : '';
                     // Legacy: item.paymentcash was used before to decide payment type.
                     // New logic (per requirements): determine cash/card amounts from the orders row

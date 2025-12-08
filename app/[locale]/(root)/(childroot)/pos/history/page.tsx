@@ -158,14 +158,7 @@ const SalesHistory = () => {
     if (dobSearch.trim() !== "") {
       filtered = filtered.filter((item) => {
         if (!item?.order_date) return false;
-        
-        // Convert UTC date to local timezone then extract date
-        const utcDate = new Date(item.order_date);
-        const year = utcDate.getFullYear();
-        const month = String(utcDate.getMonth() + 1).padStart(2, '0');
-        const day = String(utcDate.getDate()).padStart(2, '0');
-        const orderDateString = `${year}-${month}-${day}`;
-        
+        const orderDateString = item.order_date.split('T')[0];
         return orderDateString === dobSearch;
       });
     }
@@ -307,15 +300,8 @@ const SalesHistory = () => {
                     dataList.forEach((order) => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
-                          // Convert UTC to local date
                           if (!sale.date_sold) return;
-                          const saleDate = new Date(sale.date_sold);
-                          const year = saleDate.getFullYear();
-                          const month = String(saleDate.getMonth() + 1).padStart(2, '0');
-                          const day = String(saleDate.getDate()).padStart(2, '0');
-                          const saleDateString = `${year}-${month}-${day}`;
-                          
-                          // If sale date matches target date, add the quantity
+                          const saleDateString = sale.date_sold.split('T')[0];
                           if (saleDateString === targetDateString) {
                             totalProductsSold += sale.quantity_sold || 0;
                           }
@@ -357,15 +343,7 @@ const SalesHistory = () => {
                     
                     allData.forEach((order) => {
                       if (!order?.order_date) return;
-                      
-                      // Convert UTC to local date
-                      const orderDate = new Date(order.order_date);
-                      const year = orderDate.getFullYear();
-                      const month = String(orderDate.getMonth() + 1).padStart(2, '0');
-                      const day = String(orderDate.getDate()).padStart(2, '0');
-                      const orderDateString = `${year}-${month}-${day}`;
-                      
-                      // If order date matches target date, add the paid_amount
+                      const orderDateString = order.order_date.split('T')[0];
                       if (orderDateString === targetDateString) {
                         const paidAmount = order.paid_amount || 0;
                         totalAmount += paidAmount;
@@ -406,13 +384,8 @@ const SalesHistory = () => {
                     dataList.forEach((order) => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
-                          // Convert UTC time to CST
-                          const saleDate = new Date(sale.date_sold);
-                          const cstOffset = -6; // CST is UTC-6
-                          const saleDateCST = new Date(saleDate.getTime() + (cstOffset * 60 * 60 * 1000));
-                          const saleDateString = saleDateCST.toISOString().split('T')[0];
-                          
-                          // If sale date matches target date, add the total_price
+                          if (!sale.date_sold) return;
+                          const saleDateString = sale.date_sold.split('T')[0];
                           if (saleDateString === targetDateString) {
                             totalSales += sale.total_price || 0;
                           }

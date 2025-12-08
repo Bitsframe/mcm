@@ -268,12 +268,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       <span className="text-gray-600 dark:text-gray-400">Invoice Date:</span>
                       <span className="font-medium text-gray-800 dark:text-gray-200">
                         {(() => {
-                          const date = new Date(dataList?.order_date);
-                          return date.toLocaleDateString('en-GB', { 
-                            day: 'numeric', 
-                            month: 'short', 
-                            year: 'numeric' 
-                          });
+                          // Extract date part directly from ISO string without timezone conversion
+                          const dateString = dataList?.order_date?.split('T')[0]; // YYYY-MM-DD
+                          if (!dateString) return 'N/A';
+                          const [year, month, day] = dateString.split('-');
+                          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                          return `${day} ${months[parseInt(month) - 1]} ${year}`;
                         })()}
                       </span>
                     </div>

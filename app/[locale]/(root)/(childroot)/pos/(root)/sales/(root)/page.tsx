@@ -1746,7 +1746,7 @@ transition-colors`}
             <PosFields
               isOpen={salesPersonModalOpen}
               onClose={() => setSalesPersonModalOpen(false)}
-              initialSelected={selectedSalesPersons}
+              initialSelected={[]}
               locationId={selectedLocation?.id}
               onSave={(sel: { id: number; name: string }[]) => {
                 setSelectedSalesPersons(sel);
