@@ -796,12 +796,18 @@ const addToCartHandle = () => {
 
       if (!selectedPatient || !cartArray.length) return;
       
+      // Calculate totals
+      const cartTotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+      const receivables = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
+      const previousBalance = creditAmount; // what UI shows in Balance
+      const newCreditAuditBalance = previousBalance + cartTotal - receivables;
 
       const { data } = await axios.post("/api/orders", {
         patient_id: selectedPatient.id,
         cartArray,
         appliedDiscount,
-        creditAmount,
+        creditAmount: previousBalance, // send UI Balance to orders.credit_balance
+        creditAuditBalance: newCreditAuditBalance, // send updated balance to credit_audit
         cashAmount: payWithCash ? receivedAmount : 0,
         cardAmount: payWithCard ? cardAmount : 0,
         creditUsed,
@@ -809,6 +815,7 @@ const addToCartHandle = () => {
         selectedPatient,
         selectedLocation,
         selectedSalesPersons, // Pass selected sales persons to create team if needed
+        newLocationBalance: displayedBalanceLimit, // send UI Credit Available to locations.balance
       });
   
       toast.success(data.message, {
@@ -820,37 +827,6 @@ const addToCartHandle = () => {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const { totalAfterDiscount, totalPaid, newBalance, overpaid } =
-        calculateNewBalance({
-          cartArray,
-          appliedDiscount,
-          payWithCash,
-          receivedAmount,
-          payWithCard,
-          cardAmount,
-          creditUsed,
-          selectedLocation,
-        });
-
-      // console.log("🧮 Total After Discount:", totalAfterDiscount);
-      // console.log("💰 Total Paid:", totalPaid);
-      // console.log(
-      //   overpaid
-      //     ? `📉 Overpaid — Reducing balance by: ${totalPaid - totalAfterDiscount}`
-      //     : `📈 Underpaid — Increasing balance by credit used: ${totalAfterDiscount - totalPaid}`
-      // );
-      // console.log("🧾 New Location Balance (before DB update):", newBalance);
-
-      await update_content_service({
-        table: "Locations",
-        post_data: {
-          id: selectedLocation.id,
-          balance: newBalance,
-        },
-      });
-
-      selectedLocation.balance = newBalance;
 
       const response = await fetch_content_service({
         table: "Locations",
@@ -906,8 +882,8 @@ const addToCartHandle = () => {
     setActiveTitle("Sidebar_k19");
   }, [setActiveTitle]);
 
-  const subtotal =
-    grandTotalHandle(cartArray, appliedDiscount).amount + creditAmount;
+  const cartTotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+  const subtotal = cartTotal + creditAmount;
   // console.log("🔢 Subtotal:", subtotal);
 
   const creditAvailable = React.useMemo(() => {
@@ -1558,13 +1534,13 @@ transition-colors`}
                 onClick={placeOrderHandle}
                 disabled={
                   !cartArray.length ||
-                  totalPaid > subtotal ||
+                  totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
                   ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
                 }
                 className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm ${
                   !cartArray.length ||
-                  totalPaid > subtotal ||
+                  totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
                   ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
                     ? "opacity-50 bg-blue-600"

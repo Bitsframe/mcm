@@ -19,6 +19,8 @@ export async function POST(request: Request) {
       selectedPatient,
       selectedLocation,
       selectedSalesPersons = [],
+      creditAuditBalance,
+      newLocationBalance,
     } = await request.json();
 
 
@@ -44,14 +46,17 @@ const subtotalAmount = cartArray.reduce(
 const discountAmount = (subtotalAmount * appliedDiscount) / 100;
 const discountedSubtotal = Number((subtotalAmount - discountAmount).toFixed(2));
 
-// Total amount due includes previous credit (outstanding dues)
-const totalDue = Number((discountedSubtotal + creditAmount).toFixed(2));
-
 // Amount patient is paying now
 const paidAmount = Number((cashAmount + cardAmount).toFixed(2));
 
-// New balance calculation: how much is still owed or overpaid
-const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
+// creditAuditBalance is sent explicitly from UI (updated balance after this order)
+// creditAmount remains the UI "Balance" value to store on the order
+const creditAuditBalanceValue = creditAuditBalance !== undefined
+  ? Number(creditAuditBalance)
+  : Number(creditAmount);
+
+// New balance calculation: how much is still owed or overpaid (cart perspective)
+const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
 
 
 
@@ -156,11 +161,12 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
       console.error('Unexpected error fetching sales_team', e);
     }
 
+    // Persist the UI Balance (creditAmount) into orders.credit_balance
     const orderCreatePostData = {
       patient_id: patient_id,
       previous_credit_amount: Number(creditAmount.toFixed(2)),
       ...(sales_team_id !== null ? { sales_team_id } : {}),
-      credit_balance: newCreditBalance,
+      credit_balance: Number(creditAmount.toFixed(2)),
       paid_amount: paidAmount,
       cash: Number(cashAmount.toFixed(2)),
       card: Number(cardAmount.toFixed(2)),
@@ -257,7 +263,7 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
           table: "credit_audit",
           post_data: {
             id: existingCreditAudit[0].id,
-            balance: newCreditBalance,
+            balance: creditAuditBalanceValue,
             updated_at: new Date().toISOString()
           }
         });
@@ -266,7 +272,7 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
           table: "credit_audit",
           post_data: {
             patient_id,
-            balance: newCreditBalance,
+            balance: creditAuditBalanceValue,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
@@ -274,6 +280,21 @@ const newCreditBalance = Number((totalDue - paidAmount).toFixed(2));
       }
     } catch (creditAuditError: any) {
       console.error("Credit audit error:", creditAuditError.message);
+    }
+
+    // Update location balance with the value from UI (Credit Available)
+    if (newLocationBalance !== undefined && selectedLocation?.id) {
+      try {
+        await update_content_service({
+          table: "Locations",
+          post_data: {
+            id: selectedLocation.id,
+            balance: Number(newLocationBalance),
+          },
+        });
+      } catch (locationBalanceError: any) {
+        console.error("Location balance update error:", locationBalanceError.message);
+      }
     }
 
     // --- 3. Handle fulfillment for other locations ---
