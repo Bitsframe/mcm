@@ -937,7 +937,7 @@ const Products = () => {
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t("Inventory_k29")}
+                  Select clinic
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -994,7 +994,7 @@ const Products = () => {
                   value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                  label={t("Inventory_k31")}
+                  label="Number of Units"
                   bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                 />
               </div>

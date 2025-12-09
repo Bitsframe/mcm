@@ -427,6 +427,7 @@ const Inventory = () => {
       </div>
     ),
     [
+      t,
       getDataArchiveType,
       handleActiveClick,
       handleArchiveClick,
