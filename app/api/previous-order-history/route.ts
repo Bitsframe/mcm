@@ -173,6 +173,7 @@ export const POST = async (req: Request) => {
           promo_code_percentage: percentage,
           cash: order.cash,
           card: order.card,
+          zelle: order.zelle,
           credit_balance: order.credit_balance,
           previous_credit_amount: order.previous_credit_amount,
           discounts: orderDiscounts,

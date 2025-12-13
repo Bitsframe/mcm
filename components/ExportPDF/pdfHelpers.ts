@@ -33,6 +33,10 @@ export function buildOrderInfoBlock(orderObj: any, totals: any, colCount: number
         if (orderObj.card === '-') invoiceLines.push(`Card Amount: -`);
         else invoiceLines.push(`Card Amount: $${Number(orderObj.card || 0).toFixed(2)}`);
     }
+    if (orderObj.zelle != null) {
+        if (orderObj.zelle === '-') invoiceLines.push(`Zelle Amount: -`);
+        else invoiceLines.push(`Zelle Amount: $${Number(orderObj.zelle || 0).toFixed(2)}`);
+    }
     invoiceLines.push(`Gross Amount: $${Number(totals.orderTotal || 0).toFixed(2)}`);
     invoiceLines.push(`Discount (cart): -$${Number(totals.cartDiscountTotal || 0).toFixed(2)}`);
     invoiceLines.push(`Product Discount: -$${Number(totals.productDiscountTotal || 0).toFixed(2)}`);
@@ -113,6 +117,10 @@ export function getOrderInfoData(orderObj: any, totals: any, colCount: number) {
     if (orderObj.card != null) {
         if (orderObj.card === '-') invoiceLines.push(`Card Amount: -`);
         else invoiceLines.push(`Card Amount: $${Number(orderObj.card || 0).toFixed(2)}`);
+    }
+    if (orderObj.zelle != null) {
+        if (orderObj.zelle === '-') invoiceLines.push(`Zelle Amount: -`);
+        else invoiceLines.push(`Zelle Amount: $${Number(orderObj.zelle || 0).toFixed(2)}`);
     }
     invoiceLines.push(`Gross Amount: $${Number(totals.orderTotal || 0).toFixed(2)}`);
     invoiceLines.push(`Discount (cart): -$${Number(totals.cartDiscountTotal || 0).toFixed(2)}`);

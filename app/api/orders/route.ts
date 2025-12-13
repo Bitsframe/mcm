@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       selectedSalesPersons = [],
       creditAuditBalance,
       newLocationBalance,
+      zelleAmount = 0,
     } = await request.json();
 
 
@@ -46,8 +47,8 @@ const subtotalAmount = cartArray.reduce(
 const discountAmount = (subtotalAmount * appliedDiscount) / 100;
 const discountedSubtotal = Number((subtotalAmount - discountAmount).toFixed(2));
 
-// Amount patient is paying now
-const paidAmount = Number((cashAmount + cardAmount).toFixed(2));
+// Amount patient is paying now (cash + card + zelle)
+const paidAmount = Number((cashAmount + cardAmount + zelleAmount).toFixed(2));
 
 // creditAuditBalance is sent explicitly from UI (updated balance after this order)
 // creditAmount remains the UI "Balance" value to store on the order
@@ -170,6 +171,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       paid_amount: paidAmount,
       cash: Number(cashAmount.toFixed(2)),
       card: Number(cardAmount.toFixed(2)),
+      zelle: Number(Number(zelleAmount || 0).toFixed(2)),
       ...(promoCodeData && { promo_code_id: promoCodeData.id })
     };
     const { data: orderData, error: orderError } = await create_content_service({

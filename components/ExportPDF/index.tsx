@@ -55,7 +55,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 table: 'sales_history',
                 language: '',
                 selectParam: `,
-                    orders(order_id, order_date, paid_amount, cash, card, sales_team_id, pos:allpatients (
+                    orders(order_id, order_date, paid_amount, cash, card, zelle, sales_team_id, pos:allpatients (
                         lastname,
                         firstname,
                         email,
@@ -275,53 +275,41 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     // in the DB is respected (i.e. cash was intentionally zero).
                     const rawCashFromOrders = (item.orders && (item.orders.cash != null ? item.orders.cash : (item.orders.paid_amount != null ? item.orders.paid_amount : null)));
                     const rawCardFromOrders = (item.orders && item.orders.card != null ? item.orders.card : null);
+                    const rawZelleFromOrders = (item.orders && item.orders.zelle != null ? item.orders.zelle : null);
 
                     const cashNum = rawCashFromOrders != null ? Number(rawCashFromOrders) : null;
                     const cardNum = rawCardFromOrders != null ? Number(rawCardFromOrders) : null;
+                    const zelleNum = rawZelleFromOrders != null ? Number(rawZelleFromOrders) : null;
 
-                    let computedPaymentType = item.paymentcash ? 'Cash' : 'Card';
-                    let computedCash: number | string | null = null;
-                    let computedCard: number | string | null = null;
+                    // Build payment method label dynamically including Zelle when present
+                    const presentMethods: string[] = [];
+                    if (cashNum != null && cashNum > 0) presentMethods.push('Cash');
+                    if (cardNum != null && cardNum > 0) presentMethods.push('Card');
+                    if (zelleNum != null && zelleNum > 0) presentMethods.push('Zelle');
 
-                    // Both missing/null -> treat as zeros per rule (4)
-                    if ((cashNum === null || isNaN(cashNum)) && (cardNum === null || isNaN(cardNum))) {
-                        computedPaymentType = 'Cash & Card';
-                        computedCash = 0;
-                        computedCard = 0;
-                        } else if (cardNum === 0 && cashNum != null && cashNum > 0) {
-                        // rule 1: card is zero, cash present
-                        computedPaymentType = 'Cash';
-                        computedCash = cashNum;
-                        computedCard = '-'; // display dash for card when not applicable
-                    } else if (cashNum === 0 && cardNum != null && cardNum > 0) {
-                        // rule 2: cash is zero, card present
-                        computedPaymentType = 'Card';
-                        computedCard = cardNum;
-                        computedCash = '-'; // display dash for cash when not applicable
-                    } else if (cardNum != null && cashNum != null && cardNum > 0 && cashNum > 0) {
-                        // rule 3: both have positive values
-                        computedPaymentType = 'Card & Cash';
-                        computedCash = cashNum;
-                        computedCard = cardNum;
-                    } else if ((cardNum === 0 && (cashNum === null || cashNum === 0)) || (cashNum === 0 && (cardNum === null || cardNum === 0))) {
-                        // fallback: at least one explicitly zero and the other missing/zero -> show both zeros
-                        computedPaymentType = 'Cash & Card';
-                        computedCash = cashNum != null ? cashNum : 0;
-                        computedCard = cardNum != null ? cardNum : 0;
-                    } else if (cardNum != null && cardNum > 0) {
-                        computedPaymentType = 'Card';
-                        computedCard = cardNum;
-                        computedCash = cashNum != null ? cashNum : '-';
-                    } else if (cashNum != null && cashNum > 0) {
-                        computedPaymentType = 'Cash';
-                        computedCash = cashNum;
-                        computedCard = cardNum != null ? cardNum : '-';
-                    } else {
-                        // final fallback: use original boolean flag and raw values
-                        computedPaymentType = item.paymentcash ? 'Cash' : 'Card';
-                        computedCash = cashNum;
-                        computedCard = cardNum;
-                    }
+                    let computedPaymentType = presentMethods.length ? presentMethods.join(' & ') : 'Cash & Card';
+
+                    // Amounts to display; use '-' when explicitly not used but other tenders exist
+                    const computedCash: number | string | null = (() => {
+                        if (cashNum == null || isNaN(cashNum)) return presentMethods.length ? '-' : null;
+                        if (presentMethods.includes('Cash')) return cashNum;
+                        if (cashNum === 0) return '-';
+                        return cashNum;
+                    })();
+
+                    const computedCard: number | string | null = (() => {
+                        if (cardNum == null || isNaN(cardNum)) return presentMethods.length ? '-' : null;
+                        if (presentMethods.includes('Card')) return cardNum;
+                        if (cardNum === 0) return '-';
+                        return cardNum;
+                    })();
+
+                    const computedZelle: number | string | null = (() => {
+                        if (zelleNum == null || isNaN(zelleNum)) return presentMethods.length ? '-' : null;
+                        if (presentMethods.includes('Zelle')) return zelleNum;
+                        if (zelleNum === 0) return '-';
+                        return zelleNum;
+                    })();
 
                     const productName = item.inventory?.products?.product_name || item.inventory?.product_name || '';
                     const productPriceNum = item.inventory?.products?.price ?? item.inventory?.price ?? item.price ?? 0;
@@ -346,6 +334,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             // we intentionally set 0 so the PDF shows $0.00 for both fields.
                             cash: computedCash,
                             card: computedCard,
+                            zelle: computedZelle,
                             // store paid_amount and credit_balance from orders if present
                             paid_amount: item.orders?.paid_amount != null ? Number(item.orders.paid_amount) : 0,
                             credit_balance: item.orders?.credit_balance != null ? Number(item.orders.credit_balance) : null,
@@ -632,12 +621,20 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 console.log('[ExportAsPDF] totalAmount:', totalAmount);
             } catch (e) { /* ignore in non-browser env */ }
 
-            // Compute total receivables using paid_amount from grouped orders (one-time top summary)
+            // Compute total receivables using tender breakdown (cash + card + zelle) with paid_amount as fallback
             let totalReceivables = 0;
             try {
+                const toNum = (v: any) => {
+                    const n = Number(v);
+                    return Number.isFinite(n) ? n : 0;
+                };
                 for (const [, orderObj] of Array.from(ordersMap.entries())) {
-                    const paid = orderObj.paid_amount != null ? Number(orderObj.paid_amount) : 0;
-                    totalReceivables += paid;
+                    const cash = toNum(orderObj.cash);
+                    const card = toNum(orderObj.card);
+                    const zelle = toNum(orderObj.zelle);
+                    const paidFallback = toNum(orderObj.paid_amount);
+                    const totalTender = Number((cash + card + zelle).toFixed(2));
+                    totalReceivables += totalTender || paidFallback;
                 }
             } catch (e) {
                 // ignore any malformed entries
@@ -759,6 +756,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         paymentType: orderObj.paymentType,
                         cash: orderObj.cash,
                         card: orderObj.card,
+                        zelle: orderObj.zelle,
                     }, totals, tableColumn.length);
 
                     const infoBlockHeight = Math.max(info.minPatientHeight, info.minInvoiceHeight);

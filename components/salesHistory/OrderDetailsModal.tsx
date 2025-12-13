@@ -152,7 +152,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
   const { t } = useTranslation(translationConstant.POSHISTORY);
   // UI state for editable payment method dropdown
-  type PaymentOption = "Cash" | "Card" | "Card & Cash";
+  type PaymentOption = "Cash" | "Card" | "Card & Cash" | "Zelle" | "Zelle & Cash" | "Zelle & Card" | "Zelle, Card, Cash";
   const [paymentMethodUI, setPaymentMethodUI] = useState<PaymentOption | undefined>(undefined);
   // Local editable inputs for cash/card amounts when Card & Cash is selected
   const [cashInput, setCashInput] = useState<string>("");
@@ -168,10 +168,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   useEffect(() => {
     const cashVal = !!dataList?.cash;
     const cardVal = !!dataList?.card;
+    const zelleVal = !!dataList?.zelle;
     let init: PaymentOption | undefined = undefined;
-    if (cashVal && cardVal) init = "Card & Cash";
+    if (cashVal && cardVal && zelleVal) init = "Zelle, Card, Cash";
+    else if (cashVal && cardVal) init = "Card & Cash";
+    else if (cashVal && zelleVal) init = "Zelle & Cash";
+    else if (cardVal && zelleVal) init = "Zelle & Card";
     else if (cashVal) init = "Cash";
     else if (cardVal) init = "Card";
+    else if (zelleVal) init = "Zelle";
     setPaymentMethodUI(init);
     // Sync editable inputs with latest values
     const currentCash = Number(dataList?.cash || 0);
@@ -180,7 +185,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
     // Keep the total that should be split when in editable mode
     setSplitTotal(Number((currentCash + currentCard).toFixed(2)));
-  }, [dataList?.cash, dataList?.card]);
+  }, [dataList?.cash, dataList?.card, dataList?.zelle]);
 
   // Persist cash/card values to backend when edited (called onBlur)
   const persistCashCard = async (newCashStr: string, newCardStr: string) => {
@@ -286,7 +291,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           value={paymentMethodUI}
                           onValueChange={async (v: PaymentOption) => {
                             try {
-                              // If user selects combined option, enable editable inputs immediately
+                              if (v === "Zelle, Card, Cash") {
+                                setPaymentMethodUI(v);
+                                setAmountsSaved(true);
+                                setAmountsEditable(false);
+                                return;
+                              }
+
+                              // If user selects a split option, enable editable inputs where applicable
                               if (v === "Card & Cash") {
                                 setPaymentMethodUI(v);
                                 setAmountsSaved(false);
@@ -296,20 +308,46 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 return;
                               }
 
-                              // For singular modes (Card or Cash) move the full total to the selected side and persist immediately
-                              const total = Number(dataList?.cash || 0) + Number(dataList?.card || 0);
+                              const total = Number(dataList?.cash || 0) + Number(dataList?.card || 0) + Number(dataList?.zelle || 0);
                               let newCash = 0;
                               let newCard = 0;
+                              let newZelle = 0;
+
                               if (v === "Cash") {
                                 newCash = total;
-                                newCard = 0;
                               } else if (v === "Card") {
                                 newCard = total;
-                                newCash = 0;
+                              } else if (v === "Zelle") {
+                                newZelle = total;
+                              } else if (v === "Zelle & Cash") {
+                                // keep existing zelle/cash if they sum to total; else move total to zelle
+                                const existingZelle = Number(dataList?.zelle || 0);
+                                const existingCash = Number(dataList?.cash || 0);
+                                if (Number((existingZelle + existingCash).toFixed(2)) === Number(total.toFixed(2))) {
+                                  newZelle = existingZelle;
+                                  newCash = existingCash;
+                                } else {
+                                  newZelle = total;
+                                  newCash = 0;
+                                }
+                              } else if (v === "Zelle & Card") {
+                                const existingZelle = Number(dataList?.zelle || 0);
+                                const existingCard = Number(dataList?.card || 0);
+                                if (Number((existingZelle + existingCard).toFixed(2)) === Number(total.toFixed(2))) {
+                                  newZelle = existingZelle;
+                                  newCard = existingCard;
+                                } else {
+                                  newZelle = total;
+                                  newCard = 0;
+                                }
                               }
 
                               // If values didn't change, just set the UI and return
-                              if (newCash === Number(dataList?.cash || 0) && newCard === Number(dataList?.card || 0)) {
+                              if (
+                                newCash === Number(dataList?.cash || 0) &&
+                                newCard === Number(dataList?.card || 0) &&
+                                newZelle === Number(dataList?.zelle || 0)
+                              ) {
                                 setPaymentMethodUI(v);
                                 setAmountsSaved(true);
                                 return;
@@ -322,12 +360,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                   order_id: dataList?.order_id,
                                   cash: newCash,
                                   card: newCard,
+                                  zelle: newZelle,
                                 },
                                 matchKey: "order_id",
                               });
 
                               // Update UI state
-                              setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard }));
+                              setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard, zelle: newZelle }));
                               setPaymentMethodUI(v);
                               setAmountsSaved(true);
                               // also update inputs in case user switches back to Card & Cash
@@ -347,6 +386,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                               <SelectItem value="Card & Cash" className="text-sm">Card & Cash</SelectItem>
                               <SelectItem value="Cash" className="text-sm">Cash</SelectItem>
                               <SelectItem value="Card" className="text-sm">Card</SelectItem>
+                              <SelectItem value="Zelle, Card, Cash" className="text-sm">Zelle, Card, Cash</SelectItem>
+                              <SelectItem value="Zelle" className="text-sm">Zelle</SelectItem>
+                              <SelectItem value="Zelle & Cash" className="text-sm">Zelle & Cash</SelectItem>
+                              <SelectItem value="Zelle & Card" className="text-sm">Zelle & Card</SelectItem>
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -476,6 +519,16 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           })()}
                         </span>
                       )}
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Zelle Amount:</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        ${(() => {
+                          const zelleAmt = Number(dataList?.zelle) || 0;
+                          return zelleAmt.toFixed(2);
+                        })()}
+                      </span>
                     </div>
                     
                     <div className="flex justify-between">

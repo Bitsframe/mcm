@@ -70,38 +70,39 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
           </button>
         </div>
 
-  <div className="p-4 flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-20 bg-white dark:bg-[#0E1725] mb-3 flex items-center gap-2 justify-between py-3 border-b">
-            <div className="flex items-center gap-2 flex-1">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search product..."
-                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 text-sm"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded text-sm"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            <div className="ml-4">
+        <div className="bg-white dark:bg-[#0E1725] flex items-center gap-2 justify-between px-4 py-3 border-b flex-shrink-0">
+          <div className="flex items-center gap-2 flex-1">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search product..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            />
+            {searchTerm && (
               <button
                 type="button"
-                onClick={handleAddAllToCart}
-                disabled={!hasAnyQty || disabled}
-                className="px-3 py-2 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
+                onClick={() => setSearchTerm('')}
+                className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded text-sm"
               >
-                Add to Cart
+                Clear
               </button>
-            </div>
+            )}
           </div>
+
+          <div className="ml-4">
+            <button
+              type="button"
+              onClick={handleAddAllToCart}
+              disabled={!hasAnyQty || disabled}
+              className="px-3 py-2 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+
+  <div className="p-4 flex-1 overflow-y-auto">
 
           {loading ? (
             <div className="text-sm">Loading products...</div>

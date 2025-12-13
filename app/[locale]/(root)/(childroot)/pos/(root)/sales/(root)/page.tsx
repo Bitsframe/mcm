@@ -440,6 +440,9 @@ const Orders = () => {
   const [payWithCash, setPayWithCash] = useState(true);
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
+  const [payWithZelle, setPayWithZelle] = useState(false);
+  const [zelleAmount, setZelleAmount] = useState<number>(0);
+  const [zelleInput, setZelleInput] = useState("");
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountInput, setDiscountInput] = useState<string>("");
   const [addAmount, setAddAmount] = useState(0);
@@ -798,7 +801,7 @@ const addToCartHandle = () => {
       
       // Calculate totals
       const cartTotal = grandTotalHandle(cartArray, appliedDiscount).amount;
-      const receivables = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
+      const receivables = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0) + (payWithZelle ? zelleAmount : 0);
       const previousBalance = creditAmount; // what UI shows in Balance
       const newCreditAuditBalance = previousBalance + cartTotal - receivables;
 
@@ -810,6 +813,7 @@ const addToCartHandle = () => {
         creditAuditBalance: newCreditAuditBalance, // send updated balance to credit_audit
         cashAmount: payWithCash ? receivedAmount : 0,
         cardAmount: payWithCard ? cardAmount : 0,
+        zelleAmount: payWithZelle ? zelleAmount : 0,
         creditUsed,
         promoCodeData,
         selectedPatient,
@@ -851,8 +855,10 @@ const addToCartHandle = () => {
       setCreditAmount(0);
       setReceivedAmount(0);
       setCardAmount(0);
+      setZelleAmount(0);
       setCardInput("");
       setCashInput("");
+      setZelleInput("");
     } catch (err: any) {
       console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {
@@ -894,10 +900,10 @@ const addToCartHandle = () => {
   }, [selectedLocation]);
 
   const creditUsed = useMemo(() => {
-    const userStartedPaying = cashInput !== "" || cardInput !== "";
+    const userStartedPaying = cashInput !== "" || cardInput !== "" || zelleInput !== "";
     if (!userStartedPaying) return 0;
 
-    const paid = receivedAmount + cardAmount;
+    const paid = receivedAmount + cardAmount + zelleAmount;
     const productTotalAfterDiscount = grandTotalHandle(
       cartArray,
       appliedDiscount
@@ -909,8 +915,10 @@ const addToCartHandle = () => {
   }, [
     cashInput,
     cardInput,
+    zelleInput,
     receivedAmount,
     cardAmount,
+    zelleAmount,
     creditAvailable,
     cartArray,
     appliedDiscount,
@@ -925,9 +933,9 @@ const addToCartHandle = () => {
 
   const finalCredit = useMemo(() => {
     const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
-    const totalPaid = receivedAmount + cardAmount;
+    const totalPaid = receivedAmount + cardAmount + zelleAmount;
     return totalDue - totalPaid;
-  }, [receivedAmount, cardAmount, cartArray, appliedDiscount]);
+  }, [receivedAmount, cardAmount, zelleAmount, cartArray, appliedDiscount]);
 
   const handleAddBalance = async () => {
     if (!selectedPatient?.id || isNaN(addAmount) || addAmount === 0) return;
@@ -981,13 +989,23 @@ const addToCartHandle = () => {
   const { t } = useTranslation(translationConstant.POSSALES);
 
   useEffect(() => {
-    if (payWithCash && !payWithCard) setCardAmount(0);
-    if (payWithCard && !payWithCash) setReceivedAmount(0);
-    if (!payWithCash && !payWithCard) setPayWithCash(true);
-  }, [payWithCash, payWithCard]);
+    if (payWithCash && !payWithCard && !payWithZelle) {
+      setCardAmount(0);
+      setZelleAmount(0);
+    }
+    if (payWithCard && !payWithCash && !payWithZelle) {
+      setReceivedAmount(0);
+      setZelleAmount(0);
+    }
+    if (payWithZelle && !payWithCash && !payWithCard) {
+      setReceivedAmount(0);
+      setCardAmount(0);
+    }
+    if (!payWithCash && !payWithCard && !payWithZelle) setPayWithCash(true);
+  }, [payWithCash, payWithCard, payWithZelle]);
 
   const totalPaid =
-    (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0);
+    (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0) + (payWithZelle ? zelleAmount : 0);
 
 
 
@@ -1424,10 +1442,30 @@ transition-colors`}
                     {t("POS-Sales_k91")}
                   </span>
                 </label>
+
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <span
+                    className={`w-4 h-4 flex items-center justify-center rounded-sm 
+${payWithZelle ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+transition-colors`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={payWithZelle}
+                      onChange={() => {
+                        setPayWithZelle((prev) => !prev);
+                      }}
+                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                    />
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                    Zelle
+                  </span>
+                </label>
               </div>
 
               {/* Modified payment input section - Receivables on left, inputs on right */}
-              {(payWithCash || payWithCard) && (
+              {(payWithCash || payWithCard || payWithZelle) && (
                 <div className="flex items-center justify-between gap-2 mt-1">
                   <span className="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {t("POS-Sales_k99")}:
@@ -1465,7 +1503,7 @@ transition-colors`}
                       </div>
                     )}
 
-                    {payWithCash && payWithCard && (
+                    {(payWithCash && payWithCard) && (
                       <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
                         +
                       </span>
@@ -1492,6 +1530,40 @@ transition-colors`}
                               );
                               setCardInput(normalized);
                               setCardAmount(Number.parseFloat(normalized) || 0);
+                            }
+                          }}
+                          placeholder="0.00"
+                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                        />
+                      </div>
+                    )}
+
+                    {((payWithCash || payWithCard) && payWithZelle) && (
+                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                        +
+                      </span>
+                    )}
+
+                    {payWithZelle && (
+                      <div className="relative flex items-center">
+                        <span className="absolute left-2 text-gray-500 dark:text-gray-400 text-xs font-semibold">
+                          Z
+                        </span>
+                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                          $
+                        </span>
+                        <input
+                          type="text"
+                          value={zelleInput}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (/^\d*\.?\d*$/.test(raw)) {
+                              const normalized = raw.replace(
+                                /^0+(?!\.)/,
+                                raw === "0" ? "0" : ""
+                              );
+                              setZelleInput(normalized);
+                              setZelleAmount(Number.parseFloat(normalized) || 0);
                             }
                           }}
                           placeholder="0.00"
@@ -1536,13 +1608,13 @@ transition-colors`}
                   !cartArray.length ||
                   totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
-                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                  ((payWithCash || payWithCard || payWithZelle) && totalPaid === 0 && creditUsed === 0)
                 }
                 className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm ${
                   !cartArray.length ||
                   totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
-                  ((payWithCash || payWithCard) && totalPaid === 0 && creditUsed === 0)
+                  ((payWithCash || payWithCard || payWithZelle) && totalPaid === 0 && creditUsed === 0)
                     ? "opacity-50 bg-blue-600"
                     : "bg-blue-600"
                 }`}

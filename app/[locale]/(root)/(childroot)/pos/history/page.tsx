@@ -92,7 +92,7 @@ const SalesHistory = () => {
       const fetched_data = await fetch_content_service({
         table: "orders",
         language: "",
-        selectParam: `, order_date, paid_amount, cash, card, pos:allpatients (
+        selectParam: `, order_date, paid_amount, cash, card, zelle, pos:allpatients (
           lastname,
           firstname,
           email,
@@ -345,8 +345,13 @@ const SalesHistory = () => {
                       if (!order?.order_date) return;
                       const orderDateString = order.order_date.split('T')[0];
                       if (orderDateString === targetDateString) {
-                        const paidAmount = order.paid_amount || 0;
-                        totalAmount += paidAmount;
+                        const paidAmount =
+                          Number(order.cash || 0) +
+                          Number(order.card || 0) +
+                          Number(order.zelle || 0);
+                        const fallbackPaid = Number(order.paid_amount || 0);
+                        // prefer explicit tender breakdown; fall back to paid_amount if present
+                        totalAmount += paidAmount || fallbackPaid;
                       }
                     });
                     
