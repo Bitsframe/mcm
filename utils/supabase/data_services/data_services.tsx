@@ -115,10 +115,14 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
 }
 };
 
-export async function ApproveAppointment  (id: number) {
+export async function ApproveAppointment  (id: number, provider_name?: string, notes?: string) {
   const { data, error } = await supabase
     .from('Appoinments')
-    .update({ "isApproved": true })
+    .update({ 
+      "isApproved": true,
+      "provider_name": provider_name || null,
+      "notes": notes || null
+    })
     .eq('id', id)
     .select('*')
 

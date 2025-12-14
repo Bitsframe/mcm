@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
 import { renderFormattedDate } from "@/helper/common_functions"
+import ApprovedAppointmentModal from "./ApprovedAppointmentModal"
 
 interface Appointment {
   id: string
@@ -77,6 +78,8 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   const { t } = useTranslation(translationConstant.APPOINMENTS)
   const [desktopCurrentPage, setDesktopCurrentPage] = React.useState(1)
   const [mobileCurrentPage, setMobileCurrentPage] = React.useState(1)
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [selectedAppointment, setSelectedAppointment] = React.useState<Appointment | null>(null)
 
   React.useEffect(() => {
     setDesktopCurrentPage(1)
@@ -105,6 +108,37 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
 
   const handleMobileNextPage = () => {
     setMobileCurrentPage((prev) => Math.min(prev + 1, mobileTotalPages))
+  }
+
+  const handleOpenModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment)
+    setIsModalOpen(true)
+  }
+
+  const handleSaveModal = async (data: { providerName: string; notes: string }) => {
+    if (!selectedAppointment) return
+    
+    try {
+      // Approve the appointment with provider name and notes
+      // @ts-ignore
+      await ApproveAppointment(selectedAppointment.id, data.providerName, data.notes)
+      
+      toast.success(
+        <div className="flex justify-between dark:text-white">
+          <p>Appointment has been approved successfully.</p>
+          <button
+            onClick={() => toast.dismiss()}
+            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <span className="text-sm">&#x2715;</span>
+          </button>
+        </div>,
+      )
+      
+      onApprove?.(selectedAppointment)
+    } catch (error) {
+      toast.error("Failed to approve appointment")
+    }
   }
 
   return (
@@ -159,6 +193,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                       onDelete={onDelete}
                       onEdit={onEdit}
                       onApprove={onApprove}
+                      onOpenApprovedModal={handleOpenModal}
                     />
                   ))}
                 </TableBody>
@@ -176,6 +211,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onApprove={onApprove}
+                onOpenApprovedModal={handleOpenModal}
                 t={t}
               />
             )}
@@ -251,6 +287,13 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
         </>
       )}
+
+      <ApprovedAppointmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        appointment={selectedAppointment}
+        onSave={handleSaveModal}
+      />
     </div>
   )
 }
@@ -262,31 +305,16 @@ interface MemoizedTableRowProps {
   onDelete?: (id: string) => void
   onEdit?: (appointment: Appointment) => void
   onApprove?: (appointment: Appointment) => void
+  onOpenApprovedModal?: (appointment: Appointment) => void
 }
 
 const MemoizedTableRow = memo(
-  ({ appointment, onSelect, isUnapproved, onDelete, onEdit, onApprove }: MemoizedTableRowProps) => {
+  ({ appointment, onSelect, isUnapproved, onDelete, onEdit, onApprove, onOpenApprovedModal }: MemoizedTableRowProps) => {
     const { t } = useTranslation(translationConstant.APPOINMENTS)
     const handleApprove = async (event: React.MouseEvent) => {
       event.stopPropagation()
-      try {
-        // @ts-ignore
-        await ApproveAppointment(appointment.id)
-        toast.success(
-          <div className="flex justify-between dark:text-white">
-            <p>Appointment has been approved successfully.</p>
-            <button
-              onClick={() => toast.dismiss()}
-              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <span className="text-sm">&#x2715;</span>
-            </button>
-          </div>,
-        )
-        onApprove?.(appointment)
-      } catch (error) {
-        toast.error("Failed to approve appointment")
-      }
+      // Open modal instead of directly approving
+      onOpenApprovedModal?.(appointment)
     }
 
     const { date, time } = extractDateTime(appointment.date_and_time)
@@ -312,9 +340,15 @@ const MemoizedTableRow = memo(
               {t("Appoinments_k54")}
             </button>
           ) : (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenApprovedModal?.(appointment)
+              }}
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+            >
               {t("Appoinments_k53")} ✓
-            </span>
+            </button>
           )}
         </TableCell>
         <TableCell className="text-right p-2 sm:p-4 dark:border-gray-700">
@@ -354,31 +388,16 @@ interface MemoizedAppointmentCardProps {
   onDelete?: (id: string) => void
   onEdit?: (appointment: Appointment) => void
   onApprove?: (appointment: Appointment) => void
+  onOpenApprovedModal?: (appointment: Appointment) => void
   t: any
 }
 
 const MemoizedAppointmentCard = memo(
-  ({ appointment, onSelect, isUnapproved, onDelete, onEdit, onApprove, t }: MemoizedAppointmentCardProps) => {
+  ({ appointment, onSelect, isUnapproved, onDelete, onEdit, onApprove, onOpenApprovedModal, t }: MemoizedAppointmentCardProps) => {
     const handleApprove = async (event: React.MouseEvent) => {
       event.stopPropagation()
-      try {
-        // @ts-ignore
-        await ApproveAppointment(appointment.id)
-        toast.success(
-          <div className="flex justify-between dark:text-white">
-            <p>Appointment has been approved successfully.</p>
-            <button
-              onClick={() => toast.dismiss()}
-              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <span className="text-sm">&#x2715;</span>
-            </button>
-          </div>,
-        )
-        onApprove?.(appointment)
-      } catch (error) {
-        toast.error("Failed to approve appointment")
-      }
+      // Open modal instead of directly approving
+      onOpenApprovedModal?.(appointment)
     }
 
     const { date, time } = extractDateTime(appointment.date_and_time)
@@ -451,9 +470,15 @@ const MemoizedAppointmentCard = memo(
                   Approve
                 </button>
               ) : (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onOpenApprovedModal?.(appointment)
+                  }}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                >
                   Approved ✓
-                </span>
+                </button>
               )}
             </div>
           </div>

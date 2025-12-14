@@ -157,6 +157,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   // Local editable inputs for cash/card amounts when Card & Cash is selected
   const [cashInput, setCashInput] = useState<string>("");
   const [cardInput, setCardInput] = useState<string>("");
+  const [zelleInput, setZelleInput] = useState<string>("");
   // When splitting totals between cash & card this holds the total that must be preserved
   const [splitTotal, setSplitTotal] = useState<number>(0);
   // Track whether amounts have been saved (render as non-editable)
@@ -187,14 +188,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     setSplitTotal(Number((currentCash + currentCard).toFixed(2)));
   }, [dataList?.cash, dataList?.card, dataList?.zelle]);
 
-  // Persist cash/card values to backend when edited (called onBlur)
-  const persistCashCard = async (newCashStr: string, newCardStr: string) => {
+  // Persist cash/card/zelle values to backend when edited
+  const persistCashCard = async (newCashStr: string, newCardStr: string, newZelleStr?: string) => {
     try {
       const newCash = newCashStr === "" ? 0 : Number(Number(newCashStr).toFixed(2));
       const newCard = newCardStr === "" ? 0 : Number(Number(newCardStr).toFixed(2));
+      const newZelle = newZelleStr === "" || newZelleStr === undefined ? 0 : Number(Number(newZelleStr).toFixed(2));
 
       // Avoid unnecessary updates
-      if (Number(dataList?.cash || 0) === newCash && Number(dataList?.card || 0) === newCard) return;
+      if (Number(dataList?.cash || 0) === newCash && Number(dataList?.card || 0) === newCard && Number(dataList?.zelle || 0) === newZelle) return;
 
       await update_content_service({
         table: "orders",
@@ -202,24 +204,133 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           order_id: dataList?.order_id,
           cash: newCash,
           card: newCard,
+          zelle: newZelle,
         },
         matchKey: "order_id",
       });
 
       // Optimistically update local state
-      setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard }));
+      setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard, zelle: newZelle }));
       // mark amounts saved so fields render as text
       setAmountsSaved(true);
     } catch (e: any) {
-      console.error("Failed to persist cash/card amounts", e);
+      console.error("Failed to persist cash/card/zelle amounts", e);
       toast.error(e?.message || "Failed to save amounts");
       // Re-sync inputs from server state in case of failure
       setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
       setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
+      setZelleInput(dataList?.zelle != null ? String(Number(dataList.zelle).toFixed(2)) : "");
     }
   };
 
-  // (No checkbox state) Reset behaviors handled elsewhere
+  // Checkbox state
+  const [checks, setChecks] = useState<{ cash: boolean; card: boolean; zelle: boolean }>({
+    cash: Number(dataList?.cash || 0) > 0,
+    card: Number(dataList?.card || 0) > 0,
+    zelle: Number(dataList?.zelle || 0) > 0,
+  });
+
+  useEffect(() => {
+    setChecks({
+      cash: Number(dataList?.cash || 0) > 0,
+      card: Number(dataList?.card || 0) > 0,
+      zelle: Number(dataList?.zelle || 0) > 0,
+    });
+  }, [dataList?.cash, dataList?.card, dataList?.zelle]);
+
+  const isCashCardSplitActive = checks.cash && checks.card && !checks.zelle;
+  const isZelleCashSplitActive = checks.zelle && checks.cash && !checks.card;
+  const isZelleCardSplitActive = checks.zelle && checks.card && !checks.cash;
+  const isAllThreeSplitActive = checks.cash && checks.card && checks.zelle;
+  const isSplitEditActive = isCashCardSplitActive || isZelleCashSplitActive || isZelleCardSplitActive || isAllThreeSplitActive;
+  
+  // Determine which fields should be editable
+  const isCashEditable = (checks.cash && checks.card && !checks.zelle) || (checks.cash && checks.zelle && !checks.card) || isAllThreeSplitActive;
+  const isCardEditable = (checks.card && checks.cash && !checks.zelle) || (checks.card && checks.zelle && !checks.cash) || isAllThreeSplitActive;
+  const isZelleEditable = (checks.zelle && checks.cash && !checks.card) || (checks.zelle && checks.card && !checks.cash) || isAllThreeSplitActive;
+
+  // Single-checkbox selection handler: moves total into selected tender and zeroes others
+  const setSinglePayment = async (method: "cash" | "card" | "zelle") => {
+    try {
+      const total = Number(dataList?.cash || 0) + Number(dataList?.card || 0) + Number(dataList?.zelle || 0);
+      const newCash = method === "cash" ? total : 0;
+      const newCard = method === "card" ? total : 0;
+      const newZelle = method === "zelle" ? total : 0;
+
+      await update_content_service({
+        table: "orders",
+        post_data: {
+          order_id: dataList?.order_id,
+          cash: newCash,
+          card: newCard,
+          zelle: newZelle,
+        },
+        matchKey: "order_id",
+      });
+
+      // Update UI amounts immediately
+      setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard, zelle: newZelle }));
+      // Keep split editor coherent
+      setCashInput(String(newCash.toFixed(2)));
+      setCardInput(String(newCard.toFixed(2)));
+      setSplitTotal(Number((newCash + newCard).toFixed(2)));
+      setAmountsSaved(true);
+      setAmountsEditable(false);
+    } catch (e: any) {
+      console.error("Failed to update single payment method", e);
+      toast.error(e?.message || "Failed to update payment method");
+    }
+  };
+
+  const toggleCheck = async (type: "cash" | "card" | "zelle") => {
+    const next = { ...checks, [type]: !checks[type] };
+    const selectedCount = Number(next.cash) + Number(next.card) + Number(next.zelle);
+
+    // Only one selected → move entire total to that method
+    if (selectedCount === 1) {
+      setChecks(next);
+      const chosen = next.cash ? "cash" : next.card ? "card" : "zelle";
+      await setSinglePayment(chosen);
+      return;
+    }
+
+    // Two or three checkboxes selected → enable split editing
+    if (selectedCount === 2 || selectedCount === 3) {
+      setChecks(next);
+      setAmountsSaved(false);
+      setAmountsEditable(true);
+      // Use gross amount from order as the total to split
+      const grossAmount = dataList?.sales_history?.reduce((sum: number, item: any) => 
+        sum + (item.total_price || 0), 0) || 0;
+      const cartDiscount = dataList?.discounts?.find((d: any) => 
+        d.discount_type === 'cart' && d.product_id === null
+      );
+      const cartDiscountValue = cartDiscount ? cartDiscount.discount_value : 0;
+      let totalProductDiscount = 0;
+      if (dataList?.sales_history && dataList?.discounts) {
+        dataList.sales_history.forEach((item: any) => {
+          const productId = item?.inventory?.product_id;
+          const productDiscount = dataList.discounts.find((discount: any) => 
+            discount.product_id === productId && discount.discount_type === 'product'
+          );
+          if (productDiscount) {
+            const originalAmount = item.total_price || 0;
+            const discountAmount = (originalAmount * productDiscount.discount_amount) / 100;
+            totalProductDiscount += discountAmount;
+          }
+        });
+      }
+      const netAmount = grossAmount - cartDiscountValue - totalProductDiscount;
+      setSplitTotal(Number(netAmount.toFixed(2)));
+      setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
+      setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
+      setZelleInput(dataList?.zelle != null ? String(Number(dataList.zelle).toFixed(2)) : "");
+      return;
+    }
+
+    // Update checkbox state for any other combination (no auto-save for multi-zelle combos)
+    setChecks(next);
+  };
 
   return isOpen ? (
     <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -285,144 +396,79 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
-                        <div className="flex items-center gap-2">
-                        {/* indicator removed: no inline '(Card & Cash)' label */}
-                        <Select
-                          value={paymentMethodUI}
-                          onValueChange={async (v: PaymentOption) => {
-                            try {
-                              if (v === "Zelle, Card, Cash") {
-                                setPaymentMethodUI(v);
-                                setAmountsSaved(true);
-                                setAmountsEditable(false);
-                                return;
-                              }
-
-                              // If user selects a split option, enable editable inputs where applicable
-                              if (v === "Card & Cash") {
-                                setPaymentMethodUI(v);
-                                setAmountsSaved(false);
-                                setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
-                                setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
-                                setSplitTotal(Number((Number(dataList?.cash || 0) + Number(dataList?.card || 0)).toFixed(2)));
-                                return;
-                              }
-
-                              const total = Number(dataList?.cash || 0) + Number(dataList?.card || 0) + Number(dataList?.zelle || 0);
-                              let newCash = 0;
-                              let newCard = 0;
-                              let newZelle = 0;
-
-                              if (v === "Cash") {
-                                newCash = total;
-                              } else if (v === "Card") {
-                                newCard = total;
-                              } else if (v === "Zelle") {
-                                newZelle = total;
-                              } else if (v === "Zelle & Cash") {
-                                // keep existing zelle/cash if they sum to total; else move total to zelle
-                                const existingZelle = Number(dataList?.zelle || 0);
-                                const existingCash = Number(dataList?.cash || 0);
-                                if (Number((existingZelle + existingCash).toFixed(2)) === Number(total.toFixed(2))) {
-                                  newZelle = existingZelle;
-                                  newCash = existingCash;
-                                } else {
-                                  newZelle = total;
-                                  newCash = 0;
-                                }
-                              } else if (v === "Zelle & Card") {
-                                const existingZelle = Number(dataList?.zelle || 0);
-                                const existingCard = Number(dataList?.card || 0);
-                                if (Number((existingZelle + existingCard).toFixed(2)) === Number(total.toFixed(2))) {
-                                  newZelle = existingZelle;
-                                  newCard = existingCard;
-                                } else {
-                                  newZelle = total;
-                                  newCard = 0;
-                                }
-                              }
-
-                              // If values didn't change, just set the UI and return
-                              if (
-                                newCash === Number(dataList?.cash || 0) &&
-                                newCard === Number(dataList?.card || 0) &&
-                                newZelle === Number(dataList?.zelle || 0)
-                              ) {
-                                setPaymentMethodUI(v);
-                                setAmountsSaved(true);
-                                return;
-                              }
-
-                              // Persist immediately
-                              await update_content_service({
-                                table: "orders",
-                                post_data: {
-                                  order_id: dataList?.order_id,
-                                  cash: newCash,
-                                  card: newCard,
-                                  zelle: newZelle,
-                                },
-                                matchKey: "order_id",
-                              });
-
-                              // Update UI state
-                              setDataList((prev: any) => ({ ...prev, cash: newCash, card: newCard, zelle: newZelle }));
-                              setPaymentMethodUI(v);
-                              setAmountsSaved(true);
-                              // also update inputs in case user switches back to Card & Cash
-                              setCashInput(String(newCash.toFixed(2)));
-                              setCardInput(String(newCard.toFixed(2)));
-                            } catch (e: any) {
-                              console.error("Failed to update payment method", e);
-                              toast.error(e?.message || "Failed to update payment method");
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="w-[110px] h-8 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-[#080e16] border dark:border-[#0e1725]">
-                            <SelectGroup>
-                              <SelectItem value="Card & Cash" className="text-sm">Card & Cash</SelectItem>
-                              <SelectItem value="Cash" className="text-sm">Cash</SelectItem>
-                              <SelectItem value="Card" className="text-sm">Card</SelectItem>
-                              <SelectItem value="Zelle, Card, Cash" className="text-sm">Zelle, Card, Cash</SelectItem>
-                              <SelectItem value="Zelle" className="text-sm">Zelle</SelectItem>
-                              <SelectItem value="Zelle & Cash" className="text-sm">Zelle & Cash</SelectItem>
-                              <SelectItem value="Zelle & Card" className="text-sm">Zelle & Card</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        {/* Save button next to Payment Method - visible only when editing split amounts */}
-                        {paymentMethodUI === "Card & Cash" && !amountsSaved && amountsEditable && (
-                          <button
-                            type="button"
-                            onClick={() => persistCashCard(cashInput, cardInput)}
-                            disabled={(() => {
-                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                              const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                              const sum = Number((currentCash + currentCard).toFixed(2));
-                              const matchesTotal = Math.abs(sum - Number(splitTotal)) < 0.005;
-                              const unchanged =
-                                Number(dataList?.cash || 0) === currentCash &&
-                                Number(dataList?.card || 0) === currentCard;
-                              return !(matchesTotal && !unchanged);
-                            })()}
-                            aria-label="Save"
-                            title="Save"
-                            className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
-                              <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414L8 11.086l6.793-6.793a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        )}
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={checks.cash}
+                            onChange={() => toggleCheck("cash")}
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                          />
+                          Cash
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={checks.card}
+                            onChange={() => toggleCheck("card")}
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                          />
+                          Card
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={checks.zelle}
+                            onChange={() => toggleCheck("zelle")}
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                          />
+                          Zelle
+                        </label>
                       </div>
                     </div>
-                    
+                    {isSplitEditActive && !amountsSaved && amountsEditable && (
+                      <div className="flex justify-end mt-2">
+                        <button
+                          type="button"
+                          onClick={() => persistCashCard(cashInput, cardInput, zelleInput)}
+                          disabled={(() => {
+                            const currentCash = Number(Number(cashInput || 0).toFixed(2));
+                            const currentCard = Number(Number(cardInput || 0).toFixed(2));
+                            const currentZelle = Number(Number(zelleInput || 0).toFixed(2));
+                            const sum = Number((currentCash + currentCard + currentZelle).toFixed(2));
+                            const total = Number(splitTotal);
+                            const matchesTotal = Math.abs(sum - total) < 0.005;
+                            const unchanged =
+                              Number(dataList?.cash || 0) === currentCash &&
+                              Number(dataList?.card || 0) === currentCard &&
+                              Number(dataList?.zelle || 0) === currentZelle;
+                            return !(matchesTotal && !unchanged);
+                          })()}
+                          aria-label="Save"
+                          title="Save"
+                          className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414L8 11.086l6.793-6.793a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                    {isSplitEditActive && !amountsSaved && amountsEditable && (() => {
+                      const currentCash = Number(Number(cashInput || 0).toFixed(2));
+                      const currentCard = Number(Number(cardInput || 0).toFixed(2));
+                      const currentZelle = Number(Number(zelleInput || 0).toFixed(2));
+                      const sum = Number((currentCash + currentCard + currentZelle).toFixed(2));
+                      if (Math.abs(sum - Number(splitTotal)) > 0.005) {
+                        return (
+                          <div className="text-sm text-red-600 text-right">Sum must equal ${Number(splitTotal).toFixed(2)}</div>
+                        );
+                      }
+                      return null;
+                    })()}
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Cash Amount:</span>
-                      {paymentMethodUI === "Card & Cash" ? (
+                      {isCashEditable ? (
                         amountsSaved || !amountsEditable ? (
                           <span
                             onClick={() => {
@@ -446,9 +492,23 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 const raw = e.target.value;
                                 const parsed = raw === "" ? 0 : Number(raw);
                                 const clamped = isNaN(parsed) ? 0 : parsed;
-                                const other = Number((splitTotal - clamped).toFixed(2));
                                 setCashInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
-                                setCardInput(String(Math.max(0, other).toFixed(2)));
+                                
+                                // Auto-adjust remaining field(s)
+                                if (isCashCardSplitActive) {
+                                  // Cash + Card: card auto-adjusts
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setCardInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isZelleCashSplitActive) {
+                                  // Zelle + Cash: zelle auto-adjusts
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setZelleInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isAllThreeSplitActive) {
+                                  // All three: zelle auto-adjusts to total - cash - card
+                                  const cardVal = Number(cardInput) || 0;
+                                  const remaining = Number((splitTotal - clamped - cardVal).toFixed(2));
+                                  setZelleInput(String(Math.max(0, remaining).toFixed(2)));
+                                }
                               }}
                               className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
                             />
@@ -466,7 +526,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Card Amount:</span>
-                      {paymentMethodUI === "Card & Cash" ? (
+                      {isCardEditable ? (
                         amountsSaved || !amountsEditable ? (
                           <span
                             onClick={() => {
@@ -480,35 +540,36 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             })()}
                           </span>
                         ) : (
-                          <div className="font-medium text-gray-800 dark:text-gray-200 flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">$</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={cardInput}
-                                onChange={(e) => {
-                                  const raw = e.target.value;
-                                  const parsed = raw === "" ? 0 : Number(raw);
-                                  const clamped = isNaN(parsed) ? 0 : parsed;
-                                  const other = Number((splitTotal - clamped).toFixed(2));
-                                  setCardInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
-                                  setCashInput(String(Math.max(0, other).toFixed(2)));
-                                }}
-                                className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
-                              />
-                            </div>
-                            {(() => {
-                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                              const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                              const sum = Number((currentCash + currentCard).toFixed(2));
-                              if (Math.abs(sum - Number(splitTotal)) > 0.005) {
-                                return (
-                                  <div className="text-sm text-red-600">{"Sum must equal $" + Number(splitTotal).toFixed(2)}</div>
-                                );
-                              }
-                              return null;
-                            })()}
+                          <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                            <span className="text-gray-600">$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={cardInput}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                setCardInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
+                                
+                                // Auto-adjust remaining field(s)
+                                if (isCashCardSplitActive) {
+                                  // Cash + Card: cash auto-adjusts
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setCashInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isZelleCardSplitActive) {
+                                  // Zelle + Card: zelle auto-adjusts
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setZelleInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isAllThreeSplitActive) {
+                                  // All three: zelle auto-adjusts to total - cash - card
+                                  const cashVal = Number(cashInput) || 0;
+                                  const remaining = Number((splitTotal - clamped - cashVal).toFixed(2));
+                                  setZelleInput(String(Math.max(0, remaining).toFixed(2)));
+                                }
+                              }}
+                              className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                            />
                           </div>
                         )
                       ) : (
@@ -523,12 +584,66 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Zelle Amount:</span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        ${(() => {
-                          const zelleAmt = Number(dataList?.zelle) || 0;
-                          return zelleAmt.toFixed(2);
-                        })()}
-                      </span>
+                      {isZelleEditable ? (
+                        amountsSaved || !amountsEditable ? (
+                          <span
+                            onClick={() => {
+                              if (!amountsSaved) setAmountsEditable(true);
+                            }}
+                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                          >
+                            ${(() => {
+                              const zelleAmt = Number(dataList?.zelle) || 0;
+                              return zelleAmt.toFixed(2);
+                            })()}
+                          </span>
+                        ) : (
+                          <div className="font-medium text-gray-800 dark:text-gray-200 flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={zelleInput}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  const parsed = raw === "" ? 0 : Number(raw);
+                                  const clamped = isNaN(parsed) ? 0 : parsed;
+                                  setZelleInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
+                                  
+                                  // Auto-adjust remaining field(s)
+                                  if (isZelleCashSplitActive) {
+                                    // Zelle + Cash: cash auto-adjusts
+                                    const remaining = Number((splitTotal - clamped).toFixed(2));
+                                    setCashInput(String(Math.max(0, remaining).toFixed(2)));
+                                  } else if (isZelleCardSplitActive) {
+                                    // Zelle + Card: card auto-adjusts
+                                    const remaining = Number((splitTotal - clamped).toFixed(2));
+                                    setCardInput(String(Math.max(0, remaining).toFixed(2)));
+                                  } else if (isAllThreeSplitActive) {
+                                    // All three: card auto-adjusts to total - cash - zelle
+                                    const cashVal = Number(cashInput) || 0;
+                                    const remaining = Number((splitTotal - clamped - cashVal).toFixed(2));
+                                    setCardInput(String(Math.max(0, remaining).toFixed(2)));
+                                  }
+                                }}
+                                className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                              />
+                            </div>
+                            {(() => {
+                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
+                              return null;
+                            })()}
+                          </div>
+                        )
+                      ) : (
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          ${(() => {
+                            const zelleAmt = Number(dataList?.zelle) || 0;
+                            return zelleAmt.toFixed(2);
+                          })()}
+                        </span>
+                      )}
                     </div>
                     
                     <div className="flex justify-between">
