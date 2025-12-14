@@ -191,9 +191,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   // Persist cash/card/zelle values to backend when edited
   const persistCashCard = async (newCashStr: string, newCardStr: string, newZelleStr?: string) => {
     try {
-      const newCash = newCashStr === "" ? 0 : Number(Number(newCashStr).toFixed(2));
-      const newCard = newCardStr === "" ? 0 : Number(Number(newCardStr).toFixed(2));
-      const newZelle = newZelleStr === "" || newZelleStr === undefined ? 0 : Number(Number(newZelleStr).toFixed(2));
+      // Only use the values for CHECKED payment methods, set others to 0
+      const newCash = checks.cash ? (newCashStr === "" ? 0 : Number(Number(newCashStr).toFixed(2))) : 0;
+      const newCard = checks.card ? (newCardStr === "" ? 0 : Number(Number(newCardStr).toFixed(2))) : 0;
+      const newZelle = checks.zelle ? (newZelleStr === "" || newZelleStr === undefined ? 0 : Number(Number(newZelleStr).toFixed(2))) : 0;
 
       // Avoid unnecessary updates
       if (Number(dataList?.cash || 0) === newCash && Number(dataList?.card || 0) === newCard && Number(dataList?.zelle || 0) === newZelle) return;
@@ -285,6 +286,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const toggleCheck = async (type: "cash" | "card" | "zelle") => {
     const next = { ...checks, [type]: !checks[type] };
     const selectedCount = Number(next.cash) + Number(next.card) + Number(next.zelle);
+
+    // Prevent unchecking if it would result in zero selections
+    if (selectedCount === 0) {
+      toast.error("At least one payment method must be selected");
+      return;
+    }
 
     // Only one selected → move entire total to that method
     if (selectedCount === 1) {
@@ -432,9 +439,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           type="button"
                           onClick={() => persistCashCard(cashInput, cardInput, zelleInput)}
                           disabled={(() => {
-                            const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                            const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                            const currentZelle = Number(Number(zelleInput || 0).toFixed(2));
+                            const currentCash = checks.cash ? Number(Number(cashInput || 0).toFixed(2)) : 0;
+                            const currentCard = checks.card ? Number(Number(cardInput || 0).toFixed(2)) : 0;
+                            const currentZelle = checks.zelle ? Number(Number(zelleInput || 0).toFixed(2)) : 0;
                             const sum = Number((currentCash + currentCard + currentZelle).toFixed(2));
                             const total = Number(splitTotal);
                             const matchesTotal = Math.abs(sum - total) < 0.005;
@@ -455,9 +462,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </div>
                     )}
                     {isSplitEditActive && !amountsSaved && amountsEditable && (() => {
-                      const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                      const currentCard = Number(Number(cardInput || 0).toFixed(2));
-                      const currentZelle = Number(Number(zelleInput || 0).toFixed(2));
+                      const currentCash = checks.cash ? Number(Number(cashInput || 0).toFixed(2)) : 0;
+                      const currentCard = checks.card ? Number(Number(cardInput || 0).toFixed(2)) : 0;
+                      const currentZelle = checks.zelle ? Number(Number(zelleInput || 0).toFixed(2)) : 0;
                       const sum = Number((currentCash + currentCard + currentZelle).toFixed(2));
                       if (Math.abs(sum - Number(splitTotal)) > 0.005) {
                         return (
@@ -466,6 +473,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       }
                       return null;
                     })()}
+                    {(Number(dataList?.cash) > 0 || isCashEditable) && (
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Cash Amount:</span>
                       {isCashEditable ? (
@@ -482,35 +490,41 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             })()}
                           </span>
                         ) : (
-                          <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                            <span className="text-gray-600">$</span>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
                             <input
-                              type="number"
-                              step="0.01"
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0.00"
                               value={cashInput}
                               onChange={(e) => {
                                 const raw = e.target.value;
+                                setCashInput(raw);
+                                
+                                // Auto-adjust remaining field(s) during typing
                                 const parsed = raw === "" ? 0 : Number(raw);
                                 const clamped = isNaN(parsed) ? 0 : parsed;
-                                setCashInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
                                 
-                                // Auto-adjust remaining field(s)
                                 if (isCashCardSplitActive) {
-                                  // Cash + Card: card auto-adjusts
                                   const remaining = Number((splitTotal - clamped).toFixed(2));
                                   setCardInput(String(Math.max(0, remaining).toFixed(2)));
                                 } else if (isZelleCashSplitActive) {
-                                  // Zelle + Cash: zelle auto-adjusts
                                   const remaining = Number((splitTotal - clamped).toFixed(2));
                                   setZelleInput(String(Math.max(0, remaining).toFixed(2)));
                                 } else if (isAllThreeSplitActive) {
-                                  // All three: zelle auto-adjusts to total - cash - card
                                   const cardVal = Number(cardInput) || 0;
                                   const remaining = Number((splitTotal - clamped - cardVal).toFixed(2));
                                   setZelleInput(String(Math.max(0, remaining).toFixed(2)));
                                 }
                               }}
-                              className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                              onBlur={(e) => {
+                                const raw = e.target.value;
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
+                                setCashInput(formatted);
+                              }}
+                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                             />
                           </div>
                         )
@@ -523,7 +537,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         </span>
                       )}
                     </div>
+                    )}
                     
+                    {(Number(dataList?.card) > 0 || isCardEditable) && (
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Card Amount:</span>
                       {isCardEditable ? (
@@ -540,35 +556,41 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             })()}
                           </span>
                         ) : (
-                          <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                            <span className="text-gray-600">$</span>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
                             <input
-                              type="number"
-                              step="0.01"
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0.00"
                               value={cardInput}
                               onChange={(e) => {
                                 const raw = e.target.value;
+                                setCardInput(raw);
+                                
+                                // Auto-adjust remaining field(s) during typing
                                 const parsed = raw === "" ? 0 : Number(raw);
                                 const clamped = isNaN(parsed) ? 0 : parsed;
-                                setCardInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
                                 
-                                // Auto-adjust remaining field(s)
                                 if (isCashCardSplitActive) {
-                                  // Cash + Card: cash auto-adjusts
                                   const remaining = Number((splitTotal - clamped).toFixed(2));
                                   setCashInput(String(Math.max(0, remaining).toFixed(2)));
                                 } else if (isZelleCardSplitActive) {
-                                  // Zelle + Card: zelle auto-adjusts
                                   const remaining = Number((splitTotal - clamped).toFixed(2));
                                   setZelleInput(String(Math.max(0, remaining).toFixed(2)));
                                 } else if (isAllThreeSplitActive) {
-                                  // All three: zelle auto-adjusts to total - cash - card
                                   const cashVal = Number(cashInput) || 0;
                                   const remaining = Number((splitTotal - clamped - cashVal).toFixed(2));
                                   setZelleInput(String(Math.max(0, remaining).toFixed(2)));
                                 }
                               }}
-                              className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
+                              onBlur={(e) => {
+                                const raw = e.target.value;
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
+                                setCardInput(formatted);
+                              }}
+                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                             />
                           </div>
                         )
@@ -581,7 +603,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         </span>
                       )}
                     </div>
+                    )}
 
+                    {(Number(dataList?.zelle) > 0 || isZelleEditable) && (
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Zelle Amount:</span>
                       {isZelleEditable ? (
@@ -598,42 +622,42 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             })()}
                           </span>
                         ) : (
-                          <div className="font-medium text-gray-800 dark:text-gray-200 flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">$</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={zelleInput}
-                                onChange={(e) => {
-                                  const raw = e.target.value;
-                                  const parsed = raw === "" ? 0 : Number(raw);
-                                  const clamped = isNaN(parsed) ? 0 : parsed;
-                                  setZelleInput(clamped === 0 ? "" : String(clamped.toFixed(2)));
-                                  
-                                  // Auto-adjust remaining field(s)
-                                  if (isZelleCashSplitActive) {
-                                    // Zelle + Cash: cash auto-adjusts
-                                    const remaining = Number((splitTotal - clamped).toFixed(2));
-                                    setCashInput(String(Math.max(0, remaining).toFixed(2)));
-                                  } else if (isZelleCardSplitActive) {
-                                    // Zelle + Card: card auto-adjusts
-                                    const remaining = Number((splitTotal - clamped).toFixed(2));
-                                    setCardInput(String(Math.max(0, remaining).toFixed(2)));
-                                  } else if (isAllThreeSplitActive) {
-                                    // All three: card auto-adjusts to total - cash - zelle
-                                    const cashVal = Number(cashInput) || 0;
-                                    const remaining = Number((splitTotal - clamped - cashVal).toFixed(2));
-                                    setCardInput(String(Math.max(0, remaining).toFixed(2)));
-                                  }
-                                }}
-                                className="w-28 bg-white dark:bg-[#0e1725] border border-gray-200 dark:border-gray-600 text-sm px-2 py-1 rounded"
-                              />
-                            </div>
-                            {(() => {
-                              const currentCash = Number(Number(cashInput || 0).toFixed(2));
-                              return null;
-                            })()}
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0.00"
+                              value={zelleInput}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                setZelleInput(raw);
+                                
+                                // Auto-adjust remaining field(s) during typing
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                
+                                if (isZelleCashSplitActive) {
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setCashInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isZelleCardSplitActive) {
+                                  const remaining = Number((splitTotal - clamped).toFixed(2));
+                                  setCardInput(String(Math.max(0, remaining).toFixed(2)));
+                                } else if (isAllThreeSplitActive) {
+                                  const cashVal = Number(cashInput) || 0;
+                                  const remaining = Number((splitTotal - clamped - cashVal).toFixed(2));
+                                  setCardInput(String(Math.max(0, remaining).toFixed(2)));
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const raw = e.target.value;
+                                const parsed = raw === "" ? 0 : Number(raw);
+                                const clamped = isNaN(parsed) ? 0 : parsed;
+                                const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
+                                setZelleInput(formatted);
+                              }}
+                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            />
                           </div>
                         )
                       ) : (
@@ -645,6 +669,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         </span>
                       )}
                     </div>
+                    )}
                     
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Gross Amount:</span>
