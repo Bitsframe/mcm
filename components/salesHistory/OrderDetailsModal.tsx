@@ -434,7 +434,23 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </div>
                     </div>
                     {isSplitEditActive && !amountsSaved && amountsEditable && (
-                      <div className="flex justify-end mt-2">
+                      <div className="flex justify-end gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Reset to original values
+                            setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
+                            setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
+                            setZelleInput(dataList?.zelle != null ? String(Number(dataList.zelle).toFixed(2)) : "");
+                            // Close edit mode
+                            setAmountsEditable(false);
+                          }}
+                          aria-label="Cancel"
+                          title="Cancel"
+                          className="inline-flex items-center justify-center px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm font-medium"
+                        >
+                          Cancel
+                        </button>
                         <button
                           type="button"
                           onClick={() => persistCashCard(cashInput, cardInput, zelleInput)}
