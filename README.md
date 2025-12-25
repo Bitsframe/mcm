@@ -22,3 +22,4 @@ yarn husky install ----
 ```
 
 Two branches
+only prod can be pulled
