@@ -2,7 +2,9 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "Desktop"
+project_id = "mcm"
+
+
 
 [api]
 enabled = true
@@ -317,3 +319,7 @@ entrypoint = "./functions/send-email/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-email/*.html" ]
+
+
+[remotes.staging]
+project_id = "bfajorsojaxcdqxkrved"
