@@ -1,0 +1,3 @@
+-- Baseline migration
+-- Represents the current schema.
+-- No-op by design.
