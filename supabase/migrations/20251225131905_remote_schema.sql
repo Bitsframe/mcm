@@ -6,7 +6,19 @@ create schema if not exists "test_mcm";
 
 create extension if not exists "http" with schema "public";
 
-create type "public"."Gender" as enum ('Male', 'Female', 'Other');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE t.typname = 'Gender'
+      AND n.nspname = 'public'
+  ) THEN
+    CREATE TYPE public."Gender" AS ENUM ('Male', 'Female', 'Other');
+  END IF;
+END
+$$;
+
 
 create type "public"."credit_type" as enum ('topup', 'order');
 
