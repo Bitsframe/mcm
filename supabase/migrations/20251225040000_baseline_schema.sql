@@ -1,0 +1,4 @@
+-- Baseline migration
+-- This migration exists only to align Supabase Preview with
+-- an already-existing schema.
+-- No schema changes are performed here.
