@@ -10,6 +10,7 @@ create type "public"."Gender" as enum ('Male', 'Female', 'Other');
 
 create type "public"."credit_type" as enum ('topup', 'order');
 
+
 create type "public"."telemedicine_states" as enum ('Inprogress', 'Waiting', 'Done');
 
 create sequence "public"."allservices_es_id_seq";
