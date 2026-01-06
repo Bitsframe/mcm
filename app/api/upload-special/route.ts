@@ -41,5 +41,6 @@ export async function POST(req: NextRequest) {
     data: { publicUrl },
   } = supabase.storage.from(bucket).getPublicUrl(fileName)
 
-  return NextResponse.json({ url: publicUrl }, { status: 200 })
+  // Return both for flexibility: store `path` in DB, use `url` directly if desired
+  return NextResponse.json({ path: fileName, url: publicUrl }, { status: 200 })
 }

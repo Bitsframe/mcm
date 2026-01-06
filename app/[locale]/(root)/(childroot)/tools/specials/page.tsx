@@ -5,6 +5,7 @@ import { Input_Component } from "@/components/Input_Component";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { Button, Modal } from "flowbite-react";
+import { supabase } from "@/services/supabase";
 
 async function uploadToStorage(file: File): Promise<string> {
   const form = new FormData();
@@ -12,7 +13,8 @@ async function uploadToStorage(file: File): Promise<string> {
   const res = await fetch("/api/upload-special", { method: "POST", body: form });
   if (!res.ok) throw new Error("Upload failed");
   const data = await res.json();
-  return data.url as string;
+  // Store only the object path in DB
+  return data.path as string;
 }
 
 interface SpecialItem {
@@ -20,6 +22,7 @@ interface SpecialItem {
   file_path: string;
   display: boolean;
   created_at?: string;
+  title?: string | null;
 }
 
 const SpecialsPage = () => {
@@ -29,9 +32,10 @@ const SpecialsPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState<string>("");
 
   const open = () => setIsOpen(true);
-  const close = () => { setIsOpen(false); setFile(null); };
+  const close = () => { setIsOpen(false); setFile(null); setNewTitle(""); };
   const closePreview = () => setPreviewUrl(null);
 
   const fetchData = async () => {
@@ -52,10 +56,10 @@ const SpecialsPage = () => {
     if (!file) return toast.error("Please select an image");
     setUploading(true);
     try {
-      const url = await uploadToStorage(file);
+      const path = await uploadToStorage(file);
       const { data, error }: any = await create_content_service({
         table: "special_picture",
-        post_data: { file_path: url, display: false },
+        post_data: { file_path: path, display: false, title: newTitle || null },
       });
       if (error) throw new Error(error.message);
       toast.success("Special added");
@@ -109,6 +113,12 @@ const SpecialsPage = () => {
         loading={uploading}
       >
         <div className="space-y-4">
+          <Input_Component 
+            label="Title" 
+            type="text" 
+            value={newTitle} 
+            onChange={(val: string) => setNewTitle(val)}
+          />
           <div>
             <label className="block text-sm font-medium mb-2">Select Image</label>
             <input 
@@ -131,17 +141,26 @@ const SpecialsPage = () => {
             <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <button
                 type="button"
-                onClick={() => setPreviewUrl(it.file_path)}
+                onClick={() => setPreviewUrl(
+                  supabase.storage
+                    .from('special_picture')
+                    .getPublicUrl(it.file_path).data.publicUrl
+                )}
                 className="aspect-video relative overflow-hidden bg-gray-100 block"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
-                  src={it.file_path} 
+                  src={supabase.storage.from('special_picture').getPublicUrl(it.file_path).data.publicUrl} 
                   alt="special" 
                   className="h-full w-full object-cover" 
                 />
               </button>
               <div className="p-4 space-y-3">
+                {typeof it.title !== 'undefined' && (
+                  <p className="text-sm font-medium truncate" title={it.title || undefined}>
+                    {it.title || 'Untitled'}
+                  </p>
+                )}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-sm">
                     <span>Display</span>
