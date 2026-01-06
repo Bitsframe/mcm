@@ -182,6 +182,21 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
     if (!orderData?.length) throw new Error('Failed to create order');
     const order_id = orderData[0].order_id;
 
+    // Fetch the freshly created order's UTC order_date for CT conversion in email
+    let order_date_utc: string | null = null;
+    try {
+      const orderRows = await fetch_content_service({
+        table: 'orders',
+        matchCase: { key: 'order_id', value: order_id },
+        selectParam: 'order_id, order_date'
+      });
+      if (orderRows && orderRows.length > 0) {
+        order_date_utc = orderRows[0]?.order_date ?? null;
+      }
+    } catch (e) {
+      console.error('[orders] Unable to read order_date for email CT conversion', e);
+    }
+
 
         // Insert Cart-Level Discount into Discounts Table (if applicable)
     if (appliedDiscount > 0) {
@@ -412,7 +427,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
 
     // --- 4. Send order email to patient ---
     await sendOrderEmail(
-      { order_id, paymentcash: cashAmount > 0, paymentcard: cardAmount > 0 },
+      { order_id, paymentcash: cashAmount > 0, paymentcard: cardAmount > 0, order_date_utc },
       { ...selectedPatient, location: selectedLocation.title },
       cartArray,
       subtotalAmount,

@@ -19,6 +19,19 @@ interface DataListInterface {
   [key: string]: any;
 }
 
+// Helper function to convert UTC datetime to CT date string (YYYY-MM-DD)
+const convertUTCtoCtDate = (utcDateString: string): string => {
+  if (!utcDateString) return "";
+  const date = new Date(utcDateString);
+  // CT is UTC-6 (Central Standard Time)
+  const ctOffset = -6 * 60 * 60 * 1000; // 6 hours in milliseconds
+  const ctDate = new Date(date.getTime() + ctOffset);
+  const year = ctDate.getUTCFullYear();
+  const month = String(ctDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(ctDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const tableHeader = [
   {
     id: "order_id",
@@ -158,8 +171,8 @@ const SalesHistory = () => {
     if (dobSearch.trim() !== "") {
       filtered = filtered.filter((item) => {
         if (!item?.order_date) return false;
-        const orderDateString = item.order_date.split('T')[0];
-        return orderDateString === dobSearch;
+        const orderDateInCT = convertUTCtoCtDate(item.order_date);
+        return orderDateInCT === dobSearch;
       });
     }
     setDataList(filtered);
@@ -281,17 +294,19 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Products Sold {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                  Products Sold {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {(() => {
-                    // Use selected date or today's date
+                    // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
-                      // If no date selected, show today
+                      // If no date selected, show today in CT
                       const today = new Date();
-                      const year = today.getFullYear();
-                      const month = String(today.getMonth() + 1).padStart(2, '0');
-                      const day = String(today.getDate()).padStart(2, '0');
+                      const ctOffset = -6 * 60 * 60 * 1000;
+                      const todayInCT = new Date(today.getTime() + ctOffset);
+                      const year = todayInCT.getUTCFullYear();
+                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
+                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
                       return `${year}-${month}-${day}`;
                     })();
                     
@@ -301,8 +316,8 @@ const SalesHistory = () => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
                           if (!sale.date_sold) return;
-                          const saleDateString = sale.date_sold.split('T')[0];
-                          if (saleDateString === targetDateString) {
+                          const saleDateInCT = convertUTCtoCtDate(sale.date_sold);
+                          if (saleDateInCT === targetDateString) {
                             totalProductsSold += sale.quantity_sold || 0;
                           }
                         });
@@ -326,16 +341,18 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Total Amount Received {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                  Total Amount Received {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {
-                    // Use selected date or today's date
+                    // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
                       const today = new Date();
-                      const year = today.getFullYear();
-                      const month = String(today.getMonth() + 1).padStart(2, '0');
-                      const day = String(today.getDate()).padStart(2, '0');
+                      const ctOffset = -6 * 60 * 60 * 1000;
+                      const todayInCT = new Date(today.getTime() + ctOffset);
+                      const year = todayInCT.getUTCFullYear();
+                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
+                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
                       return `${year}-${month}-${day}`;
                     })();
                     
@@ -343,8 +360,8 @@ const SalesHistory = () => {
                     
                     allData.forEach((order) => {
                       if (!order?.order_date) return;
-                      const orderDateString = order.order_date.split('T')[0];
-                      if (orderDateString === targetDateString) {
+                      const orderDateInCT = convertUTCtoCtDate(order.order_date);
+                      if (orderDateInCT === targetDateString) {
                         const paidAmount =
                           Number(order.cash || 0) +
                           Number(order.card || 0) +
@@ -372,16 +389,19 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Total Sales {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today'}
+                  Total Sales {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {
-                    // Use selected date or today's date
+                    // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
                       const today = new Date();
-                      const cstOffset = -6; // CST is UTC-6
-                      const todayCST = new Date(today.getTime() + (cstOffset * 60 * 60 * 1000));
-                      return todayCST.toISOString().split('T')[0]; // YYYY-MM-DD format
+                      const ctOffset = -6 * 60 * 60 * 1000;
+                      const todayInCT = new Date(today.getTime() + ctOffset);
+                      const year = todayInCT.getUTCFullYear();
+                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
+                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
+                      return `${year}-${month}-${day}`;
                     })();
                     
                     let totalSales = 0;
@@ -390,8 +410,8 @@ const SalesHistory = () => {
                       if (order.sales_history) {
                         order.sales_history.forEach((sale: any) => {
                           if (!sale.date_sold) return;
-                          const saleDateString = sale.date_sold.split('T')[0];
-                          if (saleDateString === targetDateString) {
+                          const saleDateInCT = convertUTCtoCtDate(sale.date_sold);
+                          if (saleDateInCT === targetDateString) {
                             totalSales += sale.total_price || 0;
                           }
                         });

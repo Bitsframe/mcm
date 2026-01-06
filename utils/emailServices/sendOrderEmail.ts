@@ -1,5 +1,34 @@
 import { currencyFormatHandle } from "@/helper/common_functions";
 
+// Helper: format a UTC datetime string as CT (UTC-6) in 'DD Mon YYYY'
+function formatUTCToCTDate(utcDateString?: string): string {
+  try {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    const source = utcDateString && typeof utcDateString === 'string'
+      ? utcDateString.replace(' ', 'T') // normalize 'YYYY-MM-DD hh:mm' → ISO-like
+      : new Date().toISOString();
+    const d = new Date(source);
+    // CT is UTC-6 (fixed offset to match app display logic)
+    const ctMs = d.getTime() + (-6 * 60 * 60 * 1000);
+    const ct = new Date(ctMs);
+    const day = String(ct.getUTCDate()).padStart(2, '0');
+    const month = months[ct.getUTCMonth()];
+    const year = ct.getUTCFullYear();
+    return `${day} ${month} ${year}`;
+  } catch {
+    // Fallback to today's date in local if parsing fails
+    const today = new Date();
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return `${String(today.getDate()).padStart(2, '0')} ${months[today.getMonth()]} ${today.getFullYear()}`;
+  }
+}
+
 export const sendOrderEmail = async (
   orderDetails: any,
   patientInfo: any,
@@ -11,12 +40,8 @@ export const sendOrderEmail = async (
   newCreditBalance: number = 0
 ) => {
   try {
-    const today = new Date();
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    const formattedDate = `${today.getDate()}-${months[today.getMonth()]}-${today.getFullYear()}`;
+    // Prefer the created order's UTC date, display as CT on invoice
+    const formattedDate = formatUTCToCTDate(orderDetails?.order_date_utc);
     const discountPercentArray = orderItems.map(item => item.discount_percent);
  
 
