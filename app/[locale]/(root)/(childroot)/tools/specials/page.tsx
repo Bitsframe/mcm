@@ -1,0 +1,191 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { Input_Component } from "@/components/Input_Component";
+import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
+import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { Button, Modal } from "flowbite-react";
+
+async function uploadToStorage(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload-special", { method: "POST", body: form });
+  if (!res.ok) throw new Error("Upload failed");
+  const data = await res.json();
+  return data.url as string;
+}
+
+interface SpecialItem {
+  id: number;
+  file_path: string;
+  display: boolean;
+  created_at?: string;
+}
+
+const SpecialsPage = () => {
+  const [items, setItems] = useState<SpecialItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const open = () => setIsOpen(true);
+  const close = () => { setIsOpen(false); setFile(null); };
+  const closePreview = () => setPreviewUrl(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data: any = await fetch_content_service({ table: "special_picture" });
+      setItems(data || []);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load specials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const onCreate = async () => {
+    if (!file) return toast.error("Please select an image");
+    setUploading(true);
+    try {
+      const url = await uploadToStorage(file);
+      const { data, error }: any = await create_content_service({
+        table: "special_picture",
+        post_data: { file_path: url, display: false },
+      });
+      if (error) throw new Error(error.message);
+      toast.success("Special added");
+      close();
+      setItems((prev) => [data[0], ...prev]);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onToggle = async (it: SpecialItem) => {
+    try {
+      const data = await update_content_service({
+        table: "special_picture",
+        post_data: { id: it.id, display: !it.display },
+      });
+      setItems((prev) => prev.map((p) => (p.id === it.id ? { ...p, display: !p.display } : p)));
+      toast.success("Updated");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update");
+    }
+  };
+
+  const onDelete = async (id: number) => {
+    try {
+      const { error }: any = await delete_content_service({ table: "special_picture", id });
+      if (error) throw new Error(error.message);
+      toast.success("Deleted");
+      setItems((prev) => prev.filter((p) => p.id !== id));
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete");
+    }
+  };
+
+  return (
+    <>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold">Specials Gallery</h2>
+          <Button onClick={open} color="blue">+ Add Picture</Button>
+        </div>
+
+      <Custom_Modal 
+        Title="Add Special Picture" 
+        is_open={isOpen} 
+        close_handle={close} 
+        create_new_handle={onCreate}
+        buttonLabel="Upload"
+        loading={uploading}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Select Image</label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => setFile(e.target.files?.[0] || null)} 
+              className="w-full border rounded-lg p-2"
+            />
+          </div>
+        </div>
+      </Custom_Modal>
+
+      {loading ? (
+        <div className="text-sm text-gray-500">Loading…</div>
+      ) : items.length === 0 ? (
+        <div className="text-sm text-gray-500">No specials yet</div>
+      ) : (
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((it) => (
+            <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <button
+                type="button"
+                onClick={() => setPreviewUrl(it.file_path)}
+                className="aspect-video relative overflow-hidden bg-gray-100 block"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={it.file_path} 
+                  alt="special" 
+                  className="h-full w-full object-cover" 
+                />
+              </button>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span>Display</span>
+                    <button
+                      onClick={() => onToggle(it)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        it.display ? "bg-green-600" : "bg-gray-300"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          it.display ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <Button
+                    size="sm"
+                    color="failure"
+                    onClick={() => onDelete(it.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      </div>
+
+      <Modal show={!!previewUrl} onClose={closePreview} size="5xl">
+        <Modal.Header>Preview</Modal.Header>
+        <Modal.Body>
+          <div className="w-full flex items-center justify-center">
+            {previewUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl} alt="preview" className="max-h-[80vh] rounded-lg" />
+            )}
+          </div>
+        </Modal.Body>
+      </Modal>
+    </>
+  );
+};
+
+export default SpecialsPage;

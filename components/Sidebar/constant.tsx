@@ -69,6 +69,7 @@ const ROUTES = {
     USER_MANAGEMENT: '/tools/user-management',
     // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
+    SPECIALS: '/tools/specials',
   },
 } as const;
 
@@ -213,6 +214,12 @@ export const routeList: Route[] = [
         name: "user management",
         label: "Sidebar_k18",
         route: ROUTES.TOOLS.USER_MANAGEMENT
+      },
+      {
+        id: 'tools-specials',
+        name: "specials",
+        label: "Specials",
+        route: ROUTES.TOOLS.SPECIALS
       },
       {
         id: 'settings',
