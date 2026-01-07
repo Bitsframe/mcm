@@ -27,6 +27,19 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    // Helper: convert a UTC datetime string to Central Time (CT) date string YYYY-MM-DD
+    const convertUTCtoCtDate = (utcDateString: string): string => {
+        if (!utcDateString) return '';
+        const date = new Date(utcDateString);
+        // CT (CST) is UTC-6; using fixed offset to align with POS history page logic
+        const ctOffsetMs = -6 * 60 * 60 * 1000;
+        const ctDate = new Date(date.getTime() + ctOffsetMs);
+        const year = ctDate.getUTCFullYear();
+        const month = String(ctDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(ctDate.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // Function to generate the PDF
     const generatePDF = async (startDate: string, endDate: string) => {
         setLoading(true);
@@ -40,9 +53,15 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                 console.log('[ExportPDF] generatePDF range', { startDate, endDate, locationId: selectedLocation?.id });
             } catch (e) { /* ignore in non-browser env */ }
 
-            // Normalize range to full-day timestamps so timestamp-with-tz rows match on date part
-            const startDateStart = `${startDate}T00:00:00.000Z`;
-            const endDateEnd = `${endDate}T23:59:59.999Z`;
+            // Normalize range to CT boundaries converted to UTC so DB filter matches CT day
+            const ctToUtcBoundary = (dateStr: string, isStart: boolean) => {
+                // Base at UTC midnight or end-of-day, then add 6 hours to shift CT->UTC
+                const baseUTC = new Date(`${dateStr}T${isStart ? '00:00:00.000Z' : '23:59:59.999Z'}`);
+                const utcMs = baseUTC.getTime() + (6 * 60 * 60 * 1000); // CT is UTC-6
+                return new Date(utcMs).toISOString();
+            };
+            const startDateStart = ctToUtcBoundary(startDate, true);
+            const endDateEnd = ctToUtcBoundary(endDate, false);
                             // Loud alert to show date range and included fields
                                         try {
                                                     // logging removed for production
@@ -91,9 +110,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             const filteredByDate = (fetched_data || []).filter((item: any) => {
                 if (!item.orders?.order_date) return false;
                 if (!item.inventory?.location_id || selectedLocation?.id == null) return false;
-                const datePart = item.orders.order_date.split('T')[0];
+                const datePartCT = convertUTCtoCtDate(item.orders.order_date);
                 const matchesLocation = String(item.inventory.location_id) === String(selectedLocation.id);
-                return matchesLocation && datePart >= startDate && datePart <= endDate;
+                return matchesLocation && datePartCT >= startDate && datePartCT <= endDate;
             });
 
             console.log('[ExportPDF] Fetched (DB filtered):', fetched_data?.length || 0, 'After date/location filter:', filteredByDate.length, 'Range:', startDate, 'to', endDate, 'Location:', selectedLocation?.id);
@@ -260,7 +279,8 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     const orderId = item.orders?.order_id || item.order_id || '';
                     const oIdStr = String(orderId);
                     const salesHistoryId = item.sales_history_id ? item.sales_history_id.toString() : '';
-                    const dateStr = item.orders?.order_date ? item.orders.order_date.split('T')[0] : '';
+                    // Convert order date from UTC to CT for invoice display and grouping
+                    const dateStr = item.orders?.order_date ? convertUTCtoCtDate(item.orders.order_date) : '';
                     const patientName = item.orders?.pos ? `${item.orders.pos.firstname || ''} ${item.orders.pos.lastname || ''}`.trim() : '';
                     // Legacy: item.paymentcash was used before to decide payment type.
                     // New logic (per requirements): determine cash/card amounts from the orders row

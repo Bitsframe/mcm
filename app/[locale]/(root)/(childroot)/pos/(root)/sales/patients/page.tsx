@@ -326,22 +326,24 @@ const Patients = () => {
       setDataList([...allData]);
     } else {
       const filteredData = allData.filter(({ firstname, lastname, email, phone }) => {
-        const concatName = `${firstname} ${lastname}`.toLowerCase();
+        const nameSafe = `${firstname || ""} ${lastname || ""}`.trim().toLowerCase();
+        const emailSafe = (email || "").toLowerCase();
+        const phoneSafe = (phone || "");
         const searchTerm = val.toLowerCase();
         
         switch (searchType) {
           case "name":
-            return concatName.includes(searchTerm);
+            return nameSafe.includes(searchTerm);
           case "email":
-            return email.toLowerCase().includes(searchTerm);
+            return emailSafe.includes(searchTerm);
           case "phone":
-            return phone.includes(searchTerm);
+            return phoneSafe.includes(searchTerm);
           case "all":
           default:
             return (
-              concatName.includes(searchTerm) ||
-              email.toLowerCase().includes(searchTerm) ||
-              phone.includes(searchTerm)
+              nameSafe.includes(searchTerm) ||
+              emailSafe.includes(searchTerm) ||
+              phoneSafe.includes(searchTerm)
             );
         }
       });

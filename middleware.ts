@@ -37,6 +37,10 @@ export async function middleware(request: NextRequest) {
 
     if (error) {
       console.error("Error fetching session:", error.message);
+      // If session is expired, redirect to login (don't block request)
+      if (!isLoginPage && !isAPIRequest) {
+        return NextResponse.redirect(new URL(`/${locale}/login`, url));
+      }
     }
 
     if (session) {
@@ -59,7 +63,11 @@ export async function middleware(request: NextRequest) {
       }
     }
   } catch (err) {
-    return NextResponse.redirect(new URL(`/${locale}/login`, url));
+    console.error("Middleware error:", err);
+    // Don't block on auth errors - allow request to proceed
+    if (!isLoginPage && !isAPIRequest) {
+      return NextResponse.redirect(new URL(`/${locale}/login`, url));
+    }
   }
 
   return response;
