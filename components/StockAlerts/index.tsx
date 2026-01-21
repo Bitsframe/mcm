@@ -353,7 +353,7 @@ const StockAlertsComponent: React.FC = () => {
                       onClick={() => handleSort("product_name")}
                       className="flex items-center gap-1"
                     >
-                      Product Name
+                      {t("product_name")}
                       {renderSortIcon("product_name")}
                     </button>
                   </th>
@@ -363,7 +363,7 @@ const StockAlertsComponent: React.FC = () => {
                       onClick={() => handleSort("quantity")}
                       className="flex items-center justify-center gap-1 w-full"
                     >
-                      Stock
+                      {t("stock")}
                       {renderSortIcon("quantity")}
                     </button>
                   </th>
@@ -373,7 +373,7 @@ const StockAlertsComponent: React.FC = () => {
                       onClick={() => handleSort("threshold")}
                       className="flex items-center justify-center gap-1 w-full"
                     >
-                      Threshold
+                      {t("threshold")}
                       {renderSortIcon("threshold")}
                     </button>
                   </th>
@@ -383,7 +383,7 @@ const StockAlertsComponent: React.FC = () => {
                       onClick={() => handleSort("priority")}
                       className="flex items-center justify-center gap-1 w-full"
                     >
-                      Priority
+                      {t("priority")}
                       {renderSortIcon("priority")}
                     </button>
                   </th>
@@ -393,7 +393,7 @@ const StockAlertsComponent: React.FC = () => {
                       onClick={() => handleSort("anomaly_severity")}
                       className="flex items-center justify-center gap-1 w-full"
                     >
-                      Anomaly
+                      {t("anomaly")}
                       {renderSortIcon("anomaly_severity")}
                     </button>
                   </th>
@@ -519,7 +519,7 @@ const StockAlertsComponent: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Stock Alert Details
+                {t("stock_alert_details")}
               </h3>
               <button
                 onClick={closeModal}
@@ -546,7 +546,7 @@ const StockAlertsComponent: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Product Name
+                      {t("product_name")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
                       {selectedAlert.inventory?.products?.product_name ||
@@ -556,7 +556,7 @@ const StockAlertsComponent: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Quantity
+                      {t("quantity")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
                       {selectedAlert.quantity || 0}
@@ -564,7 +564,7 @@ const StockAlertsComponent: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Threshold
+                      {t("threshold")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
                       {selectedAlert.threshold || 0}
@@ -572,7 +572,7 @@ const StockAlertsComponent: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Priority
+                      {t("priority")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
                       {selectedAlert.priority || "-"}
@@ -580,7 +580,7 @@ const StockAlertsComponent: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Anomaly Severity
+                      {t("anomaly_severity")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
                       {selectedAlert.anomaly_severity || "-"}
@@ -589,7 +589,7 @@ const StockAlertsComponent: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Anomaly Message
+                    {t("anomaly_message")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900 dark:text-white">
                     {selectedAlert.anomaly_message || "-"}
@@ -597,7 +597,7 @@ const StockAlertsComponent: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Forecasted Runout (Months)
+                    {t("forecasted_runout_months")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900 dark:text-white">
                     {selectedAlert.forecasted_runout_months || "-"}
@@ -607,7 +607,7 @@ const StockAlertsComponent: React.FC = () => {
 
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                 <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
-                  Stock Trend Analysis
+                  {t("stock_trend_analysis")}
                 </h4>
                 <div className="h-[300px]">
                   {/* Shadcn Chart Component */}
@@ -768,11 +768,7 @@ const StockAlertsComponent: React.FC = () => {
                 </div>
                 <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                   <p>
-                    Projected to run out in{" "}
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      {selectedAlert.forecasted_runout_months || "unknown"}
-                    </span>{" "}
-                    months based on current usage patterns.
+                    {t("projected_runout_in", { count: selectedAlert.forecasted_runout_months || t("unknown") })}
                   </p>
                 </div>
               </div>

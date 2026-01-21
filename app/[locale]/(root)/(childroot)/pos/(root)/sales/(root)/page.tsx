@@ -1033,7 +1033,7 @@ const addToCartHandle = () => {
                       onClick={openOtherLocationModal}
                       type="button"
                     >
-                      Add from Other Location
+                     {t("POS-Sales_k107")}
                     </button>
                     <button
                       className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
@@ -1041,7 +1041,7 @@ const addToCartHandle = () => {
                       disabled={!selectedPatient}
                       type="button"
                     >
-                      Add Balance
+                      {t("POS-Sales_k108")}
                     </button>
                   </div>
                   <Custom_Modal
@@ -1171,7 +1171,7 @@ const addToCartHandle = () => {
               onClick={openSalesPersonModal}
               className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              Sales Person
+              {t("POS-Sales_k109")} 
             </button>
           </div>
           <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100 flex items-center justify-between">

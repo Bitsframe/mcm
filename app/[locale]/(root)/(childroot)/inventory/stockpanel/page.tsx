@@ -198,7 +198,7 @@ const StockPanel = () => {
 
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:text-white max-w-full overflow-x-hidden">
-      <h1 className="text-2xl font-bold p-3">AI-Powered Stock Panel</h1>
+      <h1 className="text-2xl font-bold p-3">{t("ai_stock_panel")}</h1>
       <div className="w-full h-full overflow-y-auto overflow-x-hidden py-2 px-2 flex flex-col gap-4 max-w-full">
         <div className="w-full max-w-full">
           <InventoryCards archived={getDataArchiveType} />
