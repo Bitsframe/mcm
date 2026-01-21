@@ -7,7 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 
 
 
-const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandper', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont', 'Settings', 'Controls', 'Credits', 'Transaction', 'bonus'];
+const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandper', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont', 'Settings', 'Controls', 'Credits', 'Transaction', 'bonus', 'Pharmacy'];
 
 
 
@@ -20,18 +20,18 @@ export default async function layout({
 	params: any;
 }) {
 	const { locale } = await params
-  const { resources } = await initTranslations(locale, i18nNamespaces);
+	const { resources } = await initTranslations(locale, i18nNamespaces);
 
 	return (
 		<div className="bg-white">
 			<ActiveTabProvider>
 				<LocationProvider>
 					<AuthProvider >
-					<TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
-						<RootLayoutComponent >
-							{children}
-						</RootLayoutComponent>
-							</TranslationsProvider>
+						<TranslationsProvider resources={resources} locale={locale} namespaces={i18nNamespaces}>
+							<RootLayoutComponent >
+								{children}
+							</RootLayoutComponent>
+						</TranslationsProvider>
 					</AuthProvider>
 				</LocationProvider>
 			</ActiveTabProvider>

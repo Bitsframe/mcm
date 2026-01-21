@@ -8,7 +8,7 @@ export const POST = async (req: Request) => {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { email, roleId = 1, locationIds, fullName, password } = await req.json();
+    const { email, roleId = 1, locationIds, fullName, password, userType } = await req.json();
 
     try {
         // let { data: user, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
@@ -24,7 +24,7 @@ export const POST = async (req: Request) => {
 
         await supabaseAdmin
             .from('profiles')
-            .insert({ id: userId, role_id: roleId, full_name: fullName, email });
+            .insert({ id: userId, role_id: roleId, full_name: fullName, email, user_type: userType || null });
 
         const userLocations = locationIds.map((locationId: number) => ({
             profile_id: userId,

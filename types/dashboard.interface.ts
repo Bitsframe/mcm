@@ -3,7 +3,6 @@ type Nullable<T> = T | null;
 type ISO8601DateTime = string;
 type UnixTimestamp = number;
 
-// Render types
 interface RenderDataProps {
   data: Monitor;
 }
@@ -17,7 +16,6 @@ interface RenderArrInterface {
   bgImage?: string;
 }
 
-// DNS and SSL types
 interface SSL {
   issued_to: string;
   issued_by: string;
