@@ -27,6 +27,12 @@
   "UM_k26": "Seleccionado",
   "UM_k27": "Hecho",
   "UM_k28": "Cancelar",
-  "UM_k29": "Seleccionar ubicaciones"
-
+  "UM_k29": "Seleccionar ubicaciones",
+  "UM_k30": "Por favor complete todos los campos requeridos.",
+  "UM_k31": "Tipo de usuario (Opcional)",
+  "UM_k32": "Doctor",
+  "UM_k33": "Personal",
+  "UM_k34": "Ninguno",
+  "UM_k35": "Actualizando...",
+  "UM_k36": "Agregando..."
 }
