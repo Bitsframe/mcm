@@ -1,0 +1,22 @@
+{
+  "SpecialsGalleryTitle": "Specials Gallery",
+  "AddPictureButton": "+ Add Picture",
+  "AddSpecialPictureModalTitle": "Add Special Picture",
+  "UploadButton": "Upload",
+  "TitleLabel": "Title",
+  "SelectImageLabel": "Select Image",
+  "LoadingText": "Loading…",
+  "NoSpecialsText": "No specials yet",
+  "DisplayLabel": "Display",
+  "DeleteButton": "Delete",
+  "PreviewModalTitle": "Preview",
+  "Untitled": "Untitled",
+  "PleaseSelectImage": "Please select an image",
+  "SpecialAdded": "Special added",
+  "FailedToCreate": "Failed to create",
+  "Updated": "Updated",
+  "FailedToUpdate": "Failed to update",
+  "Deleted": "Deleted",
+  "FailedToDelete": "Failed to delete",
+  "FailedToLoadSpecials": "Failed to load specials"
+}

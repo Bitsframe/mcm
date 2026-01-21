@@ -7,7 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 
 
 
-const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandper', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont', 'Settings', 'Controls', 'Credits', 'Transaction', 'bonus'];
+const i18nNamespaces = ['Dashboard', 'Sidebar', 'Patients', 'Appoinments', 'Privatefeedback', 'Stockpanel', 'Rolesandper', 'POS-Sales', 'POS-Return', 'POS-History', 'EmailB', 'Inventory', 'Login', 'Procode', 'Usermanagement', 'WebCont', 'Settings', 'Controls', 'Credits', 'Transaction', 'bonus', 'Specials'];
 
 
 

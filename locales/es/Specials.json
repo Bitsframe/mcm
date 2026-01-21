@@ -1,0 +1,22 @@
+{
+  "SpecialsGalleryTitle": "Galería de Especiales",
+  "AddPictureButton": "+ Agregar Imagen",
+  "AddSpecialPictureModalTitle": "Agregar Imagen Especial",
+  "UploadButton": "Subir",
+  "TitleLabel": "Título",
+  "SelectImageLabel": "Seleccionar Imagen",
+  "LoadingText": "Cargando…",
+  "NoSpecialsText": "Aún no hay especiales",
+  "DisplayLabel": "Mostrar",
+  "DeleteButton": "Eliminar",
+  "PreviewModalTitle": "Vista previa",
+  "Untitled": "Sin título",
+  "PleaseSelectImage": "Por favor seleccione una imagen",
+  "SpecialAdded": "Especial agregado",
+  "FailedToCreate": "Error al crear",
+  "Updated": "Actualizado",
+  "FailedToUpdate": "Error al actualizar",
+  "Deleted": "Eliminado",
+  "FailedToDelete": "Error al eliminar",
+  "FailedToLoadSpecials": "Error al cargar especiales"
+}
