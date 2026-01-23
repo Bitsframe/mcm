@@ -8,7 +8,10 @@ export async function middleware(request: NextRequest) {
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
 
-  // ✅ Skip auth for internal API routes (server-to-server)
+  if (pathname.startsWith("/assets/") || pathname === "/favicon.ico") {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/api/reminder")) {
     console.log("Bypassing middleware for /api/reminder");
     return NextResponse.next();
@@ -69,6 +72,3 @@ export const config = {
     "/((?!api|_next|.\\..).*)",
   ],
 };
-
-
-
