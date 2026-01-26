@@ -33,12 +33,13 @@ export default function AddEditUserModal({
     editData
       ? editData
       : {
-          email: "",
-          roleId: 0,
-          locationIds: [],
-          fullName: "",
-          password: "",
-        }
+        email: "",
+        roleId: 0,
+        locationIds: [],
+        fullName: "",
+        password: "",
+        userType: null,
+      }
   );
 
   const { roles } = useRolesAndPermissions();
@@ -51,7 +52,7 @@ export default function AddEditUserModal({
 
   const handleInputChange = (
     field: keyof CreateUserModalDataInterface,
-    value: string | number | number[]
+    value: string | number | number[] | null
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -61,7 +62,7 @@ export default function AddEditUserModal({
 
   const handleSubmit = async () => {
     if (!formData.fullName || !formData.email || !formData.roleId) {
-      alert("Please fill in all required fields.");
+      alert(t("UM_k30"));
       return;
     }
     await submitHandle(formData);
@@ -74,6 +75,7 @@ export default function AddEditUserModal({
       locationIds: [],
       fullName: "",
       password: "",
+      userType: null,
     });
     handleClose();
   };
@@ -128,7 +130,7 @@ export default function AddEditUserModal({
                     handleInputChange("roleId", Number(e.target.value))
                   }
                   required
-                  // bg_color=" dark:bg-[#122136]"
+                // bg_color=" dark:bg-[#122136]"
                 />
               </div>
 
@@ -160,6 +162,53 @@ export default function AddEditUserModal({
                 }
               />
 
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t("UM_k31")}
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="userType"
+                      value="doctor"
+                      checked={formData.userType === "doctor"}
+                      onChange={() => handleInputChange("userType", "doctor")}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                      {t("UM_k32")}
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="userType"
+                      value="staff"
+                      checked={formData.userType === "staff"}
+                      onChange={() => handleInputChange("userType", "staff")}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                      {t("UM_k33")}
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="userType"
+                      value=""
+                      checked={!formData.userType}
+                      onChange={() => handleInputChange("userType", null)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                      {t("UM_k34")}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={handleClose}
@@ -174,11 +223,11 @@ export default function AddEditUserModal({
                 >
                   {editData
                     ? loading
-                      ? "Updating..."
+                      ? t("UM_k35")
                       : t("UM_k13")
                     : loading
-                    ? "Adding..."
-                    : t("UM_k14")}
+                      ? t("UM_k36")
+                      : t("UM_k14")}
                 </button>
               </div>
             </div>

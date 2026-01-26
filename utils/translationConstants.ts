@@ -20,4 +20,5 @@ export const translationConstant = {
     CREDITS:"Credits",
     TRANSACTION:"Transaction",
     BONUS: "bonus",
+    PHARMACY: "Pharmacy",
 }

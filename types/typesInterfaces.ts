@@ -11,5 +11,5 @@ export interface CreateUserModalDataInterface {
     locationIds: number[];
     fullName:string
     password:string
-
+    userType?: 'doctor' | 'staff' | null
 }

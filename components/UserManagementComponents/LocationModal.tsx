@@ -97,7 +97,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
           <div className="bg-white dark:bg-[#122136] rounded-lg w-full sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[35%] max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-3 sm:p-4 border-b dark:border-gray-700">
               <h2 id="location-modal-title" className="text-base sm:text-lg font-medium dark:text-white">
-              {t("UM_k24")}
+                {t("UM_k24")}
               </h2>
               <button
                 onClick={handleClose}
@@ -118,7 +118,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
                   className="h-4 w-4 rounded border-gray-300 bg-gray-300 dark:bg-gray-700 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2 dark:focus:ring-blue-400 dark:ring-offset-gray-800"
                 />
                 <label htmlFor="select-all" className="ml-2 text-sm text-gray-700 dark:text-gray-200">
-                {t("UM_k25")}
+                  {t("UM_k25")}
                 </label>
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">{selectedLocationList.length}  {t("UM_k26")}</span>
@@ -156,7 +156,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ onChange, selectionLocati
                 onClick={handleClose}
                 className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 dark:bg-[#1a2c4a] dark:text-gray-200 dark:hover:bg-[#233657]"
               >
-                 {t("UM_k28")}
+                {t("UM_k28")}
               </button>
               <button
                 onClick={handleDone}

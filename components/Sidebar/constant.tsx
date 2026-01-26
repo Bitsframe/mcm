@@ -69,6 +69,7 @@ const ROUTES = {
     USER_MANAGEMENT: '/tools/user-management',
     // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
+    PHARMACY: '/tools/pharmacy',
     SPECIALS: '/tools/specials',
   },
 } as const;
@@ -226,6 +227,12 @@ export const routeList: Route[] = [
         name: "settings",
         label: "Sidebar_k22",
         route: ROUTES.TOOLS.SETTINGS
+      },
+      {
+        id: 'tools-pharmacy',
+        name: "pharmacy",
+        label: "Pharmacy",
+        route: ROUTES.TOOLS.PHARMACY
       }
     ],
   }
