@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "@mui/material/Modal";
 import { Input_Component } from "../Input_Component";
 import { CreatePharmacyData, Pharmacy } from "@/types/pharmacy";
+import { usStates } from "@/us-states";
 import { useTranslation } from "react-i18next";
 import { Switch } from "antd";
 import { translationConstant } from "@/utils/translationConstants";
@@ -26,6 +27,7 @@ export default function AddEditPharmacyModal({
     const [formData, setFormData] = useState<CreatePharmacyData>({
         name: "",
         address: "",
+        state: "",
         zipcode: "",
         phone: "",
         delivers: false,
@@ -39,6 +41,7 @@ export default function AddEditPharmacyModal({
             setFormData({
                 name: editData.name,
                 address: editData.address,
+                state: (editData as any).state || "",
                 zipcode: editData.zipcode,
                 phone: editData.phone || "",
                 delivers: editData.delivers,
@@ -48,6 +51,7 @@ export default function AddEditPharmacyModal({
             setFormData({
                 name: "",
                 address: "",
+                state: "",
                 zipcode: "",
                 phone: "",
                 delivers: false,
@@ -75,8 +79,9 @@ export default function AddEditPharmacyModal({
         return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
     };
 
+
     const handleSubmit = async () => {
-        if (!formData.name || !formData.address || !formData.zipcode) {
+        if (!formData.name || !formData.address || !formData.state || !formData.zipcode) {
             alert(t("Pharmacy_k26"));
             return;
         }
@@ -98,6 +103,7 @@ export default function AddEditPharmacyModal({
         setFormData({
             name: "",
             address: "",
+            state: "",
             zipcode: "",
             phone: "",
             delivers: false,
@@ -157,8 +163,21 @@ export default function AddEditPharmacyModal({
                                 />
                             </div>
 
-                            {/* Zipcode and Phone */}
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* State, Zipcode and Phone */}
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className={labelStyle}>State</label>
+                                    <select
+                                        className="w-full h-[45px] p-3 rounded-lg dark:bg-[#122136] bg-[#f1f4f9] text-gray-900 dark:text-white border border-gray-200 dark:border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={formData.state}
+                                        onChange={e => handleInputChange("state", e.target.value)}
+                                    >
+                                        <option value="">Select State</option>
+                                        {usStates.map((state) => (
+                                            <option key={state.value} value={state.value}>{`${state.name} - ${state.value}`}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div>
                                     <label className={labelStyle}>Zipcode</label>
                                     <Input_Component
