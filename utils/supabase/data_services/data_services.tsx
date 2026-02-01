@@ -18,6 +18,7 @@ interface FetchContentServiceInterface {
   sortOptions?: SortOptions | null;
   filterOptions?: { column: string; operator: string; value: any }[] | null;
   skipLocationFilter?: boolean;
+  fetchAll?: boolean;
 }
 interface UpdateContentServiceInterface {
   table: string;
@@ -142,8 +143,119 @@ export async function fetch_content_service({
   matchCase = null,
   sortOptions = null,
   filterOptions = null,
+  fetchAll = false,
 }: FetchContentServiceInterface) {
 
+  // If fetchAll is true, paginate through all results
+  if (fetchAll) {
+    let allData: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      let query = supabase
+        //  @ts-ignore
+        .from(`${table}${language}`)
+        .select(`*${selectParam ? selectParam : ''}`, { count: 'exact' })
+        .range(from, from + pageSize - 1);
+
+      if (matchCase) {
+        if (Array.isArray(matchCase)) {
+          matchCase.forEach((condition) => {
+            if(condition){
+              query = query.eq(condition.key, condition.value,);
+            }
+          });
+        } else {
+          query = query.eq(matchCase.key, matchCase.value);
+        }
+      }
+
+      // Add location filtering for tables that have location_id, unless caller requests skip
+      const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
+      // @ts-ignore
+      if (!((arguments[0] && arguments[0].skipLocationFilter) || false) && locationBasedTables.includes(table)) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userLocations } = await supabase
+            .from('user_locations')
+            .select('location_id')
+            .eq('profile_id', user.id);
+          
+          if (userLocations && userLocations.length > 0) {
+            const locationIds = userLocations.map(loc => loc.location_id);
+            query = query.in('location_id', locationIds);
+          }
+        }
+      }
+
+      if (filterOptions) {
+        filterOptions.forEach((filter) => {
+          switch (filter.operator) {
+            case 'gt':
+              query = query.gt(filter.column, filter.value);
+              break;
+            case 'lt':
+              query = query.lt(filter.column, filter.value);
+              break;
+            case 'gte':
+              query = query.gte(filter.column, filter.value);
+              break;
+            case 'lte':
+              query = query.lte(filter.column, filter.value);
+              break;
+            case 'like':
+              query = query.like(filter.column, filter.value);
+              break;
+            case 'ilike':
+              query = query.ilike(filter.column, filter.value);
+              break;
+            case 'neq':
+              query = query.neq(filter.column, filter.value);
+              break;
+            case 'in':
+              query = query.in(filter.column, filter.value);
+              break;
+            case 'not':
+              query = query.not(filter.column, 'is', filter.value);
+              break;
+            default:
+              console.warn(`Unknown operator: ${filter.operator}`);
+          }
+        })
+      }
+
+      if (sortOptions) {
+        query = query.order(sortOptions.column, { ascending: sortOptions.order === 'asc' });
+      }
+
+      const { data, error, count } = await query;
+      
+      if (error) {
+        console.log(error.message);
+        throw new Error(error.message);
+      }
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        from += pageSize;
+        
+        // Check if we have more data
+        if (count !== null && allData.length >= count) {
+          hasMore = false;
+        } else if (data.length < pageSize) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allData;
+  }
+
+  // Original implementation for non-paginated queries
   let query = supabase
     //  @ts-ignore
     .from(`${table}${language}`)

@@ -129,6 +129,7 @@ const SalesHistory = () => {
           { operator: "not", column: "pos", value: null },
           { operator: "not", column: "allpatients.id", value: null },
         ],
+        fetchAll: true,
       });
       
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
