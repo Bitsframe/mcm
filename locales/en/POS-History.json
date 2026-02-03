@@ -1,1 +1,19 @@
-{"POS-Historyk1":"Sales History","POS-Historyk10":"Summary","POS-Historyk11":"Sales","POS-Historyk12":"Patient Details\n","POS-Historyk13":"Patient ID","POS-Historyk14":"Patient Name","POS-Historyk15":"Gender","POS-Historyk16":"Phone","POS-Historyk17":"Email","POS-Historyk18":"Payment Type","POS-Historyk19":"Treatment Type","POS-Historyk2":"Export as PDF","POS-Historyk20":"Location","POS-Historyk21":"Order Details","POS-Historyk22":"Sales Amount","POS-Historyk23":"Category","POS-Historyk24":"Product","POS-Historyk25":"Quantity","POS-Historyk26":"Amount","POS-Historyk27":"Action","POS-Historyk3":"Search by Order ID","POS-Historyk4":"Order ID","POS-Historyk5":"Date","POS-Historyk6":"Patient Name","POS-Historyk7":"Total Amount\t","POS-Historyk8":"Payment Type\t","POS-Historyk9":"Action\n","POS-Historyk28":"POS / History", "POS-Historyk29":"Showing", "POS-Historyk30":"Out of", "POS-Historyk31":"Next", "POS-Historyk32":"Previous", "POS-Historyk33":"Search product..."}
+{"POS-Historyk1":"Sales History","POS-Historyk10":"Summary","POS-Historyk11":"Sales","POS-Historyk12":"Patient Details\n","POS-Historyk13":"Patient ID","POS-Historyk14":"Patient Name","POS-Historyk15":"Gender","POS-Historyk16":"Phone","POS-Historyk17":"Email","POS-Historyk18":"Payment Type","POS-Historyk19":"Treatment Type","POS-Historyk2":"Export as PDF","POS-Historyk20":"Location","POS-Historyk21":"Order Details","POS-Historyk22":"Sales Amount","POS-Historyk23":"Category","POS-Historyk24":"Product","POS-Historyk25":"Quantity","POS-Historyk26":"Amount","POS-Historyk27":"Action","POS-Historyk3":"Search by Order ID","POS-Historyk4":"Order ID","POS-Historyk5":"Date","POS-Historyk6":"Patient Name","POS-Historyk7":"Total Amount\t","POS-Historyk8":"Payment Type\t","POS-Historyk9":"Action\n","POS-Historyk28":"POS / History", "POS-Historyk29":"Showing", "POS-Historyk30":"Out of", "POS-Historyk31":"Next", "POS-Historyk32":"Previous", "POS-Historyk33":"Search product...","POS-Historyk34": "Sales History",
+"POS-Historyk35": "Products Sold ",
+"POS-Historyk36": "Total Amount Received ",
+"POS-Historyk37": "Total Sales",
+"POS-Historyk38": "Search Order ID",
+"POS-Historyk39": "Search Patient Name",
+"POS-Historyk40": "mm/dd/yyyy",
+"POS-Historyk41": "Phone Number",
+"POS-Historyk42": "Search Email",
+"POS-Historyk43": "Order ID",
+"POS-Historyk44": "Patient Name",
+"POS-Historyk45": "Amount Received",
+"POS-Historyk46": "Phone Number",
+"POS-Historyk47": "Email",
+"POS-Historyk48": "Details",
+"POS-Historyk49": "Delete",
+"POS-Historyk50": "Today (CT)"
+
+}

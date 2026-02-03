@@ -252,19 +252,16 @@ const PharmacyList = () => {
                                             <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">
                                                 <div className="flex items-center space-x-4 justify-end">
                                                     <button
-                                                        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                         onClick={() => openEditModal(elem)}
                                                     >
-                                                        <PenBoxIcon
-                                                            className="w-4 h-4"
-                                                            color="blue"
-                                                        />
+                                                        Update
                                                     </button>
                                                     <button
-                                                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                        className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                         onClick={() => deleteHandle(elem.id)}
                                                     >
-                                                        <Trash2 className="w-4 h-4" color="red" />
+                                                        Delete
                                                     </button>
                                                 </div>
                                             </TableCell>
@@ -298,16 +295,16 @@ const PharmacyList = () => {
                                         </div>
                                         <div className="flex space-x-2">
                                             <button
-                                                className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                 onClick={() => openEditModal(elem)}
                                             >
-                                                <PenBoxIcon className="w-4 h-4" color="blue" />
+                                                Update
                                             </button>
                                             <button
-                                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                 onClick={() => deleteHandle(elem.id)}
                                             >
-                                                <Trash2 className="w-4 h-4" color="red" />
+                                                Delete
                                             </button>
                                         </div>
                                     </div>

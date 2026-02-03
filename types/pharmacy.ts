@@ -14,6 +14,7 @@ export interface Pharmacy {
 export interface CreatePharmacyData {
   name: string;
   address: string;
+  state: string;
   zipcode: string;
   phone?: string;
   opening_hours?: any;

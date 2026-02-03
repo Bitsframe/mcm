@@ -1,5 +1,31 @@
 
 
-{"CT_k1":"Location Limits", "CT_k2":"Locations", "CT_k3":"Address", "CT_k4":"Current Selected Time", "CT_k5":"Report Time", "CT_k6":"Update Time", "CT_k7":"Reset", "CT_k8":"Email Templates", "CT_k9":"Create New Template", "CT_k10":"Select a template to edit or create a new one", "CT_k11":"All Templates", "CT_k12":"Edit Template", "CT_k13":"Preview Template", "CT_k14":"Update Template", "CT_k15":"Save Template", "CT_k16":"Cancel", "CT_k17":"Template Name", "CT_k18":"Create New template", "CT_k19":"Please write a name below to add a template", "CT_k20":"Location Credit Limits", "CT_k21":"Location Name", "CT_k22":"Current Balance", "CT_k23":"Credit Limit", "CT_k24":"New Credit Limit", "CT_k25":"Action", "CT_k27":"Controls", "CT_k29":"Reporting Time", "CT_k30":"Search Locations", "CT_k31":"Search templates", "CT_k32":"Type here", "CT_k33":"Update"}
+{"CT_k1":"Location Limits", "CT_k2":"Locations", "CT_k3":"Address", "CT_k4":"Current Selected Time", "CT_k5":"Report Time", "CT_k6":"Update Time", "CT_k7":"Reset", "CT_k8":"Email Templates", "CT_k9":"Create New Template", "CT_k10":"Select a template to edit or create a new one", "CT_k11":"All Templates", "CT_k12":"Edit Template", "CT_k13":"Preview Template", "CT_k14":"Update Template", "CT_k15":"Save Template", "CT_k16":"Cancel", "CT_k17":"Template Name", "CT_k18":"Create New template", "CT_k19":"Please write a name below to add a template", "CT_k20":"Location Credit Limits", "CT_k21":"Location Name", "CT_k22":"Current Balance", "CT_k23":"Credit Limit", "CT_k24":"New Credit Limit", "CT_k25":"Action", "CT_k27":"Controls", "CT_k29":"Reporting Time", "CT_k30":"Search Locations", "CT_k31":"Search templates", "CT_k32":"Type here", "CT_k33":"Update",
+"CT_k34": "Staff",
+  "CT_k35": "Full Name",
+  "CT_k36": "Enter full name",
+  "CT_k37": "Location(s)",
+  "CT_k38": "Select one or more locations",
+  "CT_k39": "Select all",
+  "CT_k40": "View staff by location",
+  "CT_k41": "Select location",
+  "CT_k42": "No staff for this location",
+  "CT_k43": "Search",
+  "CT_k44": "Reset filters",
+  "CT_k45": "Add staff",
+  "CT_k46": "Edit staff",
+  "CT_k47": "Delete staff",
+  "CT_k48": "Actions",
+  "CT_k49": "Email",
+  "CT_k50": "Phone",
+  "CT_k51": "Role",
+  "CT_k52": "Status",
+  "CT_k53": "Active",
+  "CT_k54": "Inactive",
+   "CT_k55": "Create Staff",
+  "CT_k56": "Reset"
+  
+
+}
 
 

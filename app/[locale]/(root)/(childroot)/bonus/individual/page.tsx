@@ -399,9 +399,9 @@ export default function IndividualBonusPage() {
     const highestPersonSubtitle = highestPersonNames.length > 0 ? highestPersonNames.join(', ') : '-'
 
     return [
-      { id: 'total', title: 'Total bonus paid', value: `$${totalPaid.toFixed(2)}` },
-      { id: 'highest_location_paid', title: 'Highest Location Bonus Paid', value: `$${highestLocation.amount.toFixed(2)}`, subtitle: highestLocation.name },
-      { id: 'highest_person_paid', title: 'Highest Person Bonus Paid', value: `$${highestPersonAmount.toFixed(2)}`, subtitle: highestPersonSubtitle },
+      { id: 'total', title: t('Bonus_k1'), value: `$${totalPaid.toFixed(2)}` },
+      { id: 'highest_location_paid', title: t('Bonus_k2'), value: `$${highestLocation.amount.toFixed(2)}`, subtitle: highestLocation.name },
+      { id: 'highest_person_paid', title: t('Bonus_k3'), value: `$${highestPersonAmount.toFixed(2)}`, subtitle: highestPersonSubtitle },
     ]
   }, [rows, appliedFilters])
 

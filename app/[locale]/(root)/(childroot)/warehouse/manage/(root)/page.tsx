@@ -57,18 +57,20 @@ const tableHeader = [
       onClickHandle,
       isLoading,
       getDataArchiveType,
+      t,
     }: {
       val?: string;
       onClickHandle?: () => void;
       isLoading?: boolean;
       getDataArchiveType: boolean;
+      t: (key: string) => string;
     }) => {
       return (
         <div className="space-x-4 flex justify-end">
           <Action_Button
             isLoading={isLoading}
             onClick={onClickHandle}
-            label={getDataArchiveType ? "Unarchive" : "Archive"}
+            label={getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")}
             bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
             text_color={
               getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
@@ -108,6 +110,13 @@ const Categories = () => {
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dataList.length);
   const currentPageData = dataList.slice(startIndex, endIndex);
+  // Patch: inject t into tableHeader Render_Value
+  tableHeader.forEach((header) => {
+    if (header.Render_Value) {
+      const original = header.Render_Value;
+      header.Render_Value = (props: any) => original({ ...props, t });
+    }
+  });
 
   const fetch_handle = async (archive: boolean) => {
     setLoading(true);
@@ -352,6 +361,7 @@ const Categories = () => {
                                     onClickHandle={() =>
                                       onClickHandle(elem.category_id)
                                     }
+                                    t={t}
                                   />
                                 ) : (
                                   <span className="text-gray-800 dark:text-white">

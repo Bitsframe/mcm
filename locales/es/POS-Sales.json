@@ -103,6 +103,13 @@
   "POS-Sales_k103": "Ingrese pedido",
   "POS-Sales_k104": "Última actualización",
   "POS-Sales_k105": "Buscar por",
-  "POS-Sales_k106": "No se encontraron pacientes para hoy"
+  "POS-Sales_k106": "No se encontraron pacientes para hoy",
+  "POS-Sales_k107": "Agregar desde otra ubicación",
+"POS-Sales_k108": "Agregar saldo",
+"POS-Sales_k109": "Vendedor",
+"POS-Sales_k110": "Artículos en el carrito",
+"POS-Sales_k111": "Límite de crédito: 1000.00"
+
+
 
 }

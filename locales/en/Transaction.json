@@ -6,5 +6,19 @@
     "Transaction_k5": "Treatment Type",
     "Transaction_k6": "Balance",
     "Transaction_k7": "Select Patient",
-    "Transaction_k8": "No transactions found"
+    "Transaction_k8": "No transactions found",
+      "Transaction_k9": "Name",
+  "Transaction_k10": "Email",
+  "Transaction_k11": "Phone",
+  "Transaction_k12": "Current Balance",
+  "Transaction_k13": "Actions",
+  "Transaction_k14": "Search by",
+  "Transaction_k15": "All",
+  "Transaction_k16": "Search patients...",
+  "Transaction_k17": "Patients",
+  "Transaction_k18": "View",
+  "Transaction_k19": "Edit",
+  "Transaction_k20": "Delete",
+  "Transaction_k21":"View Transaction"
+
 }

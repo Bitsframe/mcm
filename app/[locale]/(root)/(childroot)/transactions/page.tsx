@@ -194,17 +194,17 @@ const TransactionsPage = () => {
       {/* Search Section */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Search by</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("Transaction_k14")}</span>
                                            <Select value={searchBy} onValueChange={setSearchBy}>
               <SelectTrigger className="w-32 bg-[#F1F4F9] dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                 <SelectValue className="text-gray-900 dark:text-white" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <SelectItem value="All" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">All</SelectItem>
-                <SelectItem value="Name" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">Name</SelectItem>
-                <SelectItem value="Email" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">Email</SelectItem>
-                <SelectItem value="Phone" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">Phone</SelectItem>
-                <SelectItem value="Treatment Type" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">Treatment Type</SelectItem>
+                <SelectItem value="All" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k15")}</SelectItem>
+                <SelectItem value="Name" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k9")}</SelectItem>
+                <SelectItem value="Email" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k10")}</SelectItem>
+                <SelectItem value="Phone" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k11")}</SelectItem>
+                <SelectItem value="Treatment Type" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k5")}</SelectItem>
               </SelectContent>
             </Select>
           <span className="text-gray-400">=</span>
@@ -232,12 +232,12 @@ const TransactionsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
-                    <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">Name</TableHead>
-                    <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">Email</TableHead>
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Phone</TableHead>
-                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">Treatment Type</TableHead>
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">Current Balance</TableHead>
-                    <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">Actions</TableHead>
+                    <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t("Transaction_k9")}</TableHead>
+                    <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t("Transaction_k10")}</TableHead>
+                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t("Transaction_k11")}</TableHead>
+                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t("Transaction_k5")}</TableHead>
+                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t("Transaction_k12")}</TableHead>
+                    <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t("Transaction_k13")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="dark:bg-[#0e1725]">
@@ -291,7 +291,7 @@ const TransactionsPage = () => {
                                }}
                              >
                                <Eye className="w-4 h-4 mr-1 text-white" />
-                               <span className="text-white">View Transactions</span>
+                               <span className="text-white">{t("Transaction_k21")}</span>
                              </Button>
                            </TableCell>
                         </TableRow>

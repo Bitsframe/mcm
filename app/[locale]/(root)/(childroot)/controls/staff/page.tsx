@@ -102,34 +102,34 @@ const StaffControlsPage: React.FC = () => {
     <main className="flex-1 space-y-4 h-[80dvh] dark:bg-[#0e1725]">
       <Card className="w-full dark:bg-[#0e1725] dark:border-gray-700">
         <CardHeader className="dark:bg-[#0e1725]">
-          <CardTitle className="dark:text-white">{t("Staff") || "Staff"}</CardTitle>
+          <CardTitle className="dark:text-white">{t("CT_k34")}</CardTitle>
         </CardHeader>
         <CardContent className="dark:bg-[#0e1725]">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Full Name</label>
+                  <label className="block text-sm font-medium mb-1">{t("CT_k35")}</label>
                   <Input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter full name"
+                    placeholder={t("CT_k36")}
                     className="w-full"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Location(s)</label>
+                  <label className="block text-sm font-medium mb-1">{t("CT_k37")}</label>
                     <div>
                       <div className="w-full rounded border bg-white text-sm p-2 max-h-64 overflow-auto">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-600">Select one or more locations</span>
+                          <span className="text-xs text-gray-600">{t("CT_k38")}</span>
                           <button
                             type="button"
                             className="text-xs text-blue-600 hover:underline"
                             onClick={() => setLocationIds(locations?.map((l: any) => String(l.id)) || [])}
                           >
-                            Select all
+                            {t("CT_k39")}
                           </button>
                         </div>
                         <div className="space-y-1">
@@ -155,10 +155,10 @@ const StaffControlsPage: React.FC = () => {
 
                 <div className="flex gap-2">
                   <Button type="submit" disabled={submitting} className="bg-blue-600">
-                    {submitting ? "Saving..." : "Create Staff"}
+                    {submitting ? t("CT_k55") : t("CT_k45")}
                   </Button>
                   <Button type="button" onClick={() => { setFullName(""); setLocationIds([]); }} className="bg-gray-300">
-                    Reset
+                    {t("CT_k44")}
                   </Button>
                 </div>
               </form>
@@ -166,10 +166,10 @@ const StaffControlsPage: React.FC = () => {
 
             <div className="md:col-span-1 border rounded p-4 bg-gray-50 dark:bg-[#0e1725]">
               <div className="mb-3">
-                <label className="block text-sm font-medium mb-1">View staff by location</label>
+                <label className="block text-sm font-medium mb-1">{t("CT_k40")}</label>
                 <Select value={viewLocationId ? String(viewLocationId) : ""} onValueChange={(v) => setViewLocationId(v ? Number(v) : null)}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select location" />
+                    <SelectValue placeholder={t("CT_k41")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -187,7 +187,7 @@ const StaffControlsPage: React.FC = () => {
                 {loadingStaff ? (
                   <div className="text-sm text-gray-500">Loading...</div>
                 ) : staffList.length === 0 ? (
-                  <div className="text-sm text-gray-500">No staff for this location</div>
+                  <div className="text-sm text-gray-500">{t("CT_k42")}</div>
                 ) : (
                   staffList.map((s: any) => (
                     <div key={s.id} className="p-2 border-b last:border-b-0">

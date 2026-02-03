@@ -129,6 +129,7 @@ const SalesHistory = () => {
           { operator: "not", column: "pos", value: null },
           { operator: "not", column: "allpatients.id", value: null },
         ],
+        fetchAll: true,
       });
       
       const filteredData = fetched_data.filter((elem) => elem.pos !== null);
@@ -294,7 +295,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Products Sold {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
+                  {t("POS-Historyk35")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {(() => {
@@ -341,7 +342,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Total Amount Received {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
+                  {t("POS-Historyk36")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {
@@ -389,7 +390,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Total Sales {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Today (CT)'}
+                  {t("POS-Historyk37")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {

@@ -6,6 +6,7 @@ import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { Button, Modal } from "flowbite-react";
 import { supabase } from "@/services/supabase";
+import { useTranslation } from "react-i18next";
 
 async function uploadToStorage(file: File): Promise<string> {
   const form = new FormData();
@@ -25,7 +26,9 @@ interface SpecialItem {
   title?: string | null;
 }
 
+
 const SpecialsPage = () => {
+  const { t } = useTranslation("Specials");
   const [items, setItems] = useState<SpecialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +47,7 @@ const SpecialsPage = () => {
       const data: any = await fetch_content_service({ table: "special_picture" });
       setItems(data || []);
     } catch (e: any) {
-      toast.error(e.message || "Failed to load specials");
+      toast.error(e.message || t("FailedToLoadSpecials"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +56,7 @@ const SpecialsPage = () => {
   useEffect(() => { fetchData(); }, []);
 
   const onCreate = async () => {
-    if (!file) return toast.error("Please select an image");
+    if (!file) return toast.error(t("PleaseSelectImage"));
     setUploading(true);
     try {
       const path = await uploadToStorage(file);
@@ -62,11 +65,11 @@ const SpecialsPage = () => {
         post_data: { file_path: path, display: false, title: newTitle || null },
       });
       if (error) throw new Error(error.message);
-      toast.success("Special added");
+      toast.success(t("SpecialAdded"));
       close();
       setItems((prev) => [data[0], ...prev]);
     } catch (e: any) {
-      toast.error(e.message || "Failed to create");
+      toast.error(e.message || t("FailedToCreate"));
     } finally {
       setUploading(false);
     }
@@ -79,9 +82,9 @@ const SpecialsPage = () => {
         post_data: { id: it.id, display: !it.display },
       });
       setItems((prev) => prev.map((p) => (p.id === it.id ? { ...p, display: !p.display } : p)));
-      toast.success("Updated");
+      toast.success(t("Updated"));
     } catch (e: any) {
-      toast.error(e.message || "Failed to update");
+      toast.error(e.message || t("FailedToUpdate"));
     }
   };
 
@@ -89,111 +92,108 @@ const SpecialsPage = () => {
     try {
       const { error }: any = await delete_content_service({ table: "special_picture", id });
       if (error) throw new Error(error.message);
-      toast.success("Deleted");
+      toast.success(t("Deleted"));
       setItems((prev) => prev.filter((p) => p.id !== id));
     } catch (e: any) {
-      toast.error(e.message || "Failed to delete");
+      toast.error(e.message || t("FailedToDelete"));
     }
   };
 
   return (
     <>
-      <div className="p-6">
+
+      <div className="p-6 bg-white dark:bg-[#0e1725] min-h-screen">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">Specials Gallery</h2>
-          <Button onClick={open} color="blue">+ Add Picture</Button>
+          <h2 className="text-2xl font-semibold text-black dark:text-white">{t("SpecialsGalleryTitle")}</h2>
+          <Button onClick={open} color="blue">{t("AddPictureButton")}</Button>
         </div>
 
-      <Custom_Modal 
-        Title="Add Special Picture" 
-        is_open={isOpen} 
-        close_handle={close} 
-        create_new_handle={onCreate}
-        buttonLabel="Upload"
-        loading={uploading}
-      >
-        <div className="space-y-4">
-          <Input_Component 
-            label="Title" 
-            type="text" 
-            value={newTitle} 
-            onChange={(val: string) => setNewTitle(val)}
-          />
-          <div>
-            <label className="block text-sm font-medium mb-2">Select Image</label>
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={(e) => setFile(e.target.files?.[0] || null)} 
-              className="w-full border rounded-lg p-2"
+        <Custom_Modal
+          Title={t("AddSpecialPictureModalTitle")}
+          is_open={isOpen}
+          close_handle={close}
+          create_new_handle={onCreate}
+          buttonLabel={t("UploadButton")}
+          loading={uploading}
+        >
+          <div className="space-y-4">
+            <Input_Component
+              label={t("TitleLabel")}
+              type="text"
+              value={newTitle}
+              onChange={(val: string) => setNewTitle(val)}
             />
+            <div>
+              <label className="block text-sm font-medium mb-2 text-black dark:text-white">{t("SelectImageLabel")}</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="w-full border rounded-lg p-2 bg-white dark:bg-[#1a2332] text-black dark:text-white border-gray-300 dark:border-blue-950"
+              />
+            </div>
           </div>
-        </div>
-      </Custom_Modal>
+        </Custom_Modal>
 
-      {loading ? (
-        <div className="text-sm text-gray-500">Loading…</div>
-      ) : items.length === 0 ? (
-        <div className="text-sm text-gray-500">No specials yet</div>
-      ) : (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {items.map((it) => (
-            <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <button
-                type="button"
-                onClick={() => setPreviewUrl(
-                  supabase.storage
-                    .from('special_picture')
-                    .getPublicUrl(it.file_path).data.publicUrl
-                )}
-                className="aspect-video relative overflow-hidden bg-gray-100 block"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={supabase.storage.from('special_picture').getPublicUrl(it.file_path).data.publicUrl} 
-                  alt="special" 
-                  className="h-full w-full object-cover" 
-                />
-              </button>
-              <div className="p-4 space-y-3">
-                {typeof it.title !== 'undefined' && (
-                  <p className="text-sm font-medium truncate" title={it.title || undefined}>
-                    {it.title || 'Untitled'}
-                  </p>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span>Display</span>
-                    <button
-                      onClick={() => onToggle(it)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        it.display ? "bg-green-600" : "bg-gray-300"
-                      }`}
+        {loading ? (
+          <div className="text-sm text-gray-500 dark:text-gray-300">{t("LoadingText")}</div>
+        ) : items.length === 0 ? (
+          <div className="text-sm text-gray-500 dark:text-gray-300">{t("NoSpecialsText")}</div>
+        ) : (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {items.map((it) => (
+              <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-[#1a2332] border-gray-200 dark:border-blue-950">
+                <button
+                  type="button"
+                  onClick={() => setPreviewUrl(
+                    supabase.storage
+                      .from('special_picture')
+                      .getPublicUrl(it.file_path).data.publicUrl
+                  )}
+                  className="aspect-video relative overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={supabase.storage.from('special_picture').getPublicUrl(it.file_path).data.publicUrl}
+                    alt="special"
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+                <div className="p-4 space-y-3">
+                  {typeof it.title !== 'undefined' && (
+                    <p className="text-sm font-medium truncate text-black dark:text-white" title={it.title || undefined}>
+                      {it.title || t("Untitled")}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-black dark:text-white">{t("DisplayLabel")}</span>
+                      <button
+                        onClick={() => onToggle(it)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${it.display ? "bg-green-600" : "bg-gray-300 dark:bg-gray-700"}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-300 transition-transform ${it.display ? "translate-x-6" : "translate-x-1"}`}
+                        />
+                      </button>
+                    </div>
+                    <Button
+                      size="sm"
+                      color="failure"
+                      onClick={() => onDelete(it.id)}
                     >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          it.display ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
+                      {t("DeleteButton")}
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    color="failure"
-                    onClick={() => onDelete(it.id)}
-                  >
-                    Delete
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
       </div>
 
       <Modal show={!!previewUrl} onClose={closePreview} size="5xl">
-        <Modal.Header>Preview</Modal.Header>
+        <Modal.Header>{t("PreviewModalTitle")}</Modal.Header>
         <Modal.Body>
           <div className="w-full flex items-center justify-center">
             {previewUrl && (

@@ -6,6 +6,19 @@
     "Transaction_k5": "Tipo de tratamiento",
     "Transaction_k6": "Saldo",
     "Transaction_k7": "Seleccionar paciente",
-    "Transaction_k8": "No se encontraron transacciones"
+    "Transaction_k8": "No se encontraron transacciones",
+     "Transaction_k9": "Nombre",
+  "Transaction_k10": "Correo electrónico",
+  "Transaction_k11": "Teléfono",
+  "Transaction_k12": "Saldo actual",
+  "Transaction_k13": "Acciones",
+  "Transaction_k14": "Buscar por",
+  "Transaction_k15": "Todos",
+  "Transaction_k16": "Buscar pacientes...",
+  "Transaction_k17": "Pacientes",
+  "Transaction_k18": "Ver",
+  "Transaction_k19": "Editar",
+  "Transaction_k20": "Eliminar",
+  "Transaction_k21":"Ver Transacción"
   }
   

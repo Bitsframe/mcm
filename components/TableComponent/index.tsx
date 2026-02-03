@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import ExportAsPDF from "../ExportPDF";
 
+
 interface TableHeaderInterface {
   label: string;
   align?: string;
@@ -61,10 +62,8 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   pdf,
   resetPaginationTrigger,
 }) => {
-  const { t } = useTranslation([
-    translationConstant.STOCKPANEL,
-    translationConstant.POSHISTORY,
-  ]);
+  // Use only POS-History namespace for table translations
+  const { t } = useTranslation("POS-History");
 
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
   const isAllSelected =
@@ -220,66 +219,68 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
               {searchInputs && (
                 <TableRow>
                   <TableCell className="p-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      placeholder="Search Order ID"
-                      value={searchInputs.orderIdSearch}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^0-9]/g, "");
-                        searchInputs.setOrderIdSearch(val);
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <input
-                      type="text"
-                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      placeholder="Search Patient Name"
-                      value={searchInputs.patientNameSearch}
-                      onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <input
-                      type="date"
-                      className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                      value={searchInputs.dobSearch}
-                      onChange={e => searchInputs.setDobSearch(e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <div className="flex items-center">
-                      <span className="px-1 text-xs select-none">+1</span>
                       <input
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                        placeholder="Phone Number"
-                        value={searchInputs.phoneSearch}
+                        placeholder={t("POS-Historyk38", { ns: "POS-History", defaultValue: "Order ID" })}
+                        value={searchInputs.orderIdSearch}
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9]/g, "");
-                          searchInputs.setPhoneSearch(val);
+                          searchInputs.setOrderIdSearch(val);
                         }}
-                        style={{ marginLeft: '-2px' }}
                       />
+                  </TableCell>
+                  <TableCell className="p-1">
+                      <input
+                        type="text"
+                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        placeholder={t("POS-Historyk39", { ns: "POS-History", defaultValue: "Patient Name" })}
+                        value={searchInputs.patientNameSearch}
+                        onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
+                      />
+                  </TableCell>
+                  <TableCell className="p-1">
+                      <input
+                        type="date"
+                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        placeholder={t("POS-Historyk40", { ns: "POS-History", defaultValue: "Date of Birth" })}
+                        value={searchInputs.dobSearch}
+                        onChange={e => searchInputs.setDobSearch(e.target.value)}
+                      />
+                  </TableCell>
+                  <TableCell className="p-1">
+                    <div className="flex items-center">
+                      <span className="px-1 text-xs select-none">+1</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                          placeholder={t("POS-Historyk41", { ns: "POS-History", defaultValue: "Phone Number" })}
+                          value={searchInputs.phoneSearch}
+                          onChange={e => {
+                            const val = e.target.value.replace(/[^0-9]/g, "");
+                            searchInputs.setPhoneSearch(val);
+                          }}
+                          style={{ marginLeft: '-2px' }}
+                        />
                     </div>
                   </TableCell>
                   <TableCell className="p-1">
-                    <input
-                      type="text"
-                      className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
-                      ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300 dark:border-gray-700'}`}
-                      placeholder="Search Email"
-                      value={emailValue}
-                      onChange={e => {
-                        searchInputs.setEmailSearch(e.target.value);
-                      }}
-                      onBlur={() => setEmailTouched(true)}
-                    />
+                      <input
+                        type="text"
+                        className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
+                        ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300 dark:border-gray-700'}`}
+                        placeholder={t("POS-Historyk42", { ns: "POS-History", defaultValue: "Email" })}
+                        value={emailValue}
+                        onChange={e => {
+                          searchInputs.setEmailSearch(e.target.value);
+                          setEmailTouched(true);
+                        }}
+                        onBlur={() => setEmailTouched(true)}
+                      />
 </TableCell>
 
 
@@ -292,15 +293,15 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
               )}
               <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
                 {/* Order ID */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Order ID</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk43", { ns: "POS-History", defaultValue: "Order ID" })}</TableHead>
                 {/* Patient Name */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Patient Name</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk44", { ns: "POS-History", defaultValue: "Patient Name" })}</TableHead>
                 {/* Amount Received */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Amount Received</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{  t("POS-Historyk45", { ns: "POS-History", defaultValue: "Amount Received" })}</TableHead>
                 {/* Phone Number */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Phone Number</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk46", { ns: "POS-History", defaultValue: "Phone Number" })}</TableHead>
                 {/* Email */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">Email</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk47", { ns: "POS-History", defaultValue: "Email" })}</TableHead>
                 {/* Details column header cell for alignment */}
                   {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
                   {/* Delete column header (if delete handler provided) */}
