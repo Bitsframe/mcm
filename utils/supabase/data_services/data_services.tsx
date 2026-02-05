@@ -346,17 +346,30 @@ export async function fetch_content_service({
 }
 
 export async function update_content_service({ table, language = '', post_data, matchKey = 'id' }: UpdateContentServiceInterface) {
-  // console.log({ language, post_data, section })
+  console.log("[update_content_service] Starting update...");
+  console.log("[update_content_service] Table:", `${table}${language}`);
+  console.log("[update_content_service] Raw post_data:", post_data);
+  console.log("[update_content_service] matchKey:", matchKey);
+  
   const id = post_data[matchKey]
-  delete post_data[matchKey]
+  console.log("[update_content_service] Extracted ID:", id);
+  
+  const dataToUpdate = { ...post_data };
+  delete dataToUpdate[matchKey];
+  console.log("[update_content_service] Data to update (after removing ID):", dataToUpdate);
+  
   const { data, error } = await supabase
     //  @ts-ignore
     .from(`${table}${language}`)
-    .update(post_data)
+    .update(dataToUpdate)
     .eq(matchKey, id)
     .select()
+  
+  console.log("[update_content_service] Response data:", data);
+  console.log("[update_content_service] Response error:", error);
+  
   if (error) {
-    console.log(error.message);
+    console.error("[update_content_service] Update failed:", error.message);
     throw new Error(error.message);
   }
 

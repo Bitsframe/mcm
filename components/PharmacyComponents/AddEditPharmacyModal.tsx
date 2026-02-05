@@ -31,6 +31,7 @@ export default function AddEditPharmacyModal({
         zipcode: "",
         phone: "",
         delivers: false,
+        is_active: true,
         opening_hours: "{}",
     });
 
@@ -45,6 +46,7 @@ export default function AddEditPharmacyModal({
                 zipcode: editData.zipcode,
                 phone: editData.phone || "",
                 delivers: editData.delivers,
+                is_active: editData.is_active,
                 opening_hours: JSON.stringify(editData.opening_hours || {}),
             });
         } else {
@@ -55,6 +57,7 @@ export default function AddEditPharmacyModal({
                 zipcode: "",
                 phone: "",
                 delivers: false,
+                is_active: true,
                 opening_hours: "{}",
             });
         }
@@ -81,7 +84,8 @@ export default function AddEditPharmacyModal({
 
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.address || !formData.state || !formData.zipcode) {
+        const requiresState = !editData;
+        if (!formData.name || !formData.address || !formData.zipcode || (requiresState && !formData.state)) {
             alert(t("Pharmacy_k26"));
             return;
         }
@@ -107,6 +111,7 @@ export default function AddEditPharmacyModal({
             zipcode: "",
             phone: "",
             delivers: false,
+            is_active: true,
             opening_hours: "{}",
         });
         handleClose();
@@ -213,8 +218,8 @@ export default function AddEditPharmacyModal({
                                     Open
                                 </span>
                                 <Switch
-                                    checked={formData.delivers}
-                                    onChange={(checked) => handleInputChange("delivers", checked)}
+                                    checked={!!formData.is_active}
+                                    onChange={(checked) => handleInputChange("is_active", checked)}
                                 />
                             </div>
 

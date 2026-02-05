@@ -2,6 +2,7 @@ export interface Pharmacy {
   id: number;
   name: string;
   address: string;
+  state: string;
   zipcode: string;
   phone: string | null;
   opening_hours: any | null; // json type in DB
@@ -19,4 +20,5 @@ export interface CreatePharmacyData {
   phone?: string;
   opening_hours?: any;
   delivers?: boolean;
+  is_active?: boolean;
 }

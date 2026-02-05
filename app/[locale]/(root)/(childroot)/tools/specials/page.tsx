@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Input_Component } from "@/components/Input_Component";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
-import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
 import { Button, Modal } from "flowbite-react";
 import { supabase } from "@/services/supabase";
 import { useTranslation } from "react-i18next";
@@ -44,8 +43,10 @@ const SpecialsPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data: any = await fetch_content_service({ table: "special_picture" });
-      setItems(data || []);
+      const res = await fetch("/api/tools/specials/all");
+      if (!res.ok) throw new Error("Failed to fetch specials");
+      const json = await res.json();
+      setItems(json.data || []);
     } catch (e: any) {
       toast.error(e.message || t("FailedToLoadSpecials"));
     } finally {
@@ -60,14 +61,16 @@ const SpecialsPage = () => {
     setUploading(true);
     try {
       const path = await uploadToStorage(file);
-      const { data, error }: any = await create_content_service({
-        table: "special_picture",
-        post_data: { file_path: path, display: false, title: newTitle || null },
+      const res = await fetch("/api/tools/specials/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_path: path, display: false, title: newTitle || null }),
       });
-      if (error) throw new Error(error.message);
+      if (!res.ok) throw new Error("Failed to create special");
+      const json = await res.json();
       toast.success(t("SpecialAdded"));
       close();
-      setItems((prev) => [data[0], ...prev]);
+      setItems((prev) => [json.data, ...prev]);
     } catch (e: any) {
       toast.error(e.message || t("FailedToCreate"));
     } finally {
@@ -77,21 +80,30 @@ const SpecialsPage = () => {
 
   const onToggle = async (it: SpecialItem) => {
     try {
-      const data = await update_content_service({
-        table: "special_picture",
-        post_data: { id: it.id, display: !it.display },
+      const res = await fetch(`/api/tools/specials/${it.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display: !it.display }),
       });
-      setItems((prev) => prev.map((p) => (p.id === it.id ? { ...p, display: !p.display } : p)));
+      if (!res.ok) throw new Error("Failed to update special");
+
+      setItems((prev) =>
+        prev.map((p) =>
+          p.id === it.id ? { ...p, display: !p.display } : p
+        )
+      );
+
       toast.success(t("Updated"));
     } catch (e: any) {
+      console.error("[onToggle] Error updating:", e);
       toast.error(e.message || t("FailedToUpdate"));
     }
   };
 
   const onDelete = async (id: number) => {
     try {
-      const { error }: any = await delete_content_service({ table: "special_picture", id });
-      if (error) throw new Error(error.message);
+      const res = await fetch(`/api/tools/specials/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete special");
       toast.success(t("Deleted"));
       setItems((prev) => prev.filter((p) => p.id !== id));
     } catch (e: any) {
