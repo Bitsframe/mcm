@@ -1,50 +1,92 @@
+// import { createServerClient, type CookieOptions } from '@supabase/ssr'
+// import { NextResponse, type NextRequest } from 'next/server'
+
+// export async function updateSession(request: NextRequest) {
+//   let response = NextResponse.next({
+//     request: {
+//       headers: request.headers,
+//     },
+//   })
+  
+
+//   const supabase = createServerClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//     {
+//       cookies: {
+//         get(name: string) {
+//           return request.cookies.get(name)?.value
+//         },
+//         set(name: string, value: string, options: CookieOptions) {
+//           request.cookies.set({
+//             name,
+//             value,
+//             ...options,
+//           })
+//           response = NextResponse.next({
+//             request: {
+//               headers: request.headers,
+//             },
+//           })
+//           response.cookies.set({
+//             name,
+//             value,
+//             ...options,
+//           })
+//         },
+//         remove(name: string, options: CookieOptions) {
+//           request.cookies.set({
+//             name,
+//             value: '',
+//             ...options,
+//           })
+//           response = NextResponse.next({
+//             request: {
+//               headers: request.headers,
+//             },
+//           })
+//           response.cookies.set({
+//             name,
+//             value: '',
+//             ...options,
+//           })
+//         },
+//       },
+//     }
+//   )
+
+//   await supabase.auth.getUser()
+
+//   return response
+// }
+
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-  
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
+        // ✅ READ cookies from the request
         get(name: string) {
           return request.cookies.get(name)?.value
         },
+
+        // ✅ WRITE cookies ONLY to the response
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
           response.cookies.set({
             name,
             value,
             ...options,
           })
         },
+
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
           response.cookies.set({
             name,
             value: '',
@@ -55,7 +97,20 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // ✅ This refreshes the session and syncs cookies correctly
   await supabase.auth.getUser()
 
   return response
+}
+
+export const config = {
+  matcher: [
+    /*
+      Run middleware on all routes except:
+      - static files
+      - images
+      - favicon
+    */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 }
