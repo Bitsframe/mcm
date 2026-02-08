@@ -123,24 +123,16 @@ const EmailBroadcast: React.FC = () => {
     }
   }, [showCreateModal]);
 
-  // Helpers to convert HTML -> plain text and wrap into the expected plain body
-  function htmlToText(html: string): string {
-    if (typeof window !== "undefined") {
-      const div = document.createElement("div");
-      div.innerHTML = html;
-      return div.textContent || div.innerText || "";
-    } else {
-      return html.replace(/<[^>]+>/g, "");
-    }
-  }
-
-  function getFullPlainText(content: string) {
-    let cleanContent = htmlToText(content)
-      .replace(/^Dear Patient,\s*/i, "")
-      .replace(/\s*Best,\s*$/i, "")
+  // Helper to wrap HTML content with greeting and closing
+  function getFullHtmlContent(content: string) {
+    // Remove any existing "Dear Patient" or "Best" from the content
+    let cleanContent = content
+      .replace(/<p>\s*Dear Patient,?\s*<\/p>/i, "")
+      .replace(/<p>\s*Best,?\s*<\/p>/i, "")
       .trim();
 
-    return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
+    // Wrap with proper HTML structure
+    return `<p>Dear Patient,</p>${cleanContent}<p>Best,</p>`;
   }
 
   const MenuBar = ({ editor }: any) => {
@@ -1106,8 +1098,8 @@ const EmailBroadcast: React.FC = () => {
                           return;
                         }
 
-                        const plainTextBody = getFullPlainText(templateContent);
-                        const post_data = { name: templateName, body: plainTextBody, is_active: true } as any;
+                        const htmlBody = getFullHtmlContent(templateContent);
+                        const post_data = { name: templateName, body: htmlBody, is_active: true } as any;
                         const { data, error } = await create_content_service({ table: 'email_templates', post_data });
                         if (error) throw error;
                         if (Array.isArray(data) && data.length > 0) {
