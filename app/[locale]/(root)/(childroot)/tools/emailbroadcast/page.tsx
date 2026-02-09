@@ -123,24 +123,31 @@ const EmailBroadcast: React.FC = () => {
     }
   }, [showCreateModal]);
 
-  // Helpers to convert HTML -> plain text and wrap into the expected plain body
-  function htmlToText(html: string): string {
-    if (typeof window !== "undefined") {
-      const div = document.createElement("div");
-      div.innerHTML = html;
-      return div.textContent || div.innerText || "";
-    } else {
-      return html.replace(/<[^>]+>/g, "");
-    }
-  }
-
-  function getFullPlainText(content: string) {
-    let cleanContent = htmlToText(content)
-      .replace(/^Dear Patient,\s*/i, "")
-      .replace(/\s*Best,\s*$/i, "")
+  // Helper to wrap HTML content with greeting and closing
+  function getFullHtmlContent(content: string) {
+    // Remove any existing "Dear Patient" or "Best" from the content
+    let cleanContent = content
+      .replace(/<p>\s*Dear Patient,?\s*<\/p>/i, "")
+      .replace(/<p>\s*Best,?\s*<\/p>/i, "")
       .trim();
 
-    return `Dear Patient,\n\n${cleanContent}\n\nBest,\n`;
+    // Wrap with proper HTML structure
+    return `<p>Dear Patient,</p>${cleanContent}<p>Best,</p>`;
+  }
+
+  // Helper function to check if content is HTML
+  function isHTML(str: string): boolean {
+    return /<[a-z][\s\S]*>/i.test(str);
+  }
+
+  // Helper function to convert plain text to HTML
+  function plainTextToHTML(text: string): string {
+    // Split by line breaks and wrap each line in <p> tags
+    return text
+      .split('\n')
+      .filter(line => line.trim()) // Remove empty lines
+      .map(line => `<p>${line.trim()}</p>`)
+      .join('');
   }
 
   const MenuBar = ({ editor }: any) => {
@@ -299,11 +306,27 @@ const EmailBroadcast: React.FC = () => {
       const selected = dbTemplates.find((t) => t.id === selectedTemplate);
       if (selected) {
         let previewHtml = selected.body || "";
+        
+        // Check if it's plain text and convert to HTML
+        if (!isHTML(previewHtml)) {
+          previewHtml = plainTextToHTML(previewHtml);
+        }
+        
         if (name && name.trim()) {
-          previewHtml = previewHtml.replace(
-            /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
-            (match: string, p1: string, p2: string) => `${p1}<br/>${name}${p2}`
-          );
+          // Handle different HTML patterns for "Best,"
+          if (previewHtml.includes('<p>Best,</p>')) {
+            // If it's in a <p> tag, add name in a new <p> tag
+            previewHtml = previewHtml.replace(
+              /<p>Best,<\/p>/i,
+              `<p>Best,</p><p>${name}</p>`
+            );
+          } else if (previewHtml.includes('Best,')) {
+            // Otherwise add with <br/>
+            previewHtml = previewHtml.replace(
+              /(Best,)(\s*<\/div>|<br\s*\/?>|\s*<\/p>|\s*$)/i,
+              `$1<br/>${name}$2`
+            );
+          }
         }
         return (
           <div className="relative text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
@@ -491,12 +514,28 @@ const EmailBroadcast: React.FC = () => {
       if (dbTemplate) {
         // Render the template body with logo and name
         let previewHtml = dbTemplate.body || "";
+        
+        // Check if it's plain text and convert to HTML
+        if (!isHTML(previewHtml)) {
+          previewHtml = plainTextToHTML(previewHtml);
+        }
+        
         // Insert name after 'Best,' if name is provided
         if (name && name.trim()) {
-          previewHtml = previewHtml.replace(
-            /(Best,)(\s*<\/div>|<br\s*\/?>|\s*$)/i,
-            `$1<br/>${name}$2`
-          );
+          // Handle different HTML patterns for "Best,"
+          if (previewHtml.includes('<p>Best,</p>')) {
+            // If it's in a <p> tag, add name in a new <p> tag
+            previewHtml = previewHtml.replace(
+              /<p>Best,<\/p>/i,
+              `<p>Best,</p><p>${name}</p>`
+            );
+          } else if (previewHtml.includes('Best,')) {
+            // Otherwise add with <br/>
+            previewHtml = previewHtml.replace(
+              /(Best,)(\s*<\/div>|<br\s*\/?>|\s*<\/p>|\s*$)/i,
+              `$1<br/>${name}$2`
+            );
+          }
         }
         // Always add the logo at the top
         const STATIC_LOGO_URL =
@@ -1071,7 +1110,22 @@ const EmailBroadcast: React.FC = () => {
           {showCreateModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
               <div ref={createModalRef} className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl" id="emailbroadcast-create-modal">
-                <style>{`#emailbroadcast-create-modal .editor-inner input, #emailbroadcast-create-modal .editor-inner .ProseMirror p { width: var(--save-btn-width); max-width: var(--save-btn-width); margin: 0 auto; }`}</style>
+                <style>{`
+                  #emailbroadcast-create-modal .editor-inner input, 
+                  #emailbroadcast-create-modal .editor-inner .ProseMirror p { 
+                    width: var(--save-btn-width); 
+                    max-width: var(--save-btn-width); 
+                    margin: 0 auto; 
+                  }
+                  #emailbroadcast-create-modal .ProseMirror {
+                    min-height: 100%;
+                    height: 100%;
+                    outline: none;
+                  }
+                  #emailbroadcast-create-modal .ProseMirror:focus {
+                    outline: none;
+                  }
+                `}</style>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold mb-1 text-foreground dark:text-white">Create Template</h2>
                   <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="text-muted-foreground">Close</button>
@@ -1085,8 +1139,11 @@ const EmailBroadcast: React.FC = () => {
                 <div className="mb-3">
                   <div className="flex flex-col h-[300px]">
                     <MenuBar editor={editor} />
-                    <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b bg-gray-100 dark:bg-[#07101a]">
-                      <EditorContent editor={editor} className="h-[360px] p-4 bg-transparent text-black dark:text-white" />
+                    <div 
+                      className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b bg-gray-100 dark:bg-[#07101a] cursor-text"
+                      onClick={() => editor?.commands.focus()}
+                    >
+                      <EditorContent editor={editor} className="h-full min-h-[360px] p-4 bg-transparent text-black dark:text-white" />
                     </div>
                   </div>
                 </div>
@@ -1106,8 +1163,8 @@ const EmailBroadcast: React.FC = () => {
                           return;
                         }
 
-                        const plainTextBody = getFullPlainText(templateContent);
-                        const post_data = { name: templateName, body: plainTextBody, is_active: true } as any;
+                        const htmlBody = getFullHtmlContent(templateContent);
+                        const post_data = { name: templateName, body: htmlBody, is_active: true } as any;
                         const { data, error } = await create_content_service({ table: 'email_templates', post_data });
                         if (error) throw error;
                         if (Array.isArray(data) && data.length > 0) {

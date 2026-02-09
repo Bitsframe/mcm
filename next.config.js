@@ -7,7 +7,7 @@ nextConfig = {
     async rewrites() {
         return [
             {
-                source: '/api/:path*',
+                source: '/cronitor-api/:path*',
                 destination: 'https://cronitor.io/api/:path*', // Proxy to external API
             },
         ];
