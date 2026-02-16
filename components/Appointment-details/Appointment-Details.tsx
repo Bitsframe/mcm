@@ -46,6 +46,20 @@ const AppointmentDetails = memo(
   }) => {
     const { t } = useTranslation(translationConstant.APPOINMENTS);
 
+    // Helper function to get value with fallback to allpatients data
+    const getValue = (key: string) => {
+      if (key === 'first_name' && appointment_details.allpatients?.firstname) {
+        return appointment_details.allpatients.firstname;
+      }
+      if (key === 'last_name' && appointment_details.allpatients?.lastname) {
+        return appointment_details.allpatients.lastname;
+      }
+      if (key === 'sex' && appointment_details.allpatients?.gender) {
+        return appointment_details.allpatients.gender;
+      }
+      return appointment_details[key as keyof typeof appointment_details];
+    };
+
     return (
       <div className="flex flex-col h-full space-y-2 sm:space-y-5 text-black dark:text-white p-2 sm:p-4">
         <h1 className="text-base sm:text-lg font-semibold dark:text-white">
@@ -82,20 +96,12 @@ const AppointmentDetails = memo(
                   ? formatPhoneNumber(appointment_details?.phone) ?? "-"
                   : elem.key === "dob"
                   ? renderFormattedDate(
-                      appointment_details[
-                        elem.key as keyof typeof appointment_details
-                      ],
+                      getValue(elem.key),
                       "YYYY-MM-DD"
                     )
-                  : typeof appointment_details[
-                      elem.key as keyof typeof appointment_details
-                    ] === "object"
+                  : typeof getValue(elem.key) === "object"
                   ? "-"
-                  : String(
-                      appointment_details[
-                        elem.key as keyof typeof appointment_details
-                      ] ?? "-"
-                    )}
+                  : String(getValue(elem.key) ?? "-")}
               </p>
             </div>
           ))}

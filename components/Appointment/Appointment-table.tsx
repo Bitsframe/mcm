@@ -21,6 +21,11 @@ interface Appointment {
   sex: string
   service: string
   date_and_time: string
+  allpatients?: {
+    firstname: string
+    lastname: string
+    gender: string
+  }
 }
 
 interface AppointmentsTableProps {
@@ -319,15 +324,20 @@ const MemoizedTableRow = memo(
 
     const { date, time } = extractDateTime(appointment.date_and_time)
 
+    // Use data from allpatients if available, otherwise fallback to Appoinments table
+    const firstName = appointment.allpatients?.firstname || appointment.first_name
+    const lastName = appointment.allpatients?.lastname || appointment.last_name
+    const gender = appointment.allpatients?.gender || appointment.sex
+
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
         className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm"
       >
         <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-2 sm:py-3">
-          {appointment.first_name} {appointment.last_name}
+          {firstName} {lastName}
         </TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.sex}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{gender}</TableCell>
         <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.service}</TableCell>
         <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{date}</TableCell>
         <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{time}</TableCell>
@@ -402,6 +412,11 @@ const MemoizedAppointmentCard = memo(
 
     const { date, time } = extractDateTime(appointment.date_and_time)
 
+    // Use data from allpatients if available, otherwise fallback to Appoinments table
+    const firstName = appointment.allpatients?.firstname || appointment.first_name
+    const lastName = appointment.allpatients?.lastname || appointment.last_name
+    const gender = appointment.allpatients?.gender || appointment.sex
+
     return (
       <Card
         className="cursor-pointer hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700"
@@ -412,9 +427,9 @@ const MemoizedAppointmentCard = memo(
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-medium text-sm dark:text-white">
-                  {appointment.first_name} {appointment.last_name}
+                  {firstName} {lastName}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{appointment.sex}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{gender}</p>
               </div>
               <div className="flex space-x-2">
                 <button
