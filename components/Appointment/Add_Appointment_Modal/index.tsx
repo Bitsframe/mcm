@@ -154,6 +154,7 @@ export const Add_Appointment_Modal = ({
         last_name: "",
         email_address: "",
         phone: "",
+        dob: "",
         sex: "",
         service: "",
         date_and_time: "",
@@ -176,8 +177,8 @@ export const Add_Appointment_Modal = ({
     // dob removed from UI — no validation here
 
     if (key === "email_address" && typeof val === "string") {
-      // Email validation
-      if (val && !isValidEmail(val)) {
+      // Email validation - only validate if email is not empty
+      if (val && val.trim() !== "" && !isValidEmail(val)) {
         setEmailError("Please enter a valid email format");
       } else {
         setEmailError("");
@@ -201,7 +202,7 @@ export const Add_Appointment_Modal = ({
 
           const { data, error } = await supabase
             .from('allpatients')
-            .select('id, firstname, lastname, email, phone, gender')
+            .select('id, firstname, lastname, email, phone, gender, dob')
             .eq('locationid', selectedLocation.id);
             
 
@@ -242,6 +243,7 @@ export const Add_Appointment_Modal = ({
         last_name: "",
         email_address: "",
         phone: "",
+        dob: "",
         sex: "",
         service: "",
         date_and_time: "",
@@ -284,6 +286,7 @@ export const Add_Appointment_Modal = ({
       new_patient,
       sex,
       phone,
+      dob,
       date_and_time,
       service,
     } = formData;
@@ -297,6 +300,7 @@ export const Add_Appointment_Modal = ({
       new_patient: new_patient === "true" || false,
       sex: sex,
       phone: phone,
+      dob: dob,
       service: service,
       date_and_time: date_and_time,
     };
@@ -310,14 +314,13 @@ export const Add_Appointment_Modal = ({
       "new_patient",
       "first_name",
       "last_name",
-      "email_address",
       "phone",
     ];
 
     const isNew = new_patient === "true" || new_patient === true;
     const requireScheduling = isNew || selectedComingBackPatient;
     const requiredFields = isNew
-      ? baseRequired.concat(["sex", "service", "date_and_time"])
+      ? baseRequired.concat(["dob", "sex", "service", "date_and_time"])
       : baseRequired;
 
     if (requireScheduling) {
@@ -333,7 +336,8 @@ export const Add_Appointment_Modal = ({
       }
     }
 
-    if (!isValidEmail(email_address)) {
+    // Only validate email format if email is provided
+    if (email_address && email_address.trim() !== "" && !isValidEmail(email_address)) {
       toast.error(t("Appoinments_k64"));
       setLoading(false);
       return;
@@ -353,36 +357,54 @@ export const Add_Appointment_Modal = ({
     // If a coming-back patient is selected, INSERT a new appointment row (do not update existing)
     if (selectedComingBackPatient && selectedComingBackPatient.id) {
       try {
-        // Build post data from appointmentDetails and enforce DB values for coming-back
-        const comingBackPost = {
-          ...appointmentDetails,
-          isApproved: true,
-          new_patient: false,
-        };
+        // For coming back patients, we already have their data from allpatients table
+        // We just need to create the appointment with their patient_id
+        
+        // Call the edge function with the coming back patient's data
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            location_id,
+            first_name,
+            last_name,
+            email_address,
+            phone,
+            sex,
+            service,
+            date_and_time,
+            dob: dob || null, // Send null if DOB is empty
+          }),
+        });
 
-       
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Edge function error:', errorData);
+          console.error('Request payload:', {
+            location_id,
+            first_name,
+            last_name,
+            email_address,
+            phone,
+            sex,
+            service,
+            date_and_time,
+            dob: dob || null,
+          });
+          throw new Error(errorData.error || 'Failed to create appointment');
+        }
 
-        const { data: insertData, error: insertError } = await supabase
-          .from("Appoinments")
-          .insert([comingBackPost])
-          .select();
+        const result = await response.json();
 
-        console.log("Supabase Response for Coming Back Insert:", { insertData, insertError });
+        if (result.success) {
+          newAddedRow(result.appointment);
 
-        newAddedRow(insertData?.[0]);
-
-        if (insertError) {
-          if (
-            insertError?.message ===
-            'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
-          ) {
-            toast.error(
-              `Sorry, Appointment time slot is not available, Please select any other time slot`
-            );
-          } else {
-            toast.error(`Error submitting appointment: ${insertError?.message}`);
-          }
-        } else {
           toast.success(
             <div className="flex justify-between">
               <p>Appointment scheduled successfully.</p>
@@ -395,9 +417,108 @@ export const Add_Appointment_Modal = ({
             </div>
           );
 
-          // Trigger server-side email via API route for the new appointment
+          // Send confirmation email only if email is provided
+          if (email_address && email_address.trim() !== "") {
+            try {
+              const appointmentDate = date_and_time && date_and_time.includes('|')
+                ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
+                : '-';
+              const appointmentTime = date_and_time && date_and_time.includes('|')
+                ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
+                : '-';
+
+              await fetch('/api/sendappointemntemail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  to: email_address,
+                  subject: 'Appointment Confirmation',
+                  appointmentDate,
+                  appointmentTime,
+                }),
+              });
+            } catch (e) {
+              console.error('Error triggering appointment email (coming back):', e);
+            }
+          }
+
+          close_handle();
+        }
+      } catch (error: any) {
+        console.error('Error inserting appointment for coming back patient:', error);
+        if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
+          toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
+        } else {
+          toast.error(`Error submitting appointment: ${error.message}`);
+        }
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    // Insert new appointment for new patients or when no existing patient selected
+    try {
+      // Call the edge function to handle patient creation and appointment insertion
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          location_id,
+          first_name,
+          last_name,
+          email_address,
+          phone,
+          sex,
+          service,
+          date_and_time,
+          dob: dob || null, // Send null if DOB is empty
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Edge function error:', errorData);
+        console.error('Request payload:', {
+          location_id,
+          first_name,
+          last_name,
+          email_address,
+          phone,
+          sex,
+          service,
+          date_and_time,
+          dob: dob || null,
+        });
+        throw new Error(errorData.error || 'Failed to create appointment');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        newAddedRow(result.appointment);
+
+        toast.success(
+          <div className="flex justify-between">
+            <p>Appointment scheduled successfully.</p>
+            <button
+              onClick={() => toast.dismiss()}
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <span className="text-sm">&#x2715;</span>
+            </button>
+          </div>
+        );
+
+        // Send confirmation email only if email is provided
+        if (email_address && email_address.trim() !== "") {
           try {
-            const { email_address, first_name, last_name, service, date_and_time } = appointmentDetails;
             const appointmentDate = date_and_time && date_and_time.includes('|')
               ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
               : '-';
@@ -416,95 +537,21 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.error('Error triggering appointment email (coming back insert):', e);
+            console.error('Error triggering appointment email:', e);
           }
-
-          // Trigger UI update for booked time slots
-          newAddedRow(insertData?.[0]);
-          close_handle();
         }
-      } catch (e) {
-        console.error('Error inserting appointment for coming back patient', e);
-        toast.error('An error occurred while submitting the appointment');
+
+        close_handle();
       }
-
-      setLoading(false);
-      return;
-    }
-
-    // Insert new appointment for new patients or when no existing patient selected
-    const { data, error } = await supabase
-      .from("Appoinments")
-      .insert([postData])
-      .select();
-
-    newAddedRow(data?.[0]);
-
-    if (error) {
-      if (
-        error?.message ===
-        'duplicate key value violates unique constraint "Appoinments_date_and_time_key"'
-      ) {
-        toast.error(
-          `Sorry, Appointment time slot is not available, Please select any other time slot`
-        );
+    } catch (error: any) {
+      console.error('Error creating appointment:', error);
+      if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
+        toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
       } else {
-        toast.error(`Error submitting appointment: ${error?.message}`);
+        toast.error(`Error submitting appointment: ${error.message}`);
       }
-    } else {
-      toast.success(
-        <div className="flex justify-between">
-          <p>Appointment scheduled successfully.</p>
-          <button
-            onClick={() => toast.dismiss()}
-            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <span className="text-sm">&#x2715;</span>
-          </button>
-        </div>
-      );
-
-      const emailType = EmailBodyTempEnum.APPOINTMENT_CONFIRMATION;
-
-      const { email_address, first_name, last_name, service, date_and_time } =
-        appointmentDetails;
-      const data: any = {
-        email: email_address,
-        name: `${first_name} ${last_name}`,
-        location: selectedLocation,
-        service: service,
-        date: date_and_time && date_and_time.includes("|")
-          ? date_and_time.split("|")[1]?.split(" - ")?.[0] || "-"
-          : "-",
-        time: date_and_time && date_and_time.includes("|")
-          ? date_and_time.split("|")[1]?.split(" - ")?.[1] || "-"
-          : "-",
-      };
-      // Trigger server-side email via API route for new appointment
-      try {
-        const appointmentDate = date_and_time && date_and_time.includes('|')
-          ? date_and_time.split('|')[1]?.split(' - ')?.[0] || '-'
-          : '-';
-        const appointmentTime = date_and_time && date_and_time.includes('|')
-          ? date_and_time.split('|')[1]?.split(' - ')?.[1] || '-'
-          : '-';
-
-        await fetch('/api/sendappointemntemail', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: data.email, // `data` variable holds email in this scope
-            subject: 'Appointment Confirmation',
-            appointmentDate,
-            appointmentTime,
-          }),
-        });
-      } catch (e) {
-        console.error('Error triggering appointment email (insert):', e);
-      }
-  // appointment submitted
-      close_handle();
     }
+
     setLoading(false);
   };
 
@@ -662,7 +709,6 @@ export const Add_Appointment_Modal = ({
                       {t("Appoinments_k11")}
                     </Label>
                     <Input_Component_Appointment
-                      required
                       onChange={(e: string) =>
                         select_change_handle("email_address", e)
                       }
@@ -690,23 +736,36 @@ export const Add_Appointment_Modal = ({
                     />
                   </div>
                 </div>
-              </>
-            )}
 
-            {formData.new_patient !== "false" && (
-              <div className="space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k8")}
-                </Label>
-                <RadioButtons
-                  name="sex"
-                  options={gender_options}
-                  selectedValue={formData.sex}
-                  required
-                  onChange={(e) => select_change_handle("sex", e)}
-                  className="flex gap-2 flex-wrap sm:flex-nowrap"
-                />
-              </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k9")}
+                    </Label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.dob || ''}
+                      onChange={(e) => select_change_handle("dob", e.target.value)}
+                      className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                      {t("Appoinments_k8")}
+                    </Label>
+                    <RadioButtons
+                      name="sex"
+                      options={gender_options}
+                      selectedValue={formData.sex}
+                      required
+                      onChange={(e) => select_change_handle("sex", e)}
+                      className="flex gap-2 flex-wrap sm:flex-nowrap"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
@@ -729,6 +788,7 @@ export const Add_Appointment_Modal = ({
                     phone: p.phone ?? p.mobile ?? p.phone_number ?? '',
                     date_and_time: p.date_and_time ?? '',
                     sex: p.sex ?? p.gender ?? '',
+                    dob: p.dob ?? '',
                   }))}
                   onSelect={(patient) => {
                     setSelectedComingBackPatient(patient);
@@ -739,9 +799,9 @@ export const Add_Appointment_Modal = ({
                         last_name: patient.last_name,
                         email_address: patient.email_address,
                         phone: patient.phone,
+                        dob: patient.dob || "",
                         // intentionally NOT setting date_and_time from selected patient
                         date_and_time: "",
-                        // dob and address removed from UI, keep sex only
                         sex: patient.sex,
                         new_patient: "false",
                       }));

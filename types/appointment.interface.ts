@@ -21,6 +21,14 @@ interface Appointment {
   location?: LocationInterface;
   in_office_patient: boolean;
   new_patient: boolean;
+  allpatients?: {
+    firstname?: string;
+    lastname?: string;
+    gender?: string;
+    dob?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 interface LocationInterface {

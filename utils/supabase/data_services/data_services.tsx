@@ -82,7 +82,14 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
   try {
     const { data, error } = await supabase
       .from('Appoinments')
-      .select('*')
+      .select(`
+        *,
+        allpatients!patient_id (
+          firstname,
+          lastname,
+          gender
+        )
+      `)
       .eq('location_id', locationId)
       .eq('isApproved', true)
       .order('id', { ascending: false });
@@ -102,7 +109,14 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
   try {
     const { data, error } = await supabase
     .from('Appoinments')
-      .select('*')
+      .select(`
+        *,
+        allpatients!patient_id (
+          firstname,
+          lastname,
+          gender
+        )
+      `)
       .eq('location_id', locationId)
     .eq('isApproved', false)
     // return latest first
