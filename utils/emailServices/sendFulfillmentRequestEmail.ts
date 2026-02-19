@@ -52,8 +52,18 @@ export const sendFulfillmentRequestEmail = async (
       html: emailHtml,
     };
 
+    // Use environment variable for email service URL
+    const emailServiceUrl = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
+    if (!emailServiceUrl) {
+      throw new Error("Email service URL not configured (NEXT_PUBLIC_EMAIL_SENDER_URL)");
+    }
+    
+    const endpoint = emailServiceUrl.endsWith('/') 
+      ? `${emailServiceUrl}send-batch-email` 
+      : `${emailServiceUrl}/send-batch-email`;
+
     const response = await fetch(
-      "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email",
+      endpoint,
       {
         method: "POST",
         headers: {

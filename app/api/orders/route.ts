@@ -425,8 +425,13 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
     
 
 
-    // --- 4. Send order email to patient ---
-    await sendOrderEmail(
+    // --- 4. Send order email to patient (non-blocking) ---
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:429',message:'About to send order email (non-blocking)',data:{order_id,patientEmail:selectedPatient?.email},timestamp:Date.now(),runId:'post-fix',hypothesisId:'I'})}).catch(()=>{});
+    // #endregion
+    
+    // Send email asynchronously without blocking order completion
+    sendOrderEmail(
       { order_id, paymentcash: cashAmount > 0, paymentcard: cardAmount > 0, order_date_utc },
       { ...selectedPatient, location: selectedLocation.title },
       cartArray,
@@ -435,7 +440,17 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       appliedDiscount,
       Number(creditAmount.toFixed(2)),
       newCreditBalance
-    );
+    ).catch((emailError: any) => {
+      // Log email errors but don't fail the order
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:441',message:'Email sending failed (non-blocking)',data:{order_id,errorMessage:emailError?.message},timestamp:Date.now(),runId:'post-fix',hypothesisId:'J'})}).catch(()=>{});
+      // #endregion
+      console.error(`[orders] Failed to send order email for order ${order_id}:`, emailError.message);
+    });
+
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:448',message:'Order completed successfully, returning response',data:{order_id},timestamp:Date.now(),runId:'post-fix',hypothesisId:'K'})}).catch(()=>{});
+    // #endregion
 
     return NextResponse.json({
       success: true,
@@ -443,6 +458,10 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       message: `Order has been placed, order # ${order_id}`
     });
   } catch (error: any) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:450',message:'Error caught in orders route',data:{errorMessage:error?.message,errorStack:error?.stack?.substring(0,500),errorName:error?.name},timestamp:Date.now(),runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+    
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 500 }

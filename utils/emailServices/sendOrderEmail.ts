@@ -225,22 +225,116 @@ export const sendOrderEmail = async (
       html: emailHtml,
     };
 
-    const response = await fetch(
-      "https://send-resent-mail-646827ff1a0b.herokuapp.com/send-batch-email",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
+    // Use environment variable for email service URL (same as other email functions)
+    const emailServiceUrl = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
+    
+    // #region agent log
+    const logData = {
+      location: 'sendOrderEmail.ts:229',
+      message: 'Reading email service URL from env',
+      data: {
+        hasUrl: !!emailServiceUrl,
+        urlPreview: emailServiceUrl?.substring(0, 60) || 'undefined',
+        isPlaceholder: emailServiceUrl?.includes('your-email-service-url.com') || false
+      },
+      timestamp: Date.now(),
+      runId: 'run3',
+      hypothesisId: 'P'
+    };
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logData)
+    }).catch(() => {});
+    // #endregion
+    
+    if (!emailServiceUrl) {
+      throw new Error("Email service URL not configured (NEXT_PUBLIC_EMAIL_SENDER_URL)");
+    }
+    
+    // Check if using placeholder value (common mistake)
+    if (emailServiceUrl.includes('your-email-service-url.com') || emailServiceUrl.includes('example.com')) {
+      throw new Error(`Email service URL appears to be a placeholder value. Please set NEXT_PUBLIC_EMAIL_SENDER_URL in .env.local and restart the server. Current value: ${emailServiceUrl}`);
+    }
+    
+    // Append /send-batch-email endpoint (consistent with other email functions)
+    const endpoint = emailServiceUrl.endsWith('/') 
+      ? `${emailServiceUrl}send-batch-email` 
+      : `${emailServiceUrl}/send-batch-email`;
 
-    const result = await response.json();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:237',message:'About to call email service',data:{endpoint,emailServiceUrl,hasUrl:!!emailServiceUrl},timestamp:Date.now(),runId:'run2',hypothesisId:'L'})}).catch(()=>{});
+    // #endregion
+
+    let response;
+    try {
+      response = await fetch(
+        endpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+    } catch (fetchError: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:250',message:'Fetch call failed',data:{endpoint,errorName:fetchError?.name,errorMessage:fetchError?.message,errorCode:fetchError?.code,errorCause:fetchError?.cause?.toString()?.substring(0,200)},timestamp:Date.now(),runId:'run2',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
+      throw new Error(`Failed to connect to email service: ${fetchError.message || 'fetch failed'}`);
+    }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:237',message:'Email service response status',data:{status:response.status,statusText:response.statusText,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+
+    // Check response status and content-type before parsing
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:244',message:'Response content type check',data:{isJson,contentType,ok:response.ok},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     if (!response.ok) {
-      throw new Error(result.message || "Failed to send order confirmation email");
+      // If not OK, try to read as text first to see what we got
+      const errorText = await response.text();
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:250',message:'Email service error response',data:{status:response.status,statusText:response.statusText,errorTextPreview:errorText.substring(0,200),isHtml:errorText.trim().startsWith('<!DOCTYPE')},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      
+      // Try to parse as JSON if it looks like JSON, otherwise use the text
+      let errorMessage = "Failed to send order confirmation email";
+      try {
+        if (isJson) {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } else {
+          errorMessage = `Email service returned ${response.status}: ${errorText.substring(0, 100)}`;
+        }
+      } catch (parseError) {
+        errorMessage = `Email service returned ${response.status} with non-JSON response`;
+      }
+      
+      throw new Error(errorMessage);
     }
+
+    // Only parse as JSON if content-type indicates JSON
+    let result;
+    if (isJson) {
+      result = await response.json();
+    } else {
+      const text = await response.text();
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:272',message:'Non-JSON response received',data:{contentType,textPreview:text.substring(0,200)},timestamp:Date.now(),runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+      throw new Error(`Email service returned non-JSON response: ${text.substring(0, 100)}`);
+    }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/697e0712-e788-4d2b-acc0-cc4317618d77',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sendOrderEmail.ts:277',message:'Email sent successfully',data:{result},timestamp:Date.now(),runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
 
     return result;
   } catch (error: any) {
