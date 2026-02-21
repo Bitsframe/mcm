@@ -44,6 +44,8 @@ import {
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import ProductListModal from '@/components/POS/ProductListModal';
+import PreSalesButton from '@/components/POS/PreSalesButton';
+import PreSalesModal from '@/components/POS/PreSalesModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
@@ -124,6 +126,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
 
   const { selectedLocation } = useContext(LocationContext);
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
+  const isOutOfStock = quantity_available === 0;
+  const wasQuantityAdjusted = (data as any).quantityAdjusted;
+  const requestedQuantity = (data as any).requestedQuantity;
 
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountPct, setDiscountPct] = useState(discount_percent);  // The modal value will update this
@@ -174,16 +179,28 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
       className={
         isOtherLocation
           ? "bg-blue-50 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 py-2 px-3 rounded-md shadow-sm"
+          : isOutOfStock
+          ? "bg-red-50 dark:bg-red-900 border border-red-400 dark:border-red-600 py-2 px-3 rounded-md shadow-sm"
           : "bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md"
       }
     >
+      {isOutOfStock && (
+        <div className="mb-2 px-2 py-1 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 rounded text-xs font-semibold text-red-800 dark:text-red-200">
+          ⚠️ OUT OF STOCK - This item will not be included in the order
+        </div>
+      )}
+      {wasQuantityAdjusted && !isOutOfStock && (
+        <div className="mb-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-800 border border-yellow-400 dark:border-yellow-600 rounded text-xs font-semibold text-yellow-800 dark:text-yellow-200">
+          ⚠️ Quantity adjusted: {requestedQuantity} was requested, only {quantity} available
+        </div>
+      )}
       <div className="flex items-center">
         <div className="flex-1 flex items-center space-x-3">
           <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
             <button
               onClick={() => qtyHandle("inc")}
               className="disabled:opacity-60"
-              disabled={quantity_available === quantity}
+              disabled={quantity_available === quantity || isOutOfStock}
             >
               <IoIosArrowUp
                 size={18}
@@ -194,7 +211,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
               {quantity}
             </span>
             <button
-              disabled={quantity === 0}
+              disabled={quantity === 0 || isOutOfStock}
               className="disabled:opacity-60"
               onClick={() => qtyHandle("dec")}
             >
@@ -212,6 +229,11 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             {isOtherLocation && (
               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
                 Fulfilled at: {fulfillment_location_name}
+              </dd>
+            )}
+            {isOutOfStock && (
+              <dd className="text-xs font-semibold text-red-800 dark:text-red-200 mt-1">
+                Available: 0 (Out of Stock)
               </dd>
             )}
           </dl>
@@ -245,32 +267,34 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
         </div>
       </div>
 
-      {/* Discount Section */}
-      <div className="mt-2 flex items-center justify-between text-xs px-0.5">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-600 dark:text-gray-300">Discount</span>
-          <span className="text-emerald-600 dark:text-emerald-400">
-            {discountPct > 0 ? `${discountPct}% off` : "0% "}
-          </span>
-        </div>
+      {/* Discount Section - Only show for in-stock items */}
+      {!isOutOfStock && (
+        <div className="mt-2 flex items-center justify-between text-xs px-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600 dark:text-gray-300">Discount</span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              {discountPct > 0 ? `${discountPct}% off` : "0% "}
+            </span>
+          </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsDiscountModalOpen(true)}
-            className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
-          >
-            {discountPct > 0 ? "Change discount" : "Add discount"}
-          </button>
-          {discountPct > 0 && (
+          <div className="flex gap-2">
             <button
-              onClick={handleRemoveDiscount} // Removes the discount
-              className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              onClick={() => setIsDiscountModalOpen(true)}
+              className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
             >
-              Remove discount
+              {discountPct > 0 ? "Change discount" : "Add discount"}
             </button>
-          )}
+            {discountPct > 0 && (
+              <button
+                onClick={handleRemoveDiscount} // Removes the discount
+                className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              >
+                Remove discount
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Discount Modal */}
       <DiscountModal
@@ -437,6 +461,7 @@ const Orders = () => {
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [isAddBalanceModalOpen, setIsAddBalanceModalOpen] = useState(false);
   const [addBalanceLoading, setAddBalanceLoading] = useState(false);
+  const [isPreSalesModalOpen, setIsPreSalesModalOpen] = useState(false);
   const [payWithCash, setPayWithCash] = useState(true);
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
@@ -797,17 +822,20 @@ const addToCartHandle = () => {
       setPlaceOrderLoading(true);
       setIsBalanceLoading(true);
 
-      if (!selectedPatient || !cartArray.length) return;
+      if (!selectedPatient || !activeCartItems.length) {
+        toast.error("No items available to order");
+        return;
+      }
       
-      // Calculate totals
-      const cartTotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+      // Calculate totals using only active (in-stock) items
+      const cartTotal = grandTotalHandle(activeCartItems, appliedDiscount).amount;
       const receivables = (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0) + (payWithZelle ? zelleAmount : 0);
       const previousBalance = creditAmount; // what UI shows in Balance
       const newCreditAuditBalance = previousBalance + cartTotal - receivables;
 
       const { data } = await axios.post("/api/orders", {
         patient_id: selectedPatient.id,
-        cartArray,
+        cartArray: activeCartItems, // Only send in-stock items
         appliedDiscount,
         creditAmount: previousBalance, // send UI Balance to orders.credit_balance
         creditAuditBalance: newCreditAuditBalance, // send updated balance to credit_audit
@@ -888,7 +916,18 @@ const addToCartHandle = () => {
     setActiveTitle("Sidebar_k19");
   }, [setActiveTitle]);
 
-  const cartTotal = grandTotalHandle(cartArray, appliedDiscount).amount;
+  // Filter out out-of-stock items for order calculations and placement
+  const activeCartItems = useMemo(() => {
+    return cartArray.filter(item => item.quantity_available > 0);
+  }, [cartArray]);
+
+  // Count out of stock items for display
+  const outOfStockCount = useMemo(() => {
+    return cartArray.filter(item => item.quantity_available === 0).length;
+  }, [cartArray]);
+
+  // Calculate totals using only active (in-stock) items
+  const cartTotal = grandTotalHandle(activeCartItems, appliedDiscount).amount;
   const subtotal = cartTotal + creditAmount;
   // console.log("🔢 Subtotal:", subtotal);
 
@@ -905,7 +944,7 @@ const addToCartHandle = () => {
 
     const paid = receivedAmount + cardAmount + zelleAmount;
     const productTotalAfterDiscount = grandTotalHandle(
-      cartArray,
+      activeCartItems,
       appliedDiscount
     ).amount;
     const creditNeeded = productTotalAfterDiscount - paid;
@@ -920,7 +959,7 @@ const addToCartHandle = () => {
     cardAmount,
     zelleAmount,
     creditAvailable,
-    cartArray,
+    activeCartItems,
     appliedDiscount,
   ]);
 
@@ -932,10 +971,10 @@ const addToCartHandle = () => {
   }, [selectedLocation, creditUsed]);
 
   const finalCredit = useMemo(() => {
-    const totalDue = grandTotalHandle(cartArray, appliedDiscount).amount;
+    const totalDue = grandTotalHandle(activeCartItems, appliedDiscount).amount;
     const totalPaid = receivedAmount + cardAmount + zelleAmount;
     return totalDue - totalPaid;
-  }, [receivedAmount, cardAmount, zelleAmount, cartArray, appliedDiscount]);
+  }, [receivedAmount, cardAmount, zelleAmount, activeCartItems, appliedDiscount]);
 
   const handleAddBalance = async () => {
     if (!selectedPatient?.id || isNaN(addAmount) || addAmount === 0) return;
@@ -1008,7 +1047,6 @@ const addToCartHandle = () => {
     (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0) + (payWithZelle ? zelleAmount : 0);
 
 
-
   return (
     <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
       <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
@@ -1035,6 +1073,10 @@ const addToCartHandle = () => {
                     >
                      {t("POS-Sales_k107")}
                     </button>
+                    <PreSalesButton 
+                      disabled={false}
+                      onClick={() => setIsPreSalesModalOpen(true)}
+                    />
                     <button
                       className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
                       onClick={() => setIsAddBalanceModalOpen(true)}
@@ -1261,7 +1303,7 @@ const addToCartHandle = () => {
                   {t("POS-Sales_k76")}
                 </h1>
                 <p className="text-xs">
-                  ${grandTotalHandle(cartArray, 0).productTotalOriginalPrice.toFixed(2)}
+                  ${grandTotalHandle(activeCartItems, 0).productTotalOriginalPrice.toFixed(2)}
                 </p>
               </div>
 <div className="flex items-center justify-between">
@@ -1272,7 +1314,7 @@ const addToCartHandle = () => {
     <p className="text-xs">
       {appliedDiscount
         ? `${Math.abs(
-            grandTotalHandle(cartArray, appliedDiscount).discountAmount
+            grandTotalHandle(activeCartItems, appliedDiscount).discountAmount
           ).toFixed(2)} (${appliedDiscount}%)`
         : "NILL"}
     </p>
@@ -1369,7 +1411,7 @@ const addToCartHandle = () => {
                 </h1>
                 <p className="text-xs">
                   $
-                  {grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(
+                  {grandTotalHandle(activeCartItems, appliedDiscount).amount.toFixed(
                     2
                   )}
                 </p>
@@ -1391,10 +1433,10 @@ const addToCartHandle = () => {
                   {t("POS-Sales_k42")}
                 </h1>
                 <p className="text-xs">
-                  {/* ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)} */}
+                  {/* ${(grandTotalHandle(activeCartItems, appliedDiscount).amount - creditAmount).toFixed(2)} */}
                   $
                   {(
-                    grandTotalHandle(cartArray, appliedDiscount).amount +
+                    grandTotalHandle(activeCartItems, appliedDiscount).amount +
                     creditAmount
                   ).toFixed(2)}
                 </p>
@@ -1592,6 +1634,11 @@ transition-colors`}
 
           {/* Persistent footer: always visible totals and action */}
           <div className="p-2 border-t bg-white dark:bg-[#0E1725]">
+            {outOfStockCount > 0 && (
+              <div className="mb-2 px-2 py-1 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded text-xs text-yellow-800 dark:text-yellow-200">
+                ℹ️ {outOfStockCount} item{outOfStockCount > 1 ? 's' : ''} out of stock (will not be included in order)
+              </div>
+            )}
             <div className="flex items-center justify-between mt-1">
               <h1 className="text-xs text-gray-700 dark:text-gray-300">
                 {t("POS-Sales_k100")}
@@ -1605,19 +1652,20 @@ transition-colors`}
               <button
                 onClick={placeOrderHandle}
                 disabled={
-                  !cartArray.length ||
+                  !activeCartItems.length ||
                   totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
                   ((payWithCash || payWithCard || payWithZelle) && totalPaid === 0 && creditUsed === 0)
                 }
                 className={`rounded py-1 px-3 text-white w-1/2 flex justify-between items-center text-sm ${
-                  !cartArray.length ||
+                  !activeCartItems.length ||
                   totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
                   ((payWithCash || payWithCard || payWithZelle) && totalPaid === 0 && creditUsed === 0)
                     ? "opacity-50 bg-blue-600"
                     : "bg-blue-600"
                 }`}
+                title={!activeCartItems.length ? "No items available to order" : ""}
               >
                 {placeOrderLoading ? (
                   <CircularProgress size={14} color="secondary" />
@@ -1814,6 +1862,188 @@ transition-colors`}
         onAddToCart={handleAddFromSplitModal}
         currentLocationId={selectedLocation?.id || 0}
       /> */}
+
+      {/* Pre Sales Modal */}
+      <PreSalesModal
+        isOpen={isPreSalesModalOpen}
+        onClose={() => setIsPreSalesModalOpen(false)}
+        locationId={selectedLocation?.id}
+        onSelectPatient={async (patient) => {
+          console.log('🎯 [POS] Selected patient from Pre Sales:', patient);
+          
+          // Create patient object matching the expected format
+          const preSalesPatient = {
+            id: patient.id,
+            firstname: patient.firstname,
+            lastname: patient.lastname,
+            email: patient.email,
+            phone: patient.phone,
+            treatmenttype: patient.service, // Map service to treatmenttype
+          };
+          
+          // Set the selected patient (this will replace any existing patient)
+          setSelectedPatient(preSalesPatient);
+          
+          // Save to localStorage
+          localStorage.setItem("@pos-patient", JSON.stringify(preSalesPatient));
+          
+          // Auto-fill cart with products from pre_sales
+          if (patient.products && patient.products.length > 0 && selectedLocation) {
+            console.log('🛒 [POS] Auto-filling cart with products:', patient.products);
+            console.log('📍 [POS] Appointment location_id:', patient.appointment_location_id);
+            
+            try {
+              // Fetch full product details from inventory for each product
+              const cartItems: CartArrayInterface[] = [];
+              
+              for (const preSalesProduct of patient.products) {
+                console.log(`📦 [POS] Processing pre-sales product:`, preSalesProduct);
+                console.log(`   - product_id from pre_sales (master product): ${preSalesProduct.product_id}`);
+                console.log(`   - product_quantity: ${preSalesProduct.product_quantity}`);
+                console.log(`   - appointment location_id: ${patient.appointment_location_id}`);
+                
+                // Fetch inventory record using product_id + location_id
+                console.log(`🔍 [POS] Querying inventory with:`, {
+                  table: 'inventory',
+                  product_id: preSalesProduct.product_id,
+                  location_id: patient.appointment_location_id,
+                });
+                
+                // First try without archived filter to see if record exists
+                let inventoryData: any = await fetch_content_service({
+                  table: 'inventory',
+                  matchCase: [
+                    { key: 'product_id', value: preSalesProduct.product_id },
+                    { key: 'location_id', value: patient.appointment_location_id },
+                  ],
+                  selectParam: ',products(price, category_id, product_name, archived)',
+                });
+                
+                console.log(`📊 [POS] Inventory query result (without archived filter):`, inventoryData);
+                console.log(`📊 [POS] Inventory data length:`, inventoryData?.length);
+                
+                // If found, filter out archived items in code
+                if (inventoryData && inventoryData.length > 0) {
+                  inventoryData = inventoryData.filter((item: any) => !item.archived);
+                  console.log(`📊 [POS] After filtering archived:`, inventoryData);
+                }
+                
+                console.log(`📊 [POS] Full inventory data:`, JSON.stringify(inventoryData, null, 2));
+                
+                if (inventoryData && inventoryData.length > 0) {
+                  const inventoryItem = inventoryData[0];
+                  const productDetails = inventoryItem.products;
+                  const isOutOfStock = inventoryItem.quantity === 0;
+                  
+                  const isArchived = productDetails?.archived === true;
+                  
+                  console.log(`✅ [POS] Found inventory item:`, inventoryItem);
+                  console.log(`   - inventory_id: ${inventoryItem.inventory_id}`);
+                  console.log(`   - product_id: ${inventoryItem.product_id}`);
+                  console.log(`   - location_id: ${inventoryItem.location_id}`);
+                  console.log(`   - quantity available: ${inventoryItem.quantity}`);
+                  console.log(`   - is out of stock: ${isOutOfStock}`);
+                  console.log(`   - is archived: ${isArchived}`);
+                  console.log(`   - product_name: ${productDetails?.product_name}`);
+                  console.log(`   - category_id: ${productDetails?.category_id}`);
+                  console.log(`   - price: ${productDetails?.price}`);
+                  
+                  if (productDetails && !productDetails.archived) {
+                    // Fetch category details
+                    const categoryData: any = await fetch_content_service({
+                      table: 'categories',
+                      matchCase: [
+                        { key: 'category_id', value: productDetails.category_id },
+                      ],
+                    });
+                    
+                    const categoryName = categoryData && categoryData.length > 0 
+                      ? categoryData[0].category_name 
+                      : 'Unknown Category';
+                    
+                    if (isOutOfStock) {
+                      console.log(`⚠️ [POS] Product is OUT OF STOCK but adding to cart: ${productDetails.product_name} (${categoryName})`);
+                    } else {
+                      console.log(`✅ [POS] Building cart item for: ${productDetails.product_name} (${categoryName})`);
+                    }
+                    
+                    // Adjust quantity if requested quantity exceeds available quantity
+                    let finalQuantity = preSalesProduct.product_quantity;
+                    let quantityAdjusted = false;
+                    
+                    if (finalQuantity > inventoryItem.quantity) {
+                      finalQuantity = inventoryItem.quantity;
+                      quantityAdjusted = true;
+                      console.log(`⚠️ [POS] Quantity adjusted from ${preSalesProduct.product_quantity} to ${finalQuantity} (only ${inventoryItem.quantity} available)`);
+                    }
+                    
+                    // Build cart item using the inventory_id we found
+                    // Add it even if out of stock, but mark it
+                    const cartItem: CartArrayInterface = {
+                      product_id: inventoryItem.inventory_id,  // Use inventory_id from the lookup
+                      main_product_id: inventoryItem.product_id,  // Master product_id
+                      quantity: finalQuantity,  // Use adjusted quantity
+                      product_name: productDetails.product_name,
+                      category_name: categoryName,
+                      category_id: productDetails.category_id,
+                      price: productDetails.price,
+                      quantity_available: inventoryItem.quantity,
+                      fulfillment_location_id: inventoryItem.location_id,
+                      fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+                      original_price: productDetails.price,
+                      discount_percent: 0,
+                    };
+                    
+                    cartItems.push(cartItem);
+                    console.log(`🎉 [POS] Added to cart (${isOutOfStock ? 'OUT OF STOCK' : 'in stock'}):`, cartItem);
+                    
+                    // Track adjusted quantities for toast message
+                    if (quantityAdjusted) {
+                      cartItem.quantityAdjusted = true;
+                      cartItem.requestedQuantity = preSalesProduct.product_quantity;
+                    }
+                  } else {
+                    console.warn(`⚠️ [POS] Product ${preSalesProduct.product_id} is archived - skipping`);
+                  }
+                } else {
+                  console.warn(`⚠️ [POS] No inventory found for product_id: ${preSalesProduct.product_id} at location: ${patient.appointment_location_id}`);
+                }
+              }
+              
+              // Set the cart with all fetched products
+              if (cartItems.length > 0) {
+                setCartArray(cartItems);
+                console.log(`✅ [POS] Cart auto-filled with ${cartItems.length} products`);
+                
+                // Check if any quantities were adjusted
+                const adjustedItems = cartItems.filter((item: any) => item.quantityAdjusted);
+                
+                if (adjustedItems.length > 0) {
+                  const adjustmentMessages = adjustedItems.map((item: any) => 
+                    `${item.product_name}: only ${item.quantity} available (requested ${item.requestedQuantity})`
+                  ).join(', ');
+                  
+                  toast.warning(`Quantities adjusted: ${adjustmentMessages}`, {
+                    duration: 5000,
+                  });
+                  toast.success(`Pre-sales patient selected with ${cartItems.length} product(s) added to cart`);
+                } else {
+                  toast.success(`Pre-sales patient selected with ${cartItems.length} product(s) added to cart`);
+                }
+              } else {
+                console.warn('⚠️ [POS] No valid products found to add to cart');
+                toast.success(`Pre-sales patient selected: ${patient.firstname} ${patient.lastname}`);
+              }
+            } catch (error) {
+              console.error('❌ [POS] Error auto-filling cart:', error);
+              toast.error('Failed to load pre-sales products');
+            }
+          } else {
+            console.log('ℹ️ [POS] No products to auto-fill or no location selected');
+            toast.success(`Pre-sales patient selected: ${patient.firstname} ${patient.lastname}`);
+          }
+        }}
+      />
     </main>
   );
 };
