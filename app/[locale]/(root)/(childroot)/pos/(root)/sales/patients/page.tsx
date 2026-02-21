@@ -54,6 +54,7 @@ interface PatientDetailsInterface {
   locationid: string;
   created_at: string;
   updated_at: string;
+  preSalesStatus?: 'initiated' | 'partially_completed' | 'completed' | null;
 }
 
 const fields = [
@@ -158,6 +159,13 @@ const modal_titles: any = {
       color: "failure",
     },
   },
+  preSalesConfirm: {
+    modalLabel: "Continue with Pre-Sales Order?",
+    button: {
+      label: "Yes",
+      color: "blue",
+    },
+  },
 };
 
 const Promo_Input = () => {
@@ -204,7 +212,7 @@ const Patients = () => {
   );
   const [loading, setLoading] = useState(true);
   const [activeModalMode, setActiveModalMode] = useState<
-    "edit" | "delete" | "create" | ""
+    "edit" | "delete" | "create" | "preSalesConfirm" | ""
   >("");
   const [modalLoading, setModalLoading] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -246,8 +254,122 @@ const Patients = () => {
       sortOptions: { column: "lastvisit", order: "desc" },
     });
 
-    setDataList(fetched_data);
-    setAllData(fetched_data);
+    // Fetch pre-sales status for all patients in one query
+    try {
+      console.log('🔍 [Patients Page] Fetching pre-sales status for patients...');
+      
+      // First, let's see what statuses exist in the database
+      const { data: statusCheck, error: statusError } = await supabase
+        .from('pre_sales' as any)
+        .select('status')
+        .limit(10);
+      
+      console.log('🔎 [Patients Page] Status check - available statuses:', statusCheck);
+      console.log('❌ [Patients Page] Status check error:', statusError);
+      
+      // Now get all pre_sales records with their related data
+      const { data: allPreSalesData, error: preSalesError } = await supabase
+        .from('pre_sales' as any)
+        .select(`
+          id,
+          status,
+          created_at,
+          encounter_id,
+          encounter!inner (
+            id,
+            appointment_id,
+            Appoinments!inner (
+              id,
+              patient_id
+            )
+          )
+        `)
+        .in('status', ['initiated', 'partially_completed', 'completed'])
+        .order('created_at', { ascending: false });
+
+      console.log('📊 [Patients Page] Pre-sales raw data:', allPreSalesData);
+      console.log('📊 [Patients Page] Pre-sales data count:', allPreSalesData?.length || 0);
+      console.log('❌ [Patients Page] Pre-sales error:', preSalesError);
+
+      if (preSalesError) {
+        console.error('🔴 [Patients Page] Error fetching pre-sales data:', preSalesError);
+        console.error('🔴 [Patients Page] Error details:', JSON.stringify(preSalesError, null, 2));
+      }
+
+      // Create a map of patient_id to their most recent pre-sales status
+      // Priority: partially_completed > initiated > completed
+      const patientStatusMap = new Map<number, string>();
+      
+      if (allPreSalesData && allPreSalesData.length > 0) {
+        console.log('🔄 [Patients Page] Processing', allPreSalesData.length, 'pre-sales records');
+        
+        // First pass: collect all statuses for each patient
+        const patientStatusesMap = new Map<number, string[]>();
+        
+        allPreSalesData.forEach((item: any) => {
+          const patientId = item.encounter?.Appoinments?.patient_id;
+          
+          console.log('   - Pre-sales item:', { 
+            preSalesId: item.id,
+            status: item.status, 
+            encounterId: item.encounter_id,
+            appointmentId: item.encounter?.appointment_id,
+            patientId: patientId,
+            hasEncounter: !!item.encounter,
+            hasAppointment: !!item.encounter?.Appoinments 
+          });
+          
+          if (patientId) {
+            if (!patientStatusesMap.has(patientId)) {
+              patientStatusesMap.set(patientId, []);
+            }
+            patientStatusesMap.get(patientId)!.push(item.status);
+          }
+        });
+        
+        // Second pass: determine the status to display based on priority
+        patientStatusesMap.forEach((statuses, patientId) => {
+          let displayStatus: string;
+          
+          // Priority: partially_completed > initiated > completed
+          if (statuses.includes('partially_completed')) {
+            displayStatus = 'partially_completed';
+          } else if (statuses.includes('initiated')) {
+            displayStatus = 'initiated';
+          } else {
+            displayStatus = 'completed';
+          }
+          
+          patientStatusMap.set(patientId, displayStatus);
+          console.log('   ✅ Patient', patientId, 'has statuses:', statuses, '→ Displaying:', displayStatus);
+        });
+      } else {
+        console.log('⚠️ [Patients Page] No pre-sales data found with status: initiated, partially_completed, or completed');
+      }
+
+      console.log('📋 [Patients Page] Patient status map:', Array.from(patientStatusMap.entries()));
+
+      // Add status to each patient
+      const patientsWithStatus = fetched_data.map((patient: any) => {
+        const status = patientStatusMap.get(patient.id) || null;
+        console.log('� Patient', patient.id, ':', patient.firstname, patient.lastname, '- Status:', status);
+        return {
+          ...patient,
+          preSalesStatus: status
+        };
+      });
+
+      console.log('✅ [Patients Page] Final patients with status:', patientsWithStatus.length);
+      console.log('✅ [Patients Page] Patients with status badges:', patientsWithStatus.filter((p: any) => p.preSalesStatus).length);
+      setDataList(patientsWithStatus);
+      setAllData(patientsWithStatus);
+    } catch (err) {
+      console.error('💥 [Patients Page] Error processing pre-sales status:', err);
+      // If there's an error, just use the data without status
+      setDataList(fetched_data);
+      setAllData(fetched_data);
+    }
+
     setLoading(false);
     setCurrentPage(1);
   }, [activeFilterBtn]);
@@ -294,9 +416,95 @@ const Patients = () => {
   };
 
   const selectHandle = (data: any) => {
-    localStorage.setItem("@pos-patient", JSON.stringify(data));
-    router.push("/pos/sales");
+    // Check if patient has pre-sales status (initiated or partially_completed)
+    const hasPreSales = data.preSalesStatus === 'initiated' || data.preSalesStatus === 'partially_completed';
+    
+    if (hasPreSales) {
+      // Store patient data temporarily and show confirmation modal
+      setActionData(data);
+      setIsOpenModal(true);
+      setActiveModalMode('preSalesConfirm');
+      setCanModalSubmit(true);
+    } else {
+      // No pre-sales, just select patient normally
+      localStorage.setItem("@pos-patient", JSON.stringify(data));
+      router.push("/pos/sales");
+    }
   };
+
+  const handlePreSalesConfirm = async (continueWithPreSales: boolean) => {
+      const patientData = actionData;
+
+      if (continueWithPreSales) {
+        try {
+          console.log('Fetching pre-sales products for patient:', patientData.id);
+
+          const { data: preSalesData, error } = await supabase
+            .from('pre_sales' as any)
+            .select(`
+              id,
+              product_id,
+              product_quantity,
+              status,
+              encounter_id,
+              encounter!inner (
+                id,
+                appointment_id,
+                Appoinments!inner (
+                  id,
+                  patient_id,
+                  location_id,
+                  service
+                )
+              )
+            `)
+            .in('status', ['initiated', 'partially_completed']);
+
+          if (error) {
+            console.error('Error fetching pre-sales:', error);
+            toast.error('Failed to load pre-sales products');
+            return;
+          }
+
+          const patientPreSales = preSalesData?.filter((item: any) => 
+            item.encounter?.Appoinments?.patient_id === patientData.id
+          ) || [];
+
+          const products = patientPreSales.map((item: any) => ({
+            product_id: item.product_id,
+            product_quantity: item.product_quantity,
+          }));
+
+          const appointmentLocationId = patientPreSales.length > 0
+            ? (patientPreSales[0] as any).encounter?.Appoinments?.location_id
+            : null;
+
+          const service = patientPreSales.length > 0
+            ? (patientPreSales[0] as any).encounter?.Appoinments?.service
+            : patientData.treatmenttype;
+
+          localStorage.setItem("@pos-patient", JSON.stringify({
+            ...patientData,
+            loadPreSales: true,
+            products: products,
+            appointment_location_id: appointmentLocationId,
+            service: service,
+          }));
+
+          console.log('Stored patient with pre-sales data');
+        } catch (err) {
+          console.error('Error processing pre-sales:', err);
+          toast.error('Failed to load pre-sales products');
+          return;
+        }
+      } else {
+        localStorage.setItem("@pos-patient", JSON.stringify(patientData));
+        console.log('Stored patient without pre-sales');
+      }
+
+      closeModalHandle();
+      router.push("/pos/sales");
+    }
 
   const modalInputChangeHandle = (e: any, id: string) => {
     if (id === "email") {
@@ -428,6 +636,9 @@ const Patients = () => {
       case "delete":
         deleteDataHandle();
         break;
+      case "preSalesConfirm":
+        handlePreSalesConfirm(true);
+        break;
     }
   };
 const createNewDataHandle = async () => {
@@ -499,6 +710,35 @@ const createNewDataHandle = async () => {
   const { t } = useTranslation(translationConstant.POSSALES);
 
   const [isOpen, setIsOpen] = useState(false);
+
+  // Helper function to render status badge
+  const renderStatusBadge = (status: 'initiated' | 'partially_completed' | 'completed' | null | undefined) => {
+    if (!status) return null;
+
+    const statusConfig = {
+      initiated: {
+        label: 'Initiated',
+        className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+      },
+      partially_completed: {
+        label: 'Partially Completed',
+        className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      },
+      completed: {
+        label: 'Completed',
+        className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      }
+    };
+
+    const config = statusConfig[status];
+    if (!config) return null;
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.className}`}>
+        {config.label}
+      </span>
+    );
+  };
 
   // Pagination logic
   const indexOfLastCard = currentPage * cardsPerPage;
@@ -585,7 +825,7 @@ const createNewDataHandle = async () => {
               </div>
             ) : (
               currentCards.map((elem: any, ind: any) => {
-              const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
+              const { firstname, lastname, phone, updated_at, email, gender, treatmenttype, preSalesStatus } = elem;
               const formattedDateTime = moment
                 .utc(updated_at, "YYYY-MM-DD h:mm s")
                 .local()
@@ -597,13 +837,18 @@ const createNewDataHandle = async () => {
                   className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-medium text-gray-800 dark:text-gray-200">
                         {`${firstname} ${lastname}`}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {treatmenttype}
                       </p>
+                      {preSalesStatus && (
+                        <div className="mt-2">
+                          {renderStatusBadge(preSalesStatus)}
+                        </div>
+                      )}
                     </div>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {formattedDateTime}
@@ -716,17 +961,18 @@ const createNewDataHandle = async () => {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
+                  <div className="grid grid-cols-7 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
                     <div className="col-span-1">ID</div>
                     <div className="col-span-1">{t("POS-Sales_k41")}</div>
                     <div className="col-span-1">{t("POS-Sales_k22")}</div>
                     <div className="col-span-1">{t("POS-Sales_k37")}</div>
                     <div className="col-span-1">{t("POS-Sales_k104")}</div>
+                    <div className="col-span-1">Status</div>
                     <div className="col-span-1 text-center">{t("POS-Sales_k59")}</div>
                   </div>
                   
                   {dataList.map((elem, ind) => {
-                const { id, firstname, lastname, phone, updated_at, email } = elem;
+                const { id, firstname, lastname, phone, updated_at, email, preSalesStatus } = elem;
                 const formattedDateTime = moment
                   .utc(updated_at, "YYYY-MM-DD h:mm s")
                   .local()
@@ -744,7 +990,7 @@ const createNewDataHandle = async () => {
                 return (
                   <div
                     key={ind}
-                    className="grid grid-cols-6 gap-4 py-4 border-b border-gray-300 dark:border-gray-700 items-center"
+                    className="grid grid-cols-7 gap-4 py-4 border-b border-gray-300 dark:border-gray-700 items-center"
                   >
                     <div className="col-span-1">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -774,6 +1020,10 @@ const createNewDataHandle = async () => {
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {formattedDateTime}
                       </p>
+                    </div>
+
+                    <div className="col-span-1">
+                      {renderStatusBadge(preSalesStatus)}
                     </div>
 
                     <div className="col-span-1 flex items-center gap-2 justify-center">
@@ -942,7 +1192,7 @@ const createNewDataHandle = async () => {
 
       {/* @ts-ignore */}
       <Custom_Modal
-        disabled={!canModalSubmit}
+        disabled={activeModalMode === "preSalesConfirm" ? true : !canModalSubmit}
         submit_button_color={modal_titles[activeModalMode]?.button?.color}
         loading={modalLoading}
         buttonLabel={modal_titles[activeModalMode]?.button?.label}
@@ -950,11 +1200,39 @@ const createNewDataHandle = async () => {
         Title={activeModalMode && modal_titles[activeModalMode]?.modalLabel}
         close_handle={closeModalHandle}
         open_handle={openModalHandle}
-        create_new_handle={modalSubmitHandle}
+        create_new_handle={activeModalMode === "preSalesConfirm" ? undefined : modalSubmitHandle}
       >
         {activeModalMode === "delete" ? (
           <div className="text-gray-800 dark:text-gray-200">
             <h1>Are you sure you want to delete this POS?</h1>
+          </div>
+        ) : activeModalMode === "preSalesConfirm" ? (
+          <div className="text-gray-800 dark:text-gray-200">
+            <div className="space-y-4">
+              <p className="text-lg">
+                This patient has an existing pre-sales order with status:{" "}
+                <span className="font-semibold">
+                  {actionData?.preSalesStatus === 'initiated' ? 'Initiated' : 'Partially Completed'}
+                </span>
+              </p>
+              <p className="text-base">
+                Do you want to continue with the pre-sales order and load the products into the cart?
+              </p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => handlePreSalesConfirm(true)}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Yes, Load Pre-Sales
+                </button>
+                <button
+                  onClick={() => handlePreSalesConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                >
+                  No, Start Fresh
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">

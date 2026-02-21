@@ -60,9 +60,9 @@ const PreSalesModal: React.FC<PreSalesModalProps> = ({
     
     try {
       console.log('🔍 [PreSalesModal] Fetching pre-sales patients...');
-      console.log('📝 [PreSalesModal] Query: pre_sales where status = in_progress AND location_id =', locationId);
+      console.log('📝 [PreSalesModal] Query: pre_sales where status = initiated AND location_id =', locationId);
       
-      // Fetch pre_sales records with status 'in_progress' filtered by location
+      // Fetch pre_sales records with status 'initiated' filtered by location
       // Join chain: pre_sales → encounter → Appoinments → allpatients
       const { data, error } = await supabase
         .from('pre_sales' as any)
@@ -89,7 +89,7 @@ const PreSalesModal: React.FC<PreSalesModalProps> = ({
             )
           )
         `)
-        .eq('status', 'in_progress');
+        .eq('status', 'initiated');
 
       console.log('📊 [PreSalesModal] Raw data from Supabase:', JSON.stringify(data, null, 2));
       console.log('📊 [PreSalesModal] Data length:', data?.length);
@@ -105,7 +105,7 @@ const PreSalesModal: React.FC<PreSalesModalProps> = ({
       if (!data || data.length === 0) {
         console.log('⚠️ [PreSalesModal] No data returned from query');
         console.log('⚠️ [PreSalesModal] This could mean:');
-        console.log('   1. No records with status = "in_progress" in pre_sales table');
+        console.log('   1. No records with status = "initiated" in pre_sales table');
         console.log('   2. RLS policies are blocking the query');
         console.log('   3. Foreign key relationships are not set up correctly');
         setPatients([]);
@@ -270,7 +270,7 @@ const PreSalesModal: React.FC<PreSalesModalProps> = ({
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               {patients.length === 0 
-                ? 'No pre-sales patients with "in progress" status found.'
+                ? 'No pre-sales patients with "initiated" status found.'
                 : 'No patients found matching your search.'}
             </div>
           )}

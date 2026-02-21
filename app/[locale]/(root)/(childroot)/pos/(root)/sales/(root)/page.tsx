@@ -44,8 +44,6 @@ import {
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import ProductListModal from '@/components/POS/ProductListModal';
-import PreSalesButton from '@/components/POS/PreSalesButton';
-import PreSalesModal from '@/components/POS/PreSalesModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
@@ -76,6 +74,8 @@ interface CartArrayInterface {
 
   original_price: number; // original price before discount
   discount_percent: number; // discount applied
+  quantityAdjusted?: boolean; // flag to indicate if quantity was adjusted due to stock
+  requestedQuantity?: number; // original requested quantity before adjustment
 }
 
 const render_details = [
@@ -461,7 +461,6 @@ const Orders = () => {
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [isAddBalanceModalOpen, setIsAddBalanceModalOpen] = useState(false);
   const [addBalanceLoading, setAddBalanceLoading] = useState(false);
-  const [isPreSalesModalOpen, setIsPreSalesModalOpen] = useState(false);
   const [payWithCash, setPayWithCash] = useState(true);
   const [payWithCard, setPayWithCard] = useState(false);
   const [cardAmount, setCardAmount] = useState<number>(0);
@@ -508,11 +507,106 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
     if (storedData) {
       const data = JSON.parse(storedData);
       setSelectedPatient(data);
+      
+      // Check if we need to auto-load pre-sales products
+      if (data.loadPreSales && data.products && data.products.length > 0 && selectedLocation) {
+        console.log('🛒 [POS] Auto-loading pre-sales cart from Patients tab');
+        console.log('📦 [POS] Products to load:', data.products);
+        console.log('📍 [POS] Appointment location:', data.appointment_location_id);
+        
+        // Use the same auto-load logic as PreSalesModal
+        (async () => {
+          try {
+            const cartItems: CartArrayInterface[] = [];
+            
+            for (const preSalesProduct of data.products) {
+              console.log(`📦 [POS] Processing product:`, preSalesProduct);
+              
+              // Fetch inventory using product_id + appointment_location_id
+              let inventoryData: any = await fetch_content_service({
+                table: 'inventory',
+                matchCase: [
+                  { key: 'product_id', value: preSalesProduct.product_id },
+                  { key: 'location_id', value: data.appointment_location_id },
+                ],
+                selectParam: ',products(price, category_id, product_name, archived)',
+              });
+              
+              if (inventoryData && inventoryData.length > 0) {
+                inventoryData = inventoryData.filter((item: any) => !item.archived);
+              }
+              
+              if (inventoryData && inventoryData.length > 0) {
+                const inventoryItem = inventoryData[0];
+                const productDetails = inventoryItem.products;
+                
+                if (productDetails && !productDetails.archived) {
+                  // Fetch category
+                  const categoryData: any = await fetch_content_service({
+                    table: 'categories',
+                    matchCase: [{ key: 'category_id', value: productDetails.category_id }],
+                  });
+                  
+                  const categoryName = categoryData && categoryData.length > 0 
+                    ? categoryData[0].category_name 
+                    : 'Unknown Category';
+                  
+                  // Adjust quantity if needed
+                  let finalQuantity = preSalesProduct.product_quantity;
+                  let quantityAdjusted = false;
+                  
+                  if (finalQuantity > inventoryItem.quantity) {
+                    finalQuantity = inventoryItem.quantity;
+                    quantityAdjusted = true;
+                  }
+                  
+                  const cartItem: CartArrayInterface = {
+                    product_id: inventoryItem.inventory_id,
+                    main_product_id: inventoryItem.product_id,
+                    quantity: finalQuantity,
+                    product_name: productDetails.product_name,
+                    category_name: categoryName,
+                    category_id: productDetails.category_id,
+                    price: productDetails.price,
+                    quantity_available: inventoryItem.quantity,
+                    fulfillment_location_id: inventoryItem.location_id,
+                    fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+                    original_price: productDetails.price,
+                    discount_percent: 0,
+                    quantityAdjusted,
+                    requestedQuantity: preSalesProduct.product_quantity,
+                  };
+                  
+                  cartItems.push(cartItem);
+                }
+              }
+            }
+            
+            if (cartItems.length > 0) {
+              setCartArray(cartItems);
+              console.log(`✅ [POS] Cart auto-loaded with ${cartItems.length} products`);
+              
+              const adjustedItems = cartItems.filter((item: any) => item.quantityAdjusted);
+              if (adjustedItems.length > 0) {
+                const adjustmentMessages = adjustedItems.map((item: any) => 
+                  `${item.product_name}: only ${item.quantity} available (requested ${item.requestedQuantity})`
+                ).join(', ');
+                
+                toast.warning(`Quantities adjusted: ${adjustmentMessages}`, { duration: 5000 });
+              }
+              toast.success(`Pre-sales order loaded with ${cartItems.length} product(s)`);
+            }
+          } catch (error) {
+            console.error('❌ [POS] Error auto-loading cart:', error);
+            toast.error('Failed to load pre-sales products');
+          }
+        })();
+      }
     }
     setTimeout(() => {
       setfetchingDataLoading(false);
     }, 2000);
-  }, [router]);
+  }, [router, selectedLocation]);
 
   useEffect(() => {
     if (selectedLocation) {
@@ -1073,10 +1167,6 @@ const addToCartHandle = () => {
                     >
                      {t("POS-Sales_k107")}
                     </button>
-                    <PreSalesButton 
-                      disabled={false}
-                      onClick={() => setIsPreSalesModalOpen(true)}
-                    />
                     <button
                       className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
                       onClick={() => setIsAddBalanceModalOpen(true)}
@@ -1863,187 +1953,7 @@ transition-colors`}
         currentLocationId={selectedLocation?.id || 0}
       /> */}
 
-      {/* Pre Sales Modal */}
-      <PreSalesModal
-        isOpen={isPreSalesModalOpen}
-        onClose={() => setIsPreSalesModalOpen(false)}
-        locationId={selectedLocation?.id}
-        onSelectPatient={async (patient) => {
-          console.log('🎯 [POS] Selected patient from Pre Sales:', patient);
-          
-          // Create patient object matching the expected format
-          const preSalesPatient = {
-            id: patient.id,
-            firstname: patient.firstname,
-            lastname: patient.lastname,
-            email: patient.email,
-            phone: patient.phone,
-            treatmenttype: patient.service, // Map service to treatmenttype
-          };
-          
-          // Set the selected patient (this will replace any existing patient)
-          setSelectedPatient(preSalesPatient);
-          
-          // Save to localStorage
-          localStorage.setItem("@pos-patient", JSON.stringify(preSalesPatient));
-          
-          // Auto-fill cart with products from pre_sales
-          if (patient.products && patient.products.length > 0 && selectedLocation) {
-            console.log('🛒 [POS] Auto-filling cart with products:', patient.products);
-            console.log('📍 [POS] Appointment location_id:', patient.appointment_location_id);
-            
-            try {
-              // Fetch full product details from inventory for each product
-              const cartItems: CartArrayInterface[] = [];
-              
-              for (const preSalesProduct of patient.products) {
-                console.log(`📦 [POS] Processing pre-sales product:`, preSalesProduct);
-                console.log(`   - product_id from pre_sales (master product): ${preSalesProduct.product_id}`);
-                console.log(`   - product_quantity: ${preSalesProduct.product_quantity}`);
-                console.log(`   - appointment location_id: ${patient.appointment_location_id}`);
-                
-                // Fetch inventory record using product_id + location_id
-                console.log(`🔍 [POS] Querying inventory with:`, {
-                  table: 'inventory',
-                  product_id: preSalesProduct.product_id,
-                  location_id: patient.appointment_location_id,
-                });
-                
-                // First try without archived filter to see if record exists
-                let inventoryData: any = await fetch_content_service({
-                  table: 'inventory',
-                  matchCase: [
-                    { key: 'product_id', value: preSalesProduct.product_id },
-                    { key: 'location_id', value: patient.appointment_location_id },
-                  ],
-                  selectParam: ',products(price, category_id, product_name, archived)',
-                });
-                
-                console.log(`📊 [POS] Inventory query result (without archived filter):`, inventoryData);
-                console.log(`📊 [POS] Inventory data length:`, inventoryData?.length);
-                
-                // If found, filter out archived items in code
-                if (inventoryData && inventoryData.length > 0) {
-                  inventoryData = inventoryData.filter((item: any) => !item.archived);
-                  console.log(`📊 [POS] After filtering archived:`, inventoryData);
-                }
-                
-                console.log(`📊 [POS] Full inventory data:`, JSON.stringify(inventoryData, null, 2));
-                
-                if (inventoryData && inventoryData.length > 0) {
-                  const inventoryItem = inventoryData[0];
-                  const productDetails = inventoryItem.products;
-                  const isOutOfStock = inventoryItem.quantity === 0;
-                  
-                  const isArchived = productDetails?.archived === true;
-                  
-                  console.log(`✅ [POS] Found inventory item:`, inventoryItem);
-                  console.log(`   - inventory_id: ${inventoryItem.inventory_id}`);
-                  console.log(`   - product_id: ${inventoryItem.product_id}`);
-                  console.log(`   - location_id: ${inventoryItem.location_id}`);
-                  console.log(`   - quantity available: ${inventoryItem.quantity}`);
-                  console.log(`   - is out of stock: ${isOutOfStock}`);
-                  console.log(`   - is archived: ${isArchived}`);
-                  console.log(`   - product_name: ${productDetails?.product_name}`);
-                  console.log(`   - category_id: ${productDetails?.category_id}`);
-                  console.log(`   - price: ${productDetails?.price}`);
-                  
-                  if (productDetails && !productDetails.archived) {
-                    // Fetch category details
-                    const categoryData: any = await fetch_content_service({
-                      table: 'categories',
-                      matchCase: [
-                        { key: 'category_id', value: productDetails.category_id },
-                      ],
-                    });
-                    
-                    const categoryName = categoryData && categoryData.length > 0 
-                      ? categoryData[0].category_name 
-                      : 'Unknown Category';
-                    
-                    if (isOutOfStock) {
-                      console.log(`⚠️ [POS] Product is OUT OF STOCK but adding to cart: ${productDetails.product_name} (${categoryName})`);
-                    } else {
-                      console.log(`✅ [POS] Building cart item for: ${productDetails.product_name} (${categoryName})`);
-                    }
-                    
-                    // Adjust quantity if requested quantity exceeds available quantity
-                    let finalQuantity = preSalesProduct.product_quantity;
-                    let quantityAdjusted = false;
-                    
-                    if (finalQuantity > inventoryItem.quantity) {
-                      finalQuantity = inventoryItem.quantity;
-                      quantityAdjusted = true;
-                      console.log(`⚠️ [POS] Quantity adjusted from ${preSalesProduct.product_quantity} to ${finalQuantity} (only ${inventoryItem.quantity} available)`);
-                    }
-                    
-                    // Build cart item using the inventory_id we found
-                    // Add it even if out of stock, but mark it
-                    const cartItem: CartArrayInterface = {
-                      product_id: inventoryItem.inventory_id,  // Use inventory_id from the lookup
-                      main_product_id: inventoryItem.product_id,  // Master product_id
-                      quantity: finalQuantity,  // Use adjusted quantity
-                      product_name: productDetails.product_name,
-                      category_name: categoryName,
-                      category_id: productDetails.category_id,
-                      price: productDetails.price,
-                      quantity_available: inventoryItem.quantity,
-                      fulfillment_location_id: inventoryItem.location_id,
-                      fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
-                      original_price: productDetails.price,
-                      discount_percent: 0,
-                    };
-                    
-                    cartItems.push(cartItem);
-                    console.log(`🎉 [POS] Added to cart (${isOutOfStock ? 'OUT OF STOCK' : 'in stock'}):`, cartItem);
-                    
-                    // Track adjusted quantities for toast message
-                    if (quantityAdjusted) {
-                      cartItem.quantityAdjusted = true;
-                      cartItem.requestedQuantity = preSalesProduct.product_quantity;
-                    }
-                  } else {
-                    console.warn(`⚠️ [POS] Product ${preSalesProduct.product_id} is archived - skipping`);
-                  }
-                } else {
-                  console.warn(`⚠️ [POS] No inventory found for product_id: ${preSalesProduct.product_id} at location: ${patient.appointment_location_id}`);
-                }
-              }
-              
-              // Set the cart with all fetched products
-              if (cartItems.length > 0) {
-                setCartArray(cartItems);
-                console.log(`✅ [POS] Cart auto-filled with ${cartItems.length} products`);
-                
-                // Check if any quantities were adjusted
-                const adjustedItems = cartItems.filter((item: any) => item.quantityAdjusted);
-                
-                if (adjustedItems.length > 0) {
-                  const adjustmentMessages = adjustedItems.map((item: any) => 
-                    `${item.product_name}: only ${item.quantity} available (requested ${item.requestedQuantity})`
-                  ).join(', ');
-                  
-                  toast.warning(`Quantities adjusted: ${adjustmentMessages}`, {
-                    duration: 5000,
-                  });
-                  toast.success(`Pre-sales patient selected with ${cartItems.length} product(s) added to cart`);
-                } else {
-                  toast.success(`Pre-sales patient selected with ${cartItems.length} product(s) added to cart`);
-                }
-              } else {
-                console.warn('⚠️ [POS] No valid products found to add to cart');
-                toast.success(`Pre-sales patient selected: ${patient.firstname} ${patient.lastname}`);
-              }
-            } catch (error) {
-              console.error('❌ [POS] Error auto-filling cart:', error);
-              toast.error('Failed to load pre-sales products');
-            }
-          } else {
-            console.log('ℹ️ [POS] No products to auto-fill or no location selected');
-            toast.success(`Pre-sales patient selected: ${patient.firstname} ${patient.lastname}`);
-          }
-        }}
-      />
+      {/* Pre Sales Modal - Removed, now handled via Patients tab */}
     </main>
   );
 };
