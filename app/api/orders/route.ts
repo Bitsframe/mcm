@@ -22,6 +22,7 @@ export async function POST(request: Request) {
       creditAuditBalance,
       newLocationBalance,
       zelleAmount = 0,
+      encounter_id = null, // Add encounter_id for pre-sales orders
     } = await request.json();
 
 
@@ -172,7 +173,8 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       cash: Number(cashAmount.toFixed(2)),
       card: Number(cardAmount.toFixed(2)),
       zelle: Number(Number(zelleAmount || 0).toFixed(2)),
-      ...(promoCodeData && { promo_code_id: promoCodeData.id })
+      ...(promoCodeData && { promo_code_id: promoCodeData.id }),
+      ...(encounter_id !== null ? { encounter_id } : {}), // Include encounter_id if present
     };
     const { data: orderData, error: orderError } = await create_content_service({
       table: "orders",
@@ -269,6 +271,102 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       },
     });
 
+    // Update pre_sales table if this is a pre-sales order
+    if (encounter_id !== null) {
+      console.log('📋 [orders] Updating pre_sales status for encounter_id:', encounter_id);
+      
+      try {
+        // Fetch all pre_sales records for this encounter
+        const preSalesRecords = await fetch_content_service({
+          table: 'pre_sales',
+          matchCase: { key: 'encounter_id', value: encounter_id },
+        });
+        
+        console.log('📦 [orders] Found pre_sales records:', preSalesRecords);
+        
+        if (preSalesRecords && preSalesRecords.length > 0) {
+          // Create a map of purchased quantities by main_product_id
+          const purchasedQuantities: Record<number, number> = {};
+          for (const cartItem of cartArray) {
+            const mainProductId = cartItem.main_product_id;
+            if (mainProductId) {
+              purchasedQuantities[mainProductId] = (purchasedQuantities[mainProductId] || 0) + cartItem.quantity;
+            }
+          }
+          
+          console.log('🛒 [orders] Purchased quantities by product:', purchasedQuantities);
+          
+          // Update each pre_sales record
+          for (const preSalesRecord of preSalesRecords) {
+            const preSalesProductId = preSalesRecord.product_id;
+            const preSalesQuantity = preSalesRecord.product_quantity;
+            const currentQuantityTaken = preSalesRecord.product_quantity_taken || 0;
+            const purchasedQty = purchasedQuantities[preSalesProductId] || 0;
+            
+            // Calculate new cumulative quantity taken
+            const newQuantityTaken = currentQuantityTaken + purchasedQty;
+            
+            console.log(`📊 [orders] Processing pre_sales record:`, {
+              id: preSalesRecord.id,
+              product_id: preSalesProductId,
+              pre_sales_quantity: preSalesQuantity,
+              current_quantity_taken: currentQuantityTaken,
+              purchased_this_order: purchasedQty,
+              new_quantity_taken: newQuantityTaken,
+            });
+            
+            let newStatus: string;
+            
+            if (newQuantityTaken === 0) {
+              // Nothing taken yet - keep as initiated
+              newStatus = 'initiated';
+            } else if (newQuantityTaken >= preSalesQuantity) {
+              // Taken equal or more than requested - mark as completed
+              newStatus = 'completed';
+            } else {
+              // Taken less than requested - mark as partially_completed
+              newStatus = 'partially_completed';
+            }
+            
+            console.log(`✏️ [orders] Updating pre_sales record ${preSalesRecord.id}:`, {
+              old_status: preSalesRecord.status,
+              new_status: newStatus,
+              old_quantity_taken: currentQuantityTaken,
+              new_quantity_taken: newQuantityTaken,
+              required_quantity: preSalesQuantity,
+            });
+            
+            // Update status and product_quantity_taken in pre_sales record
+            await update_content_service({
+              table: 'pre_sales',
+              post_data: {
+                id: preSalesRecord.id,
+                status: newStatus,
+                product_quantity_taken: newQuantityTaken,
+              },
+            });
+          }
+          
+          console.log('✅ [orders] Pre_sales records updated successfully');
+          
+          // Update encounter status to 'completed'
+          console.log('📋 [orders] Updating encounter status to completed for encounter_id:', encounter_id);
+          await update_content_service({
+            table: 'encounter',
+            post_data: {
+              id: encounter_id,
+              status: 'completed',
+              updated_at: new Date().toISOString(),
+            },
+          });
+          console.log('✅ [orders] Encounter status updated to completed');
+        }
+      } catch (preSalesError: any) {
+        console.error('❌ [orders] Error updating pre_sales:', preSalesError);
+        // Don't throw - we don't want to fail the order if pre_sales update fails
+      }
+    }
+
     // Credit audit logic (unchanged)
     try {
       const existingCreditAudit = await fetch_content_service({
@@ -316,111 +414,107 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
 
     // --- 3. Handle fulfillment for other locations ---
     
- 
-    
-    // for (const locId of otherLocationIds) {
-    //   const items = cartByLocation[locId];
-    //   console.log(`Processing location ${locId} with ${items?.length || 0} items`);
-    //   if (!items?.length) continue;
+    for (const locId of otherLocationIds) {
+      const items = cartByLocation[locId];
+      console.log(`Processing location ${locId} with ${items?.length || 0} items`);
+      if (!items?.length) continue;
       
-    //   // Create fulfillment order (no payment)
-    //   const { data: fulfillOrderData, error: fulfillOrderError } = await create_content_service({
-    //     table: "orders",
-    //     post_data: {
-    //       patient_id: patient_id,
-    //       paid_amount: 0,
-    //       cash: 0,
-    //       card: 0,
-    //       credit_balance: 0,
-    //       previous_credit_amount: 0,
-    //     },
-    //   });
-    //   if (fulfillOrderError) throw new Error(fulfillOrderError.message);
-    //   if (!fulfillOrderData?.length) throw new Error('Failed to create fulfillment order');
-    //   const fulfill_order_id = fulfillOrderData[0].order_id;
+      // Create fulfillment order (no payment)
+      const { data: fulfillOrderData, error: fulfillOrderError } = await create_content_service({
+        table: "orders",
+        post_data: {
+          patient_id: patient_id,
+          paid_amount: 0,
+          cash: 0,
+          card: 0,
+          credit_balance: 0,
+          previous_credit_amount: 0,
+        },
+      });
+      if (fulfillOrderError) throw new Error(fulfillOrderError.message);
+      if (!fulfillOrderData?.length) throw new Error('Failed to create fulfillment order');
+      const fulfill_order_id = fulfillOrderData[0].order_id;
       
-    //   // Create sales history for fulfillment order
-    //   const fulfillSalesHistory = items.map((elem: any) => ({
-    //     order_id: fulfill_order_id,
-    //     inventory_id: elem.product_id,
-    //     quantity_sold: elem.quantity,
-    //     total_price: 0, // no revenue at fulfillment location
-    //   }));
-    //   await create_content_service({
-    //     table: "sales_history",
-    //     post_data: fulfillSalesHistory,
-    //     multiple_rows: true,
-    //   });
+      // Create sales history for fulfillment order
+      const fulfillSalesHistory = items.map((elem: any) => ({
+        order_id: fulfill_order_id,
+        inventory_id: elem.product_id,
+        quantity_sold: elem.quantity,
+        total_price: 0, // no revenue at fulfillment location
+      }));
+      await create_content_service({
+        table: "sales_history",
+        post_data: fulfillSalesHistory,
+        multiple_rows: true,
+      });
       
-    //   // For each item, create a fulfillment request row and send email
-    //   for (const elem of items) {
-    //     // Generate a secure token
-    //     const token = crypto.randomBytes(4).toString('hex').toUpperCase();
+      // For each item, create a fulfillment request row and send email
+      for (const elem of items) {
+        // Generate a secure token
+        const token = crypto.randomBytes(4).toString('hex').toUpperCase();
         
-    //     // Create fulfillment request
-    //     console.log('Attempting to create fulfillment request with data:', {
-    //       main_order_id: order_id,
-    //       fulfillment_order_id: fulfill_order_id,
-    //       inventory_id: elem.product_id,
-    //       quantity: elem.quantity,
-    //       token,
-    //       status: 'pending',
-    //     });
+        // Create fulfillment request
+        console.log('Attempting to create fulfillment request with data:', {
+          main_order_id: order_id,
+          fulfillment_order_id: fulfill_order_id,
+          inventory_id: elem.product_id,
+          quantity: elem.quantity,
+          token,
+          status: 'pending',
+        });
         
-    //     const { data: fulfillmentData, error: fulfillmentError } = await create_content_service({
-    //       table: "fulfillment_requests",
-    //       post_data: {
-    //         main_order_id: order_id,
-    //         fulfillment_order_id: fulfill_order_id,
-    //         inventory_id: elem.product_id,
-    //         quantity: elem.quantity,
-    //         location_id: locId,
-    //         token,
-    //         status: 'pending',
-    //       },
-    //     });
+        const { data: fulfillmentData, error: fulfillmentError } = await create_content_service({
+          table: "fulfillment_requests",
+          post_data: {
+            main_order_id: order_id,
+            fulfillment_order_id: fulfill_order_id,
+            inventory_id: elem.product_id,
+            quantity: elem.quantity,
+            location_id: locId,
+            token,
+            status: 'pending',
+          },
+        });
         
-    //     if (fulfillmentError) {
-    //       console.error('Fulfillment request creation error:', fulfillmentError);
-    //       console.error('Error details:', {
-    //         message: fulfillmentError.message,
-    //         details: fulfillmentError.details,
-    //         hint: fulfillmentError.hint,
-    //         code: fulfillmentError.code
-    //       });
-    //       throw new Error(`Fulfillment request creation failed: ${fulfillmentError.message}`);
-    //     }
+        if (fulfillmentError) {
+          console.error('Fulfillment request creation error:', fulfillmentError);
+          console.error('Error details:', {
+            message: fulfillmentError.message,
+            details: fulfillmentError.details,
+            hint: fulfillmentError.hint,
+            code: fulfillmentError.code
+          });
+          throw new Error(`Fulfillment request creation failed: ${fulfillmentError.message}`);
+        }
         
-    //     console.log('Successfully created fulfillment request:', fulfillmentData);
+        console.log('Successfully created fulfillment request:', fulfillmentData);
         
-    //     // Fetch location info
-    //     const locationData = await fetch_content_service({
-    //       table: "Locations",
-    //       matchCase: { key: "id", value: Number(locId) }
-    //     });
-    //     const locationName = locationData?.[0]?.title || '';
-    //     const locationAddress = locationData?.[0]?.address || '';
+        // Fetch location info
+        const locationData = await fetch_content_service({
+          table: "Locations",
+          matchCase: { key: "id", value: Number(locId) }
+        });
+        const locationName = locationData?.[0]?.title || '';
+        const locationAddress = locationData?.[0]?.address || '';
         
-    //     // Send fulfillment request email to patient
-    //     await sendFulfillmentRequestEmail(
-    //       selectedPatient.email,
-    //       `${selectedPatient.firstname} ${selectedPatient.lastname}`,
-    //       order_id,
-    //       token,
-    //       [
-    //         {
-    //           product_name: elem.product_name,
-    //           category_name: elem.category_name,
-    //           quantity: elem.quantity,
-    //         },
-    //       ],
-    //       locationName,
-    //       locationAddress
-    //     );
-    //   }
-    // }
-
-
+        // Send fulfillment request email to patient
+        await sendFulfillmentRequestEmail(
+          selectedPatient.email,
+          `${selectedPatient.firstname} ${selectedPatient.lastname}`,
+          order_id,
+          token,
+          [
+            {
+              product_name: elem.product_name,
+              category_name: elem.category_name,
+              quantity: elem.quantity,
+            },
+          ],
+          locationName,
+          locationAddress
+        );
+      }
+    }
 
     
 

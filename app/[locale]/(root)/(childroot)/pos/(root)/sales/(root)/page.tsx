@@ -44,6 +44,7 @@ import {
 import axios from "axios";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
 import ProductListModal from '@/components/POS/ProductListModal';
+import ProductLocationAvailabilityModal from '@/components/POS/ProductLocationAvailabilityModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
@@ -58,6 +59,7 @@ interface CartItemComponentInterface {
     index: number
   ) => void;
   updateDiscountPercent: (index: number, discount: number) => void;
+  onOpenLocationModal: (productData: CartArrayInterface) => void;
 }
 
 interface CartArrayInterface {
@@ -110,6 +112,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   controllProductQtyHandle,
   index,
   updateDiscountPercent,
+  onOpenLocationModal,
 }) => {
   const {
     product_name,
@@ -185,13 +188,25 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
       }
     >
       {isOutOfStock && (
-        <div className="mb-2 px-2 py-1 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 rounded text-xs font-semibold text-red-800 dark:text-red-200">
-          ⚠️ OUT OF STOCK - This item will not be included in the order
+        <div className="mb-2 px-2 py-1 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 rounded text-xs font-semibold text-red-800 dark:text-red-200 flex items-center justify-between">
+          <span>⚠️ OUT OF STOCK - This item will not be included in the order</span>
+          <button
+            onClick={() => onOpenLocationModal(data)}
+            className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-semibold"
+          >
+            Add from Another Location
+          </button>
         </div>
       )}
       {wasQuantityAdjusted && !isOutOfStock && (
-        <div className="mb-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-800 border border-yellow-400 dark:border-yellow-600 rounded text-xs font-semibold text-yellow-800 dark:text-yellow-200">
-          ⚠️ Quantity adjusted: {requestedQuantity} was requested, only {quantity} available
+        <div className="mb-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-800 border border-yellow-400 dark:border-yellow-600 rounded text-xs font-semibold text-yellow-800 dark:text-yellow-200 flex items-center justify-between">
+          <span>⚠️ Quantity adjusted: {requestedQuantity} was requested, only {quantity} available</span>
+          <button
+            onClick={() => onOpenLocationModal(data)}
+            className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded font-semibold"
+          >
+            Add from Another Location
+          </button>
         </div>
       )}
       <div className="flex items-center">
@@ -332,6 +347,11 @@ const Orders = () => {
   const [cardInput, setCardInput] = useState("");
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [preSalesEncounterId, setPreSalesEncounterId] = useState<number | null>(null);
+
+  // Product location availability modal state
+  const [isLocationAvailabilityModalOpen, setIsLocationAvailabilityModalOpen] = useState(false);
+  const [selectedProductForLocation, setSelectedProductForLocation] = useState<CartArrayInterface | null>(null);
 
   const [isPanelShrunk, setIsPanelShrunk] = useState(false);
 
@@ -508,6 +528,12 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
       const data = JSON.parse(storedData);
       setSelectedPatient(data);
       
+      // Store encounter_id if this is a pre-sales order
+      if (data.loadPreSales && data.encounter_id) {
+        setPreSalesEncounterId(data.encounter_id);
+        console.log('📋 [POS] Pre-sales encounter_id:', data.encounter_id);
+      }
+      
       // Check if we need to auto-load pre-sales products
       if (data.loadPreSales && data.products && data.products.length > 0 && selectedLocation) {
         console.log('🛒 [POS] Auto-loading pre-sales cart from Patients tab');
@@ -615,6 +641,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
         setCartArray([]);
         localStorage.removeItem("@pos-patient");
         setSelectedPatient(null);
+        setPreSalesEncounterId(null); // Clear encounter_id on location change
         setLastLocationId(currentSelectedLocationId);
       }
     }
@@ -942,6 +969,7 @@ const addToCartHandle = () => {
         selectedLocation,
         selectedSalesPersons, // Pass selected sales persons to create team if needed
         newLocationBalance: displayedBalanceLimit, // send UI Credit Available to locations.balance
+        encounter_id: preSalesEncounterId, // Include encounter_id for pre-sales orders
       });
   
       toast.success(data.message, {
@@ -974,6 +1002,7 @@ const addToCartHandle = () => {
       setCartArray([]);
       localStorage.removeItem("@pos-patient");
       setSelectedPatient(null);
+      setPreSalesEncounterId(null); // Clear encounter_id after order placement
       setCreditAmount(0);
       setReceivedAmount(0);
       setCardAmount(0);
@@ -1363,6 +1392,10 @@ const addToCartHandle = () => {
                     const updatedCart = [...cartArray];
                     updatedCart[idx].discount_percent = discount;
                     setCartArray(updatedCart);
+                  }}
+                  onOpenLocationModal={(productData) => {
+                    setSelectedProductForLocation(productData);
+                    setIsLocationAvailabilityModalOpen(true);
                   }}
                 />
               ))}
@@ -1954,6 +1987,57 @@ transition-colors`}
       /> */}
 
       {/* Pre Sales Modal - Removed, now handled via Patients tab */}
+
+      {/* Product Location Availability Modal */}
+      {selectedProductForLocation && (
+        <ProductLocationAvailabilityModal
+          isOpen={isLocationAvailabilityModalOpen}
+          onClose={() => {
+            setIsLocationAvailabilityModalOpen(false);
+            setSelectedProductForLocation(null);
+          }}
+          productId={selectedProductForLocation.main_product_id}
+          productName={selectedProductForLocation.product_name}
+          categoryName={selectedProductForLocation.category_name}
+          currentLocationId={selectedLocation?.id || 0}
+          onAddToCart={(locationId, inventoryId, locationName, quantity, price) => {
+            console.log('Adding from other location:', {
+              locationId,
+              inventoryId,
+              locationName,
+              quantity,
+              price,
+            });
+            
+            // Remove the out-of-stock item from cart if it exists
+            const updatedCart = cartArray.filter(item => 
+              !(item.main_product_id === selectedProductForLocation.main_product_id && 
+                item.quantity_available === 0)
+            );
+            
+            // Add the product to cart with the other location's details
+            const newCartItem: CartArrayInterface = {
+              product_id: inventoryId,
+              main_product_id: selectedProductForLocation.main_product_id,
+              quantity: quantity,
+              product_name: selectedProductForLocation.product_name,
+              category_name: selectedProductForLocation.category_name,
+              category_id: selectedProductForLocation.category_id,
+              price: price,
+              quantity_available: quantity,
+              fulfillment_location_id: locationId,
+              fulfillment_location_name: locationName,
+              original_price: price,
+              discount_percent: 0,
+            };
+            
+            setCartArray([...updatedCart, newCartItem]);
+            toast.success(`Added ${quantity} ${selectedProductForLocation.product_name} from ${locationName}`);
+            setIsLocationAvailabilityModalOpen(false);
+            setSelectedProductForLocation(null);
+          }}
+        />
+      )}
     </main>
   );
 };

@@ -483,12 +483,17 @@ const Patients = () => {
             ? (patientPreSales[0] as any).encounter?.Appoinments?.service
             : patientData.treatmenttype;
 
+          const encounterId = patientPreSales.length > 0
+            ? (patientPreSales[0] as any).encounter_id
+            : null;
+
           localStorage.setItem("@pos-patient", JSON.stringify({
             ...patientData,
             loadPreSales: true,
             products: products,
             appointment_location_id: appointmentLocationId,
             service: service,
+            encounter_id: encounterId,
           }));
 
           console.log('Stored patient with pre-sales data');
