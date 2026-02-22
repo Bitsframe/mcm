@@ -429,6 +429,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
           card: 0,
           credit_balance: 0,
           previous_credit_amount: 0,
+          ...(encounter_id !== null ? { encounter_id } : {}), // Include encounter_id if pre-sales order
         },
       });
       if (fulfillOrderError) throw new Error(fulfillOrderError.message);
@@ -489,7 +490,8 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         
         console.log('Successfully created fulfillment request:', fulfillmentData);
         
-        // Fetch location info
+        // Fetch location info (for future email sending)
+        /*
         const locationData = await fetch_content_service({
           table: "Locations",
           matchCase: { key: "id", value: Number(locId) }
@@ -497,7 +499,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         const locationName = locationData?.[0]?.title || '';
         const locationAddress = locationData?.[0]?.address || '';
         
-        // Send fulfillment request email to patient
+        // Send fulfillment request email to patient - TEMPORARILY DISABLED
         await sendFulfillmentRequestEmail(
           selectedPatient.email,
           `${selectedPatient.firstname} ${selectedPatient.lastname}`,
@@ -513,6 +515,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
           locationName,
           locationAddress
         );
+        */
       }
     }
 
@@ -520,6 +523,8 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
 
 
     // --- 4. Send order email to patient ---
+    // Temporarily disabled - email service issues
+    /*
     await sendOrderEmail(
       { order_id, paymentcash: cashAmount > 0, paymentcard: cardAmount > 0, order_date_utc },
       { ...selectedPatient, location: selectedLocation.title },
@@ -530,6 +535,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
       Number(creditAmount.toFixed(2)),
       newCreditBalance
     );
+    */
 
     return NextResponse.json({
       success: true,

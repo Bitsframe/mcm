@@ -475,6 +475,9 @@ const Patients = () => {
             product_quantity: item.product_quantity,
           }));
 
+          console.log('📦 [Patients] Mapped products from pre_sales:', products);
+          console.log('📦 [Patients] Number of products:', products.length);
+
           const appointmentLocationId = patientPreSales.length > 0
             ? (patientPreSales[0] as any).encounter?.Appoinments?.location_id
             : null;
@@ -487,16 +490,20 @@ const Patients = () => {
             ? (patientPreSales[0] as any).encounter_id
             : null;
 
-          localStorage.setItem("@pos-patient", JSON.stringify({
+          const patientWithPreSales = {
             ...patientData,
             loadPreSales: true,
             products: products,
             appointment_location_id: appointmentLocationId,
             service: service,
             encounter_id: encounterId,
-          }));
+          };
 
-          console.log('Stored patient with pre-sales data');
+          console.log('💾 [Patients] Storing patient data:', patientWithPreSales);
+
+          localStorage.setItem("@pos-patient", JSON.stringify(patientWithPreSales));
+
+          console.log('✅ [Patients] Stored patient with pre-sales data');
         } catch (err) {
           console.error('Error processing pre-sales:', err);
           toast.error('Failed to load pre-sales products');

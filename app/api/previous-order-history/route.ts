@@ -176,6 +176,7 @@ export const POST = async (req: Request) => {
           zelle: order.zelle,
           credit_balance: order.credit_balance,
           previous_credit_amount: order.previous_credit_amount,
+          encounter_id: order.encounter_id ?? null,
           discounts: orderDiscounts,
           pos: {
             id: pos.id,

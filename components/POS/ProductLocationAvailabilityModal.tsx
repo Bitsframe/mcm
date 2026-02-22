@@ -53,7 +53,7 @@ const ProductLocationAvailabilityModal: React.FC<ProductLocationAvailabilityModa
           { key: 'product_id', value: productId },
           { key: 'archived', value: false },
         ],
-        selectParam: ',Locations(title)',
+        selectParam: ',Locations(title),products(price)',
       });
 
       console.log('📦 Inventory data:', inventoryData);
@@ -71,7 +71,7 @@ const ProductLocationAvailabilityModal: React.FC<ProductLocationAvailabilityModa
             location_id: item.location_id,
             location_name: item.Locations?.title || 'Unknown Location',
             quantity: item.quantity,
-            price: item.price || 0,
+            price: item.products?.price || 0, // Use price from products table
           }));
 
         console.log('✅ Available locations:', availableLocations);

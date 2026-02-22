@@ -129,6 +129,14 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
 
   const { selectedLocation } = useContext(LocationContext);
   const isOtherLocation = fulfillment_location_id !== selectedLocation?.id;
+  
+  console.log(`🛒 [CartItem] ${product_name}:`, {
+    fulfillment_location_id,
+    selectedLocationId: selectedLocation?.id,
+    isOtherLocation,
+    fulfillment_location_name
+  });
+  
   const isOutOfStock = quantity_available === 0;
   const wasQuantityAdjusted = (data as any).quantityAdjusted;
   const requestedQuantity = (data as any).requestedQuantity;
@@ -241,7 +249,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             <dd className="text-sm text-gray-700 dark:text-gray-400">
               {category_name}
             </dd>
-            {isOtherLocation && (
+            {isOtherLocation && fulfillment_location_name !== 'Unknown' && (
               <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
                 Fulfilled at: {fulfillment_location_name}
               </dd>
@@ -558,13 +566,32 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
                 selectParam: ',products(price, category_id, product_name, archived)',
               });
               
+              console.log(`📊 [POS] Inventory data for product ${preSalesProduct.product_id} at location ${data.appointment_location_id}:`, inventoryData);
+              
+              // If not found at appointment location, search at current selected location
+              if ((!inventoryData || inventoryData.length === 0) && selectedLocation?.id !== data.appointment_location_id) {
+                console.log(`� [POS] Product not found at appointment location, trying current location ${selectedLocation?.id}`);
+                inventoryData = await fetch_content_service({
+                  table: 'inventory',
+                  matchCase: [
+                    { key: 'product_id', value: preSalesProduct.product_id },
+                    { key: 'location_id', value: selectedLocation.id },
+                  ],
+                  selectParam: ',products(price, category_id, product_name, archived)',
+                });
+                console.log(`📊 [POS] Inventory data at current location:`, inventoryData);
+              }
+              
               if (inventoryData && inventoryData.length > 0) {
                 inventoryData = inventoryData.filter((item: any) => !item.archived);
+                console.log(`📊 [POS] After filtering archived:`, inventoryData);
               }
               
               if (inventoryData && inventoryData.length > 0) {
                 const inventoryItem = inventoryData[0];
                 const productDetails = inventoryItem.products;
+                
+                console.log(`✅ [POS] Product details:`, productDetails);
                 
                 if (productDetails && !productDetails.archived) {
                   // Fetch category
@@ -586,6 +613,18 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
                     quantityAdjusted = true;
                   }
                   
+                  // Get the location name for the fulfillment location
+                  const fulfillmentLocation = locations.find((loc: any) => loc.id === inventoryItem.location_id);
+                  const fulfillmentLocationName = fulfillmentLocation?.title || fulfillmentLocation?.name || 'Unknown';
+                  
+                  console.log(`🔍 [POS] Fulfillment location check:`, {
+                    inventoryLocationId: inventoryItem.location_id,
+                    selectedLocationId: selectedLocation?.id,
+                    areEqual: inventoryItem.location_id === selectedLocation?.id,
+                    fulfillmentLocationName,
+                    allLocations: locations.map((l: any) => ({ id: l.id, title: l.title }))
+                  });
+                  
                   const cartItem: CartArrayInterface = {
                     product_id: inventoryItem.inventory_id,
                     main_product_id: inventoryItem.product_id,
@@ -596,17 +635,25 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
                     price: productDetails.price,
                     quantity_available: inventoryItem.quantity,
                     fulfillment_location_id: inventoryItem.location_id,
-                    fulfillment_location_name: selectedLocation.title || selectedLocation.name || 'Unknown',
+                    fulfillment_location_name: fulfillmentLocationName,
                     original_price: productDetails.price,
                     discount_percent: 0,
                     quantityAdjusted,
                     requestedQuantity: preSalesProduct.product_quantity,
                   };
                   
+                  console.log(`🎉 [POS] Adding cart item:`, cartItem);
                   cartItems.push(cartItem);
+                } else {
+                  console.warn(`⚠️ [POS] Product ${preSalesProduct.product_id} is archived or missing details`);
                 }
+              } else {
+                console.warn(`⚠️ [POS] No inventory found for product ${preSalesProduct.product_id} at any checked location`);
               }
             }
+            
+            console.log(`📦 [POS] Total cart items collected:`, cartItems.length);
+            console.log(`📦 [POS] Cart items:`, cartItems);
             
             if (cartItems.length > 0) {
               setCartArray(cartItems);
@@ -1010,6 +1057,15 @@ const addToCartHandle = () => {
       setCardInput("");
       setCashInput("");
       setZelleInput("");
+      setAppliedDiscount(0); // Reset discount
+      setPromoCode(null); // Clear promo code
+      setDiscountPct(0); // Reset discount percentage
+      setProductQty(0); // Reset product quantity
+      setProductQtyMap({}); // Clear product quantity map
+      setSelectedSalesPersons([]); // Clear selected sales persons
+      setPayWithCash(true); // Reset to default payment method
+      setPayWithCard(false);
+      setPayWithZelle(false);
     } catch (err: any) {
       console.error("❌ Order placement failed:", err);
       toast.error(err.response?.data?.message || err.message, {

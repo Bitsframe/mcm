@@ -355,6 +355,11 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             <div className="flex items-center gap-4">
               <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
                 Patient ID: <strong className="text-gray-800 dark:text-gray-200">{pos?.patientid || patient_id}</strong>
+                {dataList?.encounter_id && (
+                  <span className="ml-3">
+                    | Encounter ID: <strong className="text-gray-800 dark:text-gray-200">{dataList.encounter_id}</strong>
+                  </span>
+                )}
               </span>
               <button
                 onClick={onClose}
