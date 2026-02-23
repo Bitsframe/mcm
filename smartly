@@ -1,0 +1,381 @@
+# SmartyStreets Address Validation Integration Guide
+
+This guide explains how to integrate SmartyStreets (now Smarty) address validation API into your Next.js application.
+
+## Table of Contents
+1. [Overview](#overview)
+2. [Getting API Credentials](#getting-api-credentials)
+3. [Environment Setup](#environment-setup)
+4. [API Implementation](#api-implementation)
+5. [Frontend Integration](#frontend-integration)
+6. [Testing](#testing)
+7. [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+SmartyStreets provides real-time address validation and autocomplete functionality. This integration uses:
+- **US Street Address API** - Validates and standardizes US addresses
+- **US Autocomplete API** - Provides address suggestions as users type
+
+### Benefits
+- Real-time address validation
+- Autocomplete suggestions (reduces typing)
+- Standardized address format
+- Reduces delivery errors
+- Extracts components (street, city, state, zipcode)
+
+---
+
+## Getting API Credentials
+
+### Step 1: Create a Smarty Account
+1. Go to [https://www.smarty.com/](https://www.smarty.com/)
+2. Click "Sign Up" or "Get Started"
+3. Choose a plan:
+   - **Free Tier**: 250 lookups/month (good for testing)
+   - **Paid Plans**: Starting at $7/month for 1,000 lookups
+
+### Step 2: Generate API Keys
+1. Log in to your Smarty dashboard
+2. Navigate to **API Keys** section
+3. Click **Create New Key**
+4. Select key type: **Website Key** (for client-side) or **Secret Key** (for server-side)
+5. Copy your credentials:
+   - `Auth ID` (also called Embedded Key or Auth-ID)
+   - `Auth Token` (also called Auth-Token)
+
+### Step 3: Configure Key Permissions
+- Enable **US Street Address API**
+- Enable **US Autocomplete API**
+- Set usage limits if needed
+- Restrict by domain (optional, for security)
+
+---
+
+## Environment Setup
+
+### Add to `.env.local`
+```bash
+# SmartyStreets Address Validation
+SMARTY_AUTH_ID=your-smarty-auth-id-here
+SMARTY_AUTH_TOKEN=your-smarty-auth-token-here
+```
+
+### Add to `.env.example`
+```bash
+# SmartyStreets Address Validation
+SMARTY_AUTH_ID=your-smarty-auth-id-here
+SMARTY_AUTH_TOKEN=your-smarty-auth-token-here
+```
+
+**Important**: Never commit `.env.local` to version control. Only commit `.env.example` with placeholder values.
+
+---
+
+## API Implementation
+
+### Step 1: Create API Route for Address Validation
+
+**File**: `src/app/api/address/route.ts`
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search');
+
+    if (!search) {
+        return NextResponse.json({ error: 'Search parameter is required' }, { status: 400 });
+    }
+
+    const authId = process.env.SMARTY_AUTH_ID;
+    const authToken = process.env.SMARTY_AUTH_TOKEN;
+
+    if (!authId || !authToken) {
+        return NextResponse.json({ error: 'Smarty credentials not configured' }, { status: 500 });
+    }
+
+    try {
+        // Call Smarty US Autocomplete API
+        const url = `https://us-autocomplete-pro.api.smarty.com/lookup?auth-id=${authId}&auth-token=${authToken}&search=${encodeURIComponent(search)}&max_results=5`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Smarty API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        return NextResponse.json({ error: 'Failed to fetch address suggestions' }, { status: 500 });
+    }
+}
+```
+
+### Step 2: Create API Route for Address Status Check
+
+**File**: `src/app/api/address/status/route.ts`
+
+```typescript
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+    const authId = process.env.SMARTY_AUTH_ID;
+    const authToken = process.env.SMARTY_AUTH_TOKEN;
+
+    // Check if credentials are configured
+    const isConfigured = !!(authId && authToken);
+
+    return NextResponse.json({ 
+        enabled: isConfigured,
+        message: isConfigured ? 'Smarty API is configured' : 'Smarty API credentials not found'
+    });
+}
+```
+
+---
+
+## Frontend Integration
+
+### Step 1: Check API Status on Component Mount
+
+```typescript
+const [smartyEnabled, setSmartyEnabled] = useState(false);
+
+useEffect(() => {
+    // Check if Smarty API is enabled
+    fetch('/api/address/status')
+        .then(res => res.json())
+        .then(data => setSmartyEnabled(data.enabled))
+        .catch(err => console.error('Failed to check Smarty status:', err));
+}, []);
+```
+
+### Step 2: Implement Address Autocomplete
+
+```typescript
+const [addressSuggestions, setAddressSuggestions] = useState([]);
+const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+
+const handleAddressChange = async (value: string) => {
+    setStreetAddress(value);
+    
+    // Only fetch suggestions if Smarty is enabled and input is long enough
+    if (!smartyEnabled || value.length < 4) {
+        setAddressSuggestions([]);
+        return;
+    }
+
+    setIsLoadingSuggestions(true);
+    
+    try {
+        const response = await fetch(`/api/address?search=${encodeURIComponent(value)}`);
+        const data = await response.json();
+        
+        if (data.suggestions) {
+            setAddressSuggestions(data.suggestions);
+        }
+    } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+    } finally {
+        setIsLoadingSuggestions(false);
+    }
+};
+```
+
+### Step 3: Display Suggestions Dropdown
+
+```typescript
+{addressSuggestions.length > 0 && (
+    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        {addressSuggestions.map((suggestion, index) => (
+            <div
+                key={index}
+                onClick={() => {
+                    setStreetAddress(suggestion.street_line + ', ' + suggestion.city + ', ' + suggestion.state + ' ' + suggestion.zipcode);
+                    setAddressSuggestions([]);
+                }}
+                className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+            >
+                <div className="font-semibold">{suggestion.street_line}</div>
+                <div className="text-sm text-gray-600">
+                    {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                </div>
+            </div>
+        ))}
+    </div>
+)}
+```
+
+### Step 4: Prevent Double API Calls on Selection
+
+```typescript
+const lastSelectedAddressRef = useRef<string>('');
+
+const handleSuggestionClick = (suggestion: any) => {
+    const fullAddress = `${suggestion.street_line}, ${suggestion.city}, ${suggestion.state} ${suggestion.zipcode}`;
+    
+    // Store the selected address to prevent re-triggering API
+    lastSelectedAddressRef.current = fullAddress;
+    
+    setStreetAddress(fullAddress);
+    setAddressSuggestions([]);
+};
+
+const handleAddressChange = async (value: string) => {
+    setStreetAddress(value);
+    
+    // Don't fetch if this is the address we just selected
+    if (value === lastSelectedAddressRef.current) {
+        return;
+    }
+    
+    // Reset the ref if user starts typing again
+    if (value !== lastSelectedAddressRef.current) {
+        lastSelectedAddressRef.current = '';
+    }
+    
+    // ... rest of the autocomplete logic
+};
+```
+
+---
+
+## Testing
+
+### Test Cases
+
+1. **API Status Check**
+   - Visit `/api/address/status`
+   - Should return `{ enabled: true }` if credentials are configured
+
+2. **Address Autocomplete**
+   - Type "123 Main" in address field
+   - Should show suggestions after 4+ characters
+   - Click a suggestion - should populate the field
+
+3. **Invalid Address**
+   - Type gibberish like "asdfasdf"
+   - Should return empty suggestions array
+
+4. **Network Error Handling**
+   - Disconnect internet
+   - Type address
+   - Should handle error gracefully without crashing
+
+### Manual Testing Steps
+
+1. Start development server: `npm run dev`
+2. Open browser console (F12)
+3. Navigate to the form with address field
+4. Type a partial address (e.g., "1600 Pennsylvania")
+5. Check console for API calls
+6. Verify suggestions appear
+7. Click a suggestion
+8. Verify address is populated correctly
+
+---
+
+## Troubleshooting
+
+### Issue: "Smarty API credentials not configured"
+**Solution**: 
+- Check `.env.local` file exists
+- Verify `SMARTY_AUTH_ID` and `SMARTY_AUTH_TOKEN` are set
+- Restart development server after adding env variables
+
+### Issue: "401 Unauthorized" from Smarty API
+**Solution**:
+- Verify credentials are correct in Smarty dashboard
+- Check if API key has expired
+- Ensure key has permissions for US Autocomplete API
+
+### Issue: No suggestions appearing
+**Solution**:
+- Check browser console for errors
+- Verify input has 4+ characters
+- Check if `smartyEnabled` state is true
+- Test API endpoint directly: `/api/address?search=123+main`
+
+### Issue: Suggestions appear but clicking doesn't work
+**Solution**:
+- Check `onClick` handler is attached to suggestion div
+- Verify `setStreetAddress` is being called
+- Check for z-index issues with dropdown
+
+### Issue: API calls triggering twice
+**Solution**:
+- Implement `lastSelectedAddressRef` pattern (see Step 4 above)
+- Add debouncing to input handler
+- Check for duplicate event listeners
+
+### Issue: Rate limit exceeded
+**Solution**:
+- Check your Smarty dashboard for usage
+- Upgrade plan if needed
+- Implement debouncing (wait 300ms before API call)
+- Cache recent suggestions
+
+---
+
+## Best Practices
+
+1. **Debouncing**: Add 300ms delay before API call to reduce requests
+2. **Caching**: Store recent suggestions to avoid duplicate API calls
+3. **Error Handling**: Always handle API errors gracefully
+4. **Loading States**: Show loading indicator while fetching
+5. **Accessibility**: Add ARIA labels and keyboard navigation
+6. **Security**: Never expose credentials in client-side code
+7. **Rate Limiting**: Monitor usage to avoid exceeding plan limits
+
+---
+
+## API Response Format
+
+### Autocomplete Response
+```json
+{
+  "suggestions": [
+    {
+      "street_line": "123 Main St",
+      "secondary": "Apt 4",
+      "city": "Seattle",
+      "state": "WA",
+      "zipcode": "98101",
+      "entries": 1
+    }
+  ]
+}
+```
+
+### Status Response
+```json
+{
+  "enabled": true,
+  "message": "Smarty API is configured"
+}
+```
+
+---
+
+## Additional Resources
+
+- [Smarty Documentation](https://www.smarty.com/docs)
+- [US Autocomplete API Docs](https://www.smarty.com/docs/cloud/us-autocomplete-api)
+- [US Street Address API Docs](https://www.smarty.com/docs/cloud/us-street-api)
+- [Smarty Dashboard](https://www.smarty.com/account)
+
+---
+
+## Support
+
+For issues with:
+- **Smarty API**: Contact Smarty support at support@smarty.com
+- **Integration Code**: Check project documentation or contact development team
+
+To provide a truly end-to-end implementation for Step 1, we need to move beyond simple data holders (POJOs) and create the Simulation Engine Initializer. In CloudSimPlus, this means setting up the Datacenter, Host, and NetworkTopology based on the numerical inputs you’ve defined.Since your scope is an Edge Data Center, the "math" is unique because distribution losses and fixed overheads (like lighting) are a larger percentage of the total load.Step 1: End-to-End Java Implementation (The Backend Initializer)This implementation sets up the physical environment and the 8760-hour weather baseline.1.1 The Hardware Factory (EdgeInfraManager.java)This class uses CloudSimPlus to build the servers (Hosts) and assign them the numerical power values you provided.1.2 The 8760-Hour Environment Baseline (EnvironmentEngine.java)This handles the weather and numerical thermal boundaries.1.3 The Cost & Efficiency Controller (CoolingCostCalculator.java)This is the logic that determines if the Chilled Water technique is financially "sufficient".📊 Summary of What Step 1 AchievesBy completing this Java implementation, your backend now:Sets the ITE Boundary: Correcty counts IT power using CloudSimPlus power models.Identifies "Safe" Operations: Uses numerical limits ($18\text{--}27^{\circ}\text{C}$) to flag failure hours.Models Chiller Physics: Prepares the logic for the Electric Input Ratio (EIR) framework.Calculates Initial OPEX: Multiplies hourly facility power by the electricity rate.
