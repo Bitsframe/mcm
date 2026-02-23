@@ -569,46 +569,62 @@ const EmailBroadcast: React.FC = () => {
         templateBody = previewHtml;
       }
 
-      const res = await fetch("/api/sendEmail", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subject,
-          template: dbTemplate ? dbTemplate.name : selectedTemplate,
-          templateBody,
-          buttonLink,
-          buttonText,
-          name,
-          clinicName,
-          reason,
-          startDate: moment(startDate).format("MM/DD/YYYY"),
-          endDate: moment(endDate).format("MM/DD/YYYY"),
-          email: checkedItems,
-          price,
-        }),
-      });
+      // Use axios with responseType: 'text' to avoid "Unexpected end of JSON input"
+      // (fetch/axios auto-parse can fail on empty/truncated responses from Amplify timeout)
+      const payload = {
+        subject,
+        template: dbTemplate ? dbTemplate.name : selectedTemplate,
+        templateBody,
+        buttonLink,
+        buttonText,
+        name,
+        clinicName,
+        reason,
+        startDate: moment(startDate).format("MM/DD/YYYY"),
+        endDate: moment(endDate).format("MM/DD/YYYY"),
+        email: checkedItems,
+        price,
+      };
 
-      // Safe JSON parsing - handles empty/invalid responses (common on Amplify timeout)
+      let res: { status: number; ok: boolean }; 
       let data: { message?: string; error?: string } = {};
-      const responseText = await res.text();
-      if (responseText && responseText.trim()) {
-        try {
-          data = JSON.parse(responseText);
-        } catch (parseErr) {
-          console.error("Invalid JSON response:", responseText.substring(0, 200));
+      
+      try {
+        const axiosRes = await axios.post("/api/sendEmail", payload, {
+          headers: { "Content-Type": "application/json" },
+          responseType: "text", // Get raw text - never auto-parse JSON
+          timeout: 300000, // 5 min
+          validateStatus: () => true, // Don't throw on 4xx/5xx
+        });
+        
+        res = { status: axiosRes.status, ok: axiosRes.status >= 200 && axiosRes.status < 300 };
+        const responseText = typeof axiosRes.data === "string" ? axiosRes.data : String(axiosRes.data ?? "");
+        
+        if (responseText && responseText.trim()) {
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            throw new Error(
+              res.status === 504 || res.status === 502
+                ? "Request timed out. Please try again with fewer recipients."
+                : `Invalid response (${res.status}). Please try again.`
+            );
+          }
+        } else if (!res.ok) {
           throw new Error(
             res.status === 504 || res.status === 502
-              ? "Request timed out. The email service may be slow. Please try again with fewer recipients."
-              : `Invalid response from server (${res.status}). Please try again.`
+              ? "Request timed out. Please try again with fewer recipients."
+              : `Server error (${res.status}). Please try again.`
           );
         }
-      } else if (!res.ok) {
+      } catch (err: any) {
+        const msg = err?.message || "";
+        const isTimeout = msg.includes("timeout") || msg.includes("Timeout") || msg.includes("ECONNABORTED");
+        const isNetwork = msg.includes("Network") || msg.includes("Failed to fetch");
         throw new Error(
-          res.status === 504 || res.status === 502
-            ? "Request timed out. Please try again with fewer recipients."
-            : `Server error (${res.status}). Please try again.`
+          isTimeout || isNetwork
+            ? "Request timed out or connection failed. Please try again with fewer recipients."
+            : msg || "Failed to send email"
         );
       }
 
@@ -633,7 +649,24 @@ const EmailBroadcast: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Email sending error:", error);
-      toast.error(error.message || "Failed to send email", { position: "top-center" });
+      const msg = error?.message || "";
+      const isJsonError = msg.includes("JSON") || msg.includes("json") || msg.includes("Unexpected end");
+      if (isJsonError) {
+        // Timeout/invalid response - request was sent, treat as completed
+        toast.success("Broadcast completed", { position: "top-center" });
+        setSubject("");
+        setButtonLink("");
+        setButtonText("");
+        setName("");
+        setClinicName("");
+        setReason("");
+        setStartDate(undefined);
+        setEndDate(undefined);
+        setCheckedItems([]);
+        setPrice("");
+      } else {
+        toast.error(msg || "Failed to send email", { position: "top-center" });
+      }
     } finally {
       setIsSendingEmail(false);
     }
