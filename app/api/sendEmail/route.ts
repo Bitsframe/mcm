@@ -28,6 +28,19 @@ const templates = [
 
 export async function POST(req: Request) {
   try {
+    // Safe JSON parsing - handles empty/malformed body (can happen on Amplify with large payloads)
+    let body: any;
+    try {
+      const text = await req.text();
+      body = text && text.trim() ? JSON.parse(text) : {};
+    } catch (parseErr) {
+      console.error("sendEmail: Invalid request body", parseErr);
+      return NextResponse.json(
+        { message: "Invalid request body" },
+        { status: 400 }
+      );
+    }
+
     const {
       subject,
       template,
@@ -41,7 +54,7 @@ export async function POST(req: Request) {
       endDate,
       email: recipients,
       price,
-    } = await req.json();
+    } = body;
 
     if (!subject || !name || !recipients || !Array.isArray(recipients) || recipients.length === 0) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
