@@ -590,7 +590,27 @@ const EmailBroadcast: React.FC = () => {
         }),
       });
 
-      const data = await res.json();
+      // Safe JSON parsing - handles empty/invalid responses (common on Amplify timeout)
+      let data: { message?: string; error?: string } = {};
+      const responseText = await res.text();
+      if (responseText && responseText.trim()) {
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseErr) {
+          console.error("Invalid JSON response:", responseText.substring(0, 200));
+          throw new Error(
+            res.status === 504 || res.status === 502
+              ? "Request timed out. The email service may be slow. Please try again with fewer recipients."
+              : `Invalid response from server (${res.status}). Please try again.`
+          );
+        }
+      } else if (!res.ok) {
+        throw new Error(
+          res.status === 504 || res.status === 502
+            ? "Request timed out. Please try again with fewer recipients."
+            : `Server error (${res.status}). Please try again.`
+        );
+      }
 
       if (res.ok) {
         toast.success(
