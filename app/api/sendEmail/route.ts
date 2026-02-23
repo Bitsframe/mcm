@@ -1,4 +1,4 @@
-"use server";
+export const maxDuration = 300;
 import { NextResponse } from "next/server";
 import { render } from "@react-email/components";
 import emailtemplate1 from "@/components/EmailTemplate/template1";
@@ -76,16 +76,17 @@ export async function POST(req: Request) {
       recipients: recipients.map((r: any) => r.email || r),
       subject,
       html: htmlContent,
+      async: true,
     };
 
     const response = await axios.post(endpoint, payload, {
       headers: { "Content-Type": "application/json" },
-      timeout: 60000,
+      timeout: 300000,
     });
 
     return NextResponse.json(
-      { message: "Emails sent successfully!", ok: true, data: response.data },
-      { status: 201 }
+      { message: "Emails are being sent!", ok: true, data: response.data },
+      { status: response.status === 202 ? 202 : 201 }
     );
 
   } catch (error: any) {
