@@ -20,7 +20,7 @@ import emailtemplate9 from "@/components/EmailTemplate/template9";
 import emailtemplate10 from "@/components/EmailTemplate/template10";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Search, X, Edit, Plus } from "lucide-react";
+import { ChevronLeft, Search, X, Edit, Plus, Loader2 } from "lucide-react";
 import { RadioGroup } from "@/components/ui/radio-group";
 import {
   Select,
@@ -81,6 +81,7 @@ const EmailBroadcast: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [dbTemplates, setDbTemplates] = useState<any[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(true);
+  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
 
   const templates = [
     { label: "Template 1", value: "template1", component: emailtemplate1 },
@@ -277,10 +278,26 @@ const EmailBroadcast: React.FC = () => {
 
   const handleSelectAndDeselectAll = (isSelected: boolean) => {
     if (isSelected) {
-      // select only the currently visible (possibly filtered) emails
-      setCheckedItems(filteredEmails && filteredEmails.length ? filteredEmails : emailList);
+      // Add all currently visible (possibly filtered) emails to existing selection
+      // Preserve previously selected items that might not be in current filter
+      const emailsToAdd = filteredEmails && filteredEmails.length ? filteredEmails : emailList;
+      setCheckedItems((prevCheckedItems: any[]) => {
+        // Get emails that are not already selected
+        const newEmails = emailsToAdd.filter(
+          (email: any) => !prevCheckedItems.some((item: any) => item.email === email.email)
+        );
+        // Combine previous selections with new ones
+        return [...prevCheckedItems, ...newEmails];
+      });
     } else {
-      setCheckedItems([]);
+      // Only deselect currently visible/filtered emails, preserve others
+      const emailsToRemove = filteredEmails && filteredEmails.length ? filteredEmails : emailList;
+      setCheckedItems((prevCheckedItems: any[]) => {
+        // Remove only emails that are in the current filter
+        return prevCheckedItems.filter(
+          (item: any) => !emailsToRemove.some((email: any) => email.email === item.email)
+        );
+      });
     }
   };
 
@@ -496,19 +513,22 @@ const EmailBroadcast: React.FC = () => {
       toast.error("No email selected.", { position: "top-center" });
       return;
     }
+    const isDbTemplate = dbTemplates.find(t => t.id === selectedTemplate);
+    
+    if (!subject || !name) {
+      toast.error("All fields are necessary.", { position: "top-center" });
+      return;
+    }
+
+    if (!isDbTemplate && !price) {
+      toast.error("All fields are necessary.", { position: "top-center" });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    toast.success("Broadcast started", { position: "top-center" });
+
     try {
-      const isDbTemplate = dbTemplates.find(t => t.id === selectedTemplate);
-      
-      if (!subject || !name) {
-        toast.error("All fields are necessary.", { position: "top-center" });
-        return;
-      }
-
-      if (!isDbTemplate && !price) {
-        toast.error("All fields are necessary.", { position: "top-center" });
-        return;
-      }
-
       const dbTemplate = dbTemplates.find((t) => t.id === selectedTemplate);
       let templateBody: string | undefined = undefined;
       if (dbTemplate) {
@@ -574,7 +594,8 @@ const EmailBroadcast: React.FC = () => {
 
       if (res.ok) {
         toast.success(
-          `Email Sent Successfully to ${checkedItems.length} recipient(s)`
+          `All emails sent successfully to ${checkedItems.length} recipient(s)`,
+          { position: "top-center" }
         );
         setSubject("");
         setButtonLink("");
@@ -588,11 +609,13 @@ const EmailBroadcast: React.FC = () => {
         setPrice("");
       } else {
         console.error("Email sending failed:", data);
-        toast.error(data.message || "Failed to send email");
+        toast.error(data.message || "Failed to send email", { position: "top-center" });
       }
     } catch (error: any) {
       console.error("Email sending error:", error);
-      toast.error(error.message || "Failed to send email");
+      toast.error(error.message || "Failed to send email", { position: "top-center" });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -1073,7 +1096,7 @@ const EmailBroadcast: React.FC = () => {
               name="subject"
               value={subject || ""}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder={t("EmailB_k16")}
+              placeholder="Please enter subject here"
               className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
 
@@ -1207,7 +1230,7 @@ const EmailBroadcast: React.FC = () => {
               name="name"
               value={name || ""}
               onChange={(e) => setName(e.target.value)}
-              placeholder={t("EmailB_k15")}
+              placeholder="From it is"
               className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
           </div>
@@ -1224,7 +1247,7 @@ const EmailBroadcast: React.FC = () => {
                 type="text"
                 id="price"
                 name="price"
-                placeholder={t("EmailB_k16")}
+                placeholder="Enter price"
                 className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
                 value={price || ""}
                 onChange={(e) => setPrice(e.target.value)}
@@ -1234,10 +1257,18 @@ const EmailBroadcast: React.FC = () => {
 
           <div className="mt-5">
             <button
-              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
               onClick={sendEmail}
+              disabled={isSendingEmail}
             >
-              {t("EmailB_k16")}
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t("EmailB_k16")}
+                </>
+              ) : (
+                t("EmailB_k16")
+              )}
             </button>
           </div>
         </div>
