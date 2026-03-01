@@ -26,27 +26,37 @@ export default function AddEditPharmacyModal({
         name: "",
         address: "",
         state: "",
-        zipcode: "",
-        phone: "",
+        zip_code: "",
+        phone_number: "",
         delivers: false,
         is_active: true,
         opening_hours: "{}",
     });
 
-    const [smartyEnabled, setSmartyEnabled] = useState(false);
+    const [smartyEnabled, setSmartyEnabled] = useState<boolean | null>(null);
     const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const lastSelectedAddressRef = useRef<string>('');
+    const [apiCheckResult, setApiCheckResult] = useState<any>(null);
+    const [isCheckingApi, setIsCheckingApi] = useState(false);
+    const smartyCheckInitiatedRef = useRef(false);
 
     const { t } = useTranslation(translationConstant.PHARMACY);
 
-    // Check if Smarty API is enabled
-    useEffect(() => {
-        fetch('/api/address/status')
-            .then(res => res.json())
-            .then(data => setSmartyEnabled(data.enabled))
-            .catch(err => console.error('Failed to check Smarty status:', err));
-    }, []);
+    // Check Smarty API status only when needed
+    const checkSmartyStatus = async () => {
+        if (smartyCheckInitiatedRef.current) return;
+        smartyCheckInitiatedRef.current = true;
+        
+        try {
+            const res = await fetch('/api/address/status');
+            const data = await res.json();
+            setSmartyEnabled(data.enabled);
+        } catch (err) {
+            console.error('Failed to check Smarty status:', err);
+            setSmartyEnabled(false);
+        }
+    };
 
     useEffect(() => {
         if (editData) {
@@ -54,8 +64,8 @@ export default function AddEditPharmacyModal({
                 name: editData.name,
                 address: editData.address,
                 state: (editData as any).state || "",
-                zipcode: editData.zipcode,
-                phone: editData.phone || "",
+                zip_code: editData.zip_code,
+                phone_number: editData.phone_number || "",
                 delivers: editData.delivers,
                 is_active: editData.is_active,
                 opening_hours: JSON.stringify(editData.opening_hours || {}),
@@ -65,8 +75,8 @@ export default function AddEditPharmacyModal({
                 name: "",
                 address: "",
                 state: "",
-                zipcode: "",
-                phone: "",
+                zip_code: "",
+                phone_number: "",
                 delivers: false,
                 is_active: true,
                 opening_hours: "{}",
@@ -82,6 +92,13 @@ export default function AddEditPharmacyModal({
             ...prev,
             [field]: value,
         }));
+    };
+
+    // Handle address field focus - check Smarty status only when user focuses on address
+    const handleAddressFocus = () => {
+        if (smartyEnabled === null) {
+            checkSmartyStatus();
+        }
     };
 
     // Handle address change with autocomplete
@@ -135,8 +152,8 @@ export default function AddEditPharmacyModal({
     };
 
     // Helper to format phone as 213-555-0123 for display
-    const formatPhoneDisplay = (phone: string = ""): string => {
-        let digits = phone.replace(/^\+?1/, "").replace(/[^0-9]/g, "").slice(0, 10);
+    const formatPhoneDisplay = (phone_number: string = ""): string => {
+        let digits = phone_number.replace(/^\+?1/, "").replace(/[^0-9]/g, "").slice(0, 10);
         if (!digits) return "";
         if (digits.length <= 3) return digits;
         if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
@@ -151,14 +168,77 @@ export default function AddEditPharmacyModal({
         }
 
         // Extract state and zipcode from the address
-        const { state, zipcode } = extractStateAndZipcode(formData.address);
+        const { state, zipcode, cleanAddress } = extractStateAndZipcode(formData.address);
         
         console.log('📍 Extracted from address:', { 
-            originalAddress: formData.address, 
+            originalAddress: formData.address,
+            cleanAddress: cleanAddress,
             extractedState: state, 
             extractedZipcode: zipcode 
         });
 
+        // Check pharmacy via API first
+        setIsCheckingApi(true);
+        setApiCheckResult(null);
+
+        try {
+            console.log('🔍 Calling pharmacy check API with:', {
+                name: formData.name,
+                phoneNumber: formData.phone_number || '',
+                address: {
+                    streetAddress: cleanAddress, // Use clean address without state/zip
+                    zipcode: zipcode || '',
+                    state: state || ''
+                }
+            });
+
+            // Call our local API route which proxies to the external API
+            const response = await fetch('/api/pharmacy-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    phoneNumber: formData.phone_number || '',
+                    address: {
+                        streetAddress: cleanAddress, // Use clean address without state/zip
+                        zipcode: zipcode || '',
+                        state: state || ''
+                    }
+                })
+            });
+
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response ok:', response.ok);
+
+            const result = await response.json();
+            console.log('✅ Pharmacy check result:', result);
+            
+            setApiCheckResult(result);
+            setIsCheckingApi(false);
+
+            // For now, just display the result - don't submit to database
+            // TODO: Add logic to handle the result and allow user to proceed or cancel
+
+        } catch (error: any) {
+            console.error('❌ Error checking pharmacy:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack
+            });
+            
+            setApiCheckResult({
+                success: false,
+                error: 'Failed to check pharmacy',
+                message: error.message || 'Could not connect to pharmacy verification service'
+            });
+            setIsCheckingApi(false);
+        }
+
+        // COMMENTED OUT - Don't submit to database yet
+        /*
         let parsedOpeningHours = formData.opening_hours;
         if (typeof formData.opening_hours === 'string') {
             try {
@@ -169,13 +249,14 @@ export default function AddEditPharmacyModal({
             }
         }
 
-        // Send data with extracted state and zipcode
+        // Send data with extracted state and zip_code
         await submitHandle({ 
             ...formData, 
-            state: state || formData.state, // Use extracted state, fallback to existing
-            zipcode: zipcode || formData.zipcode, // Use extracted zipcode, fallback to existing
+            state: state || formData.state,
+            zip_code: zipcode || formData.zip_code,
             opening_hours: parsedOpeningHours 
         });
+        */
     };
 
     const closeModalHandle = () => {
@@ -183,12 +264,15 @@ export default function AddEditPharmacyModal({
             name: "",
             address: "",
             state: "",
-            zipcode: "",
-            phone: "",
+            zip_code: "",
+            phone_number: "",
             delivers: false,
             is_active: true,
             opening_hours: "{}",
         });
+        setApiCheckResult(null);
+        setAddressSuggestions([]);
+        lastSelectedAddressRef.current = '';
         handleClose();
     };
 
@@ -235,7 +319,7 @@ export default function AddEditPharmacyModal({
                             {/* Street Address with Autocomplete */}
                             <div className="relative">
                                 <label className={labelStyle}>Street Address</label>
-                                <div className="relative">
+                                <div className="relative" onFocus={handleAddressFocus}>
                                     <Input_Component
                                         value={formData.address}
                                         placeholder={t("Pharmacy_k6")}
@@ -281,10 +365,10 @@ export default function AddEditPharmacyModal({
                                         type="text"
                                         className="w-full h-[45px] p-3 rounded-lg dark:bg-[#122136] bg-[#f1f4f9] pl-10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 border border-gray-200 dark:border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         maxLength={12}
-                                        value={formatPhoneDisplay(formData.phone)}
+                                        value={formatPhoneDisplay(formData.phone_number)}
                                         onChange={e => {
                                             let val = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
-                                            handleInputChange("phone", val ? `+1${val}` : "");
+                                            handleInputChange("phone_number", val ? `+1${val}` : "");
                                         }}
                                         placeholder="213-555-0123"
                                     />
@@ -302,6 +386,111 @@ export default function AddEditPharmacyModal({
                                 />
                             </div>
 
+                            {/* API Check Result Display */}
+                            {isCheckingApi && (
+                                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                                        <span className="text-sm text-blue-700 dark:text-blue-300">Checking pharmacy database...</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {apiCheckResult && !isCheckingApi && (
+                                <div className={`mt-4 p-4 rounded-lg border ${
+                                    apiCheckResult.success && apiCheckResult.matchFound
+                                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700'
+                                        : apiCheckResult.success && !apiCheckResult.matchFound
+                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                                        : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
+                                }`}>
+                                    <div className="space-y-3">
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-2">
+                                                {apiCheckResult.success && apiCheckResult.matchFound ? (
+                                                    <>
+                                                        <span className="text-xl">⚠️</span>
+                                                        <span className="font-semibold text-yellow-800 dark:text-yellow-300">
+                                                            This pharmacy already exists
+                                                        </span>
+                                                    </>
+                                                ) : apiCheckResult.success && !apiCheckResult.matchFound ? (
+                                                    <>
+                                                        <span className="text-xl">✅</span>
+                                                        <span className="font-semibold text-green-800 dark:text-green-300">
+                                                            No Match Found - Safe to Add
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="text-xl">❌</span>
+                                                        <span className="font-semibold text-red-800 dark:text-red-300">
+                                                            Error
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => setApiCheckResult(null)}
+                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        {/* Matching Pharmacy Details */}
+                                        {apiCheckResult.success && apiCheckResult.matchFound && apiCheckResult.data && apiCheckResult.data.length > 0 && (
+                                            <div className="space-y-2">
+                                                {apiCheckResult.data.map((pharmacy: any, index: number) => (
+                                                    <div key={index} className="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
+                                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.name}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.phone_number || 'N/A'}</p>
+                                                            </div>
+                                                            <div className="col-span-2">
+                                                                <span className="text-gray-600 dark:text-gray-400">Address:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.address}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">City:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.city || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">State:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.state || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">Zipcode:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.zip_code || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                                                <p className="font-medium text-gray-900 dark:text-white">
+                                                                    {pharmacy.is_active ? '✓ Active' : '✗ Inactive'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Error message */}
+                                        {!apiCheckResult.success && (
+                                            <p className="text-sm text-red-700 dark:text-red-300">
+                                                {apiCheckResult.message}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Action Buttons */}
                             <div className="flex justify-end gap-3 pt-4">
                                 <button
@@ -311,16 +500,19 @@ export default function AddEditPharmacyModal({
                                 >
                                     {t("Pharmacy_k21")}
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    className="px-5 py-2 rounded-md bg-[#0066ff] text-white hover:opacity-90 disabled:bg-gray-400 transition-opacity"
-                                >
-                                    {editData
-                                        ? loading ? t("Pharmacy_k23") : t("Pharmacy_k22")
-                                        : loading ? t("Pharmacy_k25") : t("Pharmacy_k24")}
-                                </button>
+                                {/* Hide Add button if a match was found */}
+                                {!(apiCheckResult?.success && apiCheckResult?.matchFound) && (
+                                    <button
+                                        type="button"
+                                        onClick={handleSubmit}
+                                        disabled={loading}
+                                        className="px-5 py-2 rounded-md bg-[#0066ff] text-white hover:opacity-90 disabled:bg-gray-400 transition-opacity"
+                                    >
+                                        {editData
+                                            ? loading ? t("Pharmacy_k23") : t("Pharmacy_k22")
+                                            : loading ? t("Pharmacy_k25") : t("Pharmacy_k24")}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

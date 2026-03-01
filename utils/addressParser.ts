@@ -1,13 +1,13 @@
 /**
  * Extracts state abbreviation and zipcode from a full address string
- * Handles various address formats including Smarty autocomplete format
+ * Also returns the clean street address without state and zipcode
  * 
  * @param address - Full address string (e.g., "123 Main St, Springfield, KY 40069")
- * @returns Object with state and zipcode, or empty strings if not found
+ * @returns Object with state, zipcode, and cleanAddress
  */
-export function extractStateAndZipcode(address: string): { state: string; zipcode: string } {
+export function extractStateAndZipcode(address: string): { state: string; zipcode: string; cleanAddress: string } {
     if (!address || typeof address !== 'string') {
-        return { state: '', zipcode: '' };
+        return { state: '', zipcode: '', cleanAddress: address || '' };
     }
 
     // Trim and normalize the address
@@ -24,6 +24,7 @@ export function extractStateAndZipcode(address: string): { state: string; zipcod
 
     let state = '';
     let zipcode = '';
+    let cleanAddress = normalizedAddress;
 
     // Pattern 1: Smarty format - "Street, City, STATE ZIPCODE"
     // Example: "123 Main St, Springfield, KY 40069"
@@ -31,11 +32,13 @@ export function extractStateAndZipcode(address: string): { state: string; zipcod
     const smartyMatch = normalizedAddress.match(smartyPattern);
     
     if (smartyMatch) {
-        const [, stateMatch, zipcodeMatch] = smartyMatch;
+        const [fullMatch, stateMatch, zipcodeMatch] = smartyMatch;
         if (stateAbbreviations.includes(stateMatch)) {
             state = stateMatch;
             zipcode = zipcodeMatch;
-            return { state, zipcode };
+            // Remove the ", STATE ZIPCODE" part from the address
+            cleanAddress = normalizedAddress.substring(0, normalizedAddress.length - fullMatch.length).trim();
+            return { state, zipcode, cleanAddress };
         }
     }
 
@@ -45,11 +48,13 @@ export function extractStateAndZipcode(address: string): { state: string; zipcod
     const match2 = normalizedAddress.match(pattern2);
     
     if (match2) {
-        const [, stateMatch, zipcodeMatch] = match2;
+        const [fullMatch, stateMatch, zipcodeMatch] = match2;
         if (stateAbbreviations.includes(stateMatch)) {
             state = stateMatch;
             zipcode = zipcodeMatch;
-            return { state, zipcode };
+            // Remove the "STATE ZIPCODE" part from the address
+            cleanAddress = normalizedAddress.substring(0, normalizedAddress.length - fullMatch.length).trim();
+            return { state, zipcode, cleanAddress };
         }
     }
 
@@ -68,6 +73,14 @@ export function extractStateAndZipcode(address: string): { state: string; zipcod
         
         if (stateMatch) {
             state = stateMatch[1].toUpperCase();
+            // Remove state and zipcode from address
+            cleanAddress = beforeZipcode.substring(0, stateMatch.index).trim();
+            // Remove trailing comma if present
+            cleanAddress = cleanAddress.replace(/,\s*$/, '').trim();
+        } else {
+            // Just remove zipcode
+            cleanAddress = beforeZipcode.trim();
+            cleanAddress = cleanAddress.replace(/,\s*$/, '').trim();
         }
     }
 
@@ -92,7 +105,7 @@ export function extractStateAndZipcode(address: string): { state: string; zipcod
         }
     }
 
-    return { state, zipcode };
+    return { state, zipcode, cleanAddress };
 }
 
 /**
