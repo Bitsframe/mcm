@@ -30,16 +30,17 @@ export const POST = async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { name, address, state, zipcode, phone, delivers, opening_hours, is_active } = body;
+    const { name, address, state, zip_code, zipcode, phone_number, phone, delivers, opening_hours, is_active, city } = body;
 
     const { data, error } = await supabase
       .from('pharmacy')
       .insert({
         name,
         address,
+        city: city || null,
         state,
-        zipcode,
-        phone,
+        zip_code: zip_code || zipcode, // Support both field names
+        phone_number: phone_number || phone, // Support both field names
         delivers: delivers || false,
         opening_hours,
         is_active: typeof is_active === "boolean" ? is_active : true

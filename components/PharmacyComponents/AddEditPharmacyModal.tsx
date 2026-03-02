@@ -63,6 +63,7 @@ export default function AddEditPharmacyModal({
             setFormData({
                 name: editData.name,
                 address: editData.address,
+                city: editData.city || "",
                 state: (editData as any).state || "",
                 zip_code: editData.zip_code,
                 phone_number: editData.phone_number || "",
@@ -74,6 +75,7 @@ export default function AddEditPharmacyModal({
             setFormData({
                 name: "",
                 address: "",
+                city: "",
                 state: "",
                 zip_code: "",
                 phone_number: "",
@@ -167,12 +169,38 @@ export default function AddEditPharmacyModal({
             return;
         }
 
-        // Extract state and zipcode from the address
-        const { state, zipcode, cleanAddress } = extractStateAndZipcode(formData.address);
+        // If editing, skip the duplicate check and just submit
+        if (editData) {
+            let parsedOpeningHours = formData.opening_hours;
+            if (typeof formData.opening_hours === 'string') {
+                try {
+                    parsedOpeningHours = JSON.parse(formData.opening_hours);
+                } catch (e) {
+                    console.error("Invalid JSON for opening hours");
+                    parsedOpeningHours = {};
+                }
+            }
+
+            // Extract city, state and zipcode for update
+            const { city, state, zipcode } = extractStateAndZipcode(formData.address);
+            
+            await submitHandle({ 
+                ...formData,
+                city: city || formData.city || undefined,
+                state: state || formData.state,
+                zip_code: zipcode || formData.zip_code,
+                opening_hours: parsedOpeningHours,
+            });
+            return;
+        }
+
+        // For new pharmacy, extract city, state and zipcode from the address
+        const { city, state, zipcode, cleanAddress } = extractStateAndZipcode(formData.address);
         
         console.log('📍 Extracted from address:', { 
             originalAddress: formData.address,
             cleanAddress: cleanAddress,
+            extractedCity: city,
             extractedState: state, 
             extractedZipcode: zipcode 
         });
@@ -186,13 +214,12 @@ export default function AddEditPharmacyModal({
                 name: formData.name,
                 phoneNumber: formData.phone_number || '',
                 address: {
-                    streetAddress: cleanAddress, // Use clean address without state/zip
+                    streetAddress: cleanAddress,
                     zipcode: zipcode || '',
                     state: state || ''
                 }
             });
 
-            // Call our local API route which proxies to the external API
             const response = await fetch('/api/pharmacy-check', {
                 method: 'POST',
                 headers: {
@@ -202,67 +229,81 @@ export default function AddEditPharmacyModal({
                     name: formData.name,
                     phoneNumber: formData.phone_number || '',
                     address: {
-                        streetAddress: cleanAddress, // Use clean address without state/zip
+                        streetAddress: cleanAddress,
                         zipcode: zipcode || '',
                         state: state || ''
                     }
                 })
             });
 
-            console.log('📡 Response status:', response.status);
-            console.log('📡 Response ok:', response.ok);
-
             const result = await response.json();
             console.log('✅ Pharmacy check result:', result);
             
-            setApiCheckResult(result);
             setIsCheckingApi(false);
 
-            // For now, just display the result - don't submit to database
-            // TODO: Add logic to handle the result and allow user to proceed or cancel
+            // If match found, show warning and prevent submission
+            if (result.success && result.matchFound) {
+                setApiCheckResult(result);
+                return; // Stop here - don't submit to database
+            }
+
+            // No match found or error - proceed to add to database
+            console.log('✅ No match found, proceeding to add pharmacy to database');
+            
+            let parsedOpeningHours = formData.opening_hours;
+            if (typeof formData.opening_hours === 'string') {
+                try {
+                    parsedOpeningHours = JSON.parse(formData.opening_hours);
+                } catch (e) {
+                    console.error("Invalid JSON for opening hours");
+                    parsedOpeningHours = {};
+                }
+            }
+
+            // Submit to database with extracted city, state and zip_code
+            await submitHandle({ 
+                ...formData, 
+                city: city || undefined,
+                state: state || formData.state,
+                zip_code: zipcode || formData.zip_code,
+                opening_hours: parsedOpeningHours,
+                is_active: true // Ensure is_active is true
+            });
 
         } catch (error: any) {
             console.error('❌ Error checking pharmacy:', error);
-            console.error('❌ Error details:', {
-                message: error.message,
-                name: error.name,
-                stack: error.stack
-            });
-            
-            setApiCheckResult({
-                success: false,
-                error: 'Failed to check pharmacy',
-                message: error.message || 'Could not connect to pharmacy verification service'
-            });
             setIsCheckingApi(false);
-        }
-
-        // COMMENTED OUT - Don't submit to database yet
-        /*
-        let parsedOpeningHours = formData.opening_hours;
-        if (typeof formData.opening_hours === 'string') {
-            try {
-                parsedOpeningHours = JSON.parse(formData.opening_hours);
-            } catch (e) {
-                console.error("Invalid JSON for opening hours");
-                parsedOpeningHours = {};
+            
+            // On error, still try to add to database (fail-safe)
+            console.log('⚠️ API check failed, proceeding to add pharmacy anyway');
+            
+            let parsedOpeningHours = formData.opening_hours;
+            if (typeof formData.opening_hours === 'string') {
+                try {
+                    parsedOpeningHours = JSON.parse(formData.opening_hours);
+                } catch (e) {
+                    console.error("Invalid JSON for opening hours");
+                    parsedOpeningHours = {};
+                }
             }
-        }
 
-        // Send data with extracted state and zip_code
-        await submitHandle({ 
-            ...formData, 
-            state: state || formData.state,
-            zip_code: zipcode || formData.zip_code,
-            opening_hours: parsedOpeningHours 
-        });
-        */
+            const { city, state, zipcode } = extractStateAndZipcode(formData.address);
+            await submitHandle({ 
+                ...formData, 
+                city: city || undefined,
+                state: state || formData.state,
+                zip_code: zipcode || formData.zip_code,
+                opening_hours: parsedOpeningHours,
+                is_active: true
+            });
+        }
     };
 
     const closeModalHandle = () => {
         setFormData({
             name: "",
             address: "",
+            city: "",
             state: "",
             zip_code: "",
             phone_number: "",
@@ -386,50 +427,27 @@ export default function AddEditPharmacyModal({
                                 />
                             </div>
 
-                            {/* API Check Result Display */}
+                            {/* API Check Result Display - Only show if match found */}
                             {isCheckingApi && (
                                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                     <div className="flex items-center gap-3">
                                         <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                                        <span className="text-sm text-blue-700 dark:text-blue-300">Checking pharmacy database...</span>
+                                        <span className="text-sm text-blue-700 dark:text-blue-300">Searching for pharmacy...</span>
                                     </div>
                                 </div>
                             )}
 
-                            {apiCheckResult && !isCheckingApi && (
-                                <div className={`mt-4 p-4 rounded-lg border ${
-                                    apiCheckResult.success && apiCheckResult.matchFound
-                                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700'
-                                        : apiCheckResult.success && !apiCheckResult.matchFound
-                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
-                                        : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
-                                }`}>
+                            {/* Only show warning if match was found */}
+                            {apiCheckResult && !isCheckingApi && apiCheckResult.success && apiCheckResult.matchFound && (
+                                <div className="mt-4 p-4 rounded-lg border bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700">
                                     <div className="space-y-3">
                                         {/* Header */}
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
-                                                {apiCheckResult.success && apiCheckResult.matchFound ? (
-                                                    <>
-                                                        <span className="text-xl">⚠️</span>
-                                                        <span className="font-semibold text-yellow-800 dark:text-yellow-300">
-                                                            This pharmacy already exists
-                                                        </span>
-                                                    </>
-                                                ) : apiCheckResult.success && !apiCheckResult.matchFound ? (
-                                                    <>
-                                                        <span className="text-xl">✅</span>
-                                                        <span className="font-semibold text-green-800 dark:text-green-300">
-                                                            No Match Found - Safe to Add
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="text-xl">❌</span>
-                                                        <span className="font-semibold text-red-800 dark:text-red-300">
-                                                            Error
-                                                        </span>
-                                                    </>
-                                                )}
+                                                <span className="text-xl">⚠️</span>
+                                                <span className="font-semibold text-yellow-800 dark:text-yellow-300">
+                                                    This pharmacy already exists
+                                                </span>
                                             </div>
                                             <button
                                                 onClick={() => setApiCheckResult(null)}
@@ -440,7 +458,7 @@ export default function AddEditPharmacyModal({
                                         </div>
 
                                         {/* Matching Pharmacy Details */}
-                                        {apiCheckResult.success && apiCheckResult.matchFound && apiCheckResult.data && apiCheckResult.data.length > 0 && (
+                                        {apiCheckResult.data && apiCheckResult.data.length > 0 && (
                                             <div className="space-y-2">
                                                 {apiCheckResult.data.map((pharmacy: any, index: number) => (
                                                     <div key={index} className="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
@@ -479,13 +497,6 @@ export default function AddEditPharmacyModal({
                                                     </div>
                                                 ))}
                                             </div>
-                                        )}
-
-                                        {/* Error message */}
-                                        {!apiCheckResult.success && (
-                                            <p className="text-sm text-red-700 dark:text-red-300">
-                                                {apiCheckResult.message}
-                                            </p>
                                         )}
                                     </div>
                                 </div>
