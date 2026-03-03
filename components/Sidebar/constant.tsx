@@ -71,6 +71,7 @@ const ROUTES = {
     SETTINGS: '/tools/settings',
     PHARMACY: '/tools/pharmacy',
     SPECIALS: '/tools/specials',
+    MEDICAL_FORMS: '/tools/medicalforms',
   },
 } as const;
 
@@ -233,6 +234,12 @@ export const routeList: Route[] = [
         name: "pharmacy",
         label: "Pharmacy",
         route: ROUTES.TOOLS.PHARMACY
+      },
+      {
+        id: 'tools-medical-forms',
+        name: "medical forms",
+        label: "Medical Forms",
+        route: ROUTES.TOOLS.MEDICAL_FORMS
       }
     ],
   }
