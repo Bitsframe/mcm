@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { dbSync } from '@/utils/sync/directDbSync';
 
 export const GET = async () => {
   const supabase = createClient(
@@ -54,6 +55,9 @@ export const POST = async (req: Request) => {
 
     if (error) throw error;
 
+    // 🔥 SYNC TO CHILD DATABASE
+    dbSync.syncCreate('forms', data);
+
     return NextResponse.json({ success: true, data, message: 'Form created successfully' }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating form:', error);
@@ -91,6 +95,9 @@ export const PUT = async (req: Request) => {
 
     if (error) throw error;
 
+    // 🔥 SYNC TO CHILD DATABASE
+    dbSync.syncUpdate('forms', id, data);
+
     return NextResponse.json({ success: true, data, message: 'Form updated successfully' }, { status: 200 });
   } catch (error: any) {
     console.error('Error updating form:', error);
@@ -118,6 +125,9 @@ export const DELETE = async (req: Request) => {
       .eq('id', id);
 
     if (error) throw error;
+
+    // 🔥 SYNC TO CHILD DATABASE
+    dbSync.syncDelete('forms', id);
 
     return NextResponse.json({ success: true, message: 'Form deleted successfully' }, { status: 200 });
   } catch (error: any) {
