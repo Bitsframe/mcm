@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, FileText, Download, X, Save, Edit, Eye, Trash2 } from "lucide-react";
+import { Plus, Search, FileText, Download, X, Save, Edit, Eye, Trash2, UserPlus } from "lucide-react";
 import { Switch } from "antd";
 import axios from "axios";
 import { toast } from "sonner";
@@ -48,6 +48,8 @@ export default function MedicalFormsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showFieldInput, setShowFieldInput] = useState(false);
+  const [fieldName, setFieldName] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -153,6 +155,8 @@ export default function MedicalFormsPage() {
     setSelectedForm(null);
     setEditedContent("");
     setEditedName("");
+    setShowFieldInput(false);
+    setFieldName("");
   };
 
   const handleSaveForm = async () => {
@@ -187,6 +191,8 @@ export default function MedicalFormsPage() {
         setSelectedForm(updatedForm);
         setEditedContent(contentToSave);
         setIsEditMode(false);
+        setShowFieldInput(false);
+        setFieldName("");
       }
     } catch (error: any) {
       console.error("Error saving form:", error);
@@ -194,6 +200,26 @@ export default function MedicalFormsPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleInsertUserInput = () => {
+    if (!fieldName.trim()) {
+      toast.error("Please enter a field name");
+      return;
+    }
+
+    // Convert field name to placeholder format
+    // "Patient Name" -> "PATIENT_NAME"
+    const placeholder = fieldName.trim().toUpperCase().replace(/\s+/g, '_');
+    
+    // Insert the field with placeholder in the editor
+    const htmlToInsert = `<p><strong>${fieldName}:</strong> {{${placeholder}}}</p>`;
+    
+    editor?.commands.insertContent(htmlToInsert);
+    
+    // Reset and close
+    setFieldName("");
+    setShowFieldInput(false);
   };
 
   const handleCreateForm = async (name: string, content: string) => {
@@ -669,7 +695,54 @@ export default function MedicalFormsPage() {
                   >
                     1. List
                   </button>
+
+                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+                  {/* User Input Button */}
+                  <button
+                    onClick={() => setShowFieldInput(!showFieldInput)}
+                    className="px-3 py-1 rounded text-sm bg-green-600 text-white hover:bg-green-700 flex items-center gap-1"
+                    type="button"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    User Input
+                  </button>
                 </div>
+
+                {/* User Input Field Name Dialog */}
+                {showFieldInput && (
+                  <div className="border border-t-0 border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20 p-3 flex items-center gap-2">
+                    <Input
+                      value={fieldName}
+                      onChange={(e) => setFieldName(e.target.value)}
+                      placeholder="Enter field name (e.g., Patient Name)"
+                      className="flex-1"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleInsertUserInput();
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      onClick={handleInsertUserInput}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Insert
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowFieldInput(false);
+                        setFieldName("");
+                      }}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
 
                 {/* Editor Content */}
                 <div className="border border-t-0 border-gray-300 dark:border-gray-600 rounded-b-lg bg-white dark:bg-gray-800 min-h-[400px] max-h-[600px] overflow-auto">
