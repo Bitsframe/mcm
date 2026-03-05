@@ -100,7 +100,7 @@ export const SYNC_TABLES: Record<string, TableSyncConfig> = {
 ### Environment Variables
 ```env
 CHILD_SUPABASE_URL=https://your-child-db.supabase.co
-CHILD_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+CHILD_SUPABASE_SECRET_KEY=your-secret-key
 ```
 
 ## 🚀 Usage
@@ -208,7 +208,7 @@ GET /api/sync/db-test
 
 ## 🔒 Security Features
 
-- ✅ Service role keys for authentication
+- ✅ Secret keys for authentication
 - ✅ Column filtering (only sync configured columns)
 - ✅ Table-level access control
 - ✅ No sensitive data in logs

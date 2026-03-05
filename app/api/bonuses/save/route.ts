@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     // NOTE: This environment does not use a separate threshold_history table —
   // incoming `bonus_limit` from the client will be used when computing bonus_eligibility.
     try {
-      console.log('[api/bonuses/save] service role key present?:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+      console.log('[api/bonuses/save] secret key present?:', !!process.env.SUPABASE_SECRET_KEY)
       // Primary behavior: update existing rows by (location_id, date).
       // If no row exists for that (location_id, date), insert a minimal row with only location_id and date.
       const updated: any[] = []

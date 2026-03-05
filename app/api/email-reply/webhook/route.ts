@@ -3,7 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
 
 // Reuse a service-role Supabase client if already created (avoid recreating on hot reload)
 declare global {
@@ -15,7 +15,7 @@ declare global {
 const supabase: SupabaseClient =
   global.__supabase_service_client__ ||
   (function createServiceClient() {
-    const client = createClient(supabaseUrl || '', supabaseServiceKey || '');
+    const client = createClient(supabaseUrl || '', supabaseSecretKey || '');
     // store on global for reuse
     try {
       global.__supabase_service_client__ = client;

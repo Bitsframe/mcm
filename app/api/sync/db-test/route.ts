@@ -7,8 +7,8 @@ import { dbSync } from '@/utils/sync/directDbSync';
 
 export const GET = async () => {
   try {
-    const childConfigured = !!(process.env.CHILD_SUPABASE_URL && process.env.CHILD_SUPABASE_SERVICE_ROLE_KEY);
-    const parentConfigured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const childConfigured = !!(process.env.CHILD_SUPABASE_URL && process.env.CHILD_SUPABASE_SECRET_KEY);
+    const parentConfigured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY);
     
     return NextResponse.json({
       success: true,

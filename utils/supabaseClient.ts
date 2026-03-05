@@ -1,20 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 // Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabasePublishableKey) {
   console.error(
     'Missing Supabase environment variables. Please check your .env.local file.',
     { 
       hasUrl: !!supabaseUrl, 
-      hasKey: !!supabaseAnonKey 
+      hasKey: !!supabasePublishableKey 
     }
   );
 }
 
-const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+const supabase = createClient(supabaseUrl || '', supabasePublishableKey || '');
 
 // Test connection on initialization
 const testConnection = async () => {

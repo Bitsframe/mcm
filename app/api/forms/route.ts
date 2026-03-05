@@ -5,7 +5,7 @@ import { dbSync } from '@/utils/sync/directDbSync';
 export const GET = async () => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SECRET_KEY!
   );
 
   try {
@@ -26,7 +26,7 @@ export const GET = async () => {
 export const POST = async (req: Request) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SECRET_KEY!
   );
 
   try {
@@ -68,7 +68,7 @@ export const POST = async (req: Request) => {
 export const PUT = async (req: Request) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SECRET_KEY!
   );
 
   try {
@@ -108,7 +108,7 @@ export const PUT = async (req: Request) => {
 export const DELETE = async (req: Request) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SECRET_KEY!
   );
 
   try {

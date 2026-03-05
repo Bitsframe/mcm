@@ -362,13 +362,13 @@ export const Add_Appointment_Modal = ({
         
         // Call the edge function with the coming back patient's data
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
         
         const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Authorization': `Bearer ${supabasePublishableKey}`,
           },
           body: JSON.stringify({
             location_id,
@@ -461,13 +461,13 @@ export const Add_Appointment_Modal = ({
     try {
       // Call the edge function to handle patient creation and appointment insertion
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
       
       const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${supabasePublishableKey}`,
         },
         body: JSON.stringify({
           location_id,

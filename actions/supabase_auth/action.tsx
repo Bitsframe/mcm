@@ -33,22 +33,20 @@ export async function signOut() {
   try {
     const supabase = createClient();
 
-
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error.message);
-      }
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error.message);
     }
 
-    await supabase.auth.refreshSession();
-    
-    const loginUrl = `/login?t=${Date.now()}`;
-    return redirect(loginUrl);
+    // Redirect to login (NEXT_REDIRECT is normal Next.js behavior)
+    redirect('/login');
   } catch (error) {
+    // If error is NEXT_REDIRECT, it's expected behavior - let it propagate
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
     console.error('Error during sign out:', error);
-    return redirect('/login');
+    redirect('/login');
   }
 }

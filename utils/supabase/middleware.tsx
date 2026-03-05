@@ -11,7 +11,7 @@
 
 //   const supabase = createServerClient(
 //     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
 //     {
 //       cookies: {
 //         get(name: string) {
@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         // ✅ READ cookies from the request
