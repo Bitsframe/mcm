@@ -64,7 +64,9 @@ const MainContent = memo(({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    i18n.changeLanguage(locale);
+    if (i18n && typeof i18n.changeLanguage === 'function') {
+      i18n.changeLanguage(locale);
+    }
   }, [locale]);
 
   useEffect(() => {

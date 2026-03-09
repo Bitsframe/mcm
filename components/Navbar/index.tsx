@@ -24,7 +24,9 @@ export const Navbar = ({ width }: { width: string }) => {
   const { t } = useTranslation(translationConstant.DASHBOARD);
 
   useEffect(() => {
-    i18n.changeLanguage(locale);
+    if (i18n && typeof i18n.changeLanguage === 'function') {
+      i18n.changeLanguage(locale);
+    }
   }, [locale]);
 
   // Sidebar drawer state

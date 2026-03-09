@@ -19,7 +19,7 @@ function Login() {
   
   useEffect(() => {
     const locale = params.locale as string;
-    if (locale && i18n.language !== locale) {
+    if (locale && i18n && i18n.language !== locale && typeof i18n.changeLanguage === 'function') {
       i18n.changeLanguage(locale);
     }
   }, [params.locale, i18n]);
