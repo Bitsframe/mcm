@@ -125,10 +125,15 @@ export const Add_Appointment_Modal = ({
   const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
 
   const close_handle = () => {
     setOpen(false);
     setEmailError("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
@@ -171,6 +176,59 @@ export const Add_Appointment_Modal = ({
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  // Debounce function for address search
+  const debounceTimer = React.useRef<NodeJS.Timeout | null>(null);
+
+  const fetchAddressSuggestions = async (query: string) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+
+    setAddressLoading(true);
+    try {
+      const response = await fetch(
+        `https://mcm-pharmacy-production.up.railway.app/api/address/suggestions?search=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(data.suggestions.length > 0);
+      } else {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const handleAddressChange = (value: string) => {
+    setFormData((pre: any) => ({ ...pre, street_address: value }));
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Set new timer for debounced search
+    debounceTimer.current = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 300);
+  };
+
+  const selectAddressSuggestion = (suggestion: any) => {
+    setFormData((pre: any) => ({ ...pre, street_address: suggestion.fullAddress }));
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   const select_change_handle = (key: string, val: string | number) => {
@@ -360,15 +418,11 @@ export const Add_Appointment_Modal = ({
         // For coming back patients, we already have their data from allpatients table
         // We just need to create the appointment with their patient_id
         
-        // Call the edge function with the coming back patient's data
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-        
-        const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
+        // Call the backend API route which will securely call the edge function
+        const response = await fetch('/api/appointments/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabasePublishableKey}`,
           },
           body: JSON.stringify({
             location_id,
@@ -380,12 +434,13 @@ export const Add_Appointment_Modal = ({
             service,
             date_and_time,
             dob: dob || null, // Send null if DOB is empty
+            address: formData.street_address || null, // Include street address
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Edge function error:', errorData);
+          console.error('API error:', errorData);
           console.error('Request payload:', {
             location_id,
             first_name,
@@ -459,15 +514,11 @@ export const Add_Appointment_Modal = ({
 
     // Insert new appointment for new patients or when no existing patient selected
     try {
-      // Call the edge function to handle patient creation and appointment insertion
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-      
-      const response = await fetch(`${supabaseUrl}/functions/v1/create-appointment-mcm`, {
+      // Call the backend API route which will securely call the edge function
+      const response = await fetch('/api/appointments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabasePublishableKey}`,
         },
         body: JSON.stringify({
           location_id,
@@ -479,12 +530,13 @@ export const Add_Appointment_Modal = ({
           service,
           date_and_time,
           dob: dob || null, // Send null if DOB is empty
+          address: formData.street_address || null, // Include street address
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Edge function error:', errorData);
+        console.error('API error:', errorData);
         console.error('Request payload:', {
           location_id,
           first_name,
@@ -585,6 +637,13 @@ export const Add_Appointment_Modal = ({
         location_id: selectedLocation.id,
       });
     }
+
+    // Cleanup debounce timer on unmount
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
   }, [selectedLocation]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
@@ -764,6 +823,47 @@ export const Add_Appointment_Modal = ({
                       className="flex gap-2 flex-wrap sm:flex-nowrap"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2 relative">
+                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    Street Address
+                  </Label>
+                  <Input_Component_Appointment
+                    onChange={(e: string) => handleAddressChange(e)}
+                    value={formData.street_address || ''}
+                    placeholder="Enter street address"
+                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  />
+                  {addressLoading && (
+                    <div className="absolute right-3 top-[42px] text-gray-500">
+                      <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                    </div>
+                  )}
+                  {showAddressSuggestions && addressSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-[#122136] border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {addressSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onClick={() => selectAddressSuggestion(suggestion)}
+                          className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#1a2f4a] border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                        >
+                          <div className="font-medium text-black dark:text-white">
+                            {suggestion.streetLine}
+                            {suggestion.secondary && ` ${suggestion.secondary}`}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                          </div>
+                          {suggestion.entries > 0 && (
+                            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                              {suggestion.entries} units
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </>
             )}
