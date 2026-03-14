@@ -111,6 +111,8 @@ export const POST = async (req: Request) => {
                     email: patientData.email,
                     phone: patientData.phone,
                     note: patientData?.note,
+                    streetaddress: patientData?.streetAddress,
+                    dateofbirth: patientData?.dateOfBirth,
                 })
                 .eq("id", patient.id)
                 .select();
@@ -142,6 +144,8 @@ export const POST = async (req: Request) => {
                         phone: patientData.phone,
                         treatmenttype: patientData.treatmenttype,
                         note: patientData?.note,
+                        streetaddress: patientData?.streetAddress,
+                        dateofbirth: patientData?.dateOfBirth,
                     }
                 ])
                 .select();
@@ -183,6 +187,8 @@ export const PUT = async (req: Request) => {
                 phone: patientData.phone,
                 treatmenttype: patientData.treatmenttype,
                 note: patientData?.note,
+                streetaddress: patientData?.streetAddress,
+                dateofbirth: patientData?.dateOfBirth,
             })
             .eq("id", Number(patientData.id))
             .select();

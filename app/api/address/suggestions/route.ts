@@ -20,16 +20,32 @@ export async function GET(request: NextRequest) {
         }, { status: 400 });
     }
 
-    const authId = process.env.SMARTY_AUTH_ID;
-    const authToken = process.env.SMARTY_AUTH_TOKEN;
+    try {
+        // Proxy to Railway API as specified in documentation
+        const railwayUrl = `https://mcm-pharmacy-production.up.railway.app/api/address/suggestions?search=${encodeURIComponent(search)}`;
+        
+        const response = await fetch(railwayUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-    if (!authId || !authToken) {
+        if (!response.ok) {
+            throw new Error(`Railway API responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Return the data from Railway API
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error('Error fetching address suggestions from Railway API:', error);
         return NextResponse.json({ 
             success: false,
-            error: 'Smarty credentials not configured' 
+            error: 'Failed to fetch address suggestions',
+            details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
     }
-
-    try {
-        // Call Smarty US Autocomplete API
-        const url = `https://us-autocomplete-pro.api.smarty.com/lookup?auth-id=${authId}&auth-toke
+}

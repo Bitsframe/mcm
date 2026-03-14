@@ -1666,7 +1666,7 @@ transition-colors`}
           {otherLocationId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Product
+                Select Category
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1675,7 +1675,7 @@ transition-colors`}
                   handleOtherLocationCategoryChange(Number(e.target.value))
                 }
               >
-                <option value="">Select Product</option>
+                <option value="">Select Category</option>
                 {otherLocationCategories.map((cat: any) => (
                   <option
                     key={String(cat.category_id)}
@@ -1765,11 +1765,11 @@ transition-colors`}
               {t("POS-Sales_k8")}
             </button>
             <button
-              className="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded text-xs hover:bg-gray-400 dark:hover:bg-gray-600"
+              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs"
               onClick={() => setShowOtherLocationModal(false)}
               type="button"
             >
-              {t("POS-Sales_k18")}
+              Cancel
             </button>
           </div>
         </div>

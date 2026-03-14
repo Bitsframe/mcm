@@ -2,7 +2,7 @@ import { Button } from 'flowbite-react';
 import React, { FC, useState } from 'react';
 import { IoCloseOutline } from 'react-icons/io5';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { PromoCodeDataInterface } from '@/types/typesInterfaces';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
@@ -30,6 +30,8 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                 patientid: patientId
             });
 
+            console.log('API Response:', response.status, response.data);
+
             if (response.status === 200) {
                 const { discount, promocodeId } = response.data.data;
                 const codeData = { code: inputVal, id: promocodeId };
@@ -38,15 +40,14 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                 toast.success('Promo code applied successfully!');
                 setInputVal('');
             } else {
-                toast.error(response.data.message || 'Failed to apply promo code');
+                console.log('Non-200 response, showing expired toast');
+                toast.error('promocode expired');
+                setInputVal(''); // Clear input field on failure
             }
         } catch (error: any) {
-            if (axios.isAxiosError(error)) {
-                const errorMessage = error.response?.data?.message || 'Failed to apply promo code';
-                toast.error(errorMessage);
-            } else {
-                toast.error('An error occurred while applying the promo code');
-            }
+            console.log('Caught error:', error.response?.status, error.response?.data);
+            toast.error('promocode expired');
+            setInputVal(''); // Clear input field on error
         } finally {
             setLoading(false);
         }

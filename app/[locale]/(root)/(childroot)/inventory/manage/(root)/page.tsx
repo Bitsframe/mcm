@@ -41,7 +41,7 @@ const modalStateEnum = {
 const tableHeader = [
   {
     id: "product_id",
-    label: "Inventory_k15",
+    label: "ID",
   },
   {
     id: "category",
@@ -657,7 +657,7 @@ const Inventory = () => {
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {t("Inventory_k15")}
+                              ID
                             </div>
                             <div className="font-medium text-gray-900 dark:text-gray-100">
                               {elem.product_id}

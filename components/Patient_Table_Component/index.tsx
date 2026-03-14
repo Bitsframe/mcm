@@ -98,6 +98,8 @@ interface Patient {
   lastvisit: string;
   note: string;
   deleted_at?: string | null;
+  streetaddress?: string;
+  dateofbirth?: string;
 }
 
 interface Props {
@@ -144,9 +146,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     onsite: true,
     locationId: 0,
     note: "",
+    streetAddress: "",
+    dateOfBirth: "",
   });
 
   const [emailError, setEmailError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -165,6 +172,67 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     } else {
       setEmailError("");
     }
+  };
+
+  // Simple debounce function
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
+
+  // Debounced address search function
+  const searchAddresses = useCallback(
+    debounce(async (searchTerm: string) => {
+      if (searchTerm.length < 4) {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+        return;
+      }
+
+      setAddressLoading(true);
+      try {
+        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        
+        if (data.success && data.suggestions) {
+          setAddressSuggestions(data.suggestions);
+          setShowAddressSuggestions(true);
+        } else {
+          setAddressSuggestions([]);
+          setShowAddressSuggestions(false);
+        }
+      } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setPatientData({
+      ...patientData,
+      streetAddress: address,
+    });
+    
+    // Trigger address search
+    searchAddresses(address);
+  };
+
+  const handleAddressSelect = (suggestion: any) => {
+    setPatientData({
+      ...patientData,
+      streetAddress: suggestion.fullAddress,
+    });
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   const [sortConfig, setSortConfig] = useState({
@@ -384,6 +452,8 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         lastvisit: new Date(),
         onsite: patientData.onsite,
         note: patientData.note,
+        streetAddress: patientData.streetAddress,
+        dateOfBirth: patientData.dateOfBirth,
       });
 
       fetchPatients();
@@ -426,7 +496,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       patientData.phone &&
       patientData.treatmenttype &&
       patientData.gender &&
-      patientData.onsite !== undefined
+      patientData.onsite !== undefined &&
+      patientData.streetAddress &&
+      patientData.dateOfBirth
     );
   }, [patientData]);
 
@@ -835,6 +907,80 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       <p className="text-red-500 text-sm mt-1">{emailError}</p>
                     )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="streetAddress"
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    Street Address
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="streetAddress"
+                      placeholder="Enter street address"
+                      value={patientData.streetAddress}
+                      onChange={handleAddressChange}
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0) {
+                          setShowAddressSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow for selection
+                        setTimeout(() => setShowAddressSuggestions(false), 200);
+                      }}
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                    />
+                    {addressLoading && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <Spinner size="sm" />
+                      </div>
+                    )}
+                    {showAddressSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {addressSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => handleAddressSelect(suggestion)}
+                          >
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {suggestion.streetLine}
+                              {suggestion.secondary && ` ${suggestion.secondary}`}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="dateOfBirth"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      Date of Birth
+                    </Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      onChange={(e) =>
+                        setPatientData({
+                          ...patientData,
+                          dateOfBirth: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div></div>
                 </div>
 
                 <div className="space-y-2">
@@ -1412,6 +1558,8 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         gender: formData.gender,
         onsite: formData.onsite,
         note: formData.note,
+        streetAddress: formData.streetaddress,
+        dateOfBirth: formData.dateofbirth,
       });
 
       if (response.data.success) {
@@ -1603,6 +1751,32 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             )}
           </RadioGroup>
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Street Address
+          </Label>
+          <Input
+            name="streetaddress"
+            value={formData.streetaddress || ""}
+            onChange={handleChange}
+            placeholder="Enter street address"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Date of Birth
+          </Label>
+          <Input
+            name="dateofbirth"
+            type="date"
+            value={formData.dateofbirth || ""}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
@@ -1723,6 +1897,24 @@ const PatientDetails: FC<{
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
+            Street Address
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.streetaddress || "No address provided"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Date of Birth
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.dateofbirth ? new Date(patient.dateofbirth).toLocaleDateString() : "No date provided"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {t("Patients_k12")}
           </p>
           <p className="text-base font-medium capitalize dark:text-gray-300">
@@ -1770,12 +1962,17 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     email: "",
     treatmenttype: "",
     note: "",
+    streetaddress: "",
+    dateofbirth: "",
   });
 
   const [loading, setLoading] = useState(false);
   const { selectedLocation } = useContext(LocationContext);
   const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1796,6 +1993,67 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     }
   };
 
+  // Simple debounce function for EditPatientModal
+  const debounceModal = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
+
+  // Debounced address search function for EditPatientModal
+  const searchAddressesModal = useCallback(
+    debounceModal(async (searchTerm: string) => {
+      if (searchTerm.length < 4) {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+        return;
+      }
+
+      setAddressLoading(true);
+      try {
+        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        
+        if (data.success && data.suggestions) {
+          setAddressSuggestions(data.suggestions);
+          setShowAddressSuggestions(true);
+        } else {
+          setAddressSuggestions([]);
+          setShowAddressSuggestions(false);
+        }
+      } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleAddressChangeModal = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setPatientData({
+      ...patientData,
+      streetaddress: address,
+    });
+    
+    // Trigger address search
+    searchAddressesModal(address);
+  };
+
+  const handleAddressSelectModal = (suggestion: any) => {
+    setPatientData({
+      ...patientData,
+      streetaddress: suggestion.fullAddress,
+    });
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
   useEffect(() => {
     if (patientDetails) {
       setPatientData({
@@ -1805,6 +2063,8 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         email: patientDetails.email || "",
         treatmenttype: patientDetails.treatmenttype || "",
         note: patientDetails.note || "",
+        streetaddress: patientDetails.streetaddress || "",
+        dateofbirth: patientDetails.dateofbirth || "",
       });
     }
   }, [patientDetails]);
@@ -1829,6 +2089,8 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         phone: patientData?.phone,
         treatmenttype: patientData?.treatmenttype,
         note: patientData?.note,
+        streetAddress: patientData?.streetaddress,
+        dateOfBirth: patientData?.dateofbirth,
       });
 
       if (data?.data?.success === true) {
@@ -1946,6 +2208,68 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium dark:text-gray-300">
+              Street Address
+            </Label>
+            <div className="relative">
+              <Input
+                type="text"
+                name="streetaddress"
+                value={patientData.streetaddress}
+                onChange={handleAddressChangeModal}
+                onFocus={() => {
+                  if (addressSuggestions.length > 0) {
+                    setShowAddressSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay hiding suggestions to allow for selection
+                  setTimeout(() => setShowAddressSuggestions(false), 200);
+                }}
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+                placeholder="Enter street address"
+              />
+              {addressLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Spinner size="sm" />
+                </div>
+              )}
+              {showAddressSuggestions && addressSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {addressSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                      onClick={() => handleAddressSelectModal(suggestion)}
+                    >
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {suggestion.streetLine}
+                        {suggestion.secondary && ` ${suggestion.secondary}`}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium dark:text-gray-300">
+              Date of Birth
+            </Label>
+            <Input
+              type="date"
+              name="dateofbirth"
+              value={patientData.dateofbirth}
+              onChange={handleChange}
+              className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium dark:text-gray-300">
               {t("Patients_k11")}
             </Label>
             <DropdownMenu>
@@ -1985,7 +2309,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         </div>
 
         <AlertDialogFooter className="mt-6 flex justify-end gap-2">
-          <AlertDialogCancel className="border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+          <AlertDialogCancel className="bg-red-500 hover:bg-red-600 text-white border-red-500 dark:border-red-500 dark:text-white dark:bg-red-500 dark:hover:bg-red-600">
             {t("Patients_k21")}
           </AlertDialogCancel>
           <AlertDialogAction
