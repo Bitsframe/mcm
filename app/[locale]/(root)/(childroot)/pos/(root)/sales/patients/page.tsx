@@ -218,10 +218,113 @@ const Patients = () => {
   const [searchType, setSearchType] = useState<"all" | "name" | "email" | "phone">("all");
   const [emailError, setEmailError] = useState("");
   const [modalEmailError, setModalEmailError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [editAddressSuggestions, setEditAddressSuggestions] = useState<any[]>([]);
+  const [showEditAddressSuggestions, setShowEditAddressSuggestions] = useState(false);
+  const [editAddressLoading, setEditAddressLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  // Simple debounce function
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
+
+  // Debounced address search function
+  const searchAddresses = useCallback(
+    debounce(async (searchTerm: string) => {
+      if (searchTerm.length < 4) {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+        return;
+      }
+
+      setAddressLoading(true);
+      try {
+        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        
+        if (data.success && data.suggestions) {
+          setAddressSuggestions(data.suggestions);
+          setShowAddressSuggestions(true);
+        } else {
+          setAddressSuggestions([]);
+          setShowAddressSuggestions(false);
+        }
+      } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleAddressChange = (value: string) => {
+    addPatientFieldsChange(value, "address");
+    // Trigger address search
+    searchAddresses(value);
+  };
+
+  const handleAddressSelect = (suggestion: any) => {
+    addPatientFieldsChange(suggestion.fullAddress, "address");
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
+  // Edit modal address search function
+  const searchEditAddresses = useCallback(
+    debounce(async (searchTerm: string) => {
+      if (searchTerm.length < 4) {
+        setEditAddressSuggestions([]);
+        setShowEditAddressSuggestions(false);
+        return;
+      }
+
+      setEditAddressLoading(true);
+      try {
+        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        
+        if (data.success && data.suggestions) {
+          setEditAddressSuggestions(data.suggestions);
+          setShowEditAddressSuggestions(true);
+        } else {
+          setEditAddressSuggestions([]);
+          setShowEditAddressSuggestions(false);
+        }
+      } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        setEditAddressSuggestions([]);
+        setShowEditAddressSuggestions(false);
+      } finally {
+        setEditAddressLoading(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleEditAddressChange = (value: string) => {
+    modalInputChangeHandle(value, "address");
+    // Trigger address search
+    searchEditAddresses(value);
+  };
+
+  const handleEditAddressSelect = (suggestion: any) => {
+    modalInputChangeHandle(suggestion.fullAddress, "address");
+    setShowEditAddressSuggestions(false);
+    setEditAddressSuggestions([]);
   };
 
   const category_change_handle = () => { };
@@ -438,7 +541,8 @@ const createNewDataHandle = async () => {
     "email",
     "gender",
     "phone",  
-    "treatmenttype",
+    "address",
+    "dob",
   ];
 
   // Log form data before validation
@@ -462,9 +566,15 @@ const createNewDataHandle = async () => {
 
   // Prepare post data
   const postData = {
-    ...createActionData,
+    firstname: createActionData.firstname,
+    lastname: createActionData.lastname,
+    email: createActionData.email,
+    phone: createActionData.phone,
+    gender: createActionData.gender,
+    address: createActionData.address,
+    dob: createActionData.dob,
     locationid: selectedLocation?.id || "",
-    onsite: true
+    onsite: true,
   };
 
   // Log the post data before checking for missing fields
@@ -472,7 +582,7 @@ const createNewDataHandle = async () => {
 
   // Check if all required fields are present
   for (const field of requiredFields) {
-    if (!postData[field]) {
+    if (!postData[field as keyof typeof postData]) {
       console.log(`Missing field: ${field}`);
       toast.warning(`Please fill in the ${field}`);
       return;
@@ -906,21 +1016,63 @@ const createNewDataHandle = async () => {
               </div>
 
               <div>
-                <Select_Dropdown
-                  value={createActionData.treatmenttype}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Street Address
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={createActionData.address || ""}
+                      onChange={(e) => handleAddressChange(e.target.value)}
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0) {
+                          setShowAddressSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow for selection
+                        setTimeout(() => setShowAddressSuggestions(false), 200);
+                      }}
+                      placeholder="Enter street address"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    {addressLoading && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      </div>
+                    )}
+                    {showAddressSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {addressSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => handleAddressSelect(suggestion)}
+                          >
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {suggestion.streetLine}
+                              {suggestion.secondary && ` ${suggestion.secondary}`}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Input_Component
+                  value={createActionData.dob}
+                  onChange={(e: string) => addPatientFieldsChange(e, "dob")}
+                  label="Date of Birth"
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  start_empty={true}
-                  // @ts-ignore
-                  options_arr={services?.map((service) => ({
-                    value: service,
-                    label: service,
-                  }))}
-                  required={true}
-                  on_change_handle={(e: string) =>
-                    // @ts-ignore
-                    addPatientFieldsChange(e.target.value, "treatmenttype")
-                  }
-                  label={t("POS-Sales_k24")}
+                  placeholder="Select date of birth"
+                  type="date"
                 />
               </div>
             </div>
@@ -1005,21 +1157,63 @@ const createNewDataHandle = async () => {
             </div>
 
             <div className="md:col-span-2">
-              <Select_Dropdown
-                value={actionData?.treatmenttype || ""}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Street Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={actionData?.address || ""}
+                    onChange={(e) => handleEditAddressChange(e.target.value)}
+                    onFocus={() => {
+                      if (editAddressSuggestions.length > 0) {
+                        setShowEditAddressSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Delay hiding suggestions to allow for selection
+                      setTimeout(() => setShowEditAddressSuggestions(false), 200);
+                    }}
+                    placeholder="Enter street address"
+                    className="w-full px-3 py-2 border-2 border-gray-300 dark:border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                  {editAddressLoading && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                  {showEditAddressSuggestions && editAddressSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {editAddressSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                          onClick={() => handleEditAddressSelect(suggestion)}
+                        >
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {suggestion.streetLine}
+                            {suggestion.secondary && ` ${suggestion.secondary}`}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <Input_Component
+                value={actionData?.dob || ""}
+                type="date"
+                border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
-                start_empty
-                //@ts-ignore
-                options_arr={services?.map((service) => ({
-                  value: service,
-                  label: service,
-                }))}
-                required
-                on_change_handle={(e: string) =>
-                  //@ts-ignore
-                  modalInputChangeHandle(e.target.value, "treatmenttype")
-                }
-                label={t("POS-Sales_k24")}
+                onChange={(e: string) => modalInputChangeHandle(e, "dob")}
+                label="Date of Birth"
               />
             </div>
 

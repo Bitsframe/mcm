@@ -107,12 +107,11 @@ export const POST = async (req: Request) => {
                 .from("allpatients")
                 .update({
                     lastvisit: new Date().toISOString(),
-                    treatmenttype: patientData.treatmenttype,
                     email: patientData.email,
                     phone: patientData.phone,
                     note: patientData?.note,
-                    streetaddress: patientData?.streetAddress,
-                    dateofbirth: patientData?.dateOfBirth,
+                    address: patientData?.streetAddress,
+                    dob: patientData?.dateOfBirth,
                 })
                 .eq("id", patient.id)
                 .select();
@@ -142,10 +141,9 @@ export const POST = async (req: Request) => {
                         gender: patientData.gender,
                         email: patientData.email,
                         phone: patientData.phone,
-                        treatmenttype: patientData.treatmenttype,
                         note: patientData?.note,
-                        streetaddress: patientData?.streetAddress,
-                        dateofbirth: patientData?.dateOfBirth,
+                        address: patientData?.streetAddress,
+                        dob: patientData?.dateOfBirth,
                     }
                 ])
                 .select();
@@ -185,10 +183,9 @@ export const PUT = async (req: Request) => {
                 lastname: patientData.lastname,
                 email: patientData.email,
                 phone: patientData.phone,
-                treatmenttype: patientData.treatmenttype,
                 note: patientData?.note,
-                streetaddress: patientData?.streetAddress,
-                dateofbirth: patientData?.dateOfBirth,
+                address: patientData?.streetAddress,
+                dob: patientData?.dateOfBirth,
             })
             .eq("id", Number(patientData.id))
             .select();

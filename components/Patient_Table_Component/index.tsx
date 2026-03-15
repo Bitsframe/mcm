@@ -92,14 +92,13 @@ interface Patient {
   lastname: string;
   phone: string;
   email: string;
-  treatmenttype: string;
   gender: string;
   created_at: string;
   lastvisit: string;
   note: string;
   deleted_at?: string | null;
-  streetaddress?: string;
-  dateofbirth?: string;
+  address?: string;
+  dob?: string;
 }
 
 interface Props {
@@ -141,7 +140,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     lastname: "",
     phone: "",
     email: "",
-    treatmenttype: "",
     gender: "",
     onsite: true,
     locationId: 0,
@@ -151,6 +149,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   });
 
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
@@ -171,6 +170,50 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       setEmailError("Please enter a valid email format");
     } else {
       setEmailError("");
+    }
+  };
+
+  const isValidPhone = (phone: string) => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    // US phone numbers should be 10 digits (without country code) or 11 digits (with country code 1)
+    return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly.startsWith('1'));
+  };
+
+  const formatPhoneInput = (value: string) => {
+    // Remove all non-digit characters except + at the beginning
+    let cleaned = value.replace(/[^\d+]/g, '');
+    
+    // If it starts with +1, keep it, otherwise remove any + not at the beginning
+    if (cleaned.startsWith('+1')) {
+      cleaned = '+1' + cleaned.slice(2).replace(/\+/g, '');
+    } else if (cleaned.startsWith('+')) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 12 characters (+1 + 10 digits)
+    if (cleaned.startsWith('+1')) {
+      cleaned = cleaned.slice(0, 12);
+    } else {
+      cleaned = cleaned.slice(0, 10);
+    }
+    
+    return cleaned;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formattedPhone = formatPhoneInput(rawValue);
+    
+    setPatientData({
+      ...patientData,
+      phone: formattedPhone,
+    });
+    
+    if (formattedPhone && !isValidPhone(formattedPhone)) {
+      setPhoneError("Please enter a valid US phone number (10-11 digits)");
+    } else {
+      setPhoneError("");
     }
   };
 
@@ -447,7 +490,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         email: patientData.email,
         phone: patientData.phone,
         gender: patientData.gender,
-        treatmenttype: patientData.treatmenttype,
         locationid: selectedLocation?.id || 17,
         lastvisit: new Date(),
         onsite: patientData.onsite,
@@ -494,13 +536,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       patientData.lastname &&
       patientData.email &&
       patientData.phone &&
-      patientData.treatmenttype &&
       patientData.gender &&
       patientData.onsite !== undefined &&
       patientData.streetAddress &&
-      patientData.dateOfBirth
+      patientData.dateOfBirth &&
+      !emailError &&
+      !phoneError
     );
-  }, [patientData]);
+  }, [patientData, emailError, phoneError]);
 
   const togglePatientSelection = (patientId: number) => {
     setSelectedPatients((prev) => {
@@ -877,14 +920,24 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     /> */}
                     <PhoneNumberInput
                       value={patientData.phone}
-                      onChange={(value: string) =>
+                      onChange={(value: string) => {
+                        const formattedPhone = formatPhoneInput(value);
                         setPatientData({
                           ...patientData,
-                          phone: value,
-                        })
-                      }
+                          phone: formattedPhone,
+                        });
+                        
+                        if (formattedPhone && !isValidPhone(formattedPhone)) {
+                          setPhoneError("Please enter a valid US phone number (10-11 digits)");
+                        } else {
+                          setPhoneError("");
+                        }
+                      }}
                       breakpoint={false}
                     />
+                    {phoneError && (
+                      <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -981,36 +1034,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     />
                   </div>
                   <div></div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="treatmenttype"
-                    className="text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {t("Patients_k11")}
-                  </Label>
-                  <Select
-                    onValueChange={(value) =>
-                      setPatientData({ ...patientData, treatmenttype: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
-                      <SelectValue placeholder={t("Patients_k54")} />
-                    </SelectTrigger>
-
-                    <SelectContent className="dark:bg-[#122136] dark:border-gray-700">
-                      {serviceList.map((service: { title: string }) => (
-                        <SelectItem
-                          key={service.title}
-                          value={service.title}
-                          className="dark:hover:bg-gray-700 dark:text-white"
-                        >
-                          {service.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1554,12 +1577,11 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         lastname: formData.lastname,
         email: formData.email,
         phone: formData.phone,
-        treatmenttype: formData.treatmenttype,
         gender: formData.gender,
         onsite: formData.onsite,
         note: formData.note,
-        streetAddress: formData.streetaddress,
-        dateOfBirth: formData.dateofbirth,
+        streetAddress: formData.address,
+        dateOfBirth: formData.dob,
       });
 
       if (response.data.success) {
@@ -1628,36 +1650,6 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <p className="text-red-500 text-sm mt-1">{emailError}</p>
           )}
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">
-          {t("Patients_k11")}
-        </Label>
-        <Select
-          value={formData.treatmenttype}
-          onValueChange={(value) =>
-            setFormData({ ...formData, treatmenttype: value })
-          }
-        >
-          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white">
-            <SelectValue
-              placeholder="Select treatment type"
-              className="text-gray-900 dark:text-white"
-            />
-          </SelectTrigger>
-          <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
-            {serviceList.map((service) => (
-              <SelectItem
-                key={service.title}
-                value={service.title}
-                className="text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 hover:bg-gray-200"
-              >
-                {service.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="space-y-2">
@@ -1757,8 +1749,8 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             Street Address
           </Label>
           <Input
-            name="streetaddress"
-            value={formData.streetaddress || ""}
+            name="address"
+            value={formData.address || ""}
             onChange={handleChange}
             placeholder="Enter street address"
             className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
@@ -1770,9 +1762,9 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             Date of Birth
           </Label>
           <Input
-            name="dateofbirth"
+            name="dob"
             type="date"
-            value={formData.dateofbirth || ""}
+            value={formData.dob || ""}
             onChange={handleChange}
             className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
@@ -1879,15 +1871,6 @@ const PatientDetails: FC<{
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t("Patients_k11")}
-          </p>
-          <p className="text-base font-medium dark:text-gray-300">
-            {patient.treatmenttype}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
             {t("Patients_k24")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
@@ -1900,7 +1883,7 @@ const PatientDetails: FC<{
             Street Address
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.streetaddress || "No address provided"}
+            {patient.address || "No address provided"}
           </p>
         </div>
 
@@ -1909,7 +1892,7 @@ const PatientDetails: FC<{
             Date of Birth
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.dateofbirth ? new Date(patient.dateofbirth).toLocaleDateString() : "No date provided"}
+            {patient.dob ? new Date(patient.dob).toLocaleDateString() : "No date provided"}
           </p>
         </div>
 
@@ -1960,7 +1943,6 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     lastname: "",
     phone: "",
     email: "",
-    treatmenttype: "",
     note: "",
     streetaddress: "",
     dateofbirth: "",
@@ -1970,6 +1952,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
   const { selectedLocation } = useContext(LocationContext);
   const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
@@ -1977,6 +1960,34 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const isValidPhone = (phone: string) => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    // US phone numbers should be 10 digits (without country code) or 11 digits (with country code 1)
+    return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly.startsWith('1'));
+  };
+
+  const formatPhoneInput = (value: string) => {
+    // Remove all non-digit characters except + at the beginning
+    let cleaned = value.replace(/[^\d+]/g, '');
+    
+    // If it starts with +1, keep it, otherwise remove any + not at the beginning
+    if (cleaned.startsWith('+1')) {
+      cleaned = '+1' + cleaned.slice(2).replace(/\+/g, '');
+    } else if (cleaned.startsWith('+')) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 12 characters (+1 + 10 digits)
+    if (cleaned.startsWith('+1')) {
+      cleaned = cleaned.slice(0, 12);
+    } else {
+      cleaned = cleaned.slice(0, 10);
+    }
+    
+    return cleaned;
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1990,6 +2001,22 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
       setEmailError("Please enter a valid email format");
     } else {
       setEmailError("");
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formattedPhone = formatPhoneInput(rawValue);
+    
+    setPatientData({
+      ...patientData,
+      phone: formattedPhone,
+    });
+    
+    if (formattedPhone && !isValidPhone(formattedPhone)) {
+      setPhoneError("Please enter a valid US phone number (10-11 digits)");
+    } else {
+      setPhoneError("");
     }
   };
 
@@ -2061,10 +2088,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         lastname: patientDetails.lastname || "",
         phone: patientDetails.phone || "",
         email: patientDetails.email || "",
-        treatmenttype: patientDetails.treatmenttype || "",
         note: patientDetails.note || "",
-        streetaddress: patientDetails.streetaddress || "",
-        dateofbirth: patientDetails.dateofbirth || "",
+        streetaddress: patientDetails.address || "",
+        dateofbirth: patientDetails.dob || "",
       });
     }
   }, [patientDetails]);
@@ -2087,7 +2113,6 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         lastname: patientData?.lastname,
         email: patientData?.email,
         phone: patientData?.phone,
-        treatmenttype: patientData?.treatmenttype,
         note: patientData?.note,
         streetAddress: patientData?.streetaddress,
         dateOfBirth: patientData?.dateofbirth,
@@ -2169,9 +2194,15 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 name="phone"
                 value={patientData.phone}
-                onChange={handleChange}
-                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+                onChange={handlePhoneChange}
+                className={`w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
+                  phoneError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                }`}
+                placeholder="Enter phone number"
               />
+              {phoneError && (
+                <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium dark:text-gray-300">
@@ -2266,45 +2297,6 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               onChange={handleChange}
               className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium dark:text-gray-300">
-              {t("Patients_k11")}
-            </Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white"
-                >
-                  {patientData.treatmenttype || "Select Treatment"}
-                  <MoreHorizontal className="h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full min-w-[200px] dark:bg-gray-800 dark:border-gray-700">
-                <DropdownMenuLabel className="dark:text-gray-300">
-                  {t("Patients_k11")}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="dark:bg-gray-700" />
-                <ScrollArea className="h-72 w-full">
-                  {serviceList.map((service) => (
-                    <DropdownMenuItem
-                      key={service.title}
-                      onSelect={() =>
-                        setPatientData((prev) => ({
-                          ...prev,
-                          treatmenttype: service.title,
-                        }))
-                      }
-                      className="dark:hover:bg-gray-700 dark:text-white"
-                    >
-                      {service.title}
-                    </DropdownMenuItem>
-                  ))}
-                </ScrollArea>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 
