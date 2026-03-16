@@ -38,70 +38,6 @@ const modalStateEnum = {
   EMPTY: "",
 };
 
-const tableHeader = [
-  {
-    id: "product_id",
-    label: "ID",
-  },
-  {
-    id: "category",
-    label: "Inventory_k1",
-    can_sort: true,
-  },
-  {
-    id: "product_name",
-    label: "Inventory_k8",
-    can_sort: true,
-  },
-  {
-    id: "price",
-    label: "Inventory_k18",
-    can_sort: true,
-  },
-  {
-    id: "quantity_available",
-    label: "Inventory_k19",
-    can_sort: true,
-  },
-  {
-    id: "actions",
-    label: "Inventory_k9",
-    align: "text-centet",
-    Render_Value: ({
-      clickHandle,
-      getDataArchiveType,
-    }: {
-      clickHandle: (state: string) => void;
-      getDataArchiveType: boolean;
-    }) => {
-      return (
-        <div className="flex items-end justify-start">
-          <Action_Button
-            label={getDataArchiveType ? "Unarchive" : "Archive"}
-            text_color={
-              getDataArchiveType
-                ? "text-[#0EA542] dark:text-green-400"
-                : "text-[#F71B1B] dark:text-red-400"
-            }
-            icon={<Archive size={18} />}
-            bg_color={
-              getDataArchiveType
-                ? "bg-[#E7FDEF] dark:bg-green-900/30"
-                : "bg-[#FFE8E5] dark:bg-red-900/30"
-            }
-            border={
-              getDataArchiveType
-                ? "border-[#72F39E] dark:border-green-800"
-                : "border-[#FFD2CC] dark:border-red-800"
-            }
-            onClick={() => clickHandle(modalStateEnum.DELETE)}
-          />
-        </div>
-      );
-    },
-  },
-];
-
 const requiredInputFields = [
   {
     id: "category_id",
@@ -129,6 +65,70 @@ const requiredInputFields = [
 
 const Inventory = () => {
   const { t } = useTranslation(translationConstant.INVENTORY);
+
+  const tableHeader = [
+    {
+      id: "product_id",
+      label: "ID",
+    },
+    {
+      id: "category",
+      label: "Inventory_k1",
+      can_sort: true,
+    },
+    {
+      id: "product_name",
+      label: "Inventory_k8",
+      can_sort: true,
+    },
+    {
+      id: "price",
+      label: "Inventory_k18",
+      can_sort: true,
+    },
+    {
+      id: "quantity_available",
+      label: "Inventory_k19",
+      can_sort: true,
+    },
+    {
+      id: "actions",
+      label: "Inventory_k9",
+      align: "text-centet",
+      Render_Value: ({
+        clickHandle,
+        getDataArchiveType,
+      }: {
+        clickHandle: (state: string) => void;
+        getDataArchiveType: boolean;
+      }) => {
+        return (
+          <div className="flex items-end justify-start">
+            <Action_Button
+              label={getDataArchiveType ? t("Inventory_k30") : t("Inventory_k33")}
+              text_color={
+                getDataArchiveType
+                  ? "text-[#0EA542] dark:text-green-400"
+                  : "text-[#F71B1B] dark:text-red-400"
+              }
+              icon={<Archive size={18} />}
+              bg_color={
+                getDataArchiveType
+                  ? "bg-[#E7FDEF] dark:bg-green-900/30"
+                  : "bg-[#FFE8E5] dark:bg-red-900/30"
+              }
+              border={
+                getDataArchiveType
+                  ? "border-[#72F39E] dark:border-green-800"
+                  : "border-[#FFD2CC] dark:border-red-800"
+              }
+              onClick={() => clickHandle(modalStateEnum.DELETE)}
+            />
+          </div>
+        );
+      },
+    },
+  ];
   const [dataList, setDataList] = useState<DataListInterface[]>([]);
   const [allData, setAllData] = useState<DataListInterface[]>([]);
   const [loading, setLoading] = useState(true);
@@ -572,12 +572,10 @@ const Inventory = () => {
                       </TableCell>
                     </TableRow>
                   ) : dataList.length === 0 ? (
-                    <TableRow className="flex h-full">
-                      <TableCell
-                        colSpan={tableHeader.length}
-                        className="h-full flex items-center justify-center dark:text-gray-300"
-                      >
-                        <h1>No Product is available</h1>
+                    <TableRow className="flex" style={{ height: '400px' }}>
+                      <TableCell className="w-10 p-4"></TableCell>
+                      <TableCell className="flex-1 flex items-center justify-center dark:text-gray-300">
+                        <h1 className="text-gray-500 dark:text-gray-400">{t("Inventory_k45")}</h1>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -617,7 +615,7 @@ const Inventory = () => {
                                 elem.categories.category_name
                               ) : id === "quantity_available" ? (
                                 elem.unlimited ? (
-                                  "Unlimited"
+                                  t("Inventory_k43")
                                 ) : (
                                   <span className="ms-6">{elem[id]}</span>
                                 )
@@ -641,9 +639,9 @@ const Inventory = () => {
                   <Spinner size="xl" className="dark:text-white" />
                 </div>
               ) : dataList.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
+                <div className="h-full flex items-center justify-center text-center">
                   <h1 className="dark:text-gray-300">
-                    No Product is available
+                    {t("Inventory_k45")}
                   </h1>
                 </div>
               ) : (
@@ -666,7 +664,7 @@ const Inventory = () => {
                           <div className="flex-shrink-0">
                             <Action_Button
                               label={
-                                getDataArchiveType ? "Unarchive" : "Archive"
+                                getDataArchiveType ? t("Inventory_k30") : t("Inventory_k33")
                               }
                               text_color={
                                 getDataArchiveType
@@ -731,7 +729,7 @@ const Inventory = () => {
                           </div>
                           <div className="font-medium text-gray-900 dark:text-gray-100">
                             {elem.unlimited
-                              ? "Unlimited"
+                              ? t("Inventory_k43")
                               : elem.quantity_available}
                           </div>
                         </div>

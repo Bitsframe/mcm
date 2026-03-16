@@ -255,13 +255,13 @@ const PharmacyList = () => {
                                                         className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                         onClick={() => openEditModal(elem)}
                                                     >
-                                                        Update
+                                                        {t("Pharmacy_k38")}
                                                     </button>
                                                     <button
                                                         className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                         onClick={() => deleteHandle(elem.id)}
                                                     >
-                                                        Delete
+                                                        {t("Pharmacy_k39")}
                                                     </button>
                                                 </div>
                                             </TableCell>
@@ -298,13 +298,13 @@ const PharmacyList = () => {
                                                 className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                 onClick={() => openEditModal(elem)}
                                             >
-                                                Update
+                                                {t("Pharmacy_k38")}
                                             </button>
                                             <button
                                                 className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                 onClick={() => deleteHandle(elem.id)}
                                             >
-                                                Delete
+                                                {t("Pharmacy_k39")}
                                             </button>
                                         </div>
                                     </div>

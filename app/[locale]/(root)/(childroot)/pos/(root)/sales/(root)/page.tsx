@@ -92,8 +92,9 @@ const render_details = [
     label: "Email:",
   },
   {
-    key: "treatmenttype",
-    label: "Treatment Category:",
+    key: "dob",
+    label: "Date of Birth:",
+    render_value: (val: any) => val?.dob ? new Date(val.dob).toLocaleDateString() : "N/A",
   },
 ];
 

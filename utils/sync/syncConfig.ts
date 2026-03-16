@@ -18,11 +18,11 @@ export const SYNC_TABLES: Record<string, TableSyncConfig> = {
     description: 'Medical forms'
   },
   pharmacy: {
-    enabled: false, // Disabled - not syncing to child DB yet
+    enabled: true, // ✅ Enabled - syncing to child DB
     columns: [
       'id', 'name', 'address', 'city', 'state', 'zip_code',
       'phone_number', 'spanish_language_service', 'disabled_access',
-      'license_status', 'created_at', 'opening_hours', 'delivers',
+      'license_status', 'opening_hours', 'delivers',
       'delivered_to_status_updated', 'is_active'
     ],
     primaryKey: 'id',

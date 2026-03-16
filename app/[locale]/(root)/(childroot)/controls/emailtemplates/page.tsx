@@ -454,7 +454,7 @@ const handleSaveTemplate = async () => {
   };
 
   return (
-    <div className="relative z-[51] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900">
+    <div className="relative z-[49] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
@@ -531,7 +531,7 @@ const handleSaveTemplate = async () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search templates"
+                  placeholder={t("CT_k31")}
                   className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -587,7 +587,7 @@ const handleSaveTemplate = async () => {
               <>
                 <div className="mb-4">
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                    {activeTemplate?.id ? "Edit Template" : "Add Template"}
+                    {activeTemplate?.id ? t("CT_k12") : t("CT_k57")}
                   </h2>
                 </div>
 

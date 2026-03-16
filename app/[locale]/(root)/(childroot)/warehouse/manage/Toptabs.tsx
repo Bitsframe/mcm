@@ -7,6 +7,9 @@ import { FolderClosed, ShoppingCart, Warehouse } from "lucide-react";
 
 const TopTabs = () => {
   const pathname = usePathname();
+  
+  // Remove locale prefix to get the base path
+  const basePath = pathname.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
 
   const PosTopMenu = [
     {
@@ -28,8 +31,8 @@ const TopTabs = () => {
       <ul className="flex gap-2">
         {PosTopMenu.map((menuItem, index) => {
           const isActive =
-            pathname === `/warehouse/manage/${menuItem.url}` ||
-            (pathname === "/warehouse/manage" && menuItem.url === "/");
+            basePath === `/warehouse/manage/${menuItem.url}` ||
+            (basePath === "/warehouse/manage" && menuItem.url === "/");
 
           const Icon = menuItem.icon;
 

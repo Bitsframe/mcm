@@ -31,5 +31,11 @@
   "Pharmacy_k30": "Error al actualizar la farmacia:",
   "Pharmacy_k31": "¿Estás seguro de que quieres eliminar esta farmacia?",
   "Pharmacy_k32": "¡Farmacia eliminada con éxito!",
-  "Pharmacy_k33": "Error al eliminar la farmacia:"
+  "Pharmacy_k33": "Error al eliminar la farmacia:",
+  "Pharmacy_k34": "Nombre de la Farmacia",
+  "Pharmacy_k35": "Dirección",
+  "Pharmacy_k36": "Número de Teléfono",
+  "Pharmacy_k37": "Abierto",
+  "Pharmacy_k38": "Actualizar",
+  "Pharmacy_k39": "Eliminar"
 }

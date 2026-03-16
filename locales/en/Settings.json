@@ -1,1 +1,21 @@
-{"Settings_k2":"Tools / Settings","Settings_k3":"Settings","Settings_k4":"Profile", "Settings_k5":"Profile Image", "Settings_k6":"Full Name", "Settings_k7":"Email", "Settings_k8":"Role", "Settings_k9":"Reset", "Settings_k10":"Save Profile", "Settings_k11":"Security", "Settings_k12":"Change Password", "Settings_k13":"Current Password", "Settings_k14":"New Password", "Settings_k15":"Retype New Password", "Settings_k17":"Update", "Settings_k18":"Cancel"}
+{
+  "Settings_k2": "Tools / Settings",
+  "Settings_k3": "Settings",
+  "Settings_k4": "Profile",
+  "Settings_k5": "Profile Image",
+  "Settings_k6": "Full Name",
+  "Settings_k7": "Email",
+  "Settings_k8": "Role",
+  "Settings_k9": "Reset",
+  "Settings_k10": "Save Profile",
+  "Settings_k11": "Security",
+  "Settings_k12": "Change Password",
+  "Settings_k13": "Current Password",
+  "Settings_k14": "New Password",
+  "Settings_k15": "Retype New Password",
+  "Settings_k17": "Update",
+  "Settings_k18": "Cancel",
+  "Settings_k19": "Password must contain capital letter",
+  "Settings_k20": "Password must contain number",
+  "Settings_k21": "Password must contain special character"
+}

@@ -346,7 +346,7 @@ export default function AddEditPharmacyModal({
                         <div className="flex flex-col gap-4">
                             {/* Pharmacy Name */}
                             <div>
-                                <label className={labelStyle}>Pharmacy Name</label>
+                                <label className={labelStyle}>{t("Pharmacy_k34")}</label>
                                 <Input_Component
                                     value={formData.name}
                                     placeholder={t("Pharmacy_k19")}
@@ -359,7 +359,7 @@ export default function AddEditPharmacyModal({
                             {/* Street Address */}
                             {/* Street Address with Autocomplete */}
                             <div className="relative">
-                                <label className={labelStyle}>Street Address</label>
+                                <label className={labelStyle}>{t("Pharmacy_k35")}</label>
                                 <div className="relative" onFocus={handleAddressFocus}>
                                     <Input_Component
                                         value={formData.address}
@@ -399,7 +399,7 @@ export default function AddEditPharmacyModal({
 
                             {/* Phone Number */}
                             <div>
-                                <label className={labelStyle}>Phone Number</label>
+                                <label className={labelStyle}>{t("Pharmacy_k36")}</label>
                                 <div className="relative w-full">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none">+1</span>
                                     <input
@@ -419,7 +419,7 @@ export default function AddEditPharmacyModal({
                             {/* Delivery Switch */}
                             <div className="flex items-center justify-between p-3 rounded-lg bg-[#f1f4f9] dark:bg-[#122136] mt-2 border border-gray-100 dark:border-none">
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Open
+                                    {t("Pharmacy_k37")}
                                 </span>
                                 <Switch
                                     checked={!!formData.is_active}

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { dbSync } from '@/utils/sync/directDbSync';
 
 /**
  * UPDATE PHARMACY
@@ -30,19 +31,21 @@ export const PUT = async (
       is_active,
     } = body;
 
+    const updateData = {
+      name,
+      address,
+      city: city || null,
+      state,
+      zip_code: zip_code || zipcode,
+      phone_number: phone_number || phone,
+      delivers,
+      opening_hours,
+      is_active,
+    };
+
     const { data, error } = await supabase
       .from('pharmacy')
-      .update({
-        name,
-        address,
-        city: city || null,
-        state,
-        zip_code: zip_code || zipcode,
-        phone_number: phone_number || phone,
-        delivers,
-        opening_hours,
-        is_active,
-      })
+      .update(updateData)
       .eq('id', id)
       .select(); // ✅ no .single()
 
@@ -54,6 +57,9 @@ export const PUT = async (
         { status: 404 }
       );
     }
+
+    // 🔄 Sync to child database
+    dbSync.syncUpdate('pharmacy', id, data[0]);
 
     return NextResponse.json(
       {
@@ -100,6 +106,9 @@ export const DELETE = async (
         { status: 404 }
       );
     }
+
+    // 🔄 Sync to child database
+    dbSync.syncDelete('pharmacy', id);
 
     return NextResponse.json(
       {

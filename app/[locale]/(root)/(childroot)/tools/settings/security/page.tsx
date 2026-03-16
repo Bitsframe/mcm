@@ -19,21 +19,6 @@ const passwordSchema = z.object({
   retypePassword: z.string()
 });
 
-const passwordRules = [
-  {
-    label: "Password must contain capital letter",
-    test: (val: string) => /[A-Z]/.test(val)
-  },
-  {
-    label: "Password must contain number",
-    test: (val: string) => /[0-9]/.test(val)
-  },
-  {
-    label: "Password must contain special character",
-    test: (val: string) => /[^A-Za-z0-9]/.test(val)
-  }
-];
-
 const Security = () => {
   const [passwords, setPasswords] = useState({
     newPassword: '',
@@ -53,6 +38,21 @@ const Security = () => {
   const router = useRouter();
   const { userProfile } = useContext(AuthContext);
   const { t } = useTranslation(translationConstant.SETTINGS);
+
+  const passwordRules = [
+    {
+      label: t("Settings_k19"),
+      test: (val: string) => /[A-Z]/.test(val)
+    },
+    {
+      label: t("Settings_k20"),
+      test: (val: string) => /[0-9]/.test(val)
+    },
+    {
+      label: t("Settings_k21"),
+      test: (val: string) => /[^A-Za-z0-9]/.test(val)
+    }
+  ];
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswords(prev => ({
@@ -208,7 +208,7 @@ const Security = () => {
               type="submit"
               className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg"
             >
-              Update
+              {t("Settings_k17")}
             </Button>
           </div>
         </div>

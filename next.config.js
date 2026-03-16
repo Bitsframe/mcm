@@ -2,7 +2,11 @@
 // next.config.js
 nextConfig = {
     images: {
-        domains: ['vsvueqtgulraaczqnnvh.supabase.co'],
+        domains: [
+            'vsvueqtgulraaczqnnvh.supabase.co', // Production domain
+            'yktnfcrxtujyoabjtdff.supabase.co',  // Staging domain
+            'kxtbfmlatysaxjzppmti.supabase.co'   // Child database domain
+        ],
     },
     async rewrites() {
         return [
@@ -13,6 +17,5 @@ nextConfig = {
         ];
     },
 };
-
 
 module.exports = nextConfig
