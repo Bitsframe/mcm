@@ -125,6 +125,18 @@ const CollapsibleRoute = memo(
       }
 
       return route.children?.filter(child => {
+        // Special case: Settings should always be enabled for everyone
+        if (child.name === 'settings') {
+          return true;
+        }
+        
+        // Special case: If user has "control" permission, automatically allow bonus routes
+        if (permissions.some(perm => perm.toLowerCase() === 'control')) {
+          if (child.name === 'bonus-location' || child.name === 'bonus-individual') {
+            return true;
+          }
+        }
+        
         // Check if user has permission for this child route
         return permissions.some(perm => 
           child.name.toLowerCase() === perm.toLowerCase()
@@ -213,7 +225,7 @@ export const SidebarPanel = memo(() => {
     return routeList
       .map(route => {
         if (!route.children) {
-          // Parent without children
+          // Single route - check if user has permission
           if (permissions.some(perm => route.name.toLowerCase() === perm.toLowerCase())) {
             return route;
           }
@@ -221,12 +233,29 @@ export const SidebarPanel = memo(() => {
         }
 
         // Parent with children
-        const allowedChildren = route.children.filter(child =>
-          permissions.some(perm => child.name.toLowerCase() === perm.toLowerCase())
-        );
+        const allowedChildren = route.children.filter(child => {
+          // Special case: Settings should always be enabled for everyone
+          if (child.name === 'settings') {
+            return true;
+          }
+          
+          // Special case: If user has "control" permission, automatically allow bonus routes
+          if (permissions.some(perm => perm.toLowerCase() === 'control')) {
+            if (child.name === 'bonus-location' || child.name === 'bonus-individual') {
+              return true;
+            }
+          }
+          
+          // Regular permission check
+          return permissions.some(perm => child.name.toLowerCase() === perm.toLowerCase());
+        });
 
         // If parent allowed, show all children
         if (permissions.some(perm => route.name.toLowerCase() === perm.toLowerCase())) {
+          // Special case: If user has "control" permission and this is bonus route, show all children
+          if (route.name === 'bonus' && permissions.some(perm => perm.toLowerCase() === 'control')) {
+            return route;
+          }
           return route;
         }
 

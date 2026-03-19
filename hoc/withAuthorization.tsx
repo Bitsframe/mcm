@@ -21,8 +21,16 @@ const withAuthorization = (Component: any) => {
           return;
         }
 
+        // Special case: Allow all settings routes immediately
+        if (pathname.startsWith('/tools/settings') || pathname.startsWith('/es/tools/settings')) {
+          setIsAuthorized(true);
+          setLoading(false);
+          return;
+        }
+
         const findRouteByPath = (path: string, routes: any[]): any => {
           const cleanedPath = path.replace(/^\/es(?=\/|$)/, "");
+          
           for (const route of routes) {
             if (
               route.route === cleanedPath ||
@@ -57,6 +65,18 @@ const withAuthorization = (Component: any) => {
         const hasPermission = permissions.some((perm) => {
           const permLower = perm.toLowerCase();
           const routeNameLower = currentRoute.name.toLowerCase();
+
+          // Special case: Settings and all its sub-routes should always be accessible to everyone
+          if (routeNameLower === 'settings' || pathname.startsWith('/tools/settings')) {
+            return true;
+          }
+
+          // Special case: If user has "control" permission, allow bonus routes
+          if (permLower === 'control') {
+            if (routeNameLower === 'bonus-location' || routeNameLower === 'bonus-individual') {
+              return true;
+            }
+          }
 
           if (routeNameLower === permLower) {
             return true;

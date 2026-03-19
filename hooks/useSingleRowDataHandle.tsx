@@ -173,14 +173,7 @@ function useSingleRowDataHandle(paramData: DataInterface) {
     };
 
     const handle_update = async () => {
-        console.log("🟡 [useSingleRowDataHandle] handle_update called");
-        console.log("🟡 [useSingleRowDataHandle] table:", table);
-        console.log("🟡 [useSingleRowDataHandle] selected_section:", selected_section);
-        console.log("🟡 [useSingleRowDataHandle] selected_language:", selected_language);
-        console.log("🟡 [useSingleRowDataHandle] data:", data);
-        
         if (table === 'Locations' && data) {
-            console.log("🟠 [useSingleRowDataHandle] Taking Locations path");
             set_update_loading(true);
             try {
                 const res_data = await updateLocationData(data.id, data);
@@ -201,11 +194,12 @@ function useSingleRowDataHandle(paramData: DataInterface) {
             set_update_loading(false);
             set_is_edited(false);
         } else if (update_content_service && data) {
-            console.log("🟠 [useSingleRowDataHandle] Taking update_content_service path");
-            console.log("🟠 [useSingleRowDataHandle] Calling update_content_service with:");
-            console.log("   - table:", selected_section);
-            console.log("   - language:", selected_language);
-            console.log("   - post_data:", data);
+            // Critical check: Ensure ID exists before attempting update
+            if (!data.id) {
+                toast.error('Cannot update: No ID found in data');
+                set_update_loading(false);
+                return;
+            }
             
             set_update_loading(true);
             try {
@@ -215,10 +209,7 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     post_data: data
                 });
                 
-                console.log("🟢 [useSingleRowDataHandle] update_content_service response:", res_data);
-                
                 if (res_data?.length) {
-                    console.log("✅ [useSingleRowDataHandle] Update successful, updating local state");
                     setData_list(prevList => 
                         prevList.map(item => 
                             item.id === data.id ? res_data[0] : item
@@ -228,7 +219,6 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     set_default_data(res_data[0]);
                     set_data(res_data[0]);
                 } else {
-                    console.log("⚠️ [useSingleRowDataHandle] Update succeeded but response is empty (likely RLS issue)");
                     // Update succeeded but response is empty (likely RLS issue)
                     // Update the local state with the data we sent
                     setData_list(prevList => 
@@ -241,18 +231,11 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     set_data(data);
                 }
             } catch (error: any) {
-                console.error('❌ [useSingleRowDataHandle] Error in handle_update:', error);
-                console.error('❌ [useSingleRowDataHandle] Error message:', error.message);
-                console.error('❌ [useSingleRowDataHandle] Error details:', error);
+                console.error('Error in handle_update:', error);
                 toast.error(`Update failed: ${error.message || 'Unknown error'}`);
             }
             set_update_loading(false);
             set_is_edited(false);
-        } else {
-            console.log("❌ [useSingleRowDataHandle] No valid update path found");
-            console.log("   - table === 'Locations':", table === 'Locations');
-            console.log("   - update_content_service exists:", !!update_content_service);
-            console.log("   - data exists:", !!data);
         }
     };
 

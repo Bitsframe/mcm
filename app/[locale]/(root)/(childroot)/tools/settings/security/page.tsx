@@ -90,17 +90,28 @@ const Security = () => {
     }
 
     try {
-      await axios.post('/api/admin/users/change-password', {
+      const response = await axios.post('/api/admin/users/change-password', {
         id: userProfile.id,
         password: passwords.newPassword
       }, { withCredentials: true });
 
-      await signOut();
-      router.push('/login');
-      toast.success("Password has been changed! Please login again.");
+      // Only logout if password change was successful
+      if (response.status === 200) {
+        toast.success("Password has been changed! Please login again.");
+        
+        // Sign out and redirect to login
+        await signOut();
+        router.push('/login');
+      }
     } catch (error: any) {
-      console.log("Error:", error);
-      // toast.error("Something went wrong while changing the password");
+      console.error("Password change error:", error);
+      
+      // Show specific error message
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          "Something went wrong while changing the password";
+      
+      toast.error(errorMessage);
     }
   };
 

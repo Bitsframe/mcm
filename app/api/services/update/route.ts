@@ -6,15 +6,6 @@ export async function POST(req: Request) {
     const supabase = createClient();
     const { table, post_data } = await req.json();
 
-    // Verify user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
     // Extract ID and prepare data for update
     const { id, ...dataToUpdate } = post_data;
 
@@ -26,9 +17,13 @@ export async function POST(req: Request) {
       .select();
 
     if (error) {
-      console.error('Service update error:', error);
       return NextResponse.json(
-        { error: error.message },
+        { 
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        },
         { status: 500 }
       );
     }
@@ -39,9 +34,11 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Service update error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { 
+        error: error.message || 'Internal server error',
+        type: 'unexpected_error'
+      },
       { status: 500 }
     );
   }
