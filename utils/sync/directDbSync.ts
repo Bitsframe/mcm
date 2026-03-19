@@ -27,7 +27,7 @@ export class DirectDbSync {
     if (this.config.enabled) {
       this.childSupabase = createClient(
         process.env.CHILD_SUPABASE_URL!,
-        process.env.CHILD_SUPABASE_SERVICE_ROLE_KEY!
+        process.env.CHILD_SUPABASE_SECRET_KEY!
       );
       console.log('[DB Sync] ✅ Child database connection initialized');
       console.log('[DB Sync] 📋 Enabled tables:', this.config.tables.join(', '));
@@ -180,7 +180,7 @@ export class DirectDbSync {
   private isConfigured(): boolean {
     return !!(
       process.env.CHILD_SUPABASE_URL && 
-      process.env.CHILD_SUPABASE_SERVICE_ROLE_KEY
+      process.env.CHILD_SUPABASE_SECRET_KEY
     );
   }
 

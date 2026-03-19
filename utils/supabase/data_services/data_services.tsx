@@ -365,12 +365,41 @@ export async function update_content_service({ table, language = '', post_data, 
   console.log("[update_content_service] Raw post_data:", post_data);
   console.log("[update_content_service] matchKey:", matchKey);
   
+  // Check authentication status
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log("[update_content_service] Auth check - User:", user);
+    console.log("[update_content_service] Auth check - Error:", authError);
+    
+    if (authError) {
+      console.error("[update_content_service] Authentication error:", authError);
+      throw new Error(`Authentication failed: ${authError.message}`);
+    }
+    
+    if (!user) {
+      console.error("[update_content_service] No authenticated user found!");
+      throw new Error("Please log in again to update content");
+    } else {
+      console.log("[update_content_service] Authenticated user ID:", user.id);
+      console.log("[update_content_service] User email:", user.email);
+    }
+  } catch (authCheckError) {
+    console.error("[update_content_service] Failed to check authentication:", authCheckError);
+    throw authCheckError;
+  }
+  
   const id = post_data[matchKey]
   console.log("[update_content_service] Extracted ID:", id);
   
   const dataToUpdate = { ...post_data };
   delete dataToUpdate[matchKey];
   console.log("[update_content_service] Data to update (after removing ID):", dataToUpdate);
+  
+  console.log("[update_content_service] About to execute Supabase update query...");
+  console.log("[update_content_service] Query details:");
+  console.log("   - Table:", `${table}${language}`);
+  console.log("   - Update data:", dataToUpdate);
+  console.log("   - Where condition:", `${matchKey} = ${id}`);
   
   const { data, error } = await supabase
     //  @ts-ignore
@@ -379,14 +408,20 @@ export async function update_content_service({ table, language = '', post_data, 
     .eq(matchKey, id)
     .select()
   
+  console.log("[update_content_service] Supabase response received");
   console.log("[update_content_service] Response data:", data);
   console.log("[update_content_service] Response error:", error);
   
   if (error) {
-    console.error("[update_content_service] Update failed:", error.message);
+    console.error("[update_content_service] Update failed with error:");
+    console.error("   - Message:", error.message);
+    console.error("   - Code:", error.code);
+    console.error("   - Details:", error.details);
+    console.error("   - Hint:", error.hint);
     throw new Error(error.message);
   }
 
+  console.log("[update_content_service] Update completed successfully");
   return data;
 }
 

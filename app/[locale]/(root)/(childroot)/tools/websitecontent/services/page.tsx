@@ -68,6 +68,17 @@ const Services = () => {
     const selectedId = e.target.value;
     setSelectedService(selectedId);
 
+    // Debug: Check if user is authenticated
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
+      if (!user) {
+        console.error('User not authenticated!');
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+    }
+
     // Fetch the complete service data
     const tableName = selectedLanguage === "en" ? "services" : "services_es";
     const { data: serviceData, error } = await supabase
