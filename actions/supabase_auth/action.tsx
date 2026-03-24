@@ -16,7 +16,18 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    return { error: error.message }
+    console.error('Login error:', error.message, error.status)
+    
+    // Provide more specific error messages
+    if (error.message.includes('Invalid login credentials')) {
+      return { error: 'Invalid email or password' }
+    } else if (error.message.includes('Email not confirmed')) {
+      return { error: 'Please check your email and confirm your account' }
+    } else if (error.message.includes('Too many requests')) {
+      return { error: 'Too many login attempts. Please try again later' }
+    } else {
+      return { error: error.message }
+    }
 
     // redirect(`/login?error_message=${error.message}`)
   }

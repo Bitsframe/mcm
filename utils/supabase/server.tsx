@@ -50,9 +50,12 @@ import { cookies } from 'next/headers'
 export const createClient = () => {
   const cookieStore = cookies()
 
+  // Use secret key for server operations, fallback to publishable key
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // ✅ publishable key
+    supabaseKey, // Use secret key for elevated privileges
     {
       cookies: {
         get(name: string) {

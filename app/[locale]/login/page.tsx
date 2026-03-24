@@ -36,7 +36,7 @@ function Login() {
         
         toast(
           <div className="flex justify-between">
-            <p>Incorrect Credentials. Please try again.</p>
+            <p>{result.error}</p>
             <button
               onClick={() => toast.dismiss()} 
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
