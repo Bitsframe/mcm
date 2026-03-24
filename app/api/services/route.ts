@@ -108,32 +108,46 @@ export async function GET(request: NextRequest) {
     // Determine table name based on language
     const tableName = language === 'en' ? 'services' : 'services_es';
 
-    let query = supabaseAdmin
-      .from(tableName)
-      .select('id, title, description, image, icon, created_at');
-
     // If ID is provided, get specific service
     if (id) {
-      query = query.eq('id', id).single();
+      const { data, error } = await supabaseAdmin
+        .from(tableName)
+        .select('id, title, description, image, icon, created_at')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Fetch error:', error);
+        return NextResponse.json(
+          { error: `Failed to fetch service: ${error.message}` },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: data
+      });
     } else {
       // Otherwise get all services ordered by creation date
-      query = query.order('created_at', { ascending: false });
+      const { data, error } = await supabaseAdmin
+        .from(tableName)
+        .select('id, title, description, image, icon, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Fetch error:', error);
+        return NextResponse.json(
+          { error: `Failed to fetch services: ${error.message}` },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: data
+      });
     }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Fetch error:', error);
-      return NextResponse.json(
-        { error: `Failed to fetch services: ${error.message}` },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: data
-    });
 
   } catch (error: any) {
     console.error('API error:', error);

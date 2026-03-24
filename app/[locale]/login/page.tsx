@@ -26,6 +26,9 @@ function Login() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    if (loading) return; // Prevent double submission
+    
     setLoading(true);
 
     try {
@@ -47,6 +50,9 @@ function Login() {
         )}else {
           setTimeout(() => router.push("/?toast=login_success"), 1500);
       }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -240,36 +240,33 @@ const Patients = () => {
   };
 
   // Debounced address search function
-  const searchAddresses = useCallback(
-    debounce(async (searchTerm: string) => {
-      if (searchTerm.length < 4) {
-        setAddressSuggestions([]);
-        setShowAddressSuggestions(false);
-        return;
-      }
+  const searchAddresses = debounce(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
 
-      setAddressLoading(true);
-      try {
-        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        
-        if (data.success && data.suggestions) {
-          setAddressSuggestions(data.suggestions);
-          setShowAddressSuggestions(true);
-        } else {
-          setAddressSuggestions([]);
-          setShowAddressSuggestions(false);
-        }
-      } catch (error) {
-        console.error('Error fetching address suggestions:', error);
+    setAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(true);
+      } else {
         setAddressSuggestions([]);
         setShowAddressSuggestions(false);
-      } finally {
-        setAddressLoading(false);
       }
-    }, 300),
-    []
-  );
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, 300);
 
   const handleAddressChange = (value: string) => {
     addPatientFieldsChange(value, "address");
@@ -284,36 +281,33 @@ const Patients = () => {
   };
 
   // Edit modal address search function
-  const searchEditAddresses = useCallback(
-    debounce(async (searchTerm: string) => {
-      if (searchTerm.length < 4) {
-        setEditAddressSuggestions([]);
-        setShowEditAddressSuggestions(false);
-        return;
-      }
+  const searchEditAddresses = debounce(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setEditAddressSuggestions([]);
+      setShowEditAddressSuggestions(false);
+      return;
+    }
 
-      setEditAddressLoading(true);
-      try {
-        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        
-        if (data.success && data.suggestions) {
-          setEditAddressSuggestions(data.suggestions);
-          setShowEditAddressSuggestions(true);
-        } else {
-          setEditAddressSuggestions([]);
-          setShowEditAddressSuggestions(false);
-        }
-      } catch (error) {
-        console.error('Error fetching address suggestions:', error);
+    setEditAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setEditAddressSuggestions(data.suggestions);
+        setShowEditAddressSuggestions(true);
+      } else {
         setEditAddressSuggestions([]);
         setShowEditAddressSuggestions(false);
-      } finally {
-        setEditAddressLoading(false);
       }
-    }, 300),
-    []
-  );
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setEditAddressSuggestions([]);
+      setShowEditAddressSuggestions(false);
+    } finally {
+      setEditAddressLoading(false);
+    }
+  }, 300);
 
   const handleEditAddressChange = (value: string) => {
     modalInputChangeHandle(value, "address");

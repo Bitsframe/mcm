@@ -227,36 +227,33 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   };
 
   // Debounced address search function
-  const searchAddresses = useCallback(
-    debounce(async (searchTerm: string) => {
-      if (searchTerm.length < 4) {
-        setAddressSuggestions([]);
-        setShowAddressSuggestions(false);
-        return;
-      }
+  const searchAddresses = debounce(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
 
-      setAddressLoading(true);
-      try {
-        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        
-        if (data.success && data.suggestions) {
-          setAddressSuggestions(data.suggestions);
-          setShowAddressSuggestions(true);
-        } else {
-          setAddressSuggestions([]);
-          setShowAddressSuggestions(false);
-        }
-      } catch (error) {
-        console.error('Error fetching address suggestions:', error);
+    setAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(true);
+      } else {
         setAddressSuggestions([]);
         setShowAddressSuggestions(false);
-      } finally {
-        setAddressLoading(false);
       }
-    }, 300),
-    []
-  );
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, 300);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
@@ -2030,36 +2027,33 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
   };
 
   // Debounced address search function for EditPatientModal
-  const searchAddressesModal = useCallback(
-    debounceModal(async (searchTerm: string) => {
-      if (searchTerm.length < 4) {
-        setAddressSuggestions([]);
-        setShowAddressSuggestions(false);
-        return;
-      }
+  const searchAddressesModal = debounceModal(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
 
-      setAddressLoading(true);
-      try {
-        const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        
-        if (data.success && data.suggestions) {
-          setAddressSuggestions(data.suggestions);
-          setShowAddressSuggestions(true);
-        } else {
-          setAddressSuggestions([]);
-          setShowAddressSuggestions(false);
-        }
-      } catch (error) {
-        console.error('Error fetching address suggestions:', error);
+    setAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(true);
+      } else {
         setAddressSuggestions([]);
         setShowAddressSuggestions(false);
-      } finally {
-        setAddressLoading(false);
       }
-    }, 300),
-    []
-  );
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, 300);
 
   const handleAddressChangeModal = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;

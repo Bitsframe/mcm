@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Input_Component } from "@/components/Input_Component";
 import { Custom_Modal } from "@/components/Modal_Components/Custom_Modal";
@@ -40,7 +40,7 @@ const SpecialsPage = () => {
   const close = () => { setIsOpen(false); setFile(null); setNewTitle(""); };
   const closePreview = () => setPreviewUrl(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/tools/specials/all");
@@ -52,9 +52,9 @@ const SpecialsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const onCreate = async () => {
     if (!file) return toast.error(t("PleaseSelectImage"));

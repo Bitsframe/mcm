@@ -403,7 +403,7 @@ export default function IndividualBonusPage() {
       { id: 'highest_location_paid', title: t('Bonus_k2'), value: `$${highestLocation.amount.toFixed(2)}`, subtitle: highestLocation.name },
       { id: 'highest_person_paid', title: t('Bonus_k3'), value: `$${highestPersonAmount.toFixed(2)}`, subtitle: highestPersonSubtitle },
     ]
-  }, [rows, appliedFilters])
+  }, [rows, appliedFilters, t])
 
   const handlePay = async (row: any) => {
     if (row.paid) return

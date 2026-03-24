@@ -82,8 +82,8 @@ const Services = () => {
 
     if (serviceData) {
       // CRITICAL: Make sure to include the ID in the form data
-      // Use the numeric ID from the database, not the string from dropdown
-      on_change_handle("id", serviceData.id);
+      // Convert numeric ID to string for the form handler
+      on_change_handle("id", serviceData.id.toString());
       on_change_handle("title", serviceData.title);
       on_change_handle("description", serviceData.description);
       on_change_handle("image", serviceData.image);
