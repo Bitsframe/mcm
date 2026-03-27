@@ -112,6 +112,7 @@ export const POST = async (req: Request) => {
                     note: patientData?.note,
                     address: patientData?.streetAddress,
                     dob: patientData?.dateOfBirth,
+                    gender: patientData?.gender,
                 })
                 .eq("id", patient.id)
                 .select();
@@ -186,6 +187,7 @@ export const PUT = async (req: Request) => {
                 note: patientData?.note,
                 address: patientData?.streetAddress,
                 dob: patientData?.dateOfBirth,
+                gender: patientData?.gender,
             })
             .eq("id", Number(patientData.id))
             .select();

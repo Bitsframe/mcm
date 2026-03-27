@@ -14,16 +14,30 @@ export const POST = async (req: Request) => {
             return NextResponse.json({ message: 'User ID and password are required' }, { status: 400 });
         }
 
+        // Update the user's password
         const { data: user, error } = await supabaseAdmin.auth.admin.updateUserById(id, { password });
 
         if (error) {
             throw new Error(`Error updating password: ${error.message}`);
         }
 
-        return NextResponse.json({ success: true, message: 'Password updated successfully.' }, { status: 200 });
+        // Invalidate all sessions for this user (force re-login)
+        try {
+            await supabaseAdmin.auth.admin.signOut(id, 'global');
+        } catch (signOutError) {
+            console.warn('Could not invalidate user sessions:', signOutError);
+            // Continue even if session invalidation fails
+        }
+
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Password updated successfully. Please login again.' 
+        }, { status: 200 });
 
     } catch (error: any) {
-        console.error(error);
-        return NextResponse.json({ message: error?.message || 'Internal Server Error' }, { status: 500 });
+        console.error('Password change error:', error);
+        return NextResponse.json({ 
+            message: error?.message || 'Internal Server Error' 
+        }, { status: 500 });
     }
 };

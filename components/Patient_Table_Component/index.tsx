@@ -1539,6 +1539,19 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   const [formData, setFormData] = useState<Patient>(editPatientData);
   const [emailError, setEmailError] = useState("");
 
+  // Strip +1 prefix from phone number when loading data
+  useEffect(() => {
+    let displayPhone = editPatientData.phone || "";
+    if (displayPhone.startsWith("+1")) {
+      displayPhone = displayPhone.slice(2);
+    }
+    
+    setFormData({
+      ...editPatientData,
+      phone: displayPhone,
+    });
+  }, [editPatientData]);
+
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -1558,6 +1571,25 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
     }
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    // Remove all non-digit characters
+    let cleaned = rawValue.replace(/\D/g, '');
+    
+    // If it starts with 1, remove it (country code)
+    if (cleaned.startsWith('1') && cleaned.length === 11) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 10 digits
+    cleaned = cleaned.slice(0, 10);
+    
+    setFormData({
+      ...formData,
+      phone: cleaned,
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -1568,12 +1600,15 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
   const handleSave = async () => {
     try {
+      // Prepare phone number with +1 prefix
+      const phoneWithCountryCode = formData.phone ? `+1${formData.phone}` : "";
+      
       const response = await axios.put("/api/user", {
         id: patient.id,
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        phone: formData.phone,
+        phone: phoneWithCountryCode,
         gender: formData.gender,
         onsite: formData.onsite,
         note: formData.note,
@@ -1624,12 +1659,18 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           <Label className="text-sm text-gray-500 dark:text-gray-400">
             {t("Patients_k19")}
           </Label>
-          <Input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10">
+              +1
+            </span>
+            <Input
+              name="phone"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              className="w-full pl-10 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+              placeholder="Enter 10-digit phone number"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
@@ -1943,6 +1984,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     note: "",
     streetaddress: "",
     dateofbirth: "",
+    gender: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -2003,15 +2045,24 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const formattedPhone = formatPhoneInput(rawValue);
+    // Remove all non-digit characters
+    let cleaned = rawValue.replace(/\D/g, '');
+    
+    // If it starts with 1, remove it (country code)
+    if (cleaned.startsWith('1') && cleaned.length === 11) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 10 digits
+    cleaned = cleaned.slice(0, 10);
     
     setPatientData({
       ...patientData,
-      phone: formattedPhone,
+      phone: cleaned,
     });
     
-    if (formattedPhone && !isValidPhone(formattedPhone)) {
-      setPhoneError("Please enter a valid US phone number (10-11 digits)");
+    if (cleaned && cleaned.length !== 10) {
+      setPhoneError("Please enter a valid 10-digit US phone number");
     } else {
       setPhoneError("");
     }
@@ -2077,20 +2128,27 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   useEffect(() => {
     if (patientDetails) {
+      // Strip +1 prefix from phone number for display
+      let displayPhone = patientDetails.phone || "";
+      if (displayPhone.startsWith("+1")) {
+        displayPhone = displayPhone.slice(2);
+      }
+      
       setPatientData({
         firstname: patientDetails.firstname || "",
         lastname: patientDetails.lastname || "",
-        phone: patientDetails.phone || "",
+        phone: displayPhone,
         email: patientDetails.email || "",
         note: patientDetails.note || "",
         streetaddress: patientDetails.address || "",
         dateofbirth: patientDetails.dob || "",
+        gender: patientDetails.gender || "",
       });
     }
   }, [patientDetails]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     e.preventDefault();
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
@@ -2101,15 +2159,19 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     setErrorMessage("");
 
     try {
+      // Prepare phone number with +1 prefix
+      const phoneWithCountryCode = patientData?.phone ? `+1${patientData.phone}` : "";
+      
       const data = await axios.put("/api/user", {
         id: patientDetails?.id,
         firstname: patientData?.firstname,
         lastname: patientData?.lastname,
         email: patientData?.email,
-        phone: patientData?.phone,
+        phone: phoneWithCountryCode,
         note: patientData?.note,
         streetAddress: patientData?.streetaddress,
         dateOfBirth: patientData?.dateofbirth,
+        gender: patientData?.gender,
       });
 
       if (data?.data?.success === true) {
@@ -2177,6 +2239,21 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k12")}
+              </Label>
+              <select
+                name="gender"
+                value={patientData.gender}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">{t("Patients_k40")}</option>
+                <option value="Female">{t("Patients_k41")}</option>
+              </select>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -2184,16 +2261,21 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               <Label className="text-sm font-medium dark:text-gray-300">
                 {t("Patients_k19")}
               </Label>
-              <Input
-                type="text"
-                name="phone"
-                value={patientData.phone}
-                onChange={handlePhoneChange}
-                className={`w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
-                  phoneError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
-                }`}
-                placeholder="Enter phone number"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10">
+                  +1
+                </span>
+                <Input
+                  type="text"
+                  name="phone"
+                  value={patientData.phone}
+                  onChange={handlePhoneChange}
+                  className={`w-full pl-10 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
+                    phoneError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  placeholder="Enter 10-digit phone number"
+                />
+              </div>
               {phoneError && (
                 <p className="text-red-500 text-sm mt-1">{phoneError}</p>
               )}

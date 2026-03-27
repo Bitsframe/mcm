@@ -5,12 +5,12 @@ import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { signOut } from '@/actions/supabase_auth/action';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { createClient } from '@/utils/supabase/client';
 const passwordSchema = z.object({
   newPassword: z.string()
     .regex(/[A-Z]/, "Must include at least one uppercase letter")
@@ -68,6 +68,24 @@ const Security = () => {
     }));
   };
 
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Clear any local storage or session data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      window.location.href = '/login';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -99,9 +117,10 @@ const Security = () => {
       if (response.status === 200) {
         toast.success("Password has been changed! Please login again.");
         
-        // Sign out and redirect to login
-        await signOut();
-        router.push('/login');
+        // Wait a moment for the toast to show, then logout
+        setTimeout(() => {
+          handleLogout();
+        }, 2000);
       }
     } catch (error: any) {
       console.error("Password change error:", error);

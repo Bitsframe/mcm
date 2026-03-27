@@ -304,15 +304,21 @@ const StockAlertsComponent: React.FC = () => {
   };
 
   const getAnomalyText = (severity: string) => {
-    switch (severity) {
-      case "High":
-        return t("SP_k25");
-      case "Medium":
-        return t("SP_k26");
-      case "Low":
-        return t("SP_k27");
-      case "Normal":
-        return t("SP_k28");
+    switch (severity?.toLowerCase()) {
+      case "high":
+        return t("SP_k25"); // Alto
+      case "medium":
+        return t("SP_k26"); // Medio
+      case "low":
+        return t("SP_k27"); // Bajo
+      case "normal":
+        return t("SP_k28"); // Normal
+      case "warning":
+        return t("SP_k24"); // Advertencia
+      case "critical":
+        return t("SP_k23"); // Crítico
+      case "healthy":
+        return t("SP_k29"); // Saludable
       default:
         return severity || "-";
     }
