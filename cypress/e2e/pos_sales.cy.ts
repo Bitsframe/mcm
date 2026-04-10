@@ -14,20 +14,20 @@ const getPlaceOrderButton = () =>
 
 /**
  * Read a cart summary row value.
- * Row structure: <div class="flex items-center justify-between ...">
- *                  <h1>Label</h1>  <p>value</p>
- *                </div>
+ * Each row is: <div class="flex items-center justify-between">
+ *                <h1>Label</h1>  <p>$value</p>
+ *              </div>
  */
 function getCartRowValue(label: string) {
   return cy.contains("h1", label)
-    .closest("div.flex.items-center.justify-between")
+    .parent()
     .find("p")
     .invoke("text")
     .then((txt) => parseFloat(txt.replace(/[^0-9.]/g, "")));
 }
 
 /**
- * Credit Available lives inside an h1 as a child span:
+ * Read Credit Available value — it lives inside the h1 as a <span>:
  * <h1>Credit Available: <span class="font-bold">123.00</span></h1>
  */
 function getCreditAvailable() {
@@ -39,7 +39,7 @@ function getCreditAvailable() {
 
 function selectFirstPatient() {
   cy.visit("/en/pos/sales/patients");
-  cy.wait(1500);
+  cy.wait(2000);
 
   cy.get("body").then(($body) => {
     const todayBtns = $body
@@ -48,24 +48,50 @@ function selectFirstPatient() {
       .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
 
     if (todayBtns.length > 0) {
-      // Today tab has patients — select first
       cy.wrap(todayBtns[0]).click({ force: true });
     } else {
-      // No patients in Today — go to Past Records and select first
+      // Try Past Records
       cy.contains("button", "Past records").click({ force: true });
+      cy.wait(1500);
 
-      // Desktop grid rows: wait for at least one data row
-      cy.get("div.hidden.md\\:block div.grid.grid-cols-6", { timeout: 30000 })
-        .should("have.length.greaterThan", 1);
+      cy.get("body").then(($body2) => {
+        const pastBtns = $body2
+          .find("button:visible")
+          .toArray()
+          .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
 
-      cy.contains("button", /^select$|^seleccionar$/i)
-        .first()
-        .click({ force: true });
+        if (pastBtns.length > 0) {
+          cy.wrap(pastBtns[0]).click({ force: true });
+        } else {
+          // Create a patient
+          const stamp = Date.now().toString().slice(-6);
+          cy.contains("button", /add patient/i).click();
+          cy.get('[role="dialog"]').should("be.visible").within(() => {
+            cy.get('input[placeholder*="firstname"]').clear().type(`Sales${stamp}`);
+            cy.get('input[placeholder*="lastname"]').clear().type("Patient");
+            cy.get("select").first().select("Male");
+            cy.get('input[placeholder*="email"]').clear().type(`sales.${stamp}@example.com`);
+            cy.get('input[type="tel"]').clear().type("3055551212");
+            cy.get('input[placeholder*="street"]').clear().type("123 Main St");
+            cy.get('input[type="date"]').first().type("1990-01-01");
+            cy.contains("button", /add patient/i).click();
+          });
+          cy.get('[role="dialog"]').should("not.exist");
+          cy.wait(2000);
+          // Reload to see the new patient in Today tab
+          cy.reload();
+          cy.wait(2000);
+          cy.contains("button", /^select$|^seleccionar$/i)
+            .first()
+            .click({ force: true });
+        }
+      });
     }
   });
 
-  // Wait for client-side nav — do NOT hard cy.visit (causes ESOCKETTIMEDOUT)
+  // Wait for client-side nav to /pos/sales — do NOT hard cy.visit (causes ESOCKETTIMEDOUT)
   cy.url().should("include", "/pos/sales");
+  // Wait for the page to load patient from localStorage (2s useEffect)
   cy.contains("button", "Add Product").should("not.be.disabled");
   cy.log("✅ Patient selected, Add Product enabled");
 }
@@ -123,68 +149,64 @@ describe("POS Patients Feature", () => {
     const firstName = `Test${stamp}`;
     const email = `test.${stamp}@example.com`;
 
-    // ── Check if Today tab already has patients ───────────────────────────
-    cy.get("body").then(($body) => {
-      const hasSelect = $body
-        .find("button:visible")
-        .toArray()
-        .some((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
+    // Open Add Patient modal
+    cy.contains("button", /add patient/i).click();
 
-      if (hasSelect) {
-        // Today already has patients — just select the first one
-        cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
-      } else {
-        // No patients in Today — add one and wait for it to appear
-
-        cy.contains("button", /add patient/i).click();
-
-        cy.get('[role="dialog"]').should("be.visible").within(() => {
-          cy.get('input[placeholder*="firstname"]').clear().type(firstName);
-          cy.get('input[placeholder*="lastname"]').clear().type("Patient");
-          cy.get("select").first().select("Male");
-          cy.get('input[placeholder*="email"]').clear().type(email);
-          cy.get('input[type="tel"]').clear().type("3055551212");
-          cy.get('input[placeholder*="street"]').clear().type("123 Main St");
-          cy.get('input[type="date"]').first().type("1990-01-01");
-          cy.contains("button", /add patient/i).click();
-        });
-
-        cy.get('[role="dialog"]').should("not.exist");
-
-        // Verify patient saved in DB via Supabase task
-        cy.task("waitForPatientInDB", { firstname: firstName, maxAttempts: 20, intervalMs: 2000 })
-          .then((patient) => {
-            expect(patient).to.not.be.null;
-            cy.log(`✅ Patient in DB: ${JSON.stringify(patient)}`);
-          });
-
-        // Wait for the new patient row to appear in Today tab (page auto-refreshes)
-        cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
-          .first()
-          .click({ force: true });
-      }
+    cy.get('[role="dialog"]').should("be.visible").within(() => {
+      cy.get('input[placeholder*="firstname"]').clear().type(firstName);
+      cy.get('input[placeholder*="lastname"]').clear().type("Patient");
+      cy.get("select").first().select("Male");
+      cy.get('input[placeholder*="email"]').clear().type(email);
+      cy.get('input[type="tel"]').clear().type("3055551212");
+      cy.get('input[placeholder*="street"]').clear().type("123 Main St");
+      cy.get('input[type="date"]').first().type("1990-01-01");
+      cy.contains("button", /add patient/i).click();
     });
 
-    // Wait for client-side nav
+    // Wait for modal to close
+    cy.get('[role="dialog"]').should("not.exist");
+
+    // ── Supabase verification ─────────────────────────────────────────────
+    // Poll allpatients table until the new patient row appears in the DB.
+    // This confirms the record was saved before we try to select it in the UI.
+    cy.task("waitForPatientInDB", { firstname: firstName, maxAttempts: 20, intervalMs: 2000 })
+      .then((patient) => {
+        expect(patient).to.not.be.null;
+        cy.log(`✅ Patient confirmed in DB: ${JSON.stringify(patient)}`);
+      });
+
+    // ── Wait for the patient to appear in Today tab ───────────────────────
+    // The page auto-refreshes after creation via fetch_handle().
+    // We wait for the Select button to appear without reloading.
+    cy.contains("button", "Today").click();
+
+    // Search by firstName to isolate the row
+    cy.get('input[placeholder*="search"]').clear().type(firstName);
+
+    // Wait for the Select button to appear — page will refresh on its own
+    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
+      .first()
+      .click({ force: true });
+
+    // Wait for client-side nav — no hard cy.visit
     cy.url().should("include", "/pos/sales");
 
-    // Verify Patient Details section
+    // Verify Patient Details
     cy.contains(/patients details/i).should("be.visible");
     cy.contains(email).should("be.visible");
-    // Phone renders as (305) 555-1212
-    cy.contains("(305) 555-1212").should("be.visible");
+    cy.contains("3055551212").should("be.visible");
   });
 
   it("should select a patient from Past records", () => {
     cy.contains("button", "Past records").click();
 
-    // Desktop view uses CSS grid divs, not <table><tbody><tr>
-    // Wait for at least one patient row div to appear
-    cy.get("div.hidden.md\\:block div.grid.grid-cols-6", { timeout: 30000 })
-      .should("have.length.greaterThan", 1); // header row + at least 1 data row
+    // Wait for any patient row to appear — try multiple selectors
+    // The page uses shadcn Table which renders standard tr elements
+    cy.get("tbody tr", { timeout: 30000 }).should("have.length.greaterThan", 0);
 
     cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
+    // Wait for client-side nav — no hard cy.visit
     cy.url().should("include", "/pos/sales");
     cy.contains(/patients details/i).should("be.visible");
   });
@@ -270,9 +292,6 @@ describe("POS Sales Feature", () => {
         cy.get('input[placeholder="0.00"]').first()
           .clear({ force: true })
           .type(String(partialCash), { force: true });
-
-        // Wait for React to re-compute creditUsed after input change
-        cy.wait(500);
 
         const creditNeeded = parseFloat((cartTotal - partialCash).toFixed(2));
         const expectedCreditUsed = parseFloat(Math.min(creditNeeded, locationBalance).toFixed(2));
