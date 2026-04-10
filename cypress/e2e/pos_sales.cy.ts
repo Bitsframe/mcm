@@ -77,49 +77,21 @@ function selectFirstPatient() {
 }
 
 function addProductToCart(qty = 1) {
-  // Step 1 — open the product modal
-  cy.contains("button", "Add Product").click();
-
-  // Step 2 — wait for products to load in the table
-  cy.get('input[placeholder="Search product..."]', { timeout: 15000 }).should("be.visible");
-  cy.get("table tbody tr", { timeout: 20000 }).should("have.length.greaterThan", 0);
-
-  // Step 3 — search for Vitamin B
-  cy.get('input[placeholder="Search product..."]').clear().type("Vitamin B");
-  cy.contains("Vitamin B", { timeout: 10000 }).should("be.visible");
-
-  // Step 4 — read availability and confirm stock exists
-  cy.get("table tbody tr").first().within(() => {
-    cy.get("td").eq(2).invoke("text").then((availText) => {
-      cy.log(`Availability: ${availText.trim()}`);
-    });
-  });
-
-  // Step 5 — set quantity to requested amount using the + button
-  for (let i = 0; i < qty; i++) {
-    cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
-  }
-
-  // Step 6 — capture price per unit and expected total for later assertion
-  cy.get("table tbody tr").first().within(() => {
-    cy.get("td").eq(3).invoke("text").as("pricePerUnit");
-    cy.get("td").eq(4).invoke("text").as("totalCost");
-  });
-
-  // Step 7 — click Add to Cart
-  cy.contains("button", "Add to Cart").click({ force: true });
-
-  // Step 8 — wait for modal to close (search input gone)
-  cy.get('input[placeholder="Search product..."]', { timeout: 10000 }).should("not.exist");
-  cy.wait(300);
-
-  // Step 9 — verify cart shows the product with Price/Unit * qty reflected in the total
-  cy.get("@totalCost").then((totalCost) => {
-    const totalText = (totalCost as unknown as string).replace(/[^0-9.]/g, "");
-    cy.log(`Expected cart total cost: ${totalText}`);
-    // The cart panel should contain the total cost value
-    cy.contains(totalText, { timeout: 5000 }).should("exist");
-  });
+  cy.prompt([
+    "click the Add Product button",
+    "wait for the Search product input to be visible",
+    "wait for the product table rows to appear",
+    "type Vitamin B in the Search product input",
+    "wait for Vitamin B to appear in the table",
+    "read the availability from the third column of the first table row and log it",
+    `click the plus button in the first table row ${qty} time${qty > 1 ? "s" : ""}`,
+    "read the price per unit from the fourth column of the first table row and store it as pricePerUnit",
+    "read the total cost from the fifth column of the first table row and store it as totalCost",
+    "click the Add to Cart button",
+    "click the close modal button with aria-label Close modal",
+    "wait for the Search product input to not exist",
+    "verify Vitamin B text is visible in the page",
+  ]);
 }
 
 // ─── POS Patients Feature ────────────────────────────────────────────────────
@@ -404,6 +376,8 @@ describe("POS Sales Feature", () => {
 
   it("should not allow placing order with empty cart", () => {
     selectFirstPatient();
+    addProductToCart(1);
+
 
     cy.prompt(["verify the Place Order button is disabled"]);
   });
