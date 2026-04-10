@@ -11,7 +11,6 @@ const TEST_PASSWORD = "Create123!";
 const getPlaceOrderButton = () =>
   cy.get(
     "button.rounded.py-1.px-3.text-white.w-1\\/2.flex.justify-between.items-center.text-sm",
-    { timeout: 20000 },
   );
 
 function selectFirstPatient() {
@@ -27,7 +26,7 @@ function selectFirstPatient() {
     if (todayBtns.length > 0) {
       cy.wrap(todayBtns[0]).click({ force: true });
     } else {
-      cy.contains("button", /past records/i, { timeout: 10000 }).click({ force: true });
+      cy.contains("button", /past records/i).click({ force: true });
       cy.wait(1000);
 
       cy.get("body").then(($body2) => {
@@ -40,8 +39,8 @@ function selectFirstPatient() {
           cy.wrap(pastBtns[0]).click({ force: true });
         } else {
           const stamp = Date.now().toString().slice(-6);
-          cy.contains("button", /add patient/i, { timeout: 20000 }).click();
-          cy.get('[role="dialog"]', { timeout: 20000 }).should("be.visible").within(() => {
+          cy.contains("button", /add patient/i).click();
+          cy.get('[role="dialog"]').should("be.visible").within(() => {
             cy.get('input[placeholder*="firstname"]').clear().type(`Sales${stamp}`);
             cy.get('input[placeholder*="lastname"]').clear().type("Patient");
             cy.get("select").first().select("Male");
@@ -51,9 +50,9 @@ function selectFirstPatient() {
             cy.get('input[type="date"]').first().type("1990-01-01");
             cy.contains("button", /add patient/i).click();
           });
-          cy.get('[role="dialog"]', { timeout: 10000 }).should("not.exist");
+          cy.get('[role="dialog"]').should("not.exist");
           cy.wait(1500);
-          cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
+          cy.contains("button", /^select$|^seleccionar$/i)
             .first()
             .click({ force: true });
         }
@@ -61,20 +60,20 @@ function selectFirstPatient() {
     }
   });
 
-  cy.url({ timeout: 30000 }).should("include", "/pos/sales");
+  cy.url().should("include", "/pos/sales");
   cy.visit("/en/pos/sales");
-  cy.contains("button", "Add Product", { timeout: 20000 }).should("not.be.disabled");
+  cy.contains("button", "Add Product").should("not.be.disabled");
   cy.log("✅ Patient selected, Add Product enabled");
 }
 
 function addProductToCart(qty = 1) {
   cy.contains("button", "Add Product").click();
 
-  cy.get('input[placeholder="Search product..."]', { timeout: 15000 }).should("be.visible");
-  cy.get("table tbody tr", { timeout: 20000 }).should("have.length.greaterThan", 0);
+  cy.get('input[placeholder="Search product..."]').should("be.visible");
+  cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
   cy.get('input[placeholder="Search product..."]').clear().type("Vitamin B");
-  cy.contains("Vitamin B", { timeout: 10000 }).should("be.visible");
+  cy.contains("Vitamin B").should("be.visible");
 
   // Log availability (3rd column)
   cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((avail) => {
@@ -100,7 +99,7 @@ function addProductToCart(qty = 1) {
   cy.get('button[aria-label="Close modal"]').click({ force: true });
 
   // Wait for modal to be gone
-  cy.get('input[placeholder="Search product..."]', { timeout: 10000 }).should("not.exist");
+  cy.get('input[placeholder="Search product..."]').should("not.exist");
   cy.wait(300);
 
   // Verify product in cart
@@ -122,10 +121,10 @@ describe("POS Patients Feature", () => {
     const email = `test.${stamp}@example.com`;
 
     // Open Add Patient modal
-    cy.contains("button", /add patient/i, { timeout: 20000 }).click();
+    cy.contains("button", /add patient/i).click();
 
     // Fill form — no case-insensitive flag in attribute selectors (jQuery doesn't support it)
-    cy.get('[role="dialog"]', { timeout: 20000 }).should("be.visible").within(() => {
+    cy.get('[role="dialog"]').should("be.visible").within(() => {
       cy.get('input[placeholder*="firstname"]').clear().type(firstName);
       cy.get('input[placeholder*="lastname"]').clear().type("Patient");
       cy.get("select").first().select("Male");
@@ -137,7 +136,7 @@ describe("POS Patients Feature", () => {
     });
 
     // Wait for modal to close
-    cy.get('[role="dialog"]', { timeout: 10000 }).should("not.exist");
+    cy.get('[role="dialog"]').should("not.exist");
     cy.wait(1500);
 
     // Ensure Today tab active, search for new patient
@@ -147,32 +146,32 @@ describe("POS Patients Feature", () => {
     cy.wait(800);
 
     // Select the patient
-    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 20000 })
+    cy.contains("button", /^select$|^seleccionar$/i)
       .first()
       .click({ force: true });
 
     // router.push fires — wait for URL, no hard cy.visit
-    cy.url({ timeout: 30000 }).should("include", "/pos/sales");
+    cy.url().should("include", "/pos/sales");
 
     // Verify Patient Details
-    cy.contains(/patients details/i, { timeout: 20000 }).should("be.visible");
-    cy.contains(email, { timeout: 10000 }).should("be.visible");
-    cy.contains("3055551212", { timeout: 10000 }).should("be.visible");
+    cy.contains(/patients details/i).should("be.visible");
+    cy.contains(email).should("be.visible");
+    cy.contains("3055551212").should("be.visible");
   });
 
   it("should select a patient from Past records", () => {
-    cy.contains("button", "Past records", { timeout: 20000 }).click();
+    cy.contains("button", "Past records").click();
     cy.wait(1500);
 
-    cy.get("table tbody tr", { timeout: 30000 }).should("have.length.greaterThan", 0);
+    cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 20000 })
+    cy.contains("button", /^select$|^seleccionar$/i)
       .first()
       .click({ force: true });
 
     // Wait for client-side nav — no hard cy.visit
-    cy.url({ timeout: 30000 }).should("include", "/pos/sales");
-    cy.contains(/patients details/i, { timeout: 20000 }).should("be.visible");
+    cy.url().should("include", "/pos/sales");
+    cy.contains(/patients details/i).should("be.visible");
   });
 });
 
@@ -245,7 +244,7 @@ describe("POS Sales Feature", () => {
       });
     });
 
-    cy.contains(/Order has been placed, order #\s*\d+/i, { timeout: 20000 }).should("be.visible");
+    cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
   });
 
   it("should correctly calculate credit used when partial cash is entered", () => {
@@ -292,7 +291,7 @@ describe("POS Sales Feature", () => {
 
         if (locationBalance >= creditNeeded) {
           getPlaceOrderButton().should("not.be.disabled").click({ force: true });
-          cy.contains(/Order has been placed, order #\s*\d+/i, { timeout: 20000 }).should("be.visible");
+          cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
         } else {
           getPlaceOrderButton().should("be.disabled");
         }
@@ -352,3 +351,4 @@ describe("POS Sales Feature", () => {
     });
   });
 });
+

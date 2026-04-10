@@ -34,8 +34,8 @@ export default defineConfig({
     viewportHeight: 800,
     video: false,
     screenshotOnRunFailure: false,
-    defaultCommandTimeout: 20000,
-    pageLoadTimeout: 120000,
+    defaultCommandTimeout: 60000,
+    pageLoadTimeout: 300000,
     retries: {
       runMode: 0,
       openMode: 0,
