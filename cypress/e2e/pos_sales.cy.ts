@@ -165,22 +165,28 @@ describe("POS Patients Feature", () => {
 
     // Wait for modal to close
     cy.get('[role="dialog"]').should("not.exist");
-    cy.wait(2000);
 
-    // Reload so the new patient appears in Today tab
-    cy.reload();
-    cy.wait(1500);
+    // ── Supabase verification ─────────────────────────────────────────────
+    // Poll allpatients table until the new patient row appears in the DB.
+    // This confirms the record was saved before we try to select it in the UI.
+    cy.task("waitForPatientInDB", { firstname: firstName, maxAttempts: 20, intervalMs: 2000 })
+      .then((patient) => {
+        expect(patient).to.not.be.null;
+        cy.log(`✅ Patient confirmed in DB: ${JSON.stringify(patient)}`);
+      });
 
-    // Make sure Today tab is active
+    // ── Wait for the patient to appear in Today tab ───────────────────────
+    // The page auto-refreshes after creation via fetch_handle().
+    // We wait for the Select button to appear without reloading.
     cy.contains("button", "Today").click();
-    cy.wait(1000);
 
-    // Search by firstName to isolate the new patient
+    // Search by firstName to isolate the row
     cy.get('input[placeholder*="search"]').clear().type(firstName);
-    cy.wait(800);
 
-    // Select the patient
-    cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
+    // Wait for the Select button to appear — page will refresh on its own
+    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
+      .first()
+      .click({ force: true });
 
     // Wait for client-side nav — no hard cy.visit
     cy.url().should("include", "/pos/sales");
@@ -193,10 +199,10 @@ describe("POS Patients Feature", () => {
 
   it("should select a patient from Past records", () => {
     cy.contains("button", "Past records").click();
-    cy.wait(1500);
 
-    // Past records uses a custom Table component — wait for any row content
-    cy.get("tbody tr, [role='row']").should("have.length.greaterThan", 0);
+    // Wait for any patient row to appear — try multiple selectors
+    // The page uses shadcn Table which renders standard tr elements
+    cy.get("tbody tr", { timeout: 30000 }).should("have.length.greaterThan", 0);
 
     cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
