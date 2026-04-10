@@ -2,7 +2,6 @@
 
 // POS Sales E2E Test — pure Cypress commands
 
-// ─── Credentials ─────────────────────────────────────────────────────────────
 const TEST_EMAIL = "mackjmart@gmail.com";
 const TEST_PASSWORD = "Create123!";
 
@@ -13,9 +12,34 @@ const getPlaceOrderButton = () =>
     "button.rounded.py-1.px-3.text-white.w-1\\/2.flex.justify-between.items-center.text-sm",
   );
 
+/**
+ * Read a cart summary row value.
+ * Each row is: <div class="flex items-center justify-between">
+ *                <h1>Label</h1>  <p>$value</p>
+ *              </div>
+ */
+function getCartRowValue(label: string) {
+  return cy.contains("h1", label)
+    .parent()
+    .find("p")
+    .invoke("text")
+    .then((txt) => parseFloat(txt.replace(/[^0-9.]/g, "")));
+}
+
+/**
+ * Read Credit Available value — it lives inside the h1 as a <span>:
+ * <h1>Credit Available: <span class="font-bold">123.00</span></h1>
+ */
+function getCreditAvailable() {
+  return cy.contains("h1", /Credit Available/i)
+    .find("span.font-bold")
+    .invoke("text")
+    .then((txt) => parseFloat(txt.replace(/[^0-9.]/g, "")) || 0);
+}
+
 function selectFirstPatient() {
   cy.visit("/en/pos/sales/patients");
-  cy.wait(1500);
+  cy.wait(2000);
 
   cy.get("body").then(($body) => {
     const todayBtns = $body
@@ -26,8 +50,9 @@ function selectFirstPatient() {
     if (todayBtns.length > 0) {
       cy.wrap(todayBtns[0]).click({ force: true });
     } else {
-      cy.contains("button", /past records/i).click({ force: true });
-      cy.wait(1000);
+      // Try Past Records
+      cy.contains("button", "Past records").click({ force: true });
+      cy.wait(1500);
 
       cy.get("body").then(($body2) => {
         const pastBtns = $body2
@@ -38,6 +63,7 @@ function selectFirstPatient() {
         if (pastBtns.length > 0) {
           cy.wrap(pastBtns[0]).click({ force: true });
         } else {
+          // Create a patient
           const stamp = Date.now().toString().slice(-6);
           cy.contains("button", /add patient/i).click();
           cy.get('[role="dialog"]').should("be.visible").within(() => {
@@ -51,7 +77,10 @@ function selectFirstPatient() {
             cy.contains("button", /add patient/i).click();
           });
           cy.get('[role="dialog"]').should("not.exist");
-          cy.wait(1500);
+          cy.wait(2000);
+          // Reload to see the new patient in Today tab
+          cy.reload();
+          cy.wait(2000);
           cy.contains("button", /^select$|^seleccionar$/i)
             .first()
             .click({ force: true });
@@ -60,8 +89,9 @@ function selectFirstPatient() {
     }
   });
 
+  // Wait for client-side nav to /pos/sales — do NOT hard cy.visit (causes ESOCKETTIMEDOUT)
   cy.url().should("include", "/pos/sales");
-  cy.visit("/en/pos/sales");
+  // Wait for the page to load patient from localStorage (2s useEffect)
   cy.contains("button", "Add Product").should("not.be.disabled");
   cy.log("✅ Patient selected, Add Product enabled");
 }
@@ -75,9 +105,9 @@ function addProductToCart(qty = 1) {
   cy.get('input[placeholder="Search product..."]').clear().type("Vitamin B");
   cy.contains("Vitamin B").should("be.visible");
 
-  // Log availability (3rd column)
-  cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((avail) => {
-    cy.log(`Availability: ${avail.trim()}`);
+  // Log availability
+  cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((a) => {
+    cy.log(`Availability: ${a.trim()}`);
   });
 
   // Set quantity
@@ -85,7 +115,7 @@ function addProductToCart(qty = 1) {
     cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
   }
 
-  // Log price/unit and total cost
+  // Log price and total
   cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((p) => {
     cy.log(`Price/Unit: ${p.trim()}`);
   });
@@ -93,16 +123,15 @@ function addProductToCart(qty = 1) {
     cy.log(`Total Cost: ${t.trim()}`);
   });
 
-  // Add to cart — modal stays open, close via ✕
+  // Add to cart — modal stays open, must close via ✕
   cy.contains("button", "Add to Cart").click({ force: true });
   cy.wait(300);
   cy.get('button[aria-label="Close modal"]').click({ force: true });
 
-  // Wait for modal to be gone
+  // Wait for modal gone
   cy.get('input[placeholder="Search product..."]').should("not.exist");
   cy.wait(300);
 
-  // Verify product in cart
   cy.contains("Vitamin B").should("exist");
 }
 
@@ -123,7 +152,6 @@ describe("POS Patients Feature", () => {
     // Open Add Patient modal
     cy.contains("button", /add patient/i).click();
 
-    // Fill form — no case-insensitive flag in attribute selectors (jQuery doesn't support it)
     cy.get('[role="dialog"]').should("be.visible").within(() => {
       cy.get('input[placeholder*="firstname"]').clear().type(firstName);
       cy.get('input[placeholder*="lastname"]').clear().type("Patient");
@@ -137,20 +165,24 @@ describe("POS Patients Feature", () => {
 
     // Wait for modal to close
     cy.get('[role="dialog"]').should("not.exist");
+    cy.wait(2000);
+
+    // Reload so the new patient appears in Today tab
+    cy.reload();
     cy.wait(1500);
 
-    // Ensure Today tab active, search for new patient
+    // Make sure Today tab is active
     cy.contains("button", "Today").click();
     cy.wait(1000);
+
+    // Search by firstName to isolate the new patient
     cy.get('input[placeholder*="search"]').clear().type(firstName);
     cy.wait(800);
 
     // Select the patient
-    cy.contains("button", /^select$|^seleccionar$/i)
-      .first()
-      .click({ force: true });
+    cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
-    // router.push fires — wait for URL, no hard cy.visit
+    // Wait for client-side nav — no hard cy.visit
     cy.url().should("include", "/pos/sales");
 
     // Verify Patient Details
@@ -163,11 +195,10 @@ describe("POS Patients Feature", () => {
     cy.contains("button", "Past records").click();
     cy.wait(1500);
 
-    cy.get("table tbody tr").should("have.length.greaterThan", 0);
+    // Past records uses a custom Table component — wait for any row content
+    cy.get("tbody tr, [role='row']").should("have.length.greaterThan", 0);
 
-    cy.contains("button", /^select$|^seleccionar$/i)
-      .first()
-      .click({ force: true });
+    cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
     // Wait for client-side nav — no hard cy.visit
     cy.url().should("include", "/pos/sales");
@@ -187,46 +218,40 @@ describe("POS Sales Feature", () => {
     selectFirstPatient();
     addProductToCart(1);
 
-    // Read exact label text from translations:
-    // k78 = "Product Total After Discount" = cartTotal (grandTotalHandle.amount)
-    // k32 = "Patient Balance"              = creditAmount
-    // k42 = "Sub total"                    = cartTotal + creditAmount
-    // k80 = "Balance"                      = creditUsed display
-    // k100 = "Total Paid"
+    // Cart summary DOM structure:
+    // <div class="flex items-center justify-between">
+    //   <h1>Product Total After Discount</h1>  <p>$XX.XX</p>
+    // </div>
     //
-    // STRATEGY: enter exact cartTotal as cash
-    // → totalPaid = cartTotal, creditUsed = 0 → button ENABLED
+    // Credit Available:
+    // <h1>Credit Available: <span class="font-bold">XX.XX</span></h1>
+    //
+    // STRATEGY: pay exact cartTotal in cash → creditUsed=0, button enables
 
-    cy.contains("Product Total After Discount").siblings("p").invoke("text").then((txt) => {
-      const cartTotal = parseFloat(txt.replace(/[^0-9.]/g, ""));
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
       cy.log(`cartTotal: ${cartTotal}`);
 
-      // Verify Patient Balance row exists
-      cy.contains("Patient Balance").siblings("p").invoke("text").then((balTxt) => {
-        const creditAmount = parseFloat(balTxt.replace(/[^0-9.]/g, "")) || 0;
+      getCartRowValue("Patient Balance").then((creditAmount) => {
         cy.log(`creditAmount: ${creditAmount}`);
 
         // Verify Sub total = cartTotal + creditAmount
-        cy.contains("Sub total").siblings("p").invoke("text").then((subTxt) => {
-          const displayed = parseFloat(subTxt.replace(/[^0-9.]/g, ""));
-          expect(displayed).to.be.closeTo(cartTotal + creditAmount, 0.01);
-          cy.log(`Sub total verified: ${displayed}`);
+        getCartRowValue("Sub total").then((subTotal) => {
+          expect(subTotal).to.be.closeTo(cartTotal + creditAmount, 0.01);
+          cy.log(`Sub total verified: ${subTotal}`);
         });
 
-        // Enter full cart total as cash
+        // Enter exact cartTotal as cash
         const cash = cartTotal.toFixed(2);
         cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cash, { force: true });
 
         // Verify Balance (creditUsed) = 0
-        cy.contains("Balance").siblings("p").invoke("text").then((cuTxt) => {
-          const creditUsed = parseFloat(cuTxt.replace(/[^0-9.]/g, "")) || 0;
-          cy.log(`creditUsed (Balance): ${creditUsed}`);
+        getCartRowValue("Balance").then((creditUsed) => {
+          cy.log(`creditUsed: ${creditUsed}`);
           expect(creditUsed).to.equal(0);
         });
 
         // Verify Total Paid = cartTotal
-        cy.contains("Total Paid").siblings("p").invoke("text").then((tpTxt) => {
-          const totalPaid = parseFloat(tpTxt.replace(/[^0-9.]/g, ""));
+        getCartRowValue("Total Paid").then((totalPaid) => {
           cy.log(`totalPaid: ${totalPaid}`);
           expect(totalPaid).to.be.closeTo(cartTotal, 0.01);
         });
@@ -251,12 +276,10 @@ describe("POS Sales Feature", () => {
     selectFirstPatient();
     addProductToCart(1);
 
-    cy.contains("Product Total After Discount").siblings("p").invoke("text").then((txt) => {
-      const cartTotal = parseFloat(txt.replace(/[^0-9.]/g, ""));
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
       cy.log(`cartTotal: ${cartTotal}`);
 
-      cy.contains("Credit Available").siblings("span").invoke("text").then((caTxt) => {
-        const locationBalance = parseFloat(caTxt.replace(/[^0-9.]/g, "")) || 0;
+      getCreditAvailable().then((locationBalance) => {
         cy.log(`locationBalance: ${locationBalance}`);
 
         const partialCash = parseFloat((cartTotal / 2).toFixed(2));
@@ -271,22 +294,20 @@ describe("POS Sales Feature", () => {
         cy.log(`partialCash: ${partialCash}, expectedCreditUsed: ${expectedCreditUsed}`);
 
         // Verify Balance (creditUsed)
-        cy.contains("Balance").siblings("p").invoke("text").then((cuTxt) => {
-          const displayed = parseFloat(cuTxt.replace(/[^0-9.]/g, "")) || 0;
+        getCartRowValue("Balance").then((displayed) => {
           cy.log(`Displayed creditUsed: ${displayed}`);
           expect(displayed).to.be.closeTo(expectedCreditUsed, 0.01);
         });
 
         // Verify Credit Available updated
-        cy.contains("Credit Available").siblings("span").invoke("text").then((updTxt) => {
-          const updated = parseFloat(updTxt.replace(/[^0-9.]/g, "")) || 0;
+        getCreditAvailable().then((updated) => {
           cy.log(`Updated Credit Available: ${updated}`);
           expect(updated).to.be.closeTo(expectedBalanceLimit, 0.01);
         });
 
         // Verify Total Paid = partialCash
-        cy.contains("Total Paid").siblings("p").invoke("text").then((tpTxt) => {
-          expect(parseFloat(tpTxt.replace(/[^0-9.]/g, ""))).to.be.closeTo(partialCash, 0.01);
+        getCartRowValue("Total Paid").then((totalPaid) => {
+          expect(totalPaid).to.be.closeTo(partialCash, 0.01);
         });
 
         if (locationBalance >= creditNeeded) {
@@ -301,7 +322,6 @@ describe("POS Sales Feature", () => {
 
   it("should not allow placing order with empty cart", () => {
     selectFirstPatient();
-    // Cart is empty — disabled regardless of payment state
     getPlaceOrderButton().should("be.disabled");
   });
 
@@ -309,7 +329,6 @@ describe("POS Sales Feature", () => {
     selectFirstPatient();
     addProductToCart(1);
 
-    // 99999 >> any possible cartTotal + creditAmount
     cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type("99999", { force: true });
     getPlaceOrderButton().should("be.disabled");
   });
@@ -318,9 +337,7 @@ describe("POS Sales Feature", () => {
     selectFirstPatient();
     addProductToCart(1);
 
-    // Before typing anything: userStartedPaying=false → creditUsed=0, totalPaid=0 → disabled
-    // The button is disabled on initial state (nothing entered yet)
-    // Verify this initial disabled state before any input
+    // Initial state: nothing typed → userStartedPaying=false → creditUsed=0, totalPaid=0 → disabled
     getPlaceOrderButton().should("be.disabled");
   });
 
@@ -328,27 +345,21 @@ describe("POS Sales Feature", () => {
     selectFirstPatient();
     addProductToCart(1);
 
-    cy.contains("Product Total After Discount").siblings("p").invoke("text").then((txt) => {
-      const cartTotal = parseFloat(txt.replace(/[^0-9.]/g, ""));
-
-      cy.contains("Credit Available").siblings("span").invoke("text").then((caTxt) => {
-        const locationBalance = parseFloat(caTxt.replace(/[^0-9.]/g, "")) || 0;
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      getCreditAvailable().then((locationBalance) => {
         cy.log(`cartTotal: ${cartTotal}, locationBalance: ${locationBalance}`);
 
         if (cartTotal > locationBalance) {
-          // Enter 0 cash → creditUsed = min(cartTotal, locationBalance) = locationBalance
-          // but creditNeeded = cartTotal > locationBalance → creditUsed > balance → disabled
+          // Trigger userStartedPaying then set to 0 → creditUsed = cartTotal > locationBalance
           cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type("0.01", { force: true });
           cy.wait(300);
           cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type("0", { force: true });
           getPlaceOrderButton().should("be.disabled");
         } else {
-          // Location has enough balance — skip this test scenario
-          cy.log("Location balance covers cart total — credit limit test not applicable, skipping assertion");
+          cy.log("Location balance covers cart — scenario not applicable");
           getPlaceOrderButton().should("exist");
         }
       });
     });
   });
 });
-
