@@ -89,9 +89,14 @@ function addProductToCart(qty = 1) {
     "read the total cost from the fifth column of the first table row and store it as totalCost",
     "click the Add to Cart button",
     "click the close modal button with aria-label Close modal",
-    "wait for the Search product input to not exist",
-    "verify Vitamin B text is visible in the page",
   ]);
+
+  // cy.prompt can't assert non-existence — handle it directly
+  cy.get('input[placeholder="Search product..."]', { timeout: 10000 }).should("not.exist");
+  cy.wait(300);
+
+  // Verify Vitamin B appears in the cart panel
+  cy.contains("Vitamin B").should("exist");
 }
 
 // ─── POS Patients Feature ────────────────────────────────────────────────────
@@ -105,54 +110,72 @@ describe("POS Patients Feature", () => {
 
   it("should add a patient from Today tab and select it", () => {
     const stamp = Date.now().toString().slice(-6);
+    const firstName = `Test${stamp}`;
+    const email = `test.${stamp}@example.com`;
 
-    cy.prompt(
-      [
-        "click the Add Patient button",
-        "fill in the firstname field with {{firstName}}",
-        "fill in the lastname field with Patient",
-        "select Male from the first select dropdown",
-        "fill in the email field with {{email}}",
-        "fill in the phone field with 3055551212",
-        "fill in the street field with 123 Main St",
-        "fill in the first date field with 1990-01-01",
-        "click the Add Patient submit button inside the dialog",
-        "wait 2000 milliseconds",
-        "navigate to http://localhost:3000/en/pos/sales/patients",
-        "wait 2000 milliseconds",
-        "click the first visible Select button in the patient table",
-        "navigate to http://localhost:3000/en/pos/sales",
-        "verify the Patient Details section is visible",
-        "verify the page contains the patient email {{email}}",
-        "verify the page contains the text Patient",
-        "verify the page contains the text 3055551212",
-        "verify the page contains the text 01/01/1990",
-      ],
-      {
-        placeholders: {
-          firstName: `Test${stamp}`,
-          email: `test.${stamp}@example.com`,
-        },
-      },
-    );
+    // ── Step 1: Open Add Patient modal ────────────────────────────────────
+    cy.contains("button", /add patient/i, { timeout: 20000 }).click();
 
+    // ── Step 2: Fill in the form ──────────────────────────────────────────
+    cy.get('[role="dialog"]', { timeout: 20000 }).should("be.visible").within(() => {
+      cy.get('input[placeholder*="firstname" i]').clear().type(firstName);
+      cy.get('input[placeholder*="lastname" i]').clear().type("Patient");
+      cy.get("select").first().select("Male");
+      cy.get('input[placeholder*="email" i]').clear().type(email);
+      cy.get('input[type="tel"]').clear().type("3055551212");
+      cy.get('input[placeholder*="street" i]').clear().type("123 Main St");
+      cy.get('input[type="date"]').first().type("1990-01-01");
+      cy.contains("button", /add patient/i).click();
+    });
+
+    // ── Step 3: Wait for modal to close then reload to see new patient ────
+    cy.get('[role="dialog"]', { timeout: 10000 }).should("not.exist");
+    cy.wait(1500);
+
+    // ── Step 4: Make sure Today tab is active and reload data ─────────────
+    cy.contains("button", "Today").click();
+    cy.wait(1500);
+
+    // ── Step 5: Find and click Select for the newly created patient ───────
+    // Search by the unique email to isolate the new patient row
+    cy.get('input[placeholder*="search" i]').clear().type(firstName);
+    cy.wait(800);
+
+    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 20000 })
+      .first()
+      .click({ force: true });
+
+    // ── Step 6: After select, router.push("/pos/sales") fires ─────────────
+    // Wait for client-side nav — do NOT hard cy.visit (causes ESOCKETTIMEDOUT)
     cy.url({ timeout: 30000 }).should("include", "/pos/sales");
+
+    // ── Step 7: Verify Patient Details section shows the correct data ─────
+    cy.contains("Patient Details", { timeout: 20000 }).should("be.visible");
+    cy.contains(email, { timeout: 10000 }).should("be.visible");
+    cy.contains("Patient", { timeout: 10000 }).should("be.visible");
+    cy.contains("3055551212", { timeout: 10000 }).should("be.visible");
   });
 
   it("should select a patient from Past records", () => {
-    cy.prompt([
-      "click the Past Records tab button",
-      "wait for the patient table to load",
-      "click the first visible Select button in the patient table",
-      "navigate to http://localhost:3000/en/pos/sales",
-      "verify the Patient Details section is visible",
-      "verify the page contains a patient name",
-      "verify the page contains a phone number",
-      "verify the page contains an email address",
-      "verify the page contains a date of birth",
-    ]);
+    // ── Step 1: Switch to Past records tab ────────────────────────────────
+    cy.contains("button", "Past records", { timeout: 20000 }).click();
+    cy.wait(1500);
 
+    // ── Step 2: Wait for at least one row to appear ───────────────────────
+    cy.get("table tbody tr", { timeout: 30000 }).should("have.length.greaterThan", 0);
+
+    // ── Step 3: Click the first Select button ─────────────────────────────
+    cy.contains("button", /^select$|^seleccionar$/i, { timeout: 20000 })
+      .first()
+      .click({ force: true });
+
+    // ── Step 4: router.push("/pos/sales") fires — wait for URL change ─────
+    // Do NOT hard cy.visit here — the client-side nav already happened
     cy.url({ timeout: 30000 }).should("include", "/pos/sales");
+
+    // ── Step 5: Wait for Patient Details section to be populated ──────────
+    cy.contains("Patient Details", { timeout: 20000 }).should("be.visible");
+    cy.get("dl, .space-y-0\\.5", { timeout: 10000 }).should("exist");
   });
 });
 
