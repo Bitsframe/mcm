@@ -52,44 +52,32 @@ Cypress.Commands.add("loginByUi", () => {
 });
 
 Cypress.Commands.add("loginWithCredentials", (email: string, password: string) => {
-  cy.session(
-    [email],
-    () => {
-      cy.visit("/en/login");
+  // Login directly without cy.session caching.
+  // cy.session freezes localStorage (including the selected location) from the first login.
+  // Without caching, each test gets a fresh login that reads the actual current localStorage state.
+  cy.visit("/en/login");
 
-      cy.get('input[name="email"]:visible', { timeout: 20000 })
-        .should("be.visible")
-        .first()
-        .clear()
-        .type(email);
-      cy.get('input[name="password"]:visible')
-        .should("be.visible")
-        .first()
-        .clear()
-        .type(password, { log: false });
+  cy.get('input[name="email"]:visible', { timeout: 20000 })
+    .should("be.visible")
+    .first()
+    .clear()
+    .type(email);
+  cy.get('input[name="password"]:visible')
+    .should("be.visible")
+    .first()
+    .clear()
+    .type(password, { log: false });
 
-      cy.get('button[type="submit"]:visible')
-        .should("be.enabled")
-        .first()
-        .click();
+  cy.get('button[type="submit"]:visible')
+    .should("be.enabled")
+    .first()
+    .click();
 
-      cy.location("pathname", { timeout: 60000 }).should((pathname) => {
-        expect(pathname.toLowerCase()).to.not.match(
-          /\/(?:[a-z]{2}\/)?login\/?$/,
-        );
-      });
-    },
-    {
-      cacheAcrossSpecs: false,
-      validate: () => {
-        cy.visit("/en/pos/sales/patients");
-        cy.location("pathname", { timeout: 60000 }).should(
-          "include",
-          "/pos/sales/patients",
-        );
-      },
-    },
-  );
+  cy.location("pathname", { timeout: 60000 }).should((pathname) => {
+    expect(pathname.toLowerCase()).to.not.match(
+      /\/(?:[a-z]{2}\/)?login\/?$/,
+    );
+  });
 });
 
 declare global {

@@ -359,7 +359,7 @@ describe("POS Sales — Cart & Discount Features", () => {
       cy.contains("h1", /Discount Used %/i).parent().find("button").contains("Add").click();
 
       // Modal appears with input placeholder "Enter Discount %, (0 - 100)"
-      cy.get('input[placeholder="Enter Discount %, (0 - 100)"]').clear().type("10");
+      cy.get('input[placeholder="Enter % of discount"]').clear().type("10");
       cy.contains("button", "Apply").click();
       cy.wait(500);
 
@@ -382,7 +382,7 @@ describe("POS Sales — Cart & Discount Features", () => {
     getCartRowValue("Product Total After Discount").then((originalTotal) => {
       // Apply 20% discount via modal
       cy.contains("h1", /Discount Used %/i).parent().find("button").contains("Add").click();
-      cy.get('input[placeholder="Enter Discount %, (0 - 100)"]').clear().type("20");
+      cy.get('input[placeholder="Enter % of discount"]').clear().type("20");
       cy.contains("button", "Apply").click();
       cy.wait(500);
 
@@ -410,7 +410,7 @@ describe("POS Sales — Cart & Discount Features", () => {
     cy.contains("button", /add discount/i).first().click();
 
     // Same modal as cart-level discount
-    cy.get('input[placeholder="Enter Discount %, (0 - 100)"]').clear().type("15");
+    cy.get('input[placeholder="Enter % of discount"]').clear().type("15");
     cy.contains("button", "Apply").click();
     cy.wait(500);
 
