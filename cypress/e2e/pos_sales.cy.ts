@@ -80,7 +80,7 @@ function fillAddPatientForm() {
 function selectSharedPatient() {
   cy.visit("/en/pos/sales/patients");
   cy.wait(1500);
-  selectLocation26();
+  // No location selection here — use whatever the app has active
 
   cy.get('input[placeholder*="search"]').clear().type(PATIENT.firstname);
   cy.wait(800);
