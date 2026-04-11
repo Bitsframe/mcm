@@ -98,8 +98,8 @@ function fillAddPatientForm() {
 }
 
 function selectSharedPatient() {
-  cy.visit("/en/pos/sales/patients");
-  cy.wait(1500);
+  // beforeEach already visits /en/pos/sales/patients and sets location 26
+  cy.wait(1000);
 
   // No search — just pick the first available patient from Today tab
   cy.get("body").then(($body) => {
@@ -238,6 +238,9 @@ describe("POS Sales Feature", () => {
   beforeEach(() => {
     cy.viewport(1280, 800);
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    // Set location 26 in localStorage before any test — same as Patients Feature
+    cy.visit("/en/pos/sales/patients");
+    setLocationInStorage(LOCATION_ID);
   });
 
   it("should complete a POS sale successfully", () => {
