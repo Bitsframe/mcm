@@ -1,13 +1,11 @@
 /// <reference types="cypress" />
 
-// POS Sales E2E Test — Location 26 (Clínica San Miguel Blanco) hardcoded for now
-// Dynamic location detection commented out until async/sync issues are resolved
+// POS Sales E2E Test
+// Location is read dynamically from the app's localStorage — no hardcoding.
+// Tests run against whatever clinic the logged-in user has selected.
 
 const TEST_EMAIL = "mackjmart@gmail.com";
 const TEST_PASSWORD = "Create123!";
-
-// ─── Active location (hardcoded for now — dynamic version commented below) ───
-const LOCATION_ID = 26;
 
 // ─── Shared patient — unique per run to always INSERT (never UPDATE) ──────────
 const RUN_ID = Date.now().toString().slice(-8);
@@ -29,7 +27,6 @@ const getPlaceOrderButton = () =>
   );
 
 function getCartRowValue(label: string) {
-  // Use exact text match to avoid "Patient Balance" matching when looking for "Balance"
   return cy.contains("h1", new RegExp(`^${label}$`)).parent().find("p")
     .invoke("text").then((txt) => parseFloat(txt.replace(/[^0-9.]/g, "")));
 }
@@ -39,50 +36,23 @@ function getCreditAvailable() {
     .invoke("text").then((txt) => parseFloat(txt.replace(/[^0-9.]/g, "")) || 0);
 }
 
-/*
- * DYNAMIC LOCATION — commented out until Cypress async/sync issue is resolved.
- * The problem: cy.log() inside .then() makes it async, but returning locationId
- * makes it sync — Cypress throws "mixing async and sync code".
- * Fix needed: remove cy.log() from inside the .then() or wrap return in cy.wrap().
- *
- * function getActiveLocationId(): Cypress.Chainable<number> {
- *   return cy.window().then((win) => {
- *     let locationId = 0;
- *     for (let i = 0; i < win.localStorage.length; i++) {
- *       const key = win.localStorage.key(i);
- *       if (key && key.startsWith("@location")) {
- *         locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
- *         break;
- *       }
- *     }
- *     return cy.wrap(locationId); // must return cy.wrap, not raw value
- *   });
- * }
+/**
+ * Reads the active location id from the app's localStorage.
+ * useLocationClinica stores it as @location_<userId> (or @location as fallback).
+ * Uses cy.wrap() as return value to avoid async/sync mixing error.
  */
-
-/** Set location in localStorage the same way useLocationClinica does */
-function setLocationInStorage(locationId: number) {
-  // useLocationClinica stores location as @location_<userId>
-  // We set both the generic key and any user-specific key pattern
-  cy.window().then((win) => {
-    // Find existing @location key and update it, or set the generic one
-    let found = false;
+function getActiveLocationId(): Cypress.Chainable<number> {
+  return cy.window().then((win) => {
+    let locationId = 0;
     for (let i = 0; i < win.localStorage.length; i++) {
       const key = win.localStorage.key(i);
       if (key && key.startsWith("@location")) {
-        win.localStorage.setItem(key, String(locationId));
-        found = true;
-        cy.log(`Set location ${locationId} on key: ${key}`);
+        const val = parseInt(win.localStorage.getItem(key) || "0", 10);
+        if (val > 0) { locationId = val; break; }
       }
     }
-    if (!found) {
-      win.localStorage.setItem("@location", String(locationId));
-      cy.log(`Set location ${locationId} on key: @location`);
-    }
+    return cy.wrap(locationId);
   });
-  // Reload so the app picks up the new location from localStorage
-  cy.reload();
-  cy.wait(1000);
 }
 
 function fillAddPatientForm() {
@@ -98,10 +68,9 @@ function fillAddPatientForm() {
 }
 
 function selectSharedPatient() {
-  // beforeEach already visits /en/pos/sales/patients and sets location 26
+  // beforeEach already visits /en/pos/sales/patients
   cy.wait(1000);
 
-  // No search — just pick the first available patient from Today tab
   cy.get("body").then(($body) => {
     const selectBtns = $body.find("button:visible").toArray()
       .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
@@ -109,7 +78,6 @@ function selectSharedPatient() {
     if (selectBtns.length > 0) {
       cy.wrap(selectBtns[0]).click({ force: true });
     } else {
-      // No patients in Today — try Past Records
       cy.contains("button", "Past records").click({ force: true });
       cy.wait(1000);
       cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
@@ -118,7 +86,6 @@ function selectSharedPatient() {
 
   cy.url().should("include", "/pos/sales");
   cy.contains("button", "Add Product").should("not.be.disabled");
-  cy.log("✅ Patient selected");
 }
 
 function addProductToCart(productName = "Vitamin B12", qty = 1) {
@@ -128,20 +95,14 @@ function addProductToCart(productName = "Vitamin B12", qty = 1) {
   cy.get('input[placeholder="Search product..."]').clear().type(productName);
   cy.contains(productName).should("be.visible");
 
-  cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((a) => {
-    cy.log(`Availability: ${a.trim()}`);
-  });
+  cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((a) => cy.log(`Availability: ${a.trim()}`));
 
   for (let i = 0; i < qty; i++) {
     cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
   }
 
-  cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((p) => {
-    cy.log(`Price/Unit: ${p.trim()}`);
-  });
-  cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((t) => {
-    cy.log(`Total Cost: ${t.trim()}`);
-  });
+  cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((p) => cy.log(`Price/Unit: ${p.trim()}`));
+  cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((t) => cy.log(`Total Cost: ${t.trim()}`));
 
   cy.contains("button", "Add to Cart").click({ force: true });
   cy.wait(300);
@@ -158,11 +119,9 @@ describe("POS Patients Feature", () => {
     cy.viewport(1280, 800);
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
     cy.visit("/en/pos/sales/patients");
-    setLocationInStorage(LOCATION_ID);
   });
 
   it("should add a patient from Today tab and select it", () => {
-    // Always create a new patient — RUN_ID guarantees unique email+phone every run
     cy.intercept("POST", "/api/user").as("createPatient");
 
     cy.contains("button", /add patient/i).click();
@@ -172,7 +131,6 @@ describe("POS Patients Feature", () => {
       cy.contains("button", /add patient|save|create/i).last().click({ force: true });
     });
 
-    // ── Verify API succeeded ──────────────────────────────────────────────
     cy.wait("@createPatient").then((interception) => {
       cy.log(`API status: ${interception.response?.statusCode}`);
       cy.log(`API body: ${JSON.stringify(interception.response?.body)}`);
@@ -180,29 +138,27 @@ describe("POS Patients Feature", () => {
       expect(interception.response?.body.success).to.eq(true);
     });
 
-    // ── Verify ALL fields in DB ───────────────────────────────────────────
-    cy.task("waitForPatientInDB", { email: PATIENT.email, maxAttempts: 15, intervalMs: 2000 })
-      .then((patient) => {
-        expect(patient).to.not.be.null;
-        cy.log(`✅ DB record: ${JSON.stringify(patient)}`);
-        const p = patient as Record<string, unknown>;
-        expect(p.firstname).to.eq(PATIENT.firstname);
-        expect(p.lastname).to.eq(PATIENT.lastname);
-        expect(p.email).to.eq(PATIENT.email);
-        expect(String(p.phone)).to.include(PATIENT.phone.replace(/\D/g, "").slice(-10));
-        expect(p.gender).to.eq(PATIENT.gender);
-        expect(p.locationid).to.eq(LOCATION_ID);
-        expect(p.onsite).to.eq(true);
-        cy.log(`address in DB: ${p.address}`);
-        cy.log(`dob in DB: ${p.dob}`);
-      });
+    // Verify ALL fields in DB using the active location from localStorage
+    getActiveLocationId().then((activeLocId) => {
+      cy.task("waitForPatientInDB", { email: PATIENT.email, maxAttempts: 15, intervalMs: 2000 })
+        .then((patient) => {
+          expect(patient).to.not.be.null;
+          cy.log(`✅ DB record: ${JSON.stringify(patient)}`);
+          const p = patient as Record<string, unknown>;
+          expect(p.firstname).to.eq(PATIENT.firstname);
+          expect(p.lastname).to.eq(PATIENT.lastname);
+          expect(p.email).to.eq(PATIENT.email);
+          expect(String(p.phone)).to.include(PATIENT.phone.replace(/\D/g, "").slice(-10));
+          expect(p.gender).to.eq(PATIENT.gender);
+          expect(p.onsite).to.eq(true);
+          if (activeLocId > 0) expect(p.locationid).to.eq(activeLocId);
+          cy.log(`locationid in DB: ${p.locationid}, address: ${p.address}, dob: ${p.dob}`);
+        });
+    });
 
-    // ── Wait for patient row in Today tab ────────────────────────────────
-    // After creation fetch_handle() re-fetches — wait for Select button to appear
     cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
     cy.url().should("include", "/pos/sales");
-    // Patient Details heading may be in a responsive container — use exist not be.visible
     cy.contains(/patients details/i).should("exist");
     cy.contains(PATIENT.email).should("exist");
     cy.contains(PATIENT.firstname).should("exist");
@@ -212,22 +168,20 @@ describe("POS Patients Feature", () => {
     cy.contains("button", "Past records").click();
     cy.wait(1500);
 
-    // No search — just wait for rows to appear and select the first one
-    cy.task("getPatientsCountByLocation", { locationid: LOCATION_ID }).then((count) => {
-      cy.log(`Patients in DB for location ${LOCATION_ID}: ${count}`);
+    getActiveLocationId().then((activeLocId) => {
+      cy.task("getPatientsCountByLocation", { locationid: activeLocId }).then((count) => {
+        cy.log(`Patients in DB for location ${activeLocId}: ${count}`);
 
-      if ((count as number) === 0) {
-        cy.log("✅ No patients in DB for this location — empty Past Records is expected.");
-        return;
-      }
+        if ((count as number) === 0) {
+          cy.log("✅ No patients in DB for this location — empty Past Records is expected.");
+          return;
+        }
 
-      // DB has patients — must appear on screen
-      // Past Records uses CSS Grid divs, NOT a <table> element
-      cy.get(".grid.grid-cols-6.gap-4.py-4").should("have.length.greaterThan", 0);
-      cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
-      cy.url().should("include", "/pos/sales");
-      // Use exist instead of be.visible — element may be in a hidden responsive container
-      cy.contains(/patients details/i).should("exist");
+        cy.get(".grid.grid-cols-6.gap-4.py-4").should("have.length.greaterThan", 0);
+        cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
+        cy.url().should("include", "/pos/sales");
+        cy.contains(/patients details/i).should("exist");
+      });
     });
   });
 });
@@ -238,9 +192,7 @@ describe("POS Sales Feature", () => {
   beforeEach(() => {
     cy.viewport(1280, 800);
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
-    // Set location 26 in localStorage before any test — same as Patients Feature
     cy.visit("/en/pos/sales/patients");
-    setLocationInStorage(LOCATION_ID);
   });
 
   it("should complete a POS sale successfully", () => {
@@ -248,38 +200,28 @@ describe("POS Sales Feature", () => {
     addProductToCart("Vitamin B12", 1);
 
     getCartRowValue("Product Total After Discount").then((cartTotal) => {
-      cy.log(`cartTotal: ${cartTotal}`);
-
       getCartRowValue("Patient Balance").then((creditAmount) => {
-        cy.log(`creditAmount: ${creditAmount}`);
-
         getCartRowValue("Sub total").then((subTotal) => {
           expect(subTotal).to.be.closeTo(cartTotal + creditAmount, 0.01);
         });
 
         const cash = cartTotal.toFixed(2);
         cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cash, { force: true });
-
-        // Wait for React to re-render after input
         cy.wait(500);
 
         getCartRowValue("Balance").then((creditUsed) => {
-          cy.log(`creditUsed after full cash: ${creditUsed}`);
           expect(creditUsed).to.equal(0);
         });
 
         getCartRowValue("Total Paid").then((totalPaid) => {
-          cy.log(`totalPaid: ${totalPaid}`);
           expect(totalPaid).to.be.closeTo(cartTotal, 0.01);
         });
 
-        getPlaceOrderButton()
-          .should("not.be.disabled")
-          .within(() => {
-            cy.get("span.font-medium").invoke("text").then((btnTxt) => {
-              expect(parseFloat(btnTxt.replace(/[^0-9.]/g, ""))).to.be.closeTo(cartTotal, 0.01);
-            });
+        getPlaceOrderButton().should("not.be.disabled").within(() => {
+          cy.get("span.font-medium").invoke("text").then((btnTxt) => {
+            expect(parseFloat(btnTxt.replace(/[^0-9.]/g, ""))).to.be.closeTo(cartTotal, 0.01);
           });
+        });
 
         getPlaceOrderButton().click({ force: true });
       });
@@ -289,53 +231,28 @@ describe("POS Sales Feature", () => {
   });
 
   it("should correctly calculate credit used when partial cash is entered", () => {
-    // ── Explanation of Balance = 0 issue ─────────────────────────────────
-    // The app calculates creditUsed as:
-    //   creditUsed = max(0, min(cartTotal - paid, locationBalance))
-    // If locationBalance = 0 (location 26 has no credit limit set),
-    // then creditUsed = max(0, min(anything, 0)) = 0 always.
-    // So Balance row will always show 0 when location has no credit balance.
-    // This test verifies the calculation is correct given the actual location balance.
-
     selectSharedPatient();
     addProductToCart("Vitamin B12", 1);
 
     getCartRowValue("Product Total After Discount").then((cartTotal) => {
-      cy.log(`cartTotal: ${cartTotal}`);
-
       getCreditAvailable().then((locationBalance) => {
-        cy.log(`locationBalance (Credit Available): ${locationBalance}`);
-
         const partialCash = parseFloat((cartTotal / 2).toFixed(2));
-        cy.log(`Entering partial cash: ${partialCash}`);
-
-        cy.get('input[placeholder="0.00"]').first()
-          .clear({ force: true })
-          .type(String(partialCash), { force: true });
-
-        // Wait for React to re-render
+        cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(String(partialCash), { force: true });
         cy.wait(500);
 
         const creditNeeded = parseFloat((cartTotal - partialCash).toFixed(2));
-        // creditUsed = max(0, min(creditNeeded, locationBalance))
         const expectedCreditUsed = parseFloat(Math.min(creditNeeded, locationBalance).toFixed(2));
         const expectedBalanceLimit = parseFloat(Math.max(0, locationBalance - expectedCreditUsed).toFixed(2));
 
-        cy.log(`creditNeeded: ${creditNeeded}, expectedCreditUsed: ${expectedCreditUsed}`);
-
-        // If locationBalance = 0, creditUsed will always be 0 — that is correct behaviour
         getCartRowValue("Balance").then((displayed) => {
-          cy.log(`Displayed Balance (creditUsed): ${displayed}`);
           expect(displayed).to.be.closeTo(expectedCreditUsed, 0.01);
         });
 
         getCreditAvailable().then((updated) => {
-          cy.log(`Updated Credit Available: ${updated}`);
           expect(updated).to.be.closeTo(expectedBalanceLimit, 0.01);
         });
 
         getCartRowValue("Total Paid").then((totalPaid) => {
-          cy.log(`Total Paid: ${totalPaid}`);
           expect(totalPaid).to.be.closeTo(partialCash, 0.01);
         });
 
@@ -343,7 +260,6 @@ describe("POS Sales Feature", () => {
           getPlaceOrderButton().should("not.be.disabled").click({ force: true });
           cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
         } else {
-          cy.log("Location balance insufficient — Place Order should be disabled");
           getPlaceOrderButton().should("be.disabled");
         }
       });
@@ -365,7 +281,6 @@ describe("POS Sales Feature", () => {
   it("should not allow placing order when totalPaid is zero and no credit covers the cart", () => {
     selectSharedPatient();
     addProductToCart("Vitamin B12", 1);
-    // Initial state: nothing typed → userStartedPaying=false → creditUsed=0, totalPaid=0 → disabled
     getPlaceOrderButton().should("be.disabled");
   });
 
@@ -375,8 +290,6 @@ describe("POS Sales Feature", () => {
 
     getCartRowValue("Product Total After Discount").then((cartTotal) => {
       getCreditAvailable().then((locationBalance) => {
-        cy.log(`cartTotal: ${cartTotal}, locationBalance: ${locationBalance}`);
-
         if (cartTotal > locationBalance) {
           cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type("0.01", { force: true });
           cy.wait(300);
@@ -387,6 +300,217 @@ describe("POS Sales Feature", () => {
           getPlaceOrderButton().should("exist");
         }
       });
+    });
+  });
+});
+
+// ─── POS Sales — Additional Feature Tests ────────────────────────────────────
+
+describe("POS Sales — Cart & Discount Features", () => {
+  beforeEach(() => {
+    cy.viewport(1280, 800);
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit("/en/pos/sales/patients");
+  });
+
+  it("should apply a cart-level discount and recalculate totals", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    getCartRowValue("Product Total After Discount").then((originalTotal) => {
+      cy.contains("h1", /Discount %/i).parent().find("button").contains("Add").click();
+      cy.get('input[placeholder="Enter % of discount"]').clear().type("10");
+      cy.contains("button", "Apply").click();
+      cy.wait(500);
+
+      getCartRowValue("Product Total After Discount").then((afterDiscount) => {
+        expect(afterDiscount).to.be.closeTo(originalTotal * 0.9, 0.01);
+      });
+
+      cy.contains("h1", /Discount %/i).parent().find("p").invoke("text").then((discTxt) => {
+        expect(discTxt).to.include("10");
+      });
+    });
+  });
+
+  it("should remove a cart-level discount and restore original total", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    getCartRowValue("Product Total After Discount").then((originalTotal) => {
+      cy.contains("h1", /Discount %/i).parent().find("button").contains("Add").click();
+      cy.get('input[placeholder="Enter % of discount"]').clear().type("20");
+      cy.contains("button", "Apply").click();
+      cy.wait(500);
+
+      cy.contains("h1", /Discount %/i).parent().find("button").contains("X").click();
+      cy.wait(500);
+
+      getCartRowValue("Product Total After Discount").then((restored) => {
+        expect(restored).to.be.closeTo(originalTotal, 0.01);
+      });
+    });
+  });
+
+  it("should apply a per-item discount on a cart product", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.contains("button", /add discount/i).first().click();
+    cy.get('input[placeholder*="discount"]').last().clear().type("15");
+    cy.contains("button", "Apply").click();
+    cy.wait(500);
+
+    cy.contains("15% off").should("exist");
+  });
+
+  it("should apply card payment and enable place order", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.contains("span", /^Card$/i).parent().find('input[type="checkbox"]').click({ force: true });
+    cy.wait(300);
+    cy.contains("span", /^Cash$/i).parent().find('input[type="checkbox"]').click({ force: true });
+    cy.wait(300);
+
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cartTotal.toFixed(2), { force: true });
+      cy.wait(500);
+      getPlaceOrderButton().should("not.be.disabled");
+    });
+  });
+
+  it("should apply Zelle payment and enable place order", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.contains("span", "Zelle").parent().find('input[type="checkbox"]').click({ force: true });
+    cy.wait(300);
+    cy.contains("span", /^Cash$/i).parent().find('input[type="checkbox"]').click({ force: true });
+    cy.wait(300);
+
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cartTotal.toFixed(2), { force: true });
+      cy.wait(500);
+      getPlaceOrderButton().should("not.be.disabled");
+    });
+  });
+
+  it("should split payment between cash and card", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.contains("span", /^Card$/i).parent().find('input[type="checkbox"]').click({ force: true });
+    cy.wait(300);
+
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      const half = parseFloat((cartTotal / 2).toFixed(2));
+      cy.get('input[placeholder="0.00"]').eq(0).clear({ force: true }).type(String(half), { force: true });
+      cy.get('input[placeholder="0.00"]').eq(1).clear({ force: true }).type(String(half), { force: true });
+      cy.wait(500);
+
+      getCartRowValue("Total Paid").then((totalPaid) => {
+        expect(totalPaid).to.be.closeTo(cartTotal, 0.02);
+      });
+
+      getPlaceOrderButton().should("not.be.disabled");
+    });
+  });
+
+  it("should show error toast for invalid promo code", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.get('input[placeholder*="promo" i], input[placeholder*="code" i]').first()
+      .clear().type("INVALIDCODE123");
+    cy.contains("button", /apply/i).first().click();
+    cy.contains(/expired|invalid|promo/i).should("exist");
+  });
+
+  it("should show error toast for expired promo code", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.get('input[placeholder*="promo" i], input[placeholder*="code" i]').first()
+      .clear().type("FBK3QE8QP");
+    cy.contains("button", /apply/i).first().click();
+    cy.contains(/expired|invalid/i).should("exist");
+    cy.contains("NILL").should("exist");
+  });
+
+  it("should add multiple products to cart and show combined total", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    getCartRowValue("Product Total After Discount").then((firstTotal) => {
+      addProductToCart("Vitamin B12", 2);
+
+      getCartRowValue("Product Total After Discount").then((combinedTotal) => {
+        expect(combinedTotal).to.be.greaterThan(firstTotal);
+      });
+    });
+  });
+
+  it("should remove a product from cart and update total", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.get(".bg-\\[\\#F1F4F9\\]").first().find("button").last().click();
+    cy.wait(300);
+
+    getPlaceOrderButton().should("be.disabled");
+    getCartRowValue("Product Total After Discount").then((afterRemove) => {
+      expect(afterRemove).to.equal(0);
+    });
+  });
+
+  it("should increase product quantity in cart and update total", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    getCartRowValue("Product Total After Discount").then((singleQtyTotal) => {
+      cy.get(".bg-\\[\\#F1F4F9\\]").first().find("button").first().click();
+      cy.wait(300);
+
+      getCartRowValue("Product Total After Discount").then((doubleQtyTotal) => {
+        expect(doubleQtyTotal).to.be.closeTo(singleQtyTotal * 2, 0.01);
+      });
+    });
+  });
+
+  it("should clear cart and patient after successful order", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cartTotal.toFixed(2), { force: true });
+      cy.wait(500);
+      getPlaceOrderButton().should("not.be.disabled").click({ force: true });
+    });
+
+    cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
+    getPlaceOrderButton().should("be.disabled");
+    cy.contains(/No Selected Patient/i).should("exist");
+  });
+
+  it("should verify order is recorded in DB after successful placement", () => {
+    selectSharedPatient();
+    addProductToCart("Vitamin B12", 1);
+
+    cy.intercept("POST", "/api/orders").as("placeOrder");
+
+    getCartRowValue("Product Total After Discount").then((cartTotal) => {
+      cy.get('input[placeholder="0.00"]').first().clear({ force: true }).type(cartTotal.toFixed(2), { force: true });
+      cy.wait(500);
+      getPlaceOrderButton().should("not.be.disabled").click({ force: true });
+    });
+
+    cy.wait("@placeOrder").then((interception) => {
+      expect(interception.response?.statusCode).to.eq(200);
+      expect(interception.response?.body.success).to.eq(true);
+      const orderId = interception.response?.body.order_id;
+      expect(orderId).to.be.a("number");
+      cy.contains(new RegExp(`Order has been placed, order # ${orderId}`, "i")).should("exist");
     });
   });
 });
