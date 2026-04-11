@@ -72,15 +72,43 @@ function selectSharedPatient() {
   cy.wait(1000);
 
   cy.get("body").then(($body) => {
-    const selectBtns = $body.find("button:visible").toArray()
+    const todayBtns = $body.find("button:visible").toArray()
       .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
 
-    if (selectBtns.length > 0) {
-      cy.wrap(selectBtns[0]).click({ force: true });
+    if (todayBtns.length > 0) {
+      // Today tab has patients — select first
+      cy.wrap(todayBtns[0]).click({ force: true });
     } else {
+      // Check Past Records
       cy.contains("button", "Past records").click({ force: true });
       cy.wait(1000);
-      cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
+
+      cy.get("body").then(($body2) => {
+        const pastBtns = $body2.find("button:visible").toArray()
+          .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
+
+        if (pastBtns.length > 0) {
+          // Past Records has patients — select first
+          cy.wrap(pastBtns[0]).click({ force: true });
+        } else {
+          // No patients anywhere — create one, wait for it in Today tab
+          cy.log("No patients found — creating a new patient");
+          cy.contains("button", "Today").click({ force: true });
+          cy.wait(500);
+
+          cy.intercept("POST", "/api/user").as("createPatientForSales");
+          cy.contains("button", /add patient/i).click();
+          fillAddPatientForm();
+          cy.get('[role="dialog"]').within(() => {
+            cy.contains("button", /add patient|save|create/i).last().click({ force: true });
+          });
+          cy.wait("@createPatientForSales");
+          cy.wait(1000);
+          // Wait for the new patient row to appear
+          cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
+            .first().click({ force: true });
+        }
+      });
     }
   });
 
@@ -173,14 +201,23 @@ describe("POS Patients Feature", () => {
         cy.log(`Patients in DB for location ${activeLocId}: ${count}`);
 
         if ((count as number) === 0) {
-          cy.log("✅ No patients in DB for this location — empty Past Records is expected.");
+          // No patients for this location — this is valid, test passes
+          cy.log("✅ No patients in DB for this location — empty Past Records is correct. Test passes.");
           return;
         }
 
-        cy.get(".grid.grid-cols-6.gap-4.py-4").should("have.length.greaterThan", 0);
-        cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
-        cy.url().should("include", "/pos/sales");
-        cy.contains(/patients details/i).should("exist");
+        // DB has patients — UI must show them
+        cy.get(".grid.grid-cols-6.gap-4.py-4").then(($rows) => {
+          if ($rows.length === 0) {
+            // Rows not visible yet — could be loading
+            cy.log("⚠️ DB has patients but no rows visible yet — waiting...");
+            cy.get(".grid.grid-cols-6.gap-4.py-4", { timeout: 30000 })
+              .should("have.length.greaterThan", 0);
+          }
+          cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
+          cy.url().should("include", "/pos/sales");
+          cy.contains(/patients details/i).should("exist");
+        });
       });
     });
   });
@@ -318,7 +355,7 @@ describe("POS Sales — Cart & Discount Features", () => {
     addProductToCart("Vitamin B12", 1);
 
     getCartRowValue("Product Total After Discount").then((originalTotal) => {
-      cy.contains("h1", /Discount %/i).parent().find("button").contains("Add").click();
+      cy.contains("h1", /Discount Used %/i).parent().find("button").contains("Add").click();
       cy.get('input[placeholder="Enter % of discount"]').clear().type("10");
       cy.contains("button", "Apply").click();
       cy.wait(500);
@@ -327,7 +364,7 @@ describe("POS Sales — Cart & Discount Features", () => {
         expect(afterDiscount).to.be.closeTo(originalTotal * 0.9, 0.01);
       });
 
-      cy.contains("h1", /Discount %/i).parent().find("p").invoke("text").then((discTxt) => {
+      cy.contains("h1", /Discount Used %/i).parent().find("p").invoke("text").then((discTxt) => {
         expect(discTxt).to.include("10");
       });
     });
@@ -338,12 +375,12 @@ describe("POS Sales — Cart & Discount Features", () => {
     addProductToCart("Vitamin B12", 1);
 
     getCartRowValue("Product Total After Discount").then((originalTotal) => {
-      cy.contains("h1", /Discount %/i).parent().find("button").contains("Add").click();
+      cy.contains("h1", /Discount Used %/i).parent().find("button").contains("Add").click();
       cy.get('input[placeholder="Enter % of discount"]').clear().type("20");
       cy.contains("button", "Apply").click();
       cy.wait(500);
 
-      cy.contains("h1", /Discount %/i).parent().find("button").contains("X").click();
+      cy.contains("h1", /Discount Used %/i).parent().find("button").contains("X").click();
       cy.wait(500);
 
       getCartRowValue("Product Total After Discount").then((restored) => {
@@ -421,9 +458,8 @@ describe("POS Sales — Cart & Discount Features", () => {
     selectSharedPatient();
     addProductToCart("Vitamin B12", 1);
 
-    cy.get('input[placeholder*="promo" i], input[placeholder*="code" i]').first()
-      .clear().type("INVALIDCODE123");
-    cy.contains("button", /apply/i).first().click();
+    cy.get('input[placeholder="Promo Code"]').clear().type("INVALIDCODE123");
+    cy.contains("button", "Apply").click();
     cy.contains(/expired|invalid|promo/i).should("exist");
   });
 
@@ -431,9 +467,9 @@ describe("POS Sales — Cart & Discount Features", () => {
     selectSharedPatient();
     addProductToCart("Vitamin B12", 1);
 
-    cy.get('input[placeholder*="promo" i], input[placeholder*="code" i]').first()
-      .clear().type("FBK3QE8QP");
-    cy.contains("button", /apply/i).first().click();
+    // FBK3QE8QP is expired (expiry: 2025-07-14)
+    cy.get('input[placeholder="Promo Code"]').clear().type("FBK3QE8QP");
+    cy.contains("button", "Apply").click();
     cy.contains(/expired|invalid/i).should("exist");
     cy.contains("NILL").should("exist");
   });
