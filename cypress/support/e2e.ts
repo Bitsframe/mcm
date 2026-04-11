@@ -7,6 +7,10 @@ declare global {
         event: "waitForPatientInDB",
         arg: { email: string; maxAttempts?: number; intervalMs?: number },
       ): Chainable<Record<string, unknown> | null>;
+      task(
+        event: "getPatientsCountByLocation",
+        arg: { locationid: number },
+      ): Chainable<number>;
     }
   }
 }

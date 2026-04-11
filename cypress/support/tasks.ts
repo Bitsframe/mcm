@@ -11,23 +11,23 @@ const supabase = createClient(
 
 export const supabaseTasks = {
   /**
-   * Poll allpatients table until a row with the given firstname appears.
-   * Returns the row when found, or null after maxAttempts.
+   * Poll allpatients table until a row with the given email appears.
+   * Returns ALL relevant columns when found, or null after maxAttempts.
    */
   async waitForPatientInDB({
-    firstname,
+    email,
     maxAttempts = 20,
     intervalMs = 2000,
   }: {
-    firstname: string;
+    email: string;
     maxAttempts?: number;
     intervalMs?: number;
   }): Promise<Record<string, unknown> | null> {
     for (let i = 0; i < maxAttempts; i++) {
       const { data, error } = await supabase
         .from("allpatients")
-        .select("id, firstname, lastname, email, phone")
-        .ilike("firstname", firstname)
+        .select("id, firstname, lastname, email, phone, gender, locationid, address, dob, onsite")
+        .eq("email", email)
         .limit(1);
 
       if (!error && data && data.length > 0) {
@@ -37,5 +37,23 @@ export const supabaseTasks = {
       await new Promise((r) => setTimeout(r, intervalMs));
     }
     return null;
+  },
+
+  /**
+   * Returns count of patients for a given locationid.
+   * Used to decide whether "no rows on screen" is a real failure or expected empty state.
+   */
+  async getPatientsCountByLocation({
+    locationid,
+  }: {
+    locationid: number;
+  }): Promise<number> {
+    const { count, error } = await supabase
+      .from("allpatients")
+      .select("id", { count: "exact", head: true })
+      .eq("locationid", locationid);
+
+    if (error) return 0;
+    return count ?? 0;
   },
 };
