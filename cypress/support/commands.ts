@@ -80,6 +80,7 @@ Cypress.Commands.add("loginWithCredentials", (email: string, password: string) =
       });
     },
     {
+      cacheAcrossSpecs: false,
       validate: () => {
         cy.visit("/en/pos/sales/patients");
         cy.location("pathname", { timeout: 60000 }).should(
