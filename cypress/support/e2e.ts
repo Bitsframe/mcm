@@ -5,7 +5,7 @@ declare global {
     interface Chainable {
       task(
         event: "waitForPatientInDB",
-        arg: { firstname: string; maxAttempts?: number; intervalMs?: number },
+        arg: { email: string; maxAttempts?: number; intervalMs?: number },
       ): Chainable<Record<string, unknown> | null>;
     }
   }

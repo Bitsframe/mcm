@@ -8,10 +8,14 @@ const TEST_EMAIL = "mackjmart@gmail.com";
 const TEST_PASSWORD = "Create123!";
 
 // ─── Shared patient data ──────────────────────────────────────────────────────
+// Use timestamp-based unique values so the API always INSERTs (never updates)
+// The /api/user route upserts on email OR phone match — unique values prevent that
+const RUN_ID = Date.now().toString().slice(-8);
 const PATIENT = {
   firstname: "Alaina",
   lastname: "Ali",
-  email: "aa@gmail.com",
+  email: `alaina.ali.${RUN_ID}@testcypress.com`,
+  phone: `555${RUN_ID}`.slice(0, 10), // unique 10-digit phone
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -62,7 +66,7 @@ function fillAddPatientForm() {
 
     // phone — react-phone-input-2 renders <input class="form-control">
     // It prepends +1 automatically, so just type the 10-digit number
-    cy.get("input.form-control").clear().type("3055551212");
+    cy.get("input.form-control").clear().type(PATIENT.phone);
 
     // address — plain native input
     cy.get('input[placeholder="Enter street address"]').clear().type("123 Main St");
@@ -187,7 +191,7 @@ describe("POS Patients Feature", () => {
 
         // ── Verify via Supabase task that record is in DB ─────────────────
         cy.task("waitForPatientInDB", {
-          firstname: PATIENT.firstname,
+          email: PATIENT.email,
           maxAttempts: 15,
           intervalMs: 2000,
         }).then((patient) => {
