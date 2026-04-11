@@ -59,9 +59,28 @@ function getCreditAvailable() {
  * }
  */
 
-/** Select location 26 in the location dropdown */
-function selectLocation26() {
-  cy.get("select#locations").select(String(LOCATION_ID), { force: true });
+/** Set location in localStorage the same way useLocationClinica does */
+function setLocationInStorage(locationId: number) {
+  // useLocationClinica stores location as @location_<userId>
+  // We set both the generic key and any user-specific key pattern
+  cy.window().then((win) => {
+    // Find existing @location key and update it, or set the generic one
+    let found = false;
+    for (let i = 0; i < win.localStorage.length; i++) {
+      const key = win.localStorage.key(i);
+      if (key && key.startsWith("@location")) {
+        win.localStorage.setItem(key, String(locationId));
+        found = true;
+        cy.log(`Set location ${locationId} on key: ${key}`);
+      }
+    }
+    if (!found) {
+      win.localStorage.setItem("@location", String(locationId));
+      cy.log(`Set location ${locationId} on key: @location`);
+    }
+  });
+  // Reload so the app picks up the new location from localStorage
+  cy.reload();
   cy.wait(1000);
 }
 
@@ -142,7 +161,7 @@ describe("POS Patients Feature", () => {
     cy.viewport(1280, 800);
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
     cy.visit("/en/pos/sales/patients");
-    selectLocation26();
+    setLocationInStorage(LOCATION_ID);
   });
 
   it("should add a patient from Today tab and select it", () => {
