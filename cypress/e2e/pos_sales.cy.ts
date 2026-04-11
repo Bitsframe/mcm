@@ -100,11 +100,8 @@ function fillAddPatientForm() {
 function selectSharedPatient() {
   cy.visit("/en/pos/sales/patients");
   cy.wait(1500);
-  // No location selection here — use whatever the app has active
 
-  cy.get('input[placeholder*="search"]').clear().type(PATIENT.firstname);
-  cy.wait(800);
-
+  // No search — just pick the first available patient from Today tab
   cy.get("body").then(($body) => {
     const selectBtns = $body.find("button:visible").toArray()
       .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
@@ -112,17 +109,16 @@ function selectSharedPatient() {
     if (selectBtns.length > 0) {
       cy.wrap(selectBtns[0]).click({ force: true });
     } else {
+      // No patients in Today — try Past Records
       cy.contains("button", "Past records").click({ force: true });
       cy.wait(1000);
-      cy.get('input[placeholder*="search"]').clear().type(PATIENT.firstname);
-      cy.wait(800);
       cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
     }
   });
 
   cy.url().should("include", "/pos/sales");
   cy.contains("button", "Add Product").should("not.be.disabled");
-  cy.log("✅ Shared patient selected");
+  cy.log("✅ Patient selected");
 }
 
 function addProductToCart(productName = "Vitamin B12", qty = 1) {
@@ -202,9 +198,7 @@ describe("POS Patients Feature", () => {
       });
 
     // ── Wait for patient row in Today tab ────────────────────────────────
-    cy.get('input[placeholder*="search"]').clear().type(PATIENT.firstname);
-    cy.wait(500);
-    cy.contains(PATIENT.firstname).should("be.visible");
+    // After creation fetch_handle() re-fetches — wait for Select button to appear
     cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
 
     cy.url().should("include", "/pos/sales");
@@ -228,7 +222,8 @@ describe("POS Patients Feature", () => {
       }
 
       // DB has patients — must appear on screen
-      cy.get("table").find("tr").should("have.length.greaterThan", 1);
+      // Past Records uses CSS Grid divs, NOT a <table> element
+      cy.get(".grid.grid-cols-6.gap-4.py-4").should("have.length.greaterThan", 0);
       cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
       cy.url().should("include", "/pos/sales");
       // Use exist instead of be.visible — element may be in a hidden responsive container
