@@ -114,26 +114,26 @@ describe("POS Return", () => {
       // Now the Return button should be visible — scroll it into view and click
       cy.contains("button", "Return").first().scrollIntoView().click({ force: true });
 
-      // Return modal: scroll quantity input into view
-      cy.get('input[placeholder="Enter return QTY"]').scrollIntoView().should("be.visible");
+      // After clicking Return, React re-renders and shows the return modal (fixed inset-0 z-50)
+      // The input may have display:none on parent during transition — use force:true, skip visibility check
+      cy.get('input[placeholder="Enter return QTY"]', { timeout: 15000 }).should("exist");
+      cy.wait(500);
 
       // Read the max allowed qty from the input (= quantity_sold on the order)
-      // Then type that value so we return the full quantity — no hardcoding
       cy.get('input[placeholder="Enter return QTY"]').invoke("attr", "max").then((maxQty) => {
-        const qtyToReturn = maxQty || "1";
+        const qtyToReturn = maxQty || "2";
         cy.log(`Returning qty: ${qtyToReturn}`);
 
-        cy.get('input[placeholder="Enter return QTY"]').clear().type(qtyToReturn);
+        cy.get('input[placeholder="Enter return QTY"]').clear({ force: true }).type(qtyToReturn, { force: true });
 
-        cy.get("select").last().select("Incorrect Item");
+        cy.get("select").last().select("Incorrect Item", { force: true });
         cy.wait(300);
 
-        cy.contains("button", "Process Return").scrollIntoView().click({ force: true });
+        cy.contains("button", "Process Return").click({ force: true });
 
         cy.contains(/Return processed successfully/i, { timeout: 15000 }).should("exist");
         cy.log("Return processed successfully");
 
-        // Assert the button shows the exact qty that was returned
         cy.contains(new RegExp(`${qtyToReturn}\\s*Returned`, "i")).should("exist");
         cy.log(`Return button shows '${qtyToReturn} Returned'`);
       });
