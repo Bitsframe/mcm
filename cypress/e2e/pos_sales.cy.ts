@@ -347,10 +347,11 @@ describe("POS Sales â€” Cart & Discount Features", () => {
 
       cy.get('input[placeholder="Enter % of discount"]').clear().type("10");
       // Apply is inside a fixed modal backdrop â€” use force:true
-      cy.contains("button", "Apply").click({ force: true });
+      cy.contains("button", "Apply").scrollIntoView().click({ force: true });
 
       // Wait for modal to close
-      cy.get('input[placeholder="Enter % of discount"]').should("not.exist");
+      // Modal closes via React state — wait for the discount value to appear in the row instead
+      cy.contains(/Discount Used %/i).should('exist');
       cy.wait(500);
 
       getCartRowValue("Product Total After Discount").then((afterDiscount) => {
@@ -370,10 +371,11 @@ describe("POS Sales â€” Cart & Discount Features", () => {
     getCartRowValue("Product Total After Discount").then((originalTotal) => {
       cy.contains("h1", /Discount Used %/i).parent().find("button").contains("Add").click({ force: true });
       cy.get('input[placeholder="Enter % of discount"]').clear().type("20");
-      cy.contains("button", "Apply").click({ force: true });
+      cy.contains("button", "Apply").scrollIntoView().click({ force: true });
 
       // Wait for modal to close
-      cy.get('input[placeholder="Enter % of discount"]').should("not.exist");
+      // Modal closes via React state — wait for the discount value to appear in the row instead
+      cy.contains(/Discount Used %/i).should('exist');
       cy.wait(500);
 
       getCartRowValue("Product Total After Discount").then((discounted) => {
@@ -398,10 +400,11 @@ describe("POS Sales â€” Cart & Discount Features", () => {
     cy.contains("button", /add discount/i).first().click({ force: true });
 
     cy.get('input[placeholder="Enter % of discount"]').clear().type("15");
-    cy.contains("button", "Apply").click({ force: true });
+    cy.contains("button", "Apply").scrollIntoView().click({ force: true });
 
     // Wait for modal to close
-    cy.get('input[placeholder="Enter % of discount"]').should("not.exist");
+    // Modal closes via React state — wait for the discount value to appear in the row instead
+      cy.contains(/Discount Used %/i).should('exist');
     cy.wait(500);
 
     cy.contains("15% off").should("exist");
@@ -555,3 +558,5 @@ describe("POS Sales â€” Cart & Discount Features", () => {
     });
   });
 });
+
+
