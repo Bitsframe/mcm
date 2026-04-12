@@ -53,6 +53,25 @@ export const supabaseTasks = {
     if (error) return false;
     return !!(data && data.length > 0);
   },
+
+  /**
+   * Check if a return record exists for a given sales_id (sales_history_id).
+   * Returns the return record or null.
+   */
+  async getReturnBySalesId({
+    salesId,
+  }: {
+    salesId: number;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("returns")
+      .select("return_id, quantity, reason, merge, sales_id, inventory_id")
+      .eq("sales_id", salesId)
+      .limit(1);
+
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
   /**
    * Returns count of patients for a given locationid.
    * Used to decide whether "no rows on screen" is a real failure or expected empty state.
