@@ -228,12 +228,35 @@ describe("POS History", () => {
     cy.log("Non-existent email — empty table as expected");
   });
 
-  // ── Test 6: Filter by date — no rows for future date ─────────────────────
-  it("should show no rows when filtering by a future date", () => {
-    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+  // ── Test 6: Filter by date — show records for today, no rows for future ───
+  it("should show records for today's date and no rows for a future date", () => {
+    loginAndGoToPatients();
+    selectFirstPatient();
+    completePOSSaleAndAlias();
+
     cy.visit("/en/pos/history");
     cy.wait(2000);
 
+    // Get today's date in YYYY-MM-DD (CT = UTC-6)
+    const today = new Date();
+    const ctOffset = -6 * 60 * 60 * 1000;
+    const todayInCT = new Date(today.getTime() + ctOffset);
+    const yyyy = todayInCT.getUTCFullYear();
+    const mm = String(todayInCT.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(todayInCT.getUTCDate()).padStart(2, "0");
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    // Filter by today — should show at least the order we just placed
+    cy.get('input[type="date"]').first().clear().type(todayStr);
+    cy.wait(500);
+    cy.get("table tbody tr").should("have.length.greaterThan", 0);
+    cy.log(`Today filter (${todayStr}) — rows visible as expected`);
+
+    // Stats cards should reflect today's data
+    cy.contains(/Products Sold/i).should("exist");
+    cy.contains(/Total Amount Received/i).should("exist");
+
+    // Filter by far future date — no rows
     cy.get('input[type="date"]').first().clear().type("2099-12-31");
     cy.wait(500);
     cy.get("table tbody tr").should("have.length", 0);
@@ -293,38 +316,55 @@ describe("POS History", () => {
     completePOSSaleAndAlias();
 
     cy.get("@placedOrderId").then((orderId) => {
+      const orderIdStr = String(orderId);
+
       cy.visit("/en/pos/history");
       cy.wait(2000);
 
-      cy.contains(String(orderId)).should("exist");
+      // Confirm order is visible — search by Order ID to bring it to top
+      cy.get('input[placeholder="Search Order ID"]').clear().type(orderIdStr);
+      cy.wait(500);
+      cy.contains(orderIdStr).should("exist");
 
+      // Register intercept BEFORE clicking delete
       cy.intercept("POST", "/api/orders/delete").as("deleteOrder");
 
-      cy.contains("table tbody tr td", String(orderId))
+      // Find the row and click Delete — use contains to find the exact row
+      cy.contains("table tbody tr td", orderIdStr)
         .closest("tr")
-        .find("button.bg-red-500")
+        .within(() => {
+          cy.contains("button", "Delete").click({ force: true });
+        });
+
+      // ConfirmDeleteModal appears — confirm button is Flowbite Button color="failure"
+      cy.get(".fixed.inset-0.z-\\[1200\\]", { timeout: 10000 }).should("exist");
+      cy.contains("Are you sure you want to delete this order").should("exist");
+
+      // Click the red Delete confirm button
+      cy.get(".fixed.inset-0.z-\\[1200\\]")
+        .find("button")
         .contains("Delete")
         .click({ force: true });
 
-      // ConfirmDeleteModal
-      cy.contains(/Are you sure|delete this order/i, { timeout: 10000 }).should("exist");
-      cy.contains("button", /confirm|yes|delete/i).last().click({ force: true });
-
-      // Wait indefinitely for delete to complete (no timeout)
-      cy.wait("@deleteOrder", { timeout: 0 }).then((interception) => {
+      // Wait for delete API — give it plenty of time
+      cy.wait("@deleteOrder", { timeout: 60000 }).then((interception) => {
         expect(interception.response?.statusCode).to.eq(200);
         expect(interception.response?.body.success).to.eq(true);
-        cy.log(`Order #${orderId} deleted`);
+        cy.log(`Order #${orderIdStr} deleted via API`);
       });
 
-      // Order gone from UI
+      // Clear the filter and verify order is gone from UI
+      cy.get('input[placeholder="Search Order ID"]').clear();
       cy.wait(1500);
-      cy.contains(String(orderId)).should("not.exist");
+      cy.get('input[placeholder="Search Order ID"]').type(orderIdStr);
+      cy.wait(500);
+      cy.get("table tbody tr").should("have.length", 0);
+      cy.log(`Order #${orderIdStr} no longer in table`);
 
       // Verify gone from DB
       cy.task("verifyOrderDeleted", { orderId }).then((exists) => {
         expect(exists).to.eq(false);
-        cy.log(`Order #${orderId} confirmed deleted from DB`);
+        cy.log(`Order #${orderIdStr} confirmed deleted from DB`);
       });
     });
   });
