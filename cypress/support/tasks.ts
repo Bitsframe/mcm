@@ -40,6 +40,20 @@ export const supabaseTasks = {
   },
 
   /**
+   * Verify an order no longer exists in the orders table.
+   * Returns false if deleted, true if still present.
+   */
+  async verifyOrderDeleted({ orderId }: { orderId: number }): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("order_id")
+      .eq("order_id", orderId)
+      .limit(1);
+
+    if (error) return false;
+    return !!(data && data.length > 0);
+  },
+  /**
    * Returns count of patients for a given locationid.
    * Used to decide whether "no rows on screen" is a real failure or expected empty state.
    */

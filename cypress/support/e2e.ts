@@ -1,6 +1,10 @@
 import "./commands";
 
+// Shared test credentials — available in all spec files
 declare global {
+  const TEST_EMAIL: string;
+  const TEST_PASSWORD: string;
+
   namespace Cypress {
     interface Chainable {
       task(
@@ -8,9 +12,18 @@ declare global {
         arg: { email: string; maxAttempts?: number; intervalMs?: number },
       ): Chainable<Record<string, unknown> | null>;
       task(
+        event: "verifyOrderDeleted",
+        arg: { orderId: number },
+      ): Chainable<boolean>;
+      task(
         event: "getPatientsCountByLocation",
         arg: { locationid: number },
       ): Chainable<number>;
     }
   }
 }
+
+// @ts-ignore
+globalThis.TEST_EMAIL = "mackjmart@gmail.com";
+// @ts-ignore
+globalThis.TEST_PASSWORD = "Create123!";

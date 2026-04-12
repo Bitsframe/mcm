@@ -3,9 +3,6 @@
 // POS Sales E2E Test
 // Location is read dynamically from localStorage — no hardcoding.
 
-const TEST_EMAIL = "mackjmart@gmail.com";
-const TEST_PASSWORD = "Create123!";
-
 const RUN_ID = Date.now().toString().slice(-8);
 const PATIENT = {
   firstname: "Alaina",
