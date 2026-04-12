@@ -47,18 +47,30 @@ function getActiveLocationId(): Cypress.Chainable<number> {
 }
 
 /**
- * Click the Apply button inside the discount modal.
- * The modal has class: fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40
- * The Apply button inside has class: px-3 py-1 text-sm rounded bg-blue-600 text-white
- * We cannot use cy.contains("button","Apply") as it matches the PromoCode Apply button first.
+ * Click the Apply button inside the cart-level discount modal.
+ * Cart modal: fixed inset-0 z-50 — Apply button: px-3 py-1 text-sm rounded bg-blue-600 text-white
+ * Cannot use cy.contains("button","Apply") — it matches the PromoCode Apply button first.
  */
 function clickDiscountModalApply() {
   cy.get("div.fixed.inset-0.z-50")
     .find("button.bg-blue-600")
     .contains("Apply")
     .click({ force: true });
-  // Wait for modal to close — the input disappears
   cy.get('input[placeholder="Enter % of discount"]').should("not.exist");
+  cy.wait(300);
+}
+
+/**
+ * Click the Apply button inside the per-item DiscountModal component.
+ * DiscountModal: fixed inset-0 z-[1000] with role="dialog" aria-modal="true"
+ * Apply button: px-3 py-2 rounded-md bg-[#0066FF] text-white
+ */
+function clickPerItemDiscountModalApply() {
+  cy.get('[role="dialog"][aria-modal="true"]')
+    .find("button")
+    .contains("Apply")
+    .click({ force: true });
+  cy.get('[role="dialog"][aria-modal="true"]').should("not.exist");
   cy.wait(300);
 }
 
@@ -369,7 +381,7 @@ describe("POS Sales — Cart & Discount Features", () => {
 
     cy.contains("button", /add discount/i).first().click({ force: true });
     cy.get('input[placeholder="Enter % of discount"]').should("be.visible").clear().type("15");
-    clickDiscountModalApply();
+    clickPerItemDiscountModalApply();
 
     cy.contains("15% off").should("exist");
     getCartRowValue("Product Total After Discount").then((afterDiscount) => {
