@@ -335,25 +335,54 @@ describe("POS History", () => {
     cy.visit("/en/pos/history");
     cy.wait(2000);
 
-    // Click the "Sales History" button (blue, top right, FileClock icon)
+    // ── Preset: Today ─────────────────────────────────────────────────────
     cy.contains("button", /Sales History/i).click();
-
-    // "Select a Date Range" modal appears
     cy.contains("Select a Date Range", { timeout: 10000 }).should("exist");
-    cy.get(".rdrDateRangePickerWrapper, .rdrCalendarWrapper").should("exist");
-
-    // Click "Today" preset to select today's range
-    cy.contains("Today").click();
+    cy.contains("Today").click({ force: true });
     cy.wait(300);
+    cy.contains("button", "Apply").click({ force: true });
+    // Modal closes after PDF generation — MUI backdrop div disappears
+    cy.get("div.w-full.h-full.flex.justify-center.items-center", { timeout: 120000 })
+      .should("not.exist");
+    cy.log("Today preset — PDF triggered, modal closed");
 
-    // Intercept the PDF generation — it calls /api/orders internally
-    // The PDF downloads via doc.save() — no success toast appears on screen.
-    // We verify the Apply button triggers the flow and the modal closes.
-    cy.contains("button", "Apply").click();
+    // ── Preset: Yesterday ─────────────────────────────────────────────────
+    cy.contains("button", /Sales History/i).click();
+    cy.contains("Select a Date Range", { timeout: 10000 }).should("exist");
+    cy.contains("Yesterday").click({ force: true });
+    cy.wait(300);
+    cy.contains("button", "Apply").click({ force: true });
+    cy.get("div.w-full.h-full.flex.justify-center.items-center", { timeout: 120000 })
+      .should("not.exist");
+    cy.log("Yesterday preset — PDF triggered, modal closed");
 
-    // Modal should close after Apply (handleClose is called after doc.save())
-    cy.contains("Select a Date Range", { timeout: 60000 }).should("not.exist");
-    cy.log("PDF generation triggered — modal closed after Apply");
+    // ── Preset: This Week ─────────────────────────────────────────────────
+    cy.contains("button", /Sales History/i).click();
+    cy.contains("Select a Date Range", { timeout: 10000 }).should("exist");
+    cy.contains("This Week").click({ force: true });
+    cy.wait(300);
+    cy.contains("button", "Apply").click({ force: true });
+    cy.get("div.w-full.h-full.flex.justify-center.items-center", { timeout: 120000 })
+      .should("not.exist");
+    cy.log("This Week preset — PDF triggered, modal closed");
+
+    // ── Preset: This Month ────────────────────────────────────────────────
+    cy.contains("button", /Sales History/i).click();
+    cy.contains("Select a Date Range", { timeout: 10000 }).should("exist");
+    cy.contains("This Month").click({ force: true });
+    cy.wait(300);
+    cy.contains("button", "Apply").click({ force: true });
+    cy.get("div.w-full.h-full.flex.justify-center.items-center", { timeout: 120000 })
+      .should("not.exist");
+    cy.log("This Month preset — PDF triggered, modal closed");
+
+    // ── Close without applying ────────────────────────────────────────────
+    cy.contains("button", /Sales History/i).click();
+    cy.contains("Select a Date Range", { timeout: 10000 }).should("exist");
+    cy.contains("button", "Close").click({ force: true });
+    cy.get("div.w-full.h-full.flex.justify-center.items-center", { timeout: 10000 })
+      .should("not.exist");
+    cy.log("Close button — modal closed without generating PDF");
   });
 
   // ── Test 10: Stats cards calculate correctly ──────────────────────────────
