@@ -107,7 +107,11 @@ describe("POS Return", () => {
 
       cy.contains("Vitamin B12").should("exist");
 
-      // Click the Return button — scroll it into view first
+      // The Order Details section is below the fold inside the modal — scroll the modal container down
+      cy.get(".fixed.inset-0.z-50").scrollTo("bottom", { ensureScrollable: false });
+      cy.wait(300);
+
+      // Now the Return button should be visible — scroll it into view and click
       cy.contains("button", "Return").first().scrollIntoView().click({ force: true });
 
       // Return modal: scroll quantity input into view
