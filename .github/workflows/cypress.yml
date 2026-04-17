@@ -35,7 +35,7 @@ jobs:
           wait-on-timeout: 120
           spec: |
             cypress/e2e/appointment-form.cy.ts
-            cypress/e2e/pos_sales.cy.ts
+            cypress/e2e/pos_other_location.cy.ts
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
