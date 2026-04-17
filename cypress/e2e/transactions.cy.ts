@@ -6,6 +6,18 @@
 const TX_PATIENT_NAME = "Saira Hamza";
 const TX_PRODUCT_NAME = "Ultrasound POLARYS";
 
+// Unique per run so the API always INSERTs (never updates an existing record)
+const TX_RUN_ID = Date.now().toString().slice(-8);
+const TX_PATIENT = {
+  firstname: "Saira",
+  lastname:  "Hamza",
+  email:     `saira.hamza.${TX_RUN_ID}@testcypress.com`,
+  phone:     `444${TX_RUN_ID}`.slice(0, 10),
+  gender:    "Female",
+  address:   "456 Oak Ave",
+  dob:       "1985-06-15",
+};
+
 function loginAndGoToPatients() {
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
   cy.visit("/en/pos/sales/patients");
@@ -13,23 +25,25 @@ function loginAndGoToPatients() {
 }
 
 /**
- * Search for Saira Hamza in the patients page and select her.
- * Falls back to first available patient if not found.
+ * Ensure Saira Hamza exists and is selected.
+ * 1. Search Today tab for "Saira"
+ * 2. If found → select
+ * 3. If not found → check Past Records
+ * 4. If still not found → create Saira Hamza, wait for row, select
  */
 function selectSairaHamza() {
-  // Search by name to isolate Saira Hamza
   cy.get('input[placeholder*="search"]').clear().type("Saira");
   cy.wait(800);
 
   cy.get("body").then(($body) => {
-    const selectBtns = $body.find("button:visible").toArray()
+    const todayBtns = $body.find("button:visible").toArray()
       .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
 
-    if (selectBtns.length > 0) {
-      cy.wrap(selectBtns[0]).click({ force: true });
-      cy.log(`Selected patient: ${TX_PATIENT_NAME}`);
+    if (todayBtns.length > 0) {
+      cy.wrap(todayBtns[0]).click({ force: true });
+      cy.log("Saira found in Today tab — selected");
     } else {
-      // Saira not in Today — try Past Records
+      // Try Past Records
       cy.contains("button", "Past records").click({ force: true });
       cy.wait(1000);
       cy.get('input[placeholder*="search"]').clear().type("Saira");
@@ -41,15 +55,41 @@ function selectSairaHamza() {
 
         if (pastBtns.length > 0) {
           cy.wrap(pastBtns[0]).click({ force: true });
-          cy.log(`Selected ${TX_PATIENT_NAME} from Past Records`);
+          cy.log("Saira found in Past Records — selected");
         } else {
-          // Fallback: clear search and pick first available patient
+          // Create Saira Hamza
+          cy.log("Saira Hamza not found — creating patient");
           cy.contains("button", "Today").click({ force: true });
           cy.wait(500);
+
+          cy.intercept("POST", "/api/user").as("createSaira");
+          cy.contains("button", /add patient/i).click();
+
+          cy.get('[role="dialog"]').should("be.visible").within(() => {
+            cy.get('input[placeholder="Enter firstname"]').clear().type(TX_PATIENT.firstname);
+            cy.get('input[placeholder="Enter lastname"]').clear().type(TX_PATIENT.lastname);
+            cy.get("select").first().select(TX_PATIENT.gender);
+            cy.get('input[placeholder="Enter email"]').clear().type(TX_PATIENT.email);
+            cy.get("input.form-control").clear().type(TX_PATIENT.phone);
+            cy.get('input[placeholder="Enter street address"]').clear().type(TX_PATIENT.address);
+            cy.get('input[placeholder="Select date of birth"]').clear().type(TX_PATIENT.dob);
+            cy.contains("button", /add patient|save|create/i).last().click({ force: true });
+          });
+
+          cy.wait("@createSaira").then((interception) => {
+            expect(interception.response?.statusCode).to.eq(200);
+            cy.log("Saira Hamza created successfully");
+          });
+
+          // Clear search and wait for the new patient row to appear
           cy.get('input[placeholder*="search"]').clear();
           cy.wait(500);
-          cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
-          cy.log("Saira Hamza not found — using first available patient");
+          cy.get('input[placeholder*="search"]').type("Saira");
+          cy.wait(500);
+
+          cy.contains("button", /^select$|^seleccionar$/i, { timeout: 30000 })
+            .first().click({ force: true });
+          cy.log("Saira Hamza selected after creation");
         }
       });
     }
