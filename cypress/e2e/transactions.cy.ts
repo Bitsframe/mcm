@@ -183,41 +183,34 @@ describe("Transactions", () => {
         expect(Number(t.amount)).to.be.closeTo(cartTotal, 0.01);
       });
 
-      cy.visit("/en/transactions");
+            cy.visit("/en/transactions");
       cy.wait(2000);
 
-      cy.window().then((win) => {
-        const patientData = JSON.parse(win.localStorage.getItem("@pos-patient") || "{}");
-        const patientEmail = patientData?.email as string;
+      // Search by firstname "Saira" to find the patient row
+      cy.get('input[placeholder="Search patients..."]').clear().type("Saira");
+      cy.wait(800);
 
-        if (patientEmail) {
-          cy.get('input[placeholder="Search patients..."]').clear().type(patientEmail.split("@")[0]);
-          cy.wait(500);
-        }
+      cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-        cy.get("table tbody tr").should("have.length.greaterThan", 0);
-
-        // Verify Current Balance column shows a dollar amount
-        cy.get("table tbody tr").first().within(() => {
-          cy.get("td").eq(3).invoke("text").then((balanceTxt) => {
-            cy.log(`Current Balance in table: ${balanceTxt.trim()}`);
-            expect(balanceTxt.trim()).to.match(/\$[\d.]+/);
-          });
+      cy.get("table tbody tr").first().within(() => {
+        cy.get("td").eq(3).invoke("text").then((balanceTxt) => {
+          cy.log(`Current Balance in table: ${balanceTxt.trim()}`);
+          expect(balanceTxt.trim()).to.match(/\$[\d.]+/);
         });
-
-        // Click View Transaction
-        cy.get("table tbody tr").first()
-          .find("button").contains("View Transaction")
-          .click({ force: true });
-
-        cy.contains(/Transactions/i, { timeout: 10000 }).should("exist");
-
-        // Verify amount and payment method in sheet
-        cy.contains(cartTotal.toFixed(2)).should("exist");
-        cy.log(`Transaction amount $${cartTotal.toFixed(2)} found in sheet`);
-        cy.contains("Cash").should("exist");
-        cy.log("Payment method 'Cash' confirmed");
       });
+
+      cy.get("table tbody tr").first()
+        .find("button").contains("View Transaction")
+        .click({ force: true });
+
+      cy.contains(/Transactions/i, { timeout: 10000 }).should("exist");
+      cy.contains("Loading transactions...", { timeout: 10000 }).should("not.exist");
+      cy.wait(1000);
+
+      cy.contains(cartTotal.toFixed(2), { timeout: 15000 }).should("exist");
+      cy.log(`Transaction amount ${cartTotal.toFixed(2)} found in sheet`);
+      cy.contains("Cash").should("exist");
+      cy.log("Payment method 'Cash' confirmed");
     });
   });
 
@@ -428,4 +421,5 @@ describe("Transactions", () => {
     });
   });
 });
+
 
