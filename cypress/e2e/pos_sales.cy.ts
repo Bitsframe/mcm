@@ -547,59 +547,62 @@ describe("POS Sales — Add from Other Location", () => {
     // ── Step 2: Open "Add from Other Location" modal ──────────────────────
     cy.contains("button", /Add from Other Location/i).click({ force: true });
 
-    // Modal opens — "Select Location" label visible
+    // Flowbite Modal renders with role="dialog"
+    cy.get('[role="dialog"]', { timeout: 10000 }).should("be.visible");
     cy.contains("Select Location").should("exist");
 
-    // ── Step 3: Select a location (first non-current option) ─────────────
-    cy.get("select").contains("Select Location").parent()
-      .find("option:not([disabled]):not([value=''])").first()
-      .invoke("val").then((locVal) => {
-        cy.get("select").contains("Select Location").parent()
-          .select(String(locVal), { force: true });
-        cy.wait(1000);
-        cy.log(`Selected other location: ${locVal}`);
-      });
+    // ── Step 3: Select Location (1st select in modal) ─────────────────────
+    // Pick the first non-disabled, non-empty option (not current location)
+    cy.get('[role="dialog"]').within(() => {
+      cy.get("select").eq(0).find("option:not([disabled])").not('[value=""]').first()
+        .invoke("val").then((locVal) => {
+          cy.get("select").eq(0).select(String(locVal), { force: true });
+          cy.log(`Location selected: ${locVal}`);
+        });
+    });
+    cy.wait(1500); // wait for categories to load
 
-    // ── Step 4: Select a category ─────────────────────────────────────────
-    cy.contains("Select Category").should("exist");
-    cy.get("select").contains("Select Category").parent()
-      .find("option:not([value=''])").first()
-      .invoke("val").then((catVal) => {
-        cy.get("select").contains("Select Category").parent()
-          .select(String(catVal), { force: true });
-        cy.wait(1000);
-        cy.log(`Selected category: ${catVal}`);
-      });
+    // ── Step 4: Select Category (2nd select — appears after location chosen) ─
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains("Select Category").should("exist");
+      cy.get("select").eq(1).find("option").not('[value=""]').first()
+        .invoke("val").then((catVal) => {
+          cy.get("select").eq(1).select(String(catVal), { force: true });
+          cy.log(`Category selected: ${catVal}`);
+        });
+    });
+    cy.wait(1500); // wait for products to load
 
-    // ── Step 5: Select a product ──────────────────────────────────────────
-    cy.contains("Select Product").should("exist");
-
-    // Capture the product name and inventory_id before adding
+    // ── Step 5: Select Product (3rd select — appears after category chosen) ─
     let selectedProductName = "";
     let selectedInventoryId = 0;
 
-    cy.get("select").contains("Select Product").parent()
-      .find("option:not([value=''])").first().then(($opt) => {
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains("Select Product").should("exist");
+      cy.get("select").eq(2).find("option").not('[value=""]').first().then(($opt) => {
         selectedProductName = $opt.text().trim();
         selectedInventoryId = parseInt($opt.val() as string) || 0;
-        cy.log(`Selected product: ${selectedProductName}, inventory_id: ${selectedInventoryId}`);
-
-        cy.get("select").contains("Select Product").parent()
-          .select(String(selectedInventoryId), { force: true });
-        cy.wait(500);
+        cy.log(`Product: ${selectedProductName}, inventory_id: ${selectedInventoryId}`);
+        cy.get("select").eq(2).select(String(selectedInventoryId), { force: true });
       });
+    });
+    cy.wait(500);
 
-    // ── Step 6: Increase quantity via + button ────────────────────────────
-    cy.contains("Quantity").should("exist");
-    cy.contains("button", "+").click({ force: true });
+    // ── Step 6: Increase quantity via + button (inside modal) ────────────
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains("Quantity").should("exist");
+      cy.contains("button", "+").click({ force: true });
+    });
     cy.wait(300);
 
-    // ── Step 7: Click Add to Cart ─────────────────────────────────────────
-    cy.contains("button", /^Add to cart$|^Add$/i).click({ force: true });
+    // ── Step 7: Click Add to Cart button (inside modal) ───────────────────
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains("button", /^Add to cart$|^Add$/i).click({ force: true });
+    });
     cy.wait(500);
 
     // Modal closes
-    cy.contains("Select Location").should("not.exist");
+    cy.get('[role="dialog"]').should("not.exist");
 
     // ── Step 8: Expand cart panel via the collapse/expand button ──────────
     // The button is absolute -top-3 right-2 bg-blue-500 rounded-full
