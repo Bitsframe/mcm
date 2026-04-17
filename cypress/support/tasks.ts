@@ -104,6 +104,19 @@ export const supabaseTasks = {
   },
 
   /**
+   * Get inventory quantity for a specific inventory_id.
+   */
+  async getInventoryQuantity({ inventoryId }: { inventoryId: number }): Promise<number> {
+    const { data, error } = await supabase
+      .from("inventory")
+      .select("quantity")
+      .eq("inventory_id", inventoryId)
+      .limit(1);
+    if (error || !data || data.length === 0) return -1;
+    return data[0].quantity as number;
+  },
+
+  /**
    * Returns count of patients for a given locationid.
    * Used to decide whether "no rows on screen" is a real failure or expected empty state.
    */

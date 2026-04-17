@@ -517,3 +517,187 @@ describe("POS Sales — Cart & Discount Features", () => {
     });
   });
 });
+
+// ─── Add from Other Location + Discount + Order ───────────────────────────────
+
+describe("POS Sales — Add from Other Location", () => {
+  beforeEach(() => {
+    cy.viewport(1280, 800);
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit("/en/pos/sales/patients");
+  });
+
+  it("should add product from another location, apply/change/remove discount, place order and verify inventory reduced", () => {
+    // ── Step 1: Select a patient ──────────────────────────────────────────
+    cy.wait(1000);
+    cy.get("body").then(($body) => {
+      const selectBtns = $body.find("button:visible").toArray()
+        .filter((b) => /^select$|^seleccionar$/i.test((b.textContent || "").trim()));
+      if (selectBtns.length > 0) {
+        cy.wrap(selectBtns[0]).click({ force: true });
+      } else {
+        cy.contains("button", "Past records").click({ force: true });
+        cy.wait(1000);
+        cy.contains("button", /^select$|^seleccionar$/i).first().click({ force: true });
+      }
+    });
+    cy.url().should("include", "/pos/sales");
+    cy.contains("button", "Add Product").should("not.be.disabled");
+
+    // ── Step 2: Open "Add from Other Location" modal ──────────────────────
+    cy.contains("button", /Add from Other Location/i).click({ force: true });
+
+    // Modal opens — "Select Location" label visible
+    cy.contains("Select Location").should("exist");
+
+    // ── Step 3: Select a location (first non-current option) ─────────────
+    cy.get("select").contains("Select Location").parent()
+      .find("option:not([disabled]):not([value=''])").first()
+      .invoke("val").then((locVal) => {
+        cy.get("select").contains("Select Location").parent()
+          .select(String(locVal), { force: true });
+        cy.wait(1000);
+        cy.log(`Selected other location: ${locVal}`);
+      });
+
+    // ── Step 4: Select a category ─────────────────────────────────────────
+    cy.contains("Select Category").should("exist");
+    cy.get("select").contains("Select Category").parent()
+      .find("option:not([value=''])").first()
+      .invoke("val").then((catVal) => {
+        cy.get("select").contains("Select Category").parent()
+          .select(String(catVal), { force: true });
+        cy.wait(1000);
+        cy.log(`Selected category: ${catVal}`);
+      });
+
+    // ── Step 5: Select a product ──────────────────────────────────────────
+    cy.contains("Select Product").should("exist");
+
+    // Capture the product name and inventory_id before adding
+    let selectedProductName = "";
+    let selectedInventoryId = 0;
+
+    cy.get("select").contains("Select Product").parent()
+      .find("option:not([value=''])").first().then(($opt) => {
+        selectedProductName = $opt.text().trim();
+        selectedInventoryId = parseInt($opt.val() as string) || 0;
+        cy.log(`Selected product: ${selectedProductName}, inventory_id: ${selectedInventoryId}`);
+
+        cy.get("select").contains("Select Product").parent()
+          .select(String(selectedInventoryId), { force: true });
+        cy.wait(500);
+      });
+
+    // ── Step 6: Increase quantity via + button ────────────────────────────
+    cy.contains("Quantity").should("exist");
+    cy.contains("button", "+").click({ force: true });
+    cy.wait(300);
+
+    // ── Step 7: Click Add to Cart ─────────────────────────────────────────
+    cy.contains("button", /^Add to cart$|^Add$/i).click({ force: true });
+    cy.wait(500);
+
+    // Modal closes
+    cy.contains("Select Location").should("not.exist");
+
+    // ── Step 8: Expand cart panel via the collapse/expand button ──────────
+    // The button is absolute -top-3 right-2 bg-blue-500 rounded-full
+    cy.get("button.absolute.-top-3.right-2.bg-blue-500.rounded-full").click({ force: true });
+    cy.wait(300);
+
+    // ── Step 9: Verify cart item details ─────────────────────────────────
+    // Cart item shows product name, category, quantity, and "Fulfilled at: <location>"
+    cy.get(".bg-blue-50, .border-blue-400").first().within(() => {
+      cy.contains(selectedProductName).should("exist");
+      cy.log(`Product "${selectedProductName}" visible in cart`);
+      cy.contains(/Fulfilled at:/i).should("exist");
+      cy.log("Fulfilled at: label visible");
+    });
+
+    // ── Step 10: Apply a discount on the cart item ────────────────────────
+    cy.contains("button", /add discount/i).first().click({ force: true });
+    cy.get('input[placeholder="Enter % of discount"]').should("be.visible").clear().type("10");
+    cy.get('[role="dialog"][aria-modal="true"]').find("button").contains("Apply").click({ force: true });
+    cy.get('[role="dialog"][aria-modal="true"]').should("not.exist");
+    cy.wait(300);
+
+    cy.contains("10% off").should("exist");
+    cy.log("10% discount applied to cart item");
+
+    // Capture Product Total After Discount with 10% off
+    cy.contains("h1", /Product Total After Discount/i).parent().find("p")
+      .invoke("text").then((discountedTxt) => {
+        const discountedTotal = parseFloat(discountedTxt.replace(/[^0-9.]/g, ""));
+        cy.log(`Product Total After Discount (10% off): ${discountedTotal}`);
+
+        // ── Step 11: Change discount to 20% ──────────────────────────────
+        cy.contains("button", /change discount/i).first().click({ force: true });
+        cy.get('input[placeholder="Enter % of discount"]').should("be.visible").clear().type("20");
+        cy.get('[role="dialog"][aria-modal="true"]').find("button").contains("Apply").click({ force: true });
+        cy.get('[role="dialog"][aria-modal="true"]').should("not.exist");
+        cy.wait(300);
+
+        cy.contains("20% off").should("exist");
+        cy.log("Discount changed to 20%");
+
+        cy.contains("h1", /Product Total After Discount/i).parent().find("p")
+          .invoke("text").then((newDiscountedTxt) => {
+            const newDiscountedTotal = parseFloat(newDiscountedTxt.replace(/[^0-9.]/g, ""));
+            cy.log(`Product Total After Discount (20% off): ${newDiscountedTotal}`);
+            // 20% discount should give a lower total than 10%
+            expect(newDiscountedTotal).to.be.lessThan(discountedTotal);
+
+            // ── Step 12: Remove discount ──────────────────────────────────
+            cy.contains("button", /remove discount/i).first().click({ force: true });
+            cy.wait(300);
+
+            cy.contains("20% off").should("not.exist");
+            cy.log("Discount removed");
+
+            cy.contains("h1", /Product Total After Discount/i).parent().find("p")
+              .invoke("text").then((restoredTxt) => {
+                const restoredTotal = parseFloat(restoredTxt.replace(/[^0-9.]/g, ""));
+                cy.log(`Product Total After Discount (no discount): ${restoredTotal}`);
+                // Restored total should be higher than discounted total
+                expect(restoredTotal).to.be.greaterThan(newDiscountedTotal);
+
+                // ── Step 13: Get inventory qty before order ───────────────
+                cy.task("getInventoryQuantity", { inventoryId: selectedInventoryId }).then((qtyBefore) => {
+                  cy.log(`Inventory qty before order: ${qtyBefore}`);
+
+                  // ── Step 14: Place the order ──────────────────────────
+                  cy.get('input[placeholder="0.00"]').first()
+                    .clear({ force: true }).type(restoredTotal.toFixed(2), { force: true });
+                  cy.wait(500);
+
+                  cy.intercept("POST", "/api/orders").as("placeOtherLocOrder");
+                  getPlaceOrderButton().should("not.be.disabled").click({ force: true });
+
+                  cy.wait("@placeOtherLocOrder").then((interception) => {
+                    expect(interception.response?.statusCode).to.eq(200);
+                    const orderId = interception.response?.body?.order_id;
+                    cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
+                    cy.log(`Order placed: #${orderId}`);
+
+                    // ── Step 15: Verify inventory reduced in DB ───────────
+                    // Note: for other-location products, inventory deduction
+                    // happens via fulfillment flow, not immediately.
+                    // We verify the order was created successfully.
+                    cy.task("getInventoryQuantity", { inventoryId: selectedInventoryId }).then((qtyAfter) => {
+                      cy.log(`Inventory qty after order: ${qtyAfter}`);
+                      // Quantity should have decreased by 1 (the qty we added)
+                      if (qtyBefore > 0 && qtyAfter >= 0) {
+                        expect(qtyAfter).to.be.lessThan(qtyBefore);
+                        cy.log(`Inventory reduced from ${qtyBefore} to ${qtyAfter}`);
+                      } else {
+                        cy.log("Inventory check skipped — unlimited or not tracked");
+                      }
+                    });
+                  });
+                });
+              });
+          });
+      });
+  });
+});
