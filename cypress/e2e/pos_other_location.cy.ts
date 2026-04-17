@@ -1,23 +1,18 @@
 /// <reference types="cypress" />
 
 // POS Sales — Add from Other Location
-// Tests adding a product from a different location, applying/changing/removing
-// per-item discount, placing the order, and verifying inventory reduction in DB.
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const getPlaceOrderBtn = () =>
   cy.get("button.rounded.py-1.px-3.text-white.w-1\\/2.flex.justify-between.items-center.text-sm");
 
 /**
- * Flowbite <Modal> renders as:
- * <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden ...">
- *   <div class="relative ..."> ← modal content
- * The inner content div contains the selects.
+ * Flowbite Modal root class (from theme.js):
+ * "fixed inset-x-0 top-0 z-50 h-screen overflow-y-auto overflow-x-hidden md:inset-0 md:h-full"
+ * When open it also has: "flex bg-gray-900 bg-opacity-50"
+ * We target by the stable part: fixed + z-50 + overflow-y-auto
  */
-function getOtherLocationModal() {
-  return cy.get("div.fixed.inset-0.z-50.overflow-y-auto");
-}
+const getFlowbiteModal = () =>
+  cy.get("div.fixed.z-50.overflow-y-auto.overflow-x-hidden", { timeout: 15000 });
 
 function selectFirstPatient() {
   cy.wait(1000);
@@ -36,8 +31,6 @@ function selectFirstPatient() {
   cy.contains("button", "Add Product").should("not.be.disabled");
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
 describe("POS Sales — Add from Other Location", () => {
   beforeEach(() => {
     cy.viewport(1280, 800);
@@ -46,30 +39,32 @@ describe("POS Sales — Add from Other Location", () => {
   });
 
   it("should add product from another location, apply/change/remove discount, place order and verify inventory reduced", () => {
-    // ── Step 1: Select a patient ──────────────────────────────────────────
+    // ── Step 1: Select patient ────────────────────────────────────────────
     selectFirstPatient();
 
-    // ── Step 2: Open "Add from Other Location" modal ──────────────────────
+    // ── Step 2: Open modal ────────────────────────────────────────────────
     cy.contains("button", "Add from Other Location").click({ force: true });
 
-    // Flowbite Modal: fixed inset-0 z-50 overflow-y-auto
-    getOtherLocationModal().should("exist");
+    // Wait for Flowbite Modal to appear (has flex + bg-gray-900 when open)
+    getFlowbiteModal().should("exist");
     cy.contains("Select Location").should("exist");
+    cy.log("Add from Other Location modal opened");
 
-    // ── Step 3: Select Location (1st select) ─────────────────────────────
-    getOtherLocationModal().within(() => {
-      cy.get("select").eq(0)
+    // ── Step 3: Select Location ───────────────────────────────────────────
+    // The modal content has the selects — scope to the modal
+    getFlowbiteModal().within(() => {
+      cy.get("select").first()
         .find("option:not([disabled])").not('[value=""]').first()
         .invoke("val").then((locVal) => {
-          cy.get("select").eq(0).select(String(locVal), { force: true });
+          cy.get("select").first().select(String(locVal), { force: true });
           cy.log(`Location selected: ${locVal}`);
         });
     });
     cy.wait(1500);
 
-    // ── Step 4: Select Category (2nd select — visible after location) ─────
+    // ── Step 4: Select Category ───────────────────────────────────────────
     cy.contains("Select Category").should("exist");
-    getOtherLocationModal().within(() => {
+    getFlowbiteModal().within(() => {
       cy.get("select").eq(1)
         .find("option").not('[value=""]').first()
         .invoke("val").then((catVal) => {
@@ -79,13 +74,13 @@ describe("POS Sales — Add from Other Location", () => {
     });
     cy.wait(1500);
 
-    // ── Step 5: Select Product (3rd select — visible after category) ──────
+    // ── Step 5: Select Product ────────────────────────────────────────────
     cy.contains("Select Product").should("exist");
 
     let selectedProductName = "";
     let selectedInventoryId = 0;
 
-    getOtherLocationModal().within(() => {
+    getFlowbiteModal().within(() => {
       cy.get("select").eq(2)
         .find("option").not('[value=""]').first().then(($opt) => {
           selectedProductName = $opt.text().trim();
@@ -96,87 +91,86 @@ describe("POS Sales — Add from Other Location", () => {
     });
     cy.wait(500);
 
-    // ── Step 6: Increase quantity via + button ────────────────────────────
+    // ── Step 6: Set quantity to 2 via + button ────────────────────────────
     cy.contains("Quantity").should("exist");
-    getOtherLocationModal().within(() => {
+    getFlowbiteModal().within(() => {
+      cy.contains("button", "+").click({ force: true });
+      cy.wait(200);
       cy.contains("button", "+").click({ force: true });
     });
     cy.wait(300);
 
-    // ── Step 7: Click "Add to cart" button ────────────────────────────────
-    getOtherLocationModal().within(() => {
+    // ── Step 7: Click "Add to cart" ───────────────────────────────────────
+    getFlowbiteModal().within(() => {
       cy.contains("button", "Add to cart").click({ force: true });
     });
     cy.wait(500);
 
-    // Modal closes — the fixed overlay disappears
-    cy.get("div.fixed.inset-0.z-50.overflow-y-auto").should("not.exist");
+    // Modal closes — the Flowbite overlay disappears
+    cy.get("div.fixed.z-50.overflow-y-auto.overflow-x-hidden").should("not.exist");
+    cy.log("Modal closed after Add to cart");
 
-    // ── Step 8: Expand cart panel (collapse/expand toggle button) ─────────
-    // Button: absolute -top-3 right-2 z-10 p-1 bg-blue-500 rounded-full
-    cy.get("button.absolute").filter(".bg-blue-500").click({ force: true });
+    // ── Step 8: Expand cart panel ─────────────────────────────────────────
+    cy.get("button.absolute").filter(".bg-blue-500").first().click({ force: true });
     cy.wait(300);
 
-    // ── Step 9: Verify cart item — product name, Fulfilled at label ───────
-    // Other-location items render with blue border: bg-blue-50 border-blue-400
+    // ── Step 9: Verify cart item ──────────────────────────────────────────
+    // Other-location items have blue border styling
     cy.get(".bg-blue-50, .border.border-blue-400").first().within(() => {
       cy.contains(selectedProductName).should("exist");
-      cy.log(`"${selectedProductName}" visible in cart`);
+      cy.log(`"${selectedProductName}" in cart`);
       cy.contains(/Fulfilled at:/i).should("exist");
-      cy.log("Fulfilled at: label confirmed");
+      cy.log("Fulfilled at: confirmed");
     });
 
-    // ── Step 10: Apply 10% per-item discount ─────────────────────────────
+    // ── Step 10: Apply 10% discount ───────────────────────────────────────
     cy.contains("button", /add discount/i).first().click({ force: true });
     cy.get('input[placeholder="Enter % of discount"]').should("be.visible").clear().type("10");
     cy.get('[role="dialog"][aria-modal="true"]').find("button").contains("Apply").click({ force: true });
     cy.get('[role="dialog"][aria-modal="true"]').should("not.exist");
     cy.wait(300);
-
     cy.contains("10% off").should("exist");
     cy.log("10% discount applied");
 
     cy.contains("h1", /Product Total After Discount/i).parent().find("p")
       .invoke("text").then((txt10) => {
         const total10 = parseFloat(txt10.replace(/[^0-9.]/g, ""));
-        cy.log(`Total after 10% discount: ${total10}`);
+        cy.log(`Total at 10%: ${total10}`);
 
-        // ── Step 11: Change discount to 20% ──────────────────────────────
+        // ── Step 11: Change to 20% ────────────────────────────────────────
         cy.contains("button", /change discount/i).first().click({ force: true });
         cy.get('input[placeholder="Enter % of discount"]').should("be.visible").clear().type("20");
         cy.get('[role="dialog"][aria-modal="true"]').find("button").contains("Apply").click({ force: true });
         cy.get('[role="dialog"][aria-modal="true"]').should("not.exist");
         cy.wait(300);
-
         cy.contains("20% off").should("exist");
         cy.log("Discount changed to 20%");
 
         cy.contains("h1", /Product Total After Discount/i).parent().find("p")
           .invoke("text").then((txt20) => {
             const total20 = parseFloat(txt20.replace(/[^0-9.]/g, ""));
-            cy.log(`Total after 20% discount: ${total20}`);
+            cy.log(`Total at 20%: ${total20}`);
             expect(total20).to.be.lessThan(total10);
 
             // ── Step 12: Remove discount ──────────────────────────────────
             cy.contains("button", /remove discount/i).first().click({ force: true });
             cy.wait(300);
-
             cy.contains("20% off").should("not.exist");
             cy.log("Discount removed");
 
             cy.contains("h1", /Product Total After Discount/i).parent().find("p")
-              .invoke("text").then((txtNoDiscount) => {
-                const totalNoDiscount = parseFloat(txtNoDiscount.replace(/[^0-9.]/g, ""));
-                cy.log(`Total after removing discount: ${totalNoDiscount}`);
-                expect(totalNoDiscount).to.be.greaterThan(total20);
+              .invoke("text").then((txtNone) => {
+                const totalNone = parseFloat(txtNone.replace(/[^0-9.]/g, ""));
+                cy.log(`Total no discount: ${totalNone}`);
+                expect(totalNone).to.be.greaterThan(total20);
 
-                // ── Step 13: Get inventory qty before order ───────────────
+                // ── Step 13: Inventory before ─────────────────────────────
                 cy.task("getInventoryQuantity", { inventoryId: selectedInventoryId }).then((qtyBefore) => {
-                  cy.log(`Inventory before order: ${qtyBefore}`);
+                  cy.log(`Inventory before: ${qtyBefore}`);
 
-                  // ── Step 14: Place the order ──────────────────────────
+                  // ── Step 14: Place order ──────────────────────────────
                   cy.get('input[placeholder="0.00"]').first()
-                    .clear({ force: true }).type(totalNoDiscount.toFixed(2), { force: true });
+                    .clear({ force: true }).type(totalNone.toFixed(2), { force: true });
                   cy.wait(500);
 
                   cy.intercept("POST", "/api/orders").as("placeOtherLocOrder");
@@ -188,10 +182,10 @@ describe("POS Sales — Add from Other Location", () => {
                     cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
                     cy.log(`Order placed: #${orderId}`);
 
-                    // ── Step 15: Verify inventory reduced in DB ───────────
+                    // ── Step 15: Inventory after ──────────────────────────
                     cy.task("getInventoryQuantity", { inventoryId: selectedInventoryId }).then((qtyAfter) => {
-                      cy.log(`Inventory after order: ${qtyAfter}`);
-                      if (qtyBefore > 0 && qtyAfter >= 0) {
+                      cy.log(`Inventory after: ${qtyAfter}`);
+                      if ((qtyBefore as number) > 0 && (qtyAfter as number) >= 0) {
                         expect(qtyAfter).to.be.lessThan(qtyBefore);
                         cy.log(`Inventory reduced: ${qtyBefore} → ${qtyAfter}`);
                       } else {
