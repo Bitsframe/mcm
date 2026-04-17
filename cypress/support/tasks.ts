@@ -73,6 +73,37 @@ export const supabaseTasks = {
     return data[0];
   },
   /**
+   * Get the latest transaction_history record for a patient.
+   */
+  async getLatestTransactionForPatient({
+    patientId,
+    orderId,
+  }: {
+    patientId: number;
+    orderId?: number;
+  }): Promise<Record<string, unknown> | null> {
+    let query = supabase
+      .from("transaction_history")
+      .select("id, patient_id, amount, balance, type, order_id, created_at")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (orderId) {
+      query = supabase
+        .from("transaction_history")
+        .select("id, patient_id, amount, balance, type, order_id, created_at")
+        .eq("patient_id", patientId)
+        .eq("order_id", orderId)
+        .limit(1);
+    }
+
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
    * Returns count of patients for a given locationid.
    * Used to decide whether "no rows on screen" is a real failure or expected empty state.
    */

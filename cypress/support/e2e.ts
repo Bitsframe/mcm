@@ -20,6 +20,10 @@ declare global {
         arg: { salesId: number },
       ): Chainable<Record<string, unknown> | null>;
       task(
+        event: "getLatestTransactionForPatient",
+        arg: { patientId: number; orderId?: number },
+      ): Chainable<Record<string, unknown> | null>;
+      task(
         event: "getPatientsCountByLocation",
         arg: { locationid: number },
       ): Chainable<number>;
