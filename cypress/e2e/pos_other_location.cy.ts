@@ -393,11 +393,16 @@ describe("POS Sales — Add from Other Location", () => {
               cy.contains("h1", /Product Total After Discount/i)
                 .parent()
                 .find("p")
+                .should(($totalEl) => {
+                  const totalNoneLive = parseFloat(
+                    $totalEl.text().replace(/[^0-9.]/g, ""),
+                  );
+                  expect(totalNoneLive).to.be.greaterThan(total20);
+                })
                 .invoke("text")
                 .then((txtNone) => {
                   const totalNone = parseFloat(txtNone.replace(/[^0-9.]/g, ""));
                   cy.log(`Total no discount: ${totalNone}`);
-                  expect(totalNone).to.be.greaterThan(total20);
 
                   // Inventory before
                   cy.task("getInventoryQuantity", {
