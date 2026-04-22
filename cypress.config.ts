@@ -23,7 +23,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 export default defineConfig({
-  projectId: "x5kdfm",
+  projectId: "ibms4h",
   e2e: {
     env: {
       E2E_EMAIL: process.env.CYPRESS_E2E_EMAIL,
