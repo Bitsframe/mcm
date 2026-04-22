@@ -95,7 +95,7 @@ function selectCategoryWithProducts() {
 
       const tryCategory = (
         index: number,
-      ): Cypress.Chainable<HTMLOptionElement> => {
+      ): Cypress.Chainable<{ value: string; label: string }> => {
         if (index >= categories.length) {
           throw new Error(
             "No category with available products found for selected location",
@@ -133,10 +133,14 @@ function selectCategoryWithProducts() {
                       return tryCategory(index + 1);
                     }
 
+                    const selectedCategory = {
+                      value: category.value,
+                      label: category.text.trim(),
+                    };
                     cy.log(
-                      `Category \"${category.text.trim()}\" has ${products.length} product(s)`,
+                      `Category \"${selectedCategory.label}\" has ${products.length} product(s)`,
                     );
-                    return category;
+                    return cy.wrap(selectedCategory, { log: false });
                   });
               }),
           );
@@ -169,7 +173,14 @@ describe("POS Sales — Add from Other Location", () => {
           ) as HTMLOptionElement | undefined;
 
           if (sdfdfOpt) {
-            cy.get("select").eq(1).select(sdfdfOpt.value, { force: true });
+            const sdfdfValue = sdfdfOpt.value?.trim();
+            const sdfdfLabel = sdfdfOpt.text.trim();
+            if (sdfdfValue) {
+              cy.get("select").eq(1).select(sdfdfValue, { force: true });
+            } else {
+              // Some environments render category options with empty values; select by label in that case.
+              cy.get("select").eq(1).select(sdfdfLabel, { force: true });
+            }
             cy.log(`"sdfdf" category selected`);
           } else {
             cy.log("sdfdf not found — closing modal");
@@ -204,13 +215,18 @@ describe("POS Sales — Add from Other Location", () => {
           cy.get("select")
             .eq(2)
             .find("option")
-            .not('[value=""]')
-            .then(($productOpts) => {
-              if ($productOpts.length === 0) {
+            .then(($productOptions) => {
+              const selectableProducts = extractSelectableOptions(
+                $productOptions as JQuery<HTMLOptionElement>,
+              );
+
+              if (selectableProducts.length === 0) {
                 cy.log("No products for sdfdf — correct behaviour confirmed");
               } else {
-                cy.log(`${$productOpts.length} product(s) found unexpectedly`);
-                $productOpts.each((_, o) => {
+                cy.log(
+                  `${selectableProducts.length} selectable product(s) found unexpectedly`,
+                );
+                selectableProducts.forEach((o) => {
                   cy.log(`  ${(o as HTMLOptionElement).text}`);
                 });
               }
@@ -252,7 +268,7 @@ describe("POS Sales — Add from Other Location", () => {
     // Select first category that has products
     cy.contains("Select Category").should("exist");
     selectCategoryWithProducts().then((selectedCategory) => {
-      cy.log(`Category selected: ${selectedCategory.text.trim()}`);
+      cy.log(`Category selected: ${selectedCategory.label}`);
 
       let selectedInventoryId = 0;
       let selectedProductName = "";
