@@ -104,8 +104,17 @@ export const supabaseTasks = {
   },
 
   /**
-   * Get inventory quantity for a specific inventory_id.
+   * Get inventory record by inventory_id to verify archived flag.
    */
+  async getInventoryRecord({ inventoryId }: { inventoryId: number }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("inventory")
+      .select("inventory_id, quantity, archived, location_id, product_id")
+      .eq("inventory_id", inventoryId)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
   async getInventoryQuantity({ inventoryId }: { inventoryId: number }): Promise<number> {
     const { data, error } = await supabase
       .from("inventory")
