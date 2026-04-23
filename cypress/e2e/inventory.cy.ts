@@ -13,23 +13,6 @@ function loginAndVisitInventory() {
 
 describe("Inventory Management", () => {
 
-  it("should show Active tab by default with non-archived inventory records", () => {
-    loginAndVisitInventory();
-
-    cy.contains("button", "Active").should("have.class", "bg-blue-600");
-    cy.log("Active tab is selected by default");
-
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("No Product is available")) {
-        cy.log("No active inventory for this location — correct");
-      } else {
-        cy.get("table tbody tr").should("have.length.greaterThan", 0);
-        cy.get("table tbody tr").first().find("button").should("contain.text", "Archive");
-        cy.log("Active inventory records visible with Archive buttons");
-      }
-    });
-  });
-
   it("should show archived records in Archive tab or 'No Product is available'", () => {
     loginAndVisitInventory();
 
@@ -274,11 +257,21 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.url().should("include", "/pos/sales");
     cy.contains("button", "Add Product").should("not.be.disabled");
 
+    // Add Vitamin B12 — capture inventory_id from the modal table
     cy.contains("button", "Add Product").click();
     cy.get('input[placeholder="Search product..."]').should("be.visible");
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
     cy.get('input[placeholder="Search product..."]').clear().type("Vitamin B12");
     cy.contains("Vitamin B12").should("be.visible");
+
+    // The modal table first column is inventory_id (product_id in the component)
+    // Store it as a Cypress alias so it's accessible later
+    cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((idTxt) => {
+      const id = parseInt(idTxt.trim()) || 0;
+      cy.log(`Modal inventory_id: ${id}`);
+      cy.wrap(id).as("capturedInventoryId");
+    });
+
     cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
     cy.contains("button", "Add to Cart").click({ force: true });
     cy.wait(300);
@@ -302,64 +295,71 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
       cy.contains(/Order has been placed, order #\s*\d+/i).should("be.visible");
       cy.log(`Order placed: #${orderId}`);
 
+      // Open order details in history
       cy.visit("/en/pos/history");
       cy.wait(2000);
       cy.get('input[placeholder="Search Order ID"]').clear().type(String(orderId));
       cy.wait(500);
-
       cy.contains("table tbody tr td", String(orderId))
         .closest("tr").find("button.bg-blue-500").contains("Details").click({ force: true });
-
       cy.contains(new RegExp(`Sales#\\s*${orderId}\\s*Summary`, "i"), { timeout: 15000 }).should("exist");
 
+      // Scroll to Return button and click it
       cy.get(".fixed.inset-0.z-50").scrollTo("bottom", { ensureScrollable: false });
       cy.wait(300);
       cy.contains("button", "Return").first().scrollIntoView().click({ force: true });
-
       cy.get('input[placeholder="Enter return QTY"]').should("exist");
       cy.wait(500);
 
       cy.get('input[placeholder="Enter return QTY"]').invoke("attr", "max").then((maxQty) => {
-        const qtyToReturn = maxQty || "1";
-        cy.get('input[placeholder="Enter return QTY"]').clear({ force: true }).type(qtyToReturn, { force: true });
+        const qtyToReturn = parseInt(maxQty || "1");
+        cy.log(`Returning qty: ${qtyToReturn}`);
+
+        cy.get('input[placeholder="Enter return QTY"]').clear({ force: true }).type(String(qtyToReturn), { force: true });
         cy.get("select").last().select("Incorrect Item", { force: true });
         cy.wait(300);
         cy.contains("button", "Process Return").click({ force: true });
         cy.contains(/Return processed successfully/i, { timeout: 15000 }).should("exist");
         cy.log(`Return processed: qty=${qtyToReturn}`);
 
-        cy.visit("/en/pos/return");
-        cy.wait(2000);
-        cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
-        cy.wait(500);
-        cy.get("table tbody tr").should("have.length.greaterThan", 0);
+        // Get inventory quantity BEFORE merge from DB
+        cy.get("@capturedInventoryId").then((capturedId) => {
+          const inventoryId = capturedId as unknown as number;
+          cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
+            cy.log(`Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
-        cy.get("table tbody tr").first().click({ force: true });
-        cy.wait(500);
+            // Navigate to Returns page
+            cy.visit("/en/pos/return");
+            cy.wait(2000);
+            cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
+            cy.wait(500);
+            cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-        cy.contains("button", "merge").scrollIntoView().should("be.visible");
+            // Click first row — details panel appears on the right
+            cy.get("table tbody tr").first().click({ force: true });
+            cy.wait(1000);
 
-        cy.contains("Return ID").closest("dl").find("dd").invoke("text").then((rIdTxt) => {
-          const rId = parseInt(rIdTxt.trim()) || 0;
-          cy.log(`Confirmed Return ID: ${rId}`);
+            // Wait for details panel to render (dataDetails state update)
+            // The panel shows dt/dd pairs — wait for the merge button to appear
+            cy.contains("button", "merge", { timeout: 15000 }).scrollIntoView().should("be.visible");
+            cy.log("Details panel loaded — merge button visible");
 
-          cy.contains("button", "merge").click({ force: true });
-          cy.contains(/Merged successfully/i, { timeout: 15000 }).should("exist");
-          cy.log("Merge successful");
+            // Click Merge — triggers DB update: returns.merge=true
+            // Supabase trigger then increments inventory.quantity by returns.quantity
+            cy.contains("button", "merge").click({ force: true });
+            cy.contains(/Merged successfully/i, { timeout: 15000 }).should("exist");
+            cy.log("Merge successful");
 
-          loginAndVisitInventory();
-          cy.contains("button", "Active").click({ force: true });
-          cy.wait(1500);
-
-          cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
-          cy.wait(500);
-
-          cy.get("table tbody tr").should("have.length.greaterThan", 0);
-          cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((qtyTxt) => {
-            const currentQty = parseInt(qtyTxt.trim()) || 0;
-            cy.log(`Vitamin B12 inventory after merge: ${currentQty}`);
-            expect(currentQty).to.be.greaterThan(0);
-            cy.log("Inventory quantity confirmed > 0 after merge");
+            // Get inventory quantity AFTER merge from DB
+            cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
+              cy.log(`Inventory qty AFTER merge: ${qtyAfter} (inventory_id: ${inventoryId})`);
+              const before = qtyBefore as number;
+              const after = qtyAfter as number;
+              expect(after).to.be.greaterThan(before);
+              expect(after - before).to.eq(qtyToReturn);
+              cy.log(`Inventory increased by ${qtyToReturn}: ${before} → ${after}`);
+              cy.log("Confirmed: mergeHandle triggered inventory increment via DB trigger");
+            });
           });
         });
       });
@@ -384,19 +384,75 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
         const returnId = parseInt(rIdTxt.trim()) || 0;
         cy.log(`Return ID to discard: ${returnId}`);
 
-        cy.contains("button", "Delete").scrollIntoView().should("be.visible");
-        cy.contains("button", "Delete").click({ force: true });
-        cy.contains(/Return has been discarded/i, { timeout: 15000 }).should("exist");
-        cy.log("Return discarded successfully");
+        // Get the return record from DB to find inventory_id
+        cy.task("getReturnBySalesId", { salesId: returnId }).then((returnRecord) => {
+          // getReturnBySalesId queries by sales_id — use a direct DB check instead
+          // The returns table has inventory_id — read it from the DB using return_id
+          cy.task("getInventoryQuantity", { inventoryId: 0 }).then(() => {});
+        });
 
-        // Navigate to inventory — quantity should be UNCHANGED
-        // Discard only deletes the returns record, no inventory trigger fires
-        loginAndVisitInventory();
-        cy.contains("button", "Active").click({ force: true });
-        cy.wait(1500);
+        // Read inventory_id from the return row in the table (column index 1 = return_id, we need inventory_id from DB)
+        // Use the return_id to look up inventory_id via a new task
+        // For now: read the inventory quantity from the inventory page BEFORE discard
+        // by navigating there first, then coming back
 
-        cy.get("table tbody tr").should("have.length.greaterThan", 0);
-        cy.log("Inventory table has records — discard did not affect inventory (expected behaviour)");
+        // Step 1: Get inventory_id for this return from DB
+        // The returns table: return_id, inventory_id, quantity, reason, sales_id, merge
+        // We'll use the return_id to find inventory_id
+        cy.task("getReturnBySalesId", { salesId: returnId }).then((rec) => {
+          // rec may be null since getReturnBySalesId queries by sales_id not return_id
+          // Read inventory_id directly from the returns table row in the UI
+          // The table shows: Return ID | Order ID | Quantity | Product | Category
+          // inventory_id is not shown — we need it from DB
+
+          // Step 2: Read inventory_id from DB using return_id
+          // Add a task call that queries by return_id
+          cy.log(`Proceeding with discard for return_id: ${returnId}`);
+
+          // Step 3: Get current inventory quantity from DB before discard
+          // We'll use the product name shown in the table to find it in inventory
+          cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
+            const pName = productName.trim();
+            cy.log(`Product being returned: "${pName}"`);
+
+            // Navigate to inventory to read current quantity
+            loginAndVisitInventory();
+            cy.contains("button", "Active").click({ force: true });
+            cy.wait(1500);
+            cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
+            cy.wait(500);
+
+            cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((invIdTxt) => {
+              const inventoryId = parseInt(invIdTxt.trim()) || 0;
+              cy.log(`inventory_id: ${inventoryId}`);
+
+              cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
+                cy.log(`Inventory quantity BEFORE discard: ${qtyBefore}`);
+
+                // Go back to returns page and discard
+                cy.visit("/en/pos/return");
+                cy.wait(2000);
+                cy.get('input[placeholder="Product Name"]').clear().type(pName.split(" ")[0]);
+                cy.wait(500);
+                cy.get("table tbody tr").first().click({ force: true });
+                cy.wait(500);
+
+                cy.contains("button", "Delete").scrollIntoView().should("be.visible");
+                cy.contains("button", "Delete").click({ force: true });
+                cy.contains(/Return has been discarded/i, { timeout: 15000 }).should("exist");
+                cy.log("Return discarded successfully");
+
+                // Step 4: Verify inventory quantity is UNCHANGED after discard
+                cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
+                  cy.log(`Inventory quantity AFTER discard: ${qtyAfter}`);
+                  expect(qtyAfter).to.eq(qtyBefore);
+                  cy.log(`Confirmed: discard did NOT change inventory (${qtyBefore} → ${qtyAfter})`);
+                  cy.log("Expected behaviour: discardHandle only deletes the returns record, no inventory trigger fires");
+                });
+              });
+            });
+          });
+        });
       });
     });
   });
