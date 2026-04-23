@@ -20,6 +20,10 @@ declare global {
         arg: { salesId: number },
       ): Chainable<Record<string, unknown> | null>;
       task(
+        event: "getArchivedInventoryCount",
+        arg: { locationId: number },
+      ): Chainable<number>;
+      task(
         event: "getInventoryRecord",
         arg: { inventoryId: number },
       ): Chainable<Record<string, unknown> | null>;

@@ -104,8 +104,17 @@ export const supabaseTasks = {
   },
 
   /**
-   * Get inventory record by inventory_id to verify archived flag.
+   * Count archived inventory records for a given location.
    */
+  async getArchivedInventoryCount({ locationId }: { locationId: number }): Promise<number> {
+    const { count, error } = await supabase
+      .from("inventory")
+      .select("inventory_id", { count: "exact", head: true })
+      .eq("location_id", locationId)
+      .eq("archived", true);
+    if (error) return 0;
+    return count ?? 0;
+  },
   async getInventoryRecord({ inventoryId }: { inventoryId: number }): Promise<Record<string, unknown> | null> {
     const { data, error } = await supabase
       .from("inventory")
