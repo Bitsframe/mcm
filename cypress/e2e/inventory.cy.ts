@@ -98,24 +98,32 @@ describe("Inventory Management", () => {
   it("should unarchive an item, remove it from Archive tab, and update DB archived=false", () => {
     loginAndVisitInventory();
 
+    // Go directly to Archive tab
     cy.contains("button", "Archive").click({ force: true });
     cy.wait(1500);
+
+    // Must have archived items to test
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
+    // Read inventory_id from first row (td.eq(1) = ID column, td.eq(0) = empty spacer)
     cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((idTxt) => {
       const inventoryId = parseInt(idTxt.trim()) || 0;
       cy.log(`Will unarchive inventory_id: ${inventoryId}`);
       expect(inventoryId).to.be.greaterThan(0);
 
+      // Verify it IS archived in DB before clicking
       cy.task("getInventoryRecord", { inventoryId }).then((before) => {
         const b = before as Record<string, unknown>;
-        cy.log(`DB before unarchive: archived=${b.archived}`);
+        cy.log(`DB before unarchive: archived=${b.archived}, inventory_id=${b.inventory_id}`);
+        // The Archive tab only shows items with archived=true — confirm DB matches
         expect(b.archived).to.eq(true);
       });
 
+      // Click the Unarchive button (only button in the row)
       cy.get("table tbody tr").first().find("button").click({ force: true });
       cy.wait(2000);
 
+      // Verify DB: archived=false
       cy.task("getInventoryRecord", { inventoryId }).then((record) => {
         expect(record).to.not.be.null;
         const r = record as Record<string, unknown>;
@@ -128,6 +136,7 @@ describe("Inventory Management", () => {
         cy.log(`inventory_id ${inventoryId} confirmed archived=false in DB`);
       });
 
+      // Item no longer in Archive tab
       cy.get("table tbody tr").then(($rows) => {
         const rowTexts = Array.from($rows).map((r) => r.textContent || "");
         const stillPresent = rowTexts.some((t) => t.includes(String(inventoryId)));
@@ -135,6 +144,7 @@ describe("Inventory Management", () => {
         cy.log(`inventory_id ${inventoryId} no longer in Archive tab`);
       });
 
+      // Switch to Active tab — item should appear there now
       cy.contains("button", "Active").click({ force: true });
       cy.wait(1500);
       cy.get("table tbody tr").should("have.length.greaterThan", 0);
@@ -257,20 +267,12 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.url().should("include", "/pos/sales");
     cy.contains("button", "Add Product").should("not.be.disabled");
 
-    // Add Vitamin B12 — capture inventory_id from the modal table
+    // Add Vitamin B12 — we'll get inventory_id from DB after, not from modal
     cy.contains("button", "Add Product").click();
     cy.get('input[placeholder="Search product..."]').should("be.visible");
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
     cy.get('input[placeholder="Search product..."]').clear().type("Vitamin B12");
     cy.contains("Vitamin B12").should("be.visible");
-
-    // The modal table first column is inventory_id (product_id in the component)
-    // Store it as a Cypress alias so it's accessible later
-    cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((idTxt) => {
-      const id = parseInt(idTxt.trim()) || 0;
-      cy.log(`Modal inventory_id: ${id}`);
-      cy.wrap(id).as("capturedInventoryId");
-    });
 
     cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
     cy.contains("button", "Add to Cart").click({ force: true });
@@ -323,42 +325,62 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
         cy.log(`Return processed: qty=${qtyToReturn}`);
 
         // Get inventory quantity BEFORE merge from DB
-        cy.get("@capturedInventoryId").then((capturedId) => {
-          const inventoryId = capturedId as unknown as number;
-          cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
-            cy.log(`Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
+        // Query DB for Vitamin B12 inventory_id at the current location
+        cy.window().then((win) => {
+          let locationId = 0;
+          for (let i = 0; i < win.localStorage.length; i++) {
+            const key = win.localStorage.key(i);
+            if (key && key.startsWith("@location")) {
+              locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+              if (locationId > 0) break;
+            }
+          }
+          cy.log(`Active location: ${locationId}`);
 
-            // Navigate to Returns page
-            cy.visit("/en/pos/return");
-            cy.wait(2000);
-            cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
-            cy.wait(500);
-            cy.get("table tbody tr").should("have.length.greaterThan", 0);
+          // Find Vitamin B12 inventory_id at this location via inventory page
+          loginAndVisitInventory();
+          cy.contains("button", "Active").click({ force: true });
+          cy.wait(1500);
+          cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
+          cy.wait(500);
 
-            // Click first row — details panel appears on the right
-            cy.get("table tbody tr").first().click({ force: true });
-            cy.wait(1000);
+          cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((invIdTxt) => {
+            const inventoryId = parseInt(invIdTxt.trim()) || 0;
+            cy.log(`Vitamin B12 inventory_id: ${inventoryId}`);
+            expect(inventoryId).to.be.greaterThan(0);
 
-            // Wait for details panel to render (dataDetails state update)
-            // The panel shows dt/dd pairs — wait for the merge button to appear
-            cy.contains("button", "merge", { timeout: 15000 }).scrollIntoView().should("be.visible");
-            cy.log("Details panel loaded — merge button visible");
+            cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
+              cy.log(`Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
-            // Click Merge — triggers DB update: returns.merge=true
-            // Supabase trigger then increments inventory.quantity by returns.quantity
-            cy.contains("button", "merge").click({ force: true });
-            cy.wait(2000);
-            cy.log("Merge clicked — verifying via DB (toast may dismiss quickly)");
+              // Navigate to Returns page
+              cy.visit("/en/pos/return");
+              cy.wait(2000);
+              cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
+              cy.wait(500);
+              cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-            // Get inventory quantity AFTER merge from DB
-            cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
-              cy.log(`Inventory qty AFTER merge: ${qtyAfter} (inventory_id: ${inventoryId})`);
-              const before = qtyBefore as number;
-              const after = qtyAfter as number;
-              expect(after).to.be.greaterThan(before);
-              expect(after - before).to.eq(qtyToReturn);
-              cy.log(`Inventory increased by ${qtyToReturn}: ${before} → ${after}`);
-              cy.log("Confirmed: mergeHandle triggered inventory increment via DB trigger");
+              // Click first row — details panel appears on the right
+              cy.get("table tbody tr").first().click({ force: true });
+              cy.wait(1000);
+
+              // Wait for merge button to appear in details panel
+              cy.contains("button", "merge", { timeout: 15000 }).scrollIntoView().should("be.visible");
+              cy.log("Details panel loaded — merge button visible");
+
+              // Click Merge — sets returns.merge=true, DB trigger increments inventory.quantity
+              cy.contains("button", "merge").click({ force: true });
+              cy.wait(3000); // wait for trigger to fire
+
+              // Verify inventory quantity AFTER merge from DB
+              cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
+                cy.log(`Inventory qty AFTER merge: ${qtyAfter} (inventory_id: ${inventoryId})`);
+                const before = qtyBefore as number;
+                const after = qtyAfter as number;
+                expect(after).to.be.greaterThan(before);
+                expect(after - before).to.eq(qtyToReturn);
+                cy.log(`Inventory increased by ${qtyToReturn}: ${before} → ${after}`);
+                cy.log("Confirmed: mergeHandle triggered inventory increment via DB trigger");
+              });
             });
           });
         });
