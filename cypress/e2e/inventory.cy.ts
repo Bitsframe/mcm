@@ -13,15 +13,11 @@
 const INVENTORY_URL = "/en/inventory/manage";
 
 describe("Inventory Management", () => {
-  beforeEach(() => {
-    cy.viewport(1280, 800);
+  // ── Test 1: Active tab shows non-archived records ─────────────────────────
+  it("should show Active tab by default with non-archived inventory records", () => {
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
     cy.visit(INVENTORY_URL);
     cy.wait(2000);
-  });
-
-  // ── Test 1: Active tab shows non-archived records ─────────────────────────
-  it("should show Active tab by default with non-archived inventory records", () => {
     // Active button should be highlighted (bg-blue-600)
     cy.contains("button", "Active").should("have.class", "bg-blue-600");
     cy.log("Active tab is selected by default");
@@ -43,6 +39,9 @@ describe("Inventory Management", () => {
 
   // ── Test 2: Archive tab shows archived records ────────────────────────────
   it("should show archived records in Archive tab or 'No Product is available'", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     // Click Archive tab
     cy.contains("button", "Archive").click({ force: true });
     cy.wait(1500);
@@ -67,6 +66,9 @@ describe("Inventory Management", () => {
 
   // ── Test 3: Archive an item → removed from Active, DB flag updated ────────
   it("should archive an item, remove it from Active tab, and update DB archived=true", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     // Must be on Active tab
     cy.contains("button", "Active").click({ force: true });
     cy.wait(1500);
@@ -129,6 +131,9 @@ describe("Inventory Management", () => {
 
   // ── Test 4: Unarchive an item → removed from Archive, DB flag updated ─────
   it("should unarchive an item, remove it from Archive tab, and update DB archived=false", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     // Switch to Archive tab
     cy.contains("button", "Archive").click({ force: true });
     cy.wait(1500);
@@ -188,6 +193,9 @@ describe("Inventory Management", () => {
 
   // ── Test 5: "Quantity Available Excluding" filter ─────────────────────────
   it("should filter to show only rows with Units > 0 when Quantity Available Excluding is clicked", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     cy.contains("button", "Active").click({ force: true });
     cy.wait(1500);
 
@@ -231,6 +239,9 @@ describe("Inventory Management", () => {
 
   // ── Test 6: Search by product name ───────────────────────────────────────
   it("should filter inventory by product name search", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     cy.contains("button", "Active").click({ force: true });
     cy.wait(1500);
 
@@ -271,6 +282,9 @@ describe("Inventory Management", () => {
 
   // ── Test 7: Archive item from Active tab → verify in Archive tab ──────────
   it("should archive an item from Active tab and verify it appears in Archive tab", () => {
+    cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+    cy.visit(INVENTORY_URL);
+    cy.wait(2000);
     cy.contains("button", "Active").click({ force: true });
     cy.wait(1500);
 
@@ -307,3 +321,5 @@ describe("Inventory Management", () => {
     });
   });
 });
+
+
