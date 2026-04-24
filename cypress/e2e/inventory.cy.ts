@@ -268,42 +268,67 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
         const pName = productName.trim();
         cy.log(`Product: "${pName}"`);
 
-        // Get inventory_id and qty BEFORE merge
-        cy.visit(INVENTORY_URL, { timeout: 120000 });
-        cy.wait(2000);
-        cy.contains("button", "Active").click({ force: true });
-        cy.wait(1500);
-        cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
-        cy.wait(500);
+        // Get inventory_id and qty BEFORE merge from DB directly
+        cy.window().then((win) => {
+          let locationId = 0;
+          for (let i = 0; i < win.localStorage.length; i++) {
+            const key = win.localStorage.key(i);
+            if (key && key.startsWith("@location")) {
+              locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+              if (locationId > 0) break;
+            }
+          }
+          cy.log(`Active location: ${locationId}`);
 
-        cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((invIdTxt) => {
-          const inventoryId = parseInt(invIdTxt.trim()) || 0;
-          cy.log(`inventory_id: ${inventoryId}`);
-          expect(inventoryId).to.be.greaterThan(0);
+          cy.task("getInventoryByProductName", { productName: "Vitamin B12", locationId }).then((invRecord) => {
+            expect(invRecord).to.not.be.null;
+            const inv = invRecord as Record<string, unknown>;
+            const inventoryId = inv.inventory_id as number;
+            cy.log(`inventory_id from DB: ${inventoryId}, current qty: ${inv.quantity}`);
 
-          cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
-            cy.log(`Inventory qty BEFORE merge: ${qtyBefore}`);
+            cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
+              cy.log(`DB Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
-            // Go back to returns, open row, click merge — exact same as pos_return test
-            cy.visit("/en/pos/return");
-            cy.wait(2000);
-            cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
-            cy.wait(500);
-            cy.get("table tbody tr").should("have.length.greaterThan", 0);
+              // Also log from UI inventory table
+              cy.visit(INVENTORY_URL, { timeout: 120000 });
+              cy.wait(2000);
+              cy.contains("button", "Active").click({ force: true });
+              cy.wait(1500);
+              cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
+              cy.wait(500);
+              cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyBefore) => {
+                cy.log(`UI Inventory quantity BEFORE merge: ${uiQtyBefore.trim()}`);
+              });
 
-            // Click first row to open details panel
-            cy.get("table tbody tr").first().click({ force: true });
-            cy.wait(500);
+              // Go back to returns, open row, click merge
+              cy.visit("/en/pos/return");
+              cy.wait(2000);
+              cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
+              cy.wait(500);
+              cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-            // Details panel should show merge button
-            cy.contains("button", "merge").should("exist");
-            cy.contains("button", "merge").scrollIntoView().click({ force: true });
-            cy.wait(3000);
+              cy.get("table tbody tr").first().click({ force: true });
+              cy.wait(500);
 
-            cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
-              cy.log(`Inventory qty AFTER merge: ${qtyAfter}`);
-              expect(qtyAfter as number).to.be.greaterThan(qtyBefore as number);
-              cy.log(`Inventory increased: ${qtyBefore} → ${qtyAfter}`);
+              cy.contains("button", "merge").should("exist");
+              cy.contains("button", "merge").scrollIntoView().click({ force: true });
+              cy.wait(3000);
+
+              cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
+                cy.log(`DB Inventory qty AFTER merge: ${qtyAfter} (inventory_id: ${inventoryId})`);
+                expect(qtyAfter as number).to.be.greaterThan(qtyBefore as number);
+                cy.log(`DB Inventory increased: ${qtyBefore} → ${qtyAfter}`);
+
+                cy.visit(INVENTORY_URL, { timeout: 120000 });
+                cy.wait(2000);
+                cy.contains("button", "Active").click({ force: true });
+                cy.wait(1500);
+                cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
+                cy.wait(500);
+                cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyAfter) => {
+                  cy.log(`UI Inventory quantity AFTER merge: ${uiQtyAfter.trim()}`);
+                });
+              });
             });
           });
         });
@@ -330,40 +355,65 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
         const pName = productName.trim();
         cy.log(`Product: "${pName}"`);
 
-        cy.visit(INVENTORY_URL, { timeout: 120000 });
-        cy.wait(2000);
-        cy.contains("button", "Active").click({ force: true });
-        cy.wait(1500);
-        cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
-        cy.wait(500);
+        // Get inventory_id and qty BEFORE discard from DB directly
+        cy.window().then((win) => {
+          let locationId = 0;
+          for (let i = 0; i < win.localStorage.length; i++) {
+            const key = win.localStorage.key(i);
+            if (key && key.startsWith("@location")) {
+              locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+              if (locationId > 0) break;
+            }
+          }
+          cy.log(`Active location: ${locationId}`);
 
-        cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((invIdTxt) => {
-          const inventoryId = parseInt(invIdTxt.trim()) || 0;
-          cy.log(`inventory_id: ${inventoryId}`);
-          expect(inventoryId).to.be.greaterThan(0);
+          cy.task("getInventoryByProductName", { productName: "Vitamin B12", locationId }).then((invRecord) => {
+            expect(invRecord).to.not.be.null;
+            const inv = invRecord as Record<string, unknown>;
+            const inventoryId = inv.inventory_id as number;
+            cy.log(`inventory_id from DB: ${inventoryId}, current qty: ${inv.quantity}`);
 
-          cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
-            cy.log(`Inventory qty BEFORE discard: ${qtyBefore}`);
+            cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
+              cy.log(`DB Inventory qty BEFORE discard: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
-            cy.visit("/en/pos/return");
-            cy.wait(2000);
-            cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
-            cy.wait(500);
-            cy.get("table tbody tr").should("have.length.greaterThan", 0);
+              cy.visit(INVENTORY_URL, { timeout: 120000 });
+              cy.wait(2000);
+              cy.contains("button", "Active").click({ force: true });
+              cy.wait(1500);
+              cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
+              cy.wait(500);
+              cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyBefore) => {
+                cy.log(`UI Inventory quantity BEFORE discard: ${uiQtyBefore.trim()}`);
+              });
 
-            // Click first row to open details panel — exact same as pos_return test
-            cy.get("table tbody tr").first().click({ force: true });
-            cy.wait(500);
+              cy.visit("/en/pos/return");
+              cy.wait(2000);
+              cy.get('input[placeholder="Product Name"]').clear().type("Vitamin B12");
+              cy.wait(500);
+              cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-            // Details panel should show Delete button
-            cy.contains("button", "Delete").should("exist");
-            cy.contains("button", "Delete").scrollIntoView().click({ force: true });
-            cy.wait(2000);
+              cy.get("table tbody tr").first().click({ force: true });
+              cy.wait(500);
 
-            cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
-              cy.log(`Inventory qty AFTER discard: ${qtyAfter}`);
-              expect(qtyAfter).to.eq(qtyBefore);
-              cy.log(`Confirmed: discard did NOT change inventory (${qtyBefore} → ${qtyAfter})`);
+              cy.contains("button", "Delete").should("exist");
+              cy.contains("button", "Delete").scrollIntoView().click({ force: true });
+              cy.wait(2000);
+
+              cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
+                cy.log(`DB Inventory qty AFTER discard: ${qtyAfter} (inventory_id: ${inventoryId})`);
+                expect(qtyAfter).to.eq(qtyBefore);
+                cy.log(`Confirmed: discard did NOT change inventory (${qtyBefore} → ${qtyAfter})`);
+
+                cy.visit(INVENTORY_URL, { timeout: 120000 });
+                cy.wait(2000);
+                cy.contains("button", "Active").click({ force: true });
+                cy.wait(1500);
+                cy.get('input[placeholder="Search By Product"]').clear().type("Vitamin B12");
+                cy.wait(500);
+                cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyAfter) => {
+                  cy.log(`UI Inventory quantity AFTER discard: ${uiQtyAfter.trim()}`);
+                });
+              });
             });
           });
         });
