@@ -2,12 +2,11 @@
 
 // Inventory Management E2E Tests
 
-const INVENTORY_URL = "/en/inventory/manage";
 
 function loginAndVisitInventory() {
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
   cy.wait(1000);
-  cy.visit(INVENTORY_URL, { timeout: 120000 });
+  cy.visit("/en/inventory/manage");
   cy.wait(2000);
 }
 
@@ -194,7 +193,7 @@ describe("Inventory Management", () => {
     cy.wait(1500);
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-    cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
+    cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
       const searchTerm = productName.trim().split(" ")[0];
       cy.log(`Searching for: "${searchTerm}"`);
 
@@ -224,7 +223,7 @@ describe("Inventory Management", () => {
     cy.wait(1500);
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-    cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
+    cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
       const name = productName.trim();
       cy.log(`Archiving product: "${name}"`);
 
@@ -261,7 +260,7 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
       }
 
       // Read product name from first row (column 3 = Product)
-      cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
+      cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
         const pName = productName.trim();
         cy.log(`First return product: "${pName}"`);
 
@@ -287,7 +286,7 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
               cy.log(`DB Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
               // Log from UI inventory table
-              cy.visit(INVENTORY_URL, { timeout: 120000 });
+              cy.visit("/en/inventory/manage");
               cy.wait(2000);
               cy.contains("button", "Active").click({ force: true });
               cy.wait(1500);
@@ -313,9 +312,9 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
                 expect(qtyAfter as number).to.be.greaterThan(qtyBefore as number);
                 cy.log(`DB Inventory increased: ${qtyBefore} → ${qtyAfter}`);
 
-                cy.visit(INVENTORY_URL, { timeout: 120000 });
-                cy.wait(2000);
-                cy.contains("button", "Active").click({ force: true });
+              cy.visit("/en/inventory/manage");
+              cy.wait(2000);                
+              cy.contains("button", "Active").click({ force: true });
                 cy.wait(1500);
                 cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
                 cy.wait(500);
@@ -342,7 +341,7 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
         return;
       }
 
-      cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
+      cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
         const pName = productName.trim();
         cy.log(`First return product: "${pName}"`);
 
@@ -366,7 +365,7 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
             cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
               cy.log(`DB Inventory qty BEFORE discard: ${qtyBefore} (inventory_id: ${inventoryId})`);
 
-              cy.visit(INVENTORY_URL, { timeout: 120000 });
+              cy.visit("/en/inventory/manage");
               cy.wait(2000);
               cy.contains("button", "Active").click({ force: true });
               cy.wait(1500);
@@ -392,7 +391,7 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
                 expect(qtyAfter).to.eq(qtyBefore);
                 cy.log(`Confirmed: discard did NOT change inventory (${qtyBefore} → ${qtyAfter})`);
 
-                cy.visit(INVENTORY_URL, { timeout: 120000 });
+                cy.visit("/en/inventory/manage");
                 cy.wait(2000);
                 cy.contains("button", "Active").click({ force: true });
                 cy.wait(1500);
@@ -409,3 +408,4 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     });
   });
 });
+
