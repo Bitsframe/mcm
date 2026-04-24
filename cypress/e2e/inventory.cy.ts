@@ -2,11 +2,12 @@
 
 // Inventory Management E2E Tests
 
+const INVENTORY_URL = "/en/inventory/manage";
 
 function loginAndVisitInventory() {
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
   cy.wait(3000);
-  cy.visit("/en/inventory/manage", { timeout: 120000 });
+  cy.visit(INVENTORY_URL, { timeout: 120000 });
   cy.wait(2000);
 }
 
@@ -61,7 +62,7 @@ describe("Inventory Management", () => {
 
       cy.task("getInventoryRecord", { inventoryId }).then((before) => {
         const b = before as Record<string, unknown>;
-        cy.log(`DB before archive: archived=${b.archived}`);
+        cy.log(`DB before archive: archived=${b.archived}, inventory_id=${b.inventory_id}`);
         expect(b.archived).to.eq(false);
       });
 
@@ -77,7 +78,6 @@ describe("Inventory Management", () => {
         cy.log(`  quantity:     ${r.quantity}`);
         cy.log(`  location_id:  ${r.location_id}`);
         expect(r.archived).to.eq(true);
-        cy.log(`inventory_id ${inventoryId} confirmed archived=true in DB`);
       });
 
       cy.get("table tbody tr").then(($rows) => {
@@ -97,32 +97,24 @@ describe("Inventory Management", () => {
   it("should unarchive an item, remove it from Archive tab, and update DB archived=false", () => {
     loginAndVisitInventory();
 
-    // Go directly to Archive tab
     cy.contains("button", "Archive").click({ force: true });
     cy.wait(1500);
-
-    // Must have archived items to test
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-    // Read inventory_id from first row (td.eq(1) = ID column, td.eq(0) = empty spacer)
     cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((idTxt) => {
       const inventoryId = parseInt(idTxt.trim()) || 0;
       cy.log(`Will unarchive inventory_id: ${inventoryId}`);
       expect(inventoryId).to.be.greaterThan(0);
 
-      // Verify it IS archived in DB before clicking
       cy.task("getInventoryRecord", { inventoryId }).then((before) => {
         const b = before as Record<string, unknown>;
         cy.log(`DB before unarchive: archived=${b.archived}, inventory_id=${b.inventory_id}`);
-        // The Archive tab only shows items with archived=true — confirm DB matches
         expect(b.archived).to.eq(true);
       });
 
-      // Click the Unarchive button (only button in the row)
       cy.get("table tbody tr").first().find("button").click({ force: true });
       cy.wait(2000);
 
-      // Verify DB: archived=false
       cy.task("getInventoryRecord", { inventoryId }).then((record) => {
         expect(record).to.not.be.null;
         const r = record as Record<string, unknown>;
@@ -132,10 +124,8 @@ describe("Inventory Management", () => {
         cy.log(`  quantity:     ${r.quantity}`);
         cy.log(`  location_id:  ${r.location_id}`);
         expect(r.archived).to.eq(false);
-        cy.log(`inventory_id ${inventoryId} confirmed archived=false in DB`);
       });
 
-      // Item no longer in Archive tab
       cy.get("table tbody tr").then(($rows) => {
         const rowTexts = Array.from($rows).map((r) => r.textContent || "");
         const stillPresent = rowTexts.some((t) => t.includes(String(inventoryId)));
@@ -143,7 +133,6 @@ describe("Inventory Management", () => {
         cy.log(`inventory_id ${inventoryId} no longer in Archive tab`);
       });
 
-      // Switch to Active tab — item should appear there now
       cy.contains("button", "Active").click({ force: true });
       cy.wait(1500);
       cy.get("table tbody tr").should("have.length.greaterThan", 0);
@@ -223,7 +212,7 @@ describe("Inventory Management", () => {
     cy.wait(1500);
     cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-    cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
+    cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((productName) => {
       const name = productName.trim();
       cy.log(`Archiving product: "${name}"`);
 
@@ -252,81 +241,58 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.visit("/en/pos/return");
     cy.wait(2000);
 
-    // Take first row directly — no search filter
-    cy.get("table tbody tr").then(($rows) => {
-      if ($rows.length === 0 || $rows.text().includes("No data found")) {
-        cy.log("No returns found — test passes (nothing to merge)");
-        return;
-      }
+    // Take first row — no filter
+    cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-      // Read product name from first row (column 3 = Product)
-      cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
-        const pName = productName.trim();
-        cy.log(`First return product: "${pName}"`);
+    // Read product name from first row
+    cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
+      const pName = productName.trim();
+      cy.log(`First return product: "${pName}"`);
 
-        // Get inventory_id from DB using product name
-        cy.window().then((win) => {
-          let locationId = 0;
-          for (let i = 0; i < win.localStorage.length; i++) {
-            const key = win.localStorage.key(i);
-            if (key && key.startsWith("@location")) {
-              locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
-              if (locationId > 0) break;
-            }
+      // Click first row to open details panel
+      cy.get("table tbody tr").first().click({ force: true });
+      cy.wait(500);
+
+      // Details panel should show merge button
+      cy.contains("button", "merge").should("exist");
+      cy.log("Details panel opened — merge button visible");
+
+      // Get inventory_id from DB for qty verification (optional — may be null)
+      cy.window().then((win) => {
+        let locationId = 0;
+        for (let i = 0; i < win.localStorage.length; i++) {
+          const key = win.localStorage.key(i);
+          if (key && key.startsWith("@location")) {
+            locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+            if (locationId > 0) break;
           }
-          cy.log(`Active location: ${locationId}`);
+        }
 
-          cy.task("getInventoryByProductName", { productName: pName, locationId }).then((invRecord) => {
-            if (!invRecord) {
-              cy.log(`No inventory found for "${pName}" at location ${locationId} � test passes gracefully`);
-              return;
-            }
+        cy.task("getInventoryByProductName", { productName: pName, locationId }).then((invRecord) => {
+          if (invRecord) {
             const inv = invRecord as Record<string, unknown>;
             const inventoryId = inv.inventory_id as number;
             cy.log(`inventory_id from DB: ${inventoryId}, current qty: ${inv.quantity}`);
 
             cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
-              cy.log(`DB Inventory qty BEFORE merge: ${qtyBefore} (inventory_id: ${inventoryId})`);
+              cy.log(`DB Inventory qty BEFORE merge: ${qtyBefore}`);
 
-              // Log from UI inventory table
-              cy.visit("/en/inventory/manage");
-              cy.wait(2000);
-              cy.contains("button", "Active").click({ force: true });
-              cy.wait(1500);
-              cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
-              cy.wait(500);
-              cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyBefore) => {
-                cy.log(`UI Inventory quantity BEFORE merge: ${uiQtyBefore.trim()}`);
-              });
-
-              // Go back to returns — click first row, open details, click merge
-              cy.visit("/en/pos/return");
-              cy.wait(2000);
-              cy.get("table tbody tr").should("have.length.greaterThan", 0);
-              cy.get("table tbody tr").first().click({ force: true });
-              cy.wait(500);
-
-              cy.contains("button", "merge").should("exist");
+              // Click merge
               cy.contains("button", "merge").scrollIntoView().click({ force: true });
               cy.wait(3000);
 
               cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
-                cy.log(`DB Inventory qty AFTER merge: ${qtyAfter} (inventory_id: ${inventoryId})`);
+                cy.log(`DB Inventory qty AFTER merge: ${qtyAfter}`);
                 expect(qtyAfter as number).to.be.greaterThan(qtyBefore as number);
-                cy.log(`DB Inventory increased: ${qtyBefore} → ${qtyAfter}`);
-
-              cy.visit("/en/inventory/manage");
-              cy.wait(2000);                
-              cy.contains("button", "Active").click({ force: true });
-                cy.wait(1500);
-                cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
-                cy.wait(500);
-                cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyAfter) => {
-                  cy.log(`UI Inventory quantity AFTER merge: ${uiQtyAfter.trim()}`);
-                });
+                cy.log(`Inventory increased: ${qtyBefore} → ${qtyAfter}`);
               });
             });
-          });
+          } else {
+            cy.log(`No inventory for "${pName}" at location ${locationId} — clicking merge anyway`);
+            cy.contains("button", "merge").scrollIntoView().click({ force: true });
+            cy.wait(2000);
+            cy.log("Merge clicked — inventory verification skipped (product not in inventory at this location)");
+          }
         });
       });
     });
@@ -337,82 +303,54 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.visit("/en/pos/return");
     cy.wait(2000);
 
-    // Take first row directly — no search filter
-    cy.get("table tbody tr").then(($rows) => {
-      if ($rows.length === 0 || $rows.text().includes("No data found")) {
-        cy.log("No returns found — test passes (nothing to discard)");
-        return;
-      }
+    cy.get("table tbody tr").should("have.length.greaterThan", 0);
 
-      cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
-        const pName = productName.trim();
-        cy.log(`First return product: "${pName}"`);
+    cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
+      const pName = productName.trim();
+      cy.log(`First return product: "${pName}"`);
 
-        cy.window().then((win) => {
-          let locationId = 0;
-          for (let i = 0; i < win.localStorage.length; i++) {
-            const key = win.localStorage.key(i);
-            if (key && key.startsWith("@location")) {
-              locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
-              if (locationId > 0) break;
-            }
+      cy.get("table tbody tr").first().click({ force: true });
+      cy.wait(500);
+
+      cy.contains("button", "Delete").should("exist");
+      cy.log("Details panel opened — Delete button visible");
+
+      cy.window().then((win) => {
+        let locationId = 0;
+        for (let i = 0; i < win.localStorage.length; i++) {
+          const key = win.localStorage.key(i);
+          if (key && key.startsWith("@location")) {
+            locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+            if (locationId > 0) break;
           }
-          cy.log(`Active location: ${locationId}`);
+        }
 
-          cy.task("getInventoryByProductName", { productName: pName, locationId }).then((invRecord) => {
-            if (!invRecord) {
-              cy.log(`No inventory found for "${pName}" at location ${locationId} � test passes gracefully`);
-              return;
-            }
+        cy.task("getInventoryByProductName", { productName: pName, locationId }).then((invRecord) => {
+          if (invRecord) {
             const inv = invRecord as Record<string, unknown>;
             const inventoryId = inv.inventory_id as number;
             cy.log(`inventory_id from DB: ${inventoryId}, current qty: ${inv.quantity}`);
 
             cy.task("getInventoryQuantity", { inventoryId }).then((qtyBefore) => {
-              cy.log(`DB Inventory qty BEFORE discard: ${qtyBefore} (inventory_id: ${inventoryId})`);
+              cy.log(`DB Inventory qty BEFORE discard: ${qtyBefore}`);
 
-              cy.visit("/en/inventory/manage");
-              cy.wait(2000);
-              cy.contains("button", "Active").click({ force: true });
-              cy.wait(1500);
-              cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
-              cy.wait(500);
-              cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyBefore) => {
-                cy.log(`UI Inventory quantity BEFORE discard: ${uiQtyBefore.trim()}`);
-              });
-
-              // Go back to returns — click first row, open details, click Delete
-              cy.visit("/en/pos/return");
-              cy.wait(2000);
-              cy.get("table tbody tr").should("have.length.greaterThan", 0);
-              cy.get("table tbody tr").first().click({ force: true });
-              cy.wait(500);
-
-              cy.contains("button", "Delete").should("exist");
               cy.contains("button", "Delete").scrollIntoView().click({ force: true });
               cy.wait(2000);
 
               cy.task("getInventoryQuantity", { inventoryId }).then((qtyAfter) => {
-                cy.log(`DB Inventory qty AFTER discard: ${qtyAfter} (inventory_id: ${inventoryId})`);
+                cy.log(`DB Inventory qty AFTER discard: ${qtyAfter}`);
                 expect(qtyAfter).to.eq(qtyBefore);
                 cy.log(`Confirmed: discard did NOT change inventory (${qtyBefore} → ${qtyAfter})`);
-
-                cy.visit("/en/inventory/manage");
-                cy.wait(2000);
-                cy.contains("button", "Active").click({ force: true });
-                cy.wait(1500);
-                cy.get('input[placeholder="Search By Product"]').clear().type(pName.split(" ")[0]);
-                cy.wait(500);
-                cy.get("table tbody tr").first().find("td").eq(5).invoke("text").then((uiQtyAfter) => {
-                  cy.log(`UI Inventory quantity AFTER discard: ${uiQtyAfter.trim()}`);
-                });
               });
             });
-          });
+          } else {
+            cy.log(`No inventory for "${pName}" at location ${locationId} — clicking Delete anyway`);
+            cy.contains("button", "Delete").scrollIntoView().click({ force: true });
+            cy.wait(2000);
+            cy.log("Delete clicked — inventory verification skipped (product not in inventory at this location)");
+          }
         });
       });
     });
   });
 });
-
-
