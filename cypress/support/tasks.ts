@@ -124,6 +124,35 @@ export const supabaseTasks = {
     if (error || !data || data.length === 0) return null;
     return data[0];
   },
+  async getInventoryByProductName({
+    productName,
+    locationId,
+  }: {
+    productName: string;
+    locationId: number;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("inventory")
+      .select("inventory_id, quantity, archived, location_id, product_id")
+      .eq("location_id", locationId)
+      .eq("archived", false)
+      .limit(20);
+
+    if (error || !data) return null;
+
+    // Filter by product name via products join
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, product_name")
+      .ilike("product_name", `%${productName}%`);
+
+    if (!products || products.length === 0) return null;
+
+    const productIds = products.map((p: any) => p.id);
+    const match = data.find((inv: any) => productIds.includes(inv.product_id));
+    return match || null;
+  },
+
   async getInventoryQuantity({ inventoryId }: { inventoryId: number }): Promise<number> {
     const { data, error } = await supabase
       .from("inventory")

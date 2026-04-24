@@ -28,6 +28,10 @@ declare global {
         arg: { inventoryId: number },
       ): Chainable<Record<string, unknown> | null>;
       task(
+        event: "getInventoryByProductName",
+        arg: { productName: string; locationId: number },
+      ): Chainable<Record<string, unknown> | null>;
+      task(
         event: "getInventoryQuantity",
         arg: { inventoryId: number },
       ): Chainable<number>;
