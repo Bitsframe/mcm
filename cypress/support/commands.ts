@@ -52,32 +52,44 @@ Cypress.Commands.add("loginByUi", () => {
 });
 
 Cypress.Commands.add("loginWithCredentials", (email: string, password: string) => {
-  // Login directly without cy.session caching.
-  // cy.session freezes localStorage (including the selected location) from the first login.
-  // Without caching, each test gets a fresh login that reads the actual current localStorage state.
-  cy.visit("/en/login");
+  // Use cy.session to cache login — avoids hammering the server with repeated logins
+  cy.session(
+    [email, "loginWithCredentials"],
+    () => {
+      cy.visit("/en/login");
 
-  cy.get('input[name="email"]:visible', { timeout: 20000 })
-    .should("be.visible")
-    .first()
-    .clear()
-    .type(email);
-  cy.get('input[name="password"]:visible')
-    .should("be.visible")
-    .first()
-    .clear()
-    .type(password, { log: false });
+      cy.get('input[name="email"]:visible', { timeout: 20000 })
+        .should("be.visible")
+        .first()
+        .clear()
+        .type(email);
+      cy.get('input[name="password"]:visible')
+        .should("be.visible")
+        .first()
+        .clear()
+        .type(password, { log: false });
 
-  cy.get('button[type="submit"]:visible')
-    .should("be.enabled")
-    .first()
-    .click();
+      cy.get('button[type="submit"]:visible')
+        .should("be.enabled")
+        .first()
+        .click();
 
-  cy.location("pathname", { timeout: 60000 }).should((pathname) => {
-    expect(pathname.toLowerCase()).to.not.match(
-      /\/(?:[a-z]{2}\/)?login\/?$/,
-    );
-  });
+      cy.location("pathname", { timeout: 60000 }).should((pathname) => {
+        expect(pathname.toLowerCase()).to.not.match(
+          /\/(?:[a-z]{2}\/)?login\/?$/,
+        );
+      });
+    },
+    {
+      cacheAcrossSpecs: true,
+      validate: () => {
+        // Quick check — if we can reach a protected page, session is valid
+        cy.request({ url: "/api/user", failOnStatusCode: false }).then((resp) => {
+          expect(resp.status).to.not.eq(401);
+        });
+      },
+    },
+  );
 });
 
 declare global {
