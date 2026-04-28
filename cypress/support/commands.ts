@@ -52,9 +52,37 @@ Cypress.Commands.add("loginByUi", () => {
 });
 
 Cypress.Commands.add("loginWithCredentials", (email: string, password: string) => {
-  // Use cy.session to cache login — avoids hammering the server with repeated logins
+  // Remove cy.session to ensure login happens fresh each time
+  // Or use it but ensure navigation happens after
+  cy.visit("/en/login");
+  
+  cy.get('input[name="email"]:visible', { timeout: 20000 })
+    .should("be.visible")
+    .first()
+    .clear()
+    .type(email);
+  cy.get('input[name="password"]:visible')
+    .should("be.visible")
+    .first()
+    .clear()
+    .type(password, { log: false });
+
+  cy.get('button[type="submit"]:visible')
+    .should("be.enabled")
+    .first()
+    .click();
+
+  cy.location("pathname", { timeout: 60000 }).should((pathname) => {
+    expect(pathname.toLowerCase()).to.not.match(
+      /\/(?:[a-z]{2}\/)?login\/?$/,
+    );
+  });
+});
+
+// Alternative approach if you want to keep the session (recommended)
+Cypress.Commands.add("loginWithCredentialsCached", (email: string, password: string) => {
   cy.session(
-    [email, "loginWithCredentials"],
+    [email, password],
     () => {
       cy.visit("/en/login");
 
@@ -81,9 +109,8 @@ Cypress.Commands.add("loginWithCredentials", (email: string, password: string) =
       });
     },
     {
-      cacheAcrossSpecs: true,
       validate: () => {
-        // Quick check — if we can reach a protected page, session is valid
+        // Simple validation - check if we can access a protected endpoint
         cy.request({ url: "/api/user", failOnStatusCode: false }).then((resp) => {
           expect(resp.status).to.not.eq(401);
         });
@@ -97,6 +124,7 @@ declare global {
     interface Chainable {
       loginByUi(): Chainable<void>;
       loginWithCredentials(email: string, password: string): Chainable<void>;
+      loginWithCredentialsCached(email: string, password: string): Chainable<void>;
     }
   }
 }
