@@ -36,6 +36,8 @@ jobs:
           spec: |
             cypress/e2e/appointment-form.cy.ts
             cypress/e2e/inventory.cy.ts
+            cypress/e2e/warehouse.cy.ts
+
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

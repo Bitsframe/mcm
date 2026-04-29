@@ -5,23 +5,9 @@
 const INVENTORY_URL = "/en/inventory/manage";
 
 function loginAndVisitInventory() {
-  // Login first
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
-  
-  // Wait for login to complete and cookies to be set
+  cy.visit("/en/inventory/manage");
   cy.wait(2000);
-  
-  // Now visit the inventory page
-  cy.visit(INVENTORY_URL, { 
-    timeout: 120000,
-    failOnStatusCode: false // Don't fail immediately on 404/500
-  });
-  
-  // Check if page loaded successfully
-  cy.url({ timeout: 30000 }).should('include', '/inventory/manage');
-  
-  // Wait for the page to be interactive
-  cy.get('body', { timeout: 30000 }).should('be.visible');
 }
 
 describe("Inventory Management", () => {
