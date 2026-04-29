@@ -153,6 +153,57 @@ export const supabaseTasks = {
     return match || null;
   },
 
+  /**
+   * Get count of active (non-archived) products.
+   */
+  async getActiveProductsCount(): Promise<number> {
+    const { count, error } = await supabase
+      .from("products")
+      .select("product_id", { count: "exact", head: true })
+      .eq("archived", false);
+    if (error) return 0;
+    return count ?? 0;
+  },
+
+  /**
+   * Get the first active product (for use in tests).
+   */
+  async getFirstActiveProduct(): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("product_id, product_name, price, stock, unlimited, bonus_eligible, category_id, categories(category_name)")
+      .eq("archived", false)
+      .order("product_id", { ascending: false })
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
+   * Get count of active (non-archived) categories.
+   */
+  async getActiveCategoriesCount(): Promise<number> {
+    const { count, error } = await supabase
+      .from("categories")
+      .select("category_id", { count: "exact", head: true })
+      .eq("archived", false);
+    if (error) return 0;
+    return count ?? 0;
+  },
+
+  /**
+   * Get a product by name (exact or partial match).
+   */
+  async getProductByName({ name }: { name: string }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("product_id, product_name, price, stock, unlimited, bonus_eligible, category_id, archived")
+      .ilike("product_name", `%${name}%`)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
   async getInventoryQuantity({ inventoryId }: { inventoryId: number }): Promise<number> {
     const { data, error } = await supabase
       .from("inventory")

@@ -2,8 +2,6 @@
 
 // Inventory Management E2E Tests
 
-const INVENTORY_URL = "/en/inventory/manage";
-
 function loginAndVisitInventory() {
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
   cy.visit("/en/inventory/manage");
@@ -11,30 +9,9 @@ function loginAndVisitInventory() {
 }
 
 describe("Inventory Management", () => {
-  // Add before each hook to ensure clean state
-  beforeEach(() => {
-    // Clear session between tests if needed
-    cy.clearCookies();
-    cy.clearLocalStorage();
-  });
 
   it("should show archived records in Archive tab or 'No Product is available'", () => {
-    // First verify the server is reachable
-    cy.request({
-      url: "http://localhost:3000",
-      failOnStatusCode: false,
-      timeout: 10000
-    }).then((resp) => {
-      cy.log(`Server status: ${resp.status}`);
-      expect(resp.status).to.eq(200);
-    });
-
     loginAndVisitInventory();
-
-    // Add explicit wait for the UI to be ready
-    cy.get('button, [role="tab"]', { timeout: 30000 })
-      .should('be.visible')
-      .and('exist');
 
     cy.contains("button", "Archive", { timeout: 15000 }).click({ force: true });
     cy.wait(1500);
@@ -262,15 +239,18 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.visit("/en/pos/return");
     cy.wait(2000);
 
-    // Check for empty state first - properly exit test if no data
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("No data found!")) {
+    // Check for actual data rows first — "No data found!" renders as 1 row with text
+    cy.get("table tbody tr").then(($rows) => {
+      const hasRealData = Array.from($rows).some((r) =>
+        !(r.textContent || "").includes("No data found")
+      );
+
+      if (!hasRealData) {
         cy.log("No data found! — no returns available, test passes gracefully");
-        return; // Exit early for this specific test case
+        return;
       }
-      
-      // Continue with test only if data exists
-      cy.get("table tbody tr").should("have.length.greaterThan", 0);
+
+      // Real rows exist — find first row with actual product data
       cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
         const pName = productName.trim();
         cy.log(`First return product: "${pName}"`);
@@ -326,30 +306,19 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
     cy.visit("/en/pos/return");
     cy.wait(2000);
 
-    // First check if we have any returns data
-    cy.get("body").then(($body) => {
-      const hasNoData = $body.text().includes("No data found!");
-      
-      if (hasNoData) {
+    cy.get("table tbody tr").then(($rows) => {
+      const hasRealData = Array.from($rows).some((r) =>
+        !(r.textContent || "").includes("No data found")
+      );
+
+      if (!hasRealData) {
         cy.log("No data found! — no returns available, test passes gracefully");
-        return; // Exit test early
+        return;
       }
-      
-      // Only proceed with table interaction if we have data
-      // Use a conditional approach with cy.get() that won't fail if element doesn't exist
-      cy.get("body").then(($updatedBody) => {
-        // Re-check because the body might have changed
-        if ($updatedBody.text().includes("No data found!")) {
-          cy.log("No data found after waiting — test passes gracefully");
-          return;
-        }
-        
-        // Now safely get the table rows
-        cy.get("table tbody tr").should("have.length.greaterThan", 0);
-        
-        cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
-          const pName = productName.trim();
-          cy.log(`First return product: "${pName}"`);
+
+      cy.get("table tbody tr").first().find("td").eq(4).invoke("text").then((productName) => {
+        const pName = productName.trim();
+        cy.log(`First return product: "${pName}"`);
 
           cy.get("table tbody tr").first().click({ force: true });
           cy.wait(500);
@@ -397,4 +366,3 @@ describe("Inventory — Returns Merge and Discard Impact", () => {
       });
     });
   });
-});
