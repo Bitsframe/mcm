@@ -204,6 +204,92 @@ export const supabaseTasks = {
     return data[0];
   },
 
+  /**
+   * Get inventory record by product_id and location_id.
+   */
+  async getInventoryByProductAndLocation({
+    productId,
+    locationId,
+  }: {
+    productId: number;
+    locationId: number;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("inventory")
+      .select("inventory_id, quantity, archived, location_id, product_id")
+      .eq("product_id", productId)
+      .eq("location_id", locationId)
+      .eq("archived", false)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
+   * Find a product that has inventory (quantity > 0, non-unlimited) at any location.
+   * Returns { product_id, product_name, category_id, category_name, from_location_id,
+   *           from_location_title, quantity, inventory_id } or null.
+   */
+  async getTransferableInventoryItem(): Promise<Record<string, unknown> | null> {
+    // Get inventory rows with quantity > 0 for non-unlimited products
+    const { data, error } = await supabase
+      .from("inventory")
+      .select(`
+        inventory_id,
+        quantity,
+        location_id,
+        product_id,
+        products!inner(product_id, product_name, unlimited, archived, category_id,
+          categories!inner(category_id, category_name))
+      `)
+      .eq("archived", false)
+      .eq("products.archived", false)
+      .eq("products.unlimited", false)
+      .gt("quantity", 0)
+      .limit(20);
+
+    if (error || !data || data.length === 0) return null;
+
+    // Get all locations to resolve titles
+    const { data: locs } = await supabase
+      .from("locations")
+      .select("id, title");
+
+    const locMap = new Map((locs || []).map((l: any) => [l.id, l.title]));
+
+    // Find a row where there is at least one OTHER location to transfer to
+    for (const row of data as any[]) {
+      const fromTitle = locMap.get(row.location_id);
+      if (!fromTitle) continue;
+      // Check there's another location available
+      if ((locs || []).length < 2) return null;
+
+      return {
+        inventory_id: row.inventory_id,
+        quantity: row.quantity,
+        from_location_id: row.location_id,
+        from_location_title: fromTitle,
+        product_id: row.products.product_id,
+        product_name: row.products.product_name,
+        category_id: row.products.category_id,
+        category_name: row.products.categories.category_name,
+      };
+    }
+    return null;
+  },
+
+  /**
+   * Get all locations.
+   */
+  async getAllLocations(): Promise<Record<string, unknown>[]> {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id, title")
+      .order("id", { ascending: true });
+    if (error || !data) return [];
+    return data;
+  },
+
   async getInventoryQuantity({ inventoryId }: { inventoryId: number }): Promise<number> {
     const { data, error } = await supabase
       .from("inventory")
