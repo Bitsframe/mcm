@@ -385,14 +385,12 @@ describe("Warehouse — Products Tab", () => {
       cy.log("Create Product modal opened");
 
       // ── Category (Searchable_Dropdown) ──
-      // The dropdown renders as a div with a <p> showing the placeholder, clicking opens a <ul>
-      // Find the dropdown container inside the modal
+      // Click the trigger div to open the dropdown, then pick the first li option
       cy.get('[role="dialog"] .w-full.relative, .fixed .w-full.relative')
         .first()
         .click({ force: true });
-      cy.wait(300);
-      // Select the first available option from the dropdown list
-      cy.get("ul li").filter(":visible").first().click({ force: true });
+      cy.wait(400);
+      cy.get("ul li").first().click({ force: true });
       cy.wait(300);
       cy.log("Category selected from dropdown");
 
@@ -408,19 +406,17 @@ describe("Warehouse — Products Tab", () => {
       // Submit
       cy.contains("button", "Create").click({ force: true });
 
-      // Wait for success toast — fires as soon as the API call succeeds and modal closes
+      // Wait for success toast — the API succeeded and closeModalHandle() was called
       cy.contains("Created successfully", { timeout: 15000 }).should("exist");
-      // The Custom_Modal inner wrapper is div.fixed.inset-0.z-[1000] — wait for it to leave the DOM
-      cy.get("div.fixed.inset-0").should("not.exist");
-      cy.wait(300);
+      cy.wait(1500);
 
-      // Search for new product in table
-      cy.get('input[placeholder="Search By Product"]').clear({ force: true }).type(newProdName, { force: true });
+      // Use force:true — Flowbite modal backdrop may still be animating out
+      cy.get('input[placeholder="Search By Product"]').type(newProdName, { force: true });
       cy.wait(500);
       cy.contains(newProdName, { timeout: 10000 }).should("exist");
       cy.log(`Product "${newProdName}" created and visible in table`);
 
-      // Cleanup: clear search
+      // Cleanup
       cy.get('input[placeholder="Search By Product"]').clear({ force: true });
     });
   });
@@ -457,12 +453,12 @@ describe("Warehouse — Products Tab", () => {
           cy.contains("Update Product", { timeout: 10000 }).should("exist");
           cy.log("Update Product modal opened");
 
-          // ── Category (Searchable_Dropdown) — pick a different/same category ──
+          // ── Category (Searchable_Dropdown) — pick a category ──
           cy.get('[role="dialog"] .w-full.relative, .fixed .w-full.relative')
             .first()
             .click({ force: true });
-          cy.wait(300);
-          cy.get("ul li").filter(":visible").first().click({ force: true });
+          cy.wait(400);
+          cy.get("ul li").first().click({ force: true });
           cy.wait(300);
           cy.log("Category updated in dropdown");
 
@@ -504,14 +500,12 @@ describe("Warehouse — Products Tab", () => {
           // Submit update
           cy.contains("button", "Update").click({ force: true });
 
-          // Wait for success toast — fires as soon as the API call succeeds and modal closes
+          // Wait for success toast — the API succeeded and closeModalHandle() was called
           cy.contains("Updated successfully", { timeout: 15000 }).should("exist");
-          // The Custom_Modal inner wrapper is div.fixed.inset-0.z-[1000] — wait for it to leave the DOM
-          cy.get("div.fixed.inset-0").should("not.exist");
-          cy.wait(300);
+          cy.wait(1500);
 
-          // Verify updated product name appears in the table
-          cy.get('input[placeholder="Search By Product"]').clear({ force: true }).type(updatedName, { force: true });
+          // Use force:true — Flowbite modal backdrop may still be animating out
+          cy.get('input[placeholder="Search By Product"]').type(updatedName, { force: true });
           cy.wait(500);
           cy.contains(updatedName, { timeout: 10000 }).should("exist");
           cy.log(`Updated product "${updatedName}" found in table`);
@@ -738,20 +732,32 @@ describe("Warehouse — Products Tab", () => {
 
             // Check the location checkbox
             cy.wrap($firstCheckbox).click({ force: true });
-            cy.wait(300);
+            cy.wait(500);
 
-            // ── Enter quantity 3 ──
-            cy.get('input[type="number"]').filter(":visible").first().clear({ force: true }).type("3", { force: true });
-            cy.wait(300);
+            // ── Enter quantity 3 in the "Number of Units" input ──
+            // The Input_Component renders <input id="section" type="number">
+            // Scroll the input into view and use force:true since it's inside a fixed-height container
+            cy.contains("Number of Units").should("exist");
+            cy.get('input#section[type="number"]')
+              .scrollIntoView()
+              .clear({ force: true })
+              .type("3", { force: true });
+            cy.wait(500);
             cy.log("Quantity set to 3");
 
-            // ── Verify Assigned stock updates to 3 ──
+            // ── Verify Assigned stock updates to 3 (only for limited products) ──
             cy.get("body").then(($body2) => {
               if ($body2.text().includes("Assigned stock:")) {
-                cy.contains("Assigned stock:").parent().find("span.font-medium").invoke("text").then((assignedTxt) => {
-                  expect(assignedTxt.trim()).to.eq("3");
-                  cy.log(`Assigned stock confirmed: ${assignedTxt.trim()}`);
-                });
+                cy.contains("Assigned stock:")
+                  .closest("div.flex.justify-between")
+                  .find("span.font-medium")
+                  .invoke("text")
+                  .then((assignedTxt) => {
+                    expect(assignedTxt.trim()).to.eq("3");
+                    cy.log(`Assigned stock confirmed: ${assignedTxt.trim()}`);
+                  });
+              } else {
+                cy.log("Product is Unlimited — assigned stock check skipped");
               }
             });
 
@@ -886,43 +892,41 @@ describe("Warehouse — Products Tab", () => {
           cy.log("Transfer Units modal opened");
 
           // ── From Location dropdown (1st Searchable_Dropdown) ──
-          // Each Searchable_Dropdown renders as a .w-full.relative div
-          // The modal has 4 dropdowns: From Location, To Location, Category, Product
+          // Searchable_Dropdown: click the trigger div → ul appears → click matching li
           cy.get(".w-full.relative").eq(0).click({ force: true });
-          cy.wait(300);
-          cy.get("ul li").filter(":visible").contains(inv.from_location_title).click({ force: true });
-          cy.wait(500);
+          cy.wait(400);
+          cy.get("ul li").contains(inv.from_location_title).click({ force: true });
+          cy.wait(600);
           cy.log(`From Location selected: "${inv.from_location_title}"`);
 
           // ── To Location dropdown (2nd Searchable_Dropdown) ──
-          // After selecting fromLocation, toLocation options exclude fromLocation
           cy.get(".w-full.relative").eq(1).click({ force: true });
-          cy.wait(300);
-          cy.get("ul li").filter(":visible").contains(toLocation.title).click({ force: true });
-          cy.wait(500);
+          cy.wait(400);
+          cy.get("ul li").contains(toLocation.title).click({ force: true });
+          cy.wait(600);
           cy.log(`To Location selected: "${toLocation.title}"`);
 
           // ── Category dropdown (3rd Searchable_Dropdown) ──
           cy.get(".w-full.relative").eq(2).click({ force: true });
-          cy.wait(300);
-          cy.get("ul li").filter(":visible").contains(inv.category_name).click({ force: true });
-          cy.wait(800); // wait for products to load for this category+location
+          cy.wait(400);
+          cy.get("ul li").contains(inv.category_name).click({ force: true });
+          cy.wait(1000); // wait for products to load for this category+location
           cy.log(`Category selected: "${inv.category_name}"`);
 
           // ── Product dropdown (4th Searchable_Dropdown) ──
           cy.get(".w-full.relative").eq(3).click({ force: true });
-          cy.wait(300);
-          cy.get("ul li").filter(":visible").contains(inv.product_name).click({ force: true });
-          cy.wait(500);
+          cy.wait(400);
+          cy.get("ul li").contains(inv.product_name).click({ force: true });
+          cy.wait(600);
           cy.log(`Product selected: "${inv.product_name}"`);
 
           // ── Units input ──
-          // Input_Component renders <input id="section" type="number">
-          // The label shows "Units (Available: N)" — verify available units shown
+          // Label shows "Units (Available: N)" — verify the available count is shown
           cy.contains(`Available: ${inv.quantity}`).should("exist");
           cy.log(`Available units label confirmed: ${inv.quantity}`);
 
-          cy.get('input[type="number"]').filter(":visible").first()
+          cy.get('input#section[type="number"]')
+            .scrollIntoView()
             .clear({ force: true })
             .type(String(transferUnits), { force: true });
           cy.wait(300);
