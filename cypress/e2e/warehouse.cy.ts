@@ -408,9 +408,11 @@ describe("Warehouse — Products Tab", () => {
       // Submit
       cy.contains("button", "Create").click({ force: true });
 
-      // Wait for the modal to close — title disappears when closeModalHandle() fires
-      cy.contains("Create Product", { timeout: 15000 }).should("not.exist");
-      cy.wait(500);
+      // Wait for success toast — fires as soon as the API call succeeds and modal closes
+      cy.contains("Created successfully", { timeout: 15000 }).should("exist");
+      // The Custom_Modal inner wrapper is div.fixed.inset-0.z-[1000] — wait for it to leave the DOM
+      cy.get("div.fixed.inset-0").should("not.exist");
+      cy.wait(300);
 
       // Search for new product in table
       cy.get('input[placeholder="Search By Product"]').clear({ force: true }).type(newProdName, { force: true });
@@ -502,9 +504,11 @@ describe("Warehouse — Products Tab", () => {
           // Submit update
           cy.contains("button", "Update").click({ force: true });
 
-          // Wait for the modal to close — title disappears when closeModalHandle() fires
-          cy.contains("Update Product", { timeout: 15000 }).should("not.exist");
-          cy.wait(500);
+          // Wait for success toast — fires as soon as the API call succeeds and modal closes
+          cy.contains("Updated successfully", { timeout: 15000 }).should("exist");
+          // The Custom_Modal inner wrapper is div.fixed.inset-0.z-[1000] — wait for it to leave the DOM
+          cy.get("div.fixed.inset-0").should("not.exist");
+          cy.wait(300);
 
           // Verify updated product name appears in the table
           cy.get('input[placeholder="Search By Product"]').clear({ force: true }).type(updatedName, { force: true });
