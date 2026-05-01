@@ -367,7 +367,6 @@ describe("Warehouse — Products Tab", () => {
   it("should create a new product and verify it appears in the table", () => {
     loginAndVisit(WAREHOUSE_PRODUCTS_URL);
 
-    // Verify categories exist in DB (required for product creation)
     cy.task("getActiveCategoriesCount").then((catCount) => {
       if ((catCount as number) === 0) {
         cy.log("No active categories in DB — cannot create product, skipping");
@@ -376,52 +375,77 @@ describe("Warehouse — Products Tab", () => {
 
       const newProdName = `TestProd${Date.now().toString().slice(-6)}`;
 
-      // Intercept the Supabase products insert so we know exactly when it completes
+      // Intercept the Supabase products insert
       cy.intercept("POST", "**/rest/v1/products*").as("createProduct");
 
-      // Click Add Product button
       cy.contains("button", "Add Product").click({ force: true });
       cy.wait(500);
 
-      // Modal opens — title is "Create Product"
       cy.contains("Create Product", { timeout: 10000 }).should("exist");
       cy.log("Create Product modal opened");
 
       // ── Category (Searchable_Dropdown) ──
-      // The dropdown is a .w-full.relative div; clicking it opens a <ul> with <li> options
+      // The dropdown trigger is a div.w-full.relative > div (the clickable trigger)
+      // Clicking it opens a <ul>; the <ul> also contains a search <input>
+      // Use the search input inside the dropdown to type and select
       cy.get(".fixed .w-full.relative").first().click({ force: true });
-      cy.wait(400);
-      cy.get("ul li").first().click({ force: true });
       cy.wait(300);
-      cy.log("Category selected from dropdown");
+      // The dropdown is now open — a <ul> with an <input> search and <li> items appears
+      cy.get(".fixed .w-full.relative ul").should("exist");
+      cy.get(".fixed .w-full.relative ul li").first().click({ force: true });
+      cy.wait(300);
+      cy.log("Category selected");
 
-      // ── Name (plain text input, label "Name") ──
-      cy.get(".fixed input[type='text']").first().clear({ force: true }).type(newProdName, { force: true });
+      // ── Name — use nativeInputValueSetter to properly update React controlled input ──
+      cy.get(".fixed input[type='text']").first().then(($input) => {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype, "value"
+        )!.set!;
+        nativeInputValueSetter.call($input[0], newProdName);
+        $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      cy.wait(200);
+      cy.log(`Name set to: "${newProdName}"`);
 
-      // ── Price (first number input) ──
-      cy.get(".fixed input[type='number']").first().clear({ force: true }).type("50", { force: true });
+      // ── Price ──
+      cy.get(".fixed input[type='number']").first().then(($input) => {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype, "value"
+        )!.set!;
+        nativeInputValueSetter.call($input[0], "50");
+        $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      cy.wait(200);
+      cy.log("Price set to 50");
 
-      // ── Units (second number input) ──
-      cy.get(".fixed input[type='number']").eq(1).clear({ force: true }).type("100", { force: true });
+      // ── Units ──
+      cy.get(".fixed input[type='number']").eq(1).then(($input) => {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype, "value"
+        )!.set!;
+        nativeInputValueSetter.call($input[0], "100");
+        $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      cy.wait(200);
+      cy.log("Units set to 100");
 
       // Submit
       cy.contains("button", "Create").click({ force: true });
 
-      // Wait for the API call to complete — this is the definitive signal
+      // Wait for the API insert to complete
       cy.wait("@createProduct", { timeout: 15000 });
       cy.log("Create API call completed");
 
-      // Wait for the modal title to disappear — closeModalHandle() was called
+      // Wait for modal to close
       cy.contains("Create Product", { timeout: 15000 }).should("not.exist");
-      cy.log("Create Product modal closed");
+      cy.log("Modal closed");
 
-      // Now the modal is gone — search for the new product
+      // Search and verify
       cy.get('input[placeholder="Search By Product"]').clear().type(newProdName);
       cy.wait(500);
       cy.contains(newProdName, { timeout: 10000 }).should("exist");
-      cy.log(`Product "${newProdName}" created and visible in table`);
+      cy.log(`Product "${newProdName}" created and visible`);
 
-      // Cleanup
       cy.get('input[placeholder="Search By Product"]').clear();
     });
   });
@@ -441,7 +465,7 @@ describe("Warehouse — Products Tab", () => {
           return;
         }
 
-        // Intercept the Supabase products PATCH so we know exactly when it completes
+        // Intercept the Supabase products PATCH
         cy.intercept("PATCH", "**/rest/v1/products*").as("updateProduct");
 
         cy.contains("button", "Active").click({ force: true });
@@ -451,81 +475,95 @@ describe("Warehouse — Products Tab", () => {
         cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((originalName) => {
           cy.log(`Original product name: "${originalName.trim()}"`);
 
-          // Click Update button (1st action button — blue RefreshCcw icon, eq(0))
+          // Open Update modal
           cy.get("table tbody tr").first().find("button").eq(0).click({ force: true });
           cy.wait(500);
 
-          // Modal opens — title is "Update Product"
           cy.contains("Update Product", { timeout: 10000 }).should("exist");
           cy.log("Update Product modal opened");
 
           // ── Category (Searchable_Dropdown) ──
           cy.get(".fixed .w-full.relative").first().click({ force: true });
-          cy.wait(400);
-          cy.get("ul li").first().click({ force: true });
           cy.wait(300);
-          cy.log("Category updated in dropdown");
+          cy.get(".fixed .w-full.relative ul").should("exist");
+          cy.get(".fixed .w-full.relative ul li").first().click({ force: true });
+          cy.wait(300);
+          cy.log("Category selected");
 
-          // ── Product Name ──
+          // ── Name — nativeInputValueSetter to bypass React controlled input ──
           const updatedName = `Updated${Date.now().toString().slice(-5)}`;
-          cy.get(".fixed input[type='text']").first().clear({ force: true }).type(updatedName, { force: true });
-          cy.log(`New product name: "${updatedName}"`);
+          cy.get(".fixed input[type='text']").first().then(($input) => {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype, "value"
+            )!.set!;
+            nativeInputValueSetter.call($input[0], updatedName);
+            $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+          });
+          cy.wait(200);
+          cy.log(`Name set to: "${updatedName}"`);
 
-          // ── Price ──
-          cy.get(".fixed input[type='number']").first().clear({ force: true }).type("199", { force: true });
-          cy.log("Price updated to 199");
-
-          // ── Units — uncheck unlimited first if needed ──
+          // ── Unlimited — uncheck if checked so Units input is enabled ──
           cy.get("#unlimited").then(($cb) => {
             if ($cb.is(":checked")) cy.wrap($cb).click({ force: true });
           });
-          cy.get(".fixed input[type='number']").eq(1).clear({ force: true }).type("50", { force: true });
-          cy.log("Units updated to 50");
+          cy.wait(200);
 
-          // ── Bonus Eligible checkbox ──
+          // ── Price ──
+          cy.get(".fixed input[type='number']").first().then(($input) => {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype, "value"
+            )!.set!;
+            nativeInputValueSetter.call($input[0], "199");
+            $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+          });
+          cy.wait(200);
+          cy.log("Price set to 199");
+
+          // ── Units ──
+          cy.get(".fixed input[type='number']").eq(1).then(($input) => {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype, "value"
+            )!.set!;
+            nativeInputValueSetter.call($input[0], "50");
+            $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+          });
+          cy.wait(200);
+          cy.log("Units set to 50");
+
+          // ── Bonus Eligible ──
           cy.get("#bonus_eligible").then(($cb) => {
             const was = $cb.is(":checked");
             cy.wrap($cb).click({ force: true });
             cy.log(`Bonus eligible toggled: ${was} → ${!was}`);
           });
 
-          // ── Unlimited — toggle on then off ──
-          cy.get("#unlimited").click({ force: true });
-          cy.wait(200);
-          cy.get("#unlimited").click({ force: true });
-          cy.wait(200);
-          cy.log("Unlimited toggled on then off");
-
           // Submit
           cy.contains("button", "Update").click({ force: true });
 
-          // Wait for the API PATCH to complete — definitive signal
+          // Wait for the PATCH API call
           cy.wait("@updateProduct", { timeout: 15000 });
           cy.log("Update API call completed");
 
-          // Wait for modal title to disappear — closeModalHandle() was called
+          // Wait for modal to close
           cy.contains("Update Product", { timeout: 15000 }).should("not.exist");
           cy.log("Update Product modal closed");
 
-          // Search for updated product
+          // Search and verify
           cy.get('input[placeholder="Search By Product"]').clear().type(updatedName);
           cy.wait(500);
           cy.contains(updatedName, { timeout: 10000 }).should("exist");
           cy.log(`Updated product "${updatedName}" found in table`);
 
-          // Verify price
           cy.contains(updatedName).closest("tr").find("td").eq(3).invoke("text").then((price) => {
             expect(price.trim()).to.eq("199");
             cy.log(`Price confirmed: ${price.trim()}`);
           });
 
-          // Verify units
           cy.contains(updatedName).closest("tr").find("td").eq(4).invoke("text").then((units) => {
             expect(units.trim()).to.eq("50");
             cy.log(`Units confirmed: ${units.trim()}`);
           });
 
-          // Cleanup
           cy.get('input[placeholder="Search By Product"]').clear();
         });
       });
