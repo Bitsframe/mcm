@@ -873,19 +873,20 @@ describe("Warehouse — Products Tab", () => {
           // Strategy: click the trigger div, wait for ul, type in the search input to filter,
           // then click the first visible li that matches.
           const selectTransferDropdown = (dropdownIndex: number, optionText: string, waitMs = 600) => {
-            // The modal body contains exactly 4 Searchable_Dropdown wrappers in order:
-            // 0=From Location, 1=To Location, 2=Category, 3=Product
             // Scope to the modal overlay to avoid matching page-level dropdowns
+            // Click the trigger <div> (first child div inside .w-full.relative)
             cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
               .find("div").first().click({ force: true });
-            cy.wait(400);
-            // Type in the search input inside the open ul to filter options
+            // Wait for the ul to appear
+            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+              .find("ul").should("exist");
+            // Type in the search input to filter options
             cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
               .find("ul input[type='text']")
               .clear({ force: true })
               .type(optionText, { force: true });
             cy.wait(300);
-            // Click the first li that contains the text
+            // Click the first matching li
             cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
               .find("ul li").first().click({ force: true });
             cy.wait(waitMs);
@@ -907,11 +908,23 @@ describe("Warehouse — Products Tab", () => {
           selectTransferDropdown(3, inv.product_name);
           cy.log(`Product selected: "${inv.product_name}"`);
 
-          cy.contains(`Available: ${inv.quantity}`).should("exist");
+          // Verify available units label appears (confirms product state is set)
+          cy.contains(`Available: ${inv.quantity}`, { timeout: 10000 }).should("exist");
+          cy.log(`Available units confirmed: ${inv.quantity}`);
 
-          setReactInputValue('input[id="section"]', String(transferUnits));
+          // Set units — Input_Component calls onChange(e.target.value) = setUnits(value)
+          // Use the search input approach: the Input_Component renders <input id="section">
+          // but we need to trigger React's onChange properly
+          cy.get('input[id="section"]').should("not.be.disabled").clear({ force: true }).type(String(transferUnits), { force: true });
+          cy.wait(500);
+          cy.log(`Units entered: ${transferUnits}`);
 
-          cy.contains("button", "Transfer").last().click({ force: true });
+          // Verify the Transfer button is now enabled (all fields filled)
+          cy.contains("button", "Transfer").last().should("not.be.disabled");
+          cy.log("Transfer button is enabled — all fields valid");
+
+          // Intercept must be set before the click
+          cy.contains("button", "Transfer").last().click();
 
           waitForApiCall("@transferUnits");
 
