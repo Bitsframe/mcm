@@ -860,29 +860,52 @@ describe("Warehouse — Products Tab", () => {
           cy.contains("Transfer Units", { timeout: 10000 }).should("exist");
           cy.log("Transfer Units modal opened");
 
-          // Select From Location
-          cy.get(".w-full.relative").eq(0).click({ force: true });
-          cy.wait(500);
-          cy.get(".w-full.relative").eq(0).find("ul li").contains(inv.from_location_title).click({ force: true });
-          cy.wait(600);
+          // Helper: select an option from a Searchable_Dropdown inside the Transfer modal.
+          // The Searchable_Dropdown renders:
+          //   <div class="w-full relative">          ← trigger wrapper
+          //     <div>...</div>                       ← clickable trigger (shows current value)
+          //     <ul class="absolute z-10 ...">       ← shown when open
+          //       <input type="text" .../>           ← search filter input
+          //       <li>option 1</li>
+          //       <li>option 2</li>
+          //     </ul>
+          //   </div>
+          // Strategy: click the trigger div, wait for ul, type in the search input to filter,
+          // then click the first visible li that matches.
+          const selectTransferDropdown = (dropdownIndex: number, optionText: string, waitMs = 600) => {
+            // The modal body contains exactly 4 Searchable_Dropdown wrappers in order:
+            // 0=From Location, 1=To Location, 2=Category, 3=Product
+            // Scope to the modal overlay to avoid matching page-level dropdowns
+            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+              .find("div").first().click({ force: true });
+            cy.wait(400);
+            // Type in the search input inside the open ul to filter options
+            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+              .find("ul input[type='text']")
+              .clear({ force: true })
+              .type(optionText, { force: true });
+            cy.wait(300);
+            // Click the first li that contains the text
+            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+              .find("ul li").first().click({ force: true });
+            cy.wait(waitMs);
+          };
 
-          // Select To Location
-          cy.get(".w-full.relative").eq(1).click({ force: true });
-          cy.wait(500);
-          cy.get(".w-full.relative").eq(1).find("ul li").contains(toLocation.title).click({ force: true });
-          cy.wait(600);
+          // From Location
+          selectTransferDropdown(0, inv.from_location_title);
+          cy.log(`From Location selected: "${inv.from_location_title}"`);
 
-          // Select Category
-          cy.get(".w-full.relative").eq(2).click({ force: true });
-          cy.wait(500);
-          cy.get(".w-full.relative").eq(2).find("ul li").contains(inv.category_name).click({ force: true });
-          cy.wait(1000);
+          // To Location (filtered to exclude fromLocation, so just type and pick first)
+          selectTransferDropdown(1, toLocation.title);
+          cy.log(`To Location selected: "${toLocation.title}"`);
 
-          // Select Product
-          cy.get(".w-full.relative").eq(3).click({ force: true });
-          cy.wait(500);
-          cy.get(".w-full.relative").eq(3).find("ul li").contains(inv.product_name).click({ force: true });
-          cy.wait(600);
+          // Category (loads after fromLocation is set)
+          selectTransferDropdown(2, inv.category_name, 1000);
+          cy.log(`Category selected: "${inv.category_name}"`);
+
+          // Product (loads after category is set)
+          selectTransferDropdown(3, inv.product_name);
+          cy.log(`Product selected: "${inv.product_name}"`);
 
           cy.contains(`Available: ${inv.quantity}`).should("exist");
 
