@@ -376,55 +376,59 @@ describe("Warehouse — Products Tab", () => {
 
       const newProdName = `TestProd${Date.now().toString().slice(-6)}`;
 
-      // Click Add Product button (contains "Add Product" text or CirclePlus icon)
+      // Intercept the Supabase products insert so we know exactly when it completes
+      cy.intercept("POST", "**/rest/v1/products*").as("createProduct");
+
+      // Click Add Product button
       cy.contains("button", "Add Product").click({ force: true });
       cy.wait(500);
 
-      // Modal opens — title is t("Inventory_k61") = "Create Product"
+      // Modal opens — title is "Create Product"
       cy.contains("Create Product", { timeout: 10000 }).should("exist");
       cy.log("Create Product modal opened");
 
       // ── Category (Searchable_Dropdown) ──
-      // Click the trigger div to open the dropdown, then pick the first li option
-      cy.get('[role="dialog"] .w-full.relative, .fixed .w-full.relative')
-        .first()
-        .click({ force: true });
+      // The dropdown is a .w-full.relative div; clicking it opens a <ul> with <li> options
+      cy.get(".fixed .w-full.relative").first().click({ force: true });
       cy.wait(400);
       cy.get("ul li").first().click({ force: true });
       cy.wait(300);
       cy.log("Category selected from dropdown");
 
-      // ── Product Name ──
-      cy.get('input[type="text"]').filter(":visible").first().clear().type(newProdName);
+      // ── Name (plain text input, label "Name") ──
+      cy.get(".fixed input[type='text']").first().clear({ force: true }).type(newProdName, { force: true });
 
-      // ── Price ──
-      cy.get('input[type="number"]').filter(":visible").first().clear().type("50");
+      // ── Price (first number input) ──
+      cy.get(".fixed input[type='number']").first().clear({ force: true }).type("50", { force: true });
 
-      // ── Units ──
-      cy.get('input[type="number"]').filter(":visible").eq(1).clear().type("100");
+      // ── Units (second number input) ──
+      cy.get(".fixed input[type='number']").eq(1).clear({ force: true }).type("100", { force: true });
 
       // Submit
       cy.contains("button", "Create").click({ force: true });
 
-      // Wait for success toast — the API succeeded and closeModalHandle() was called
-      cy.contains("Created successfully", { timeout: 15000 }).should("exist");
-      cy.wait(1500);
+      // Wait for the API call to complete — this is the definitive signal
+      cy.wait("@createProduct", { timeout: 15000 });
+      cy.log("Create API call completed");
 
-      // Use force:true — Flowbite modal backdrop may still be animating out
-      cy.get('input[placeholder="Search By Product"]').type(newProdName, { force: true });
+      // Wait for the modal title to disappear — closeModalHandle() was called
+      cy.contains("Create Product", { timeout: 15000 }).should("not.exist");
+      cy.log("Create Product modal closed");
+
+      // Now the modal is gone — search for the new product
+      cy.get('input[placeholder="Search By Product"]').clear().type(newProdName);
       cy.wait(500);
       cy.contains(newProdName, { timeout: 10000 }).should("exist");
       cy.log(`Product "${newProdName}" created and visible in table`);
 
       // Cleanup
-      cy.get('input[placeholder="Search By Product"]').clear({ force: true });
+      cy.get('input[placeholder="Search By Product"]').clear();
     });
   });
 
   it("should update a product and verify all changes appear in the table", () => {
     loginAndVisit(WAREHOUSE_PRODUCTS_URL);
 
-    // Check DB first
     cy.task("getActiveProductsCount").then((count) => {
       if ((count as number) === 0) {
         cy.log("No active products in DB — skipping update test");
@@ -437,11 +441,13 @@ describe("Warehouse — Products Tab", () => {
           return;
         }
 
+        // Intercept the Supabase products PATCH so we know exactly when it completes
+        cy.intercept("PATCH", "**/rest/v1/products*").as("updateProduct");
+
         cy.contains("button", "Active").click({ force: true });
         cy.wait(1000);
         cy.get("table tbody tr", { timeout: 10000 }).should("have.length.greaterThan", 0);
 
-        // Read the current product name so we can verify the update
         cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((originalName) => {
           cy.log(`Original product name: "${originalName.trim()}"`);
 
@@ -449,14 +455,12 @@ describe("Warehouse — Products Tab", () => {
           cy.get("table tbody tr").first().find("button").eq(0).click({ force: true });
           cy.wait(500);
 
-          // Modal opens — title is t("Inventory_k62") = "Update Product"
+          // Modal opens — title is "Update Product"
           cy.contains("Update Product", { timeout: 10000 }).should("exist");
           cy.log("Update Product modal opened");
 
-          // ── Category (Searchable_Dropdown) — pick a category ──
-          cy.get('[role="dialog"] .w-full.relative, .fixed .w-full.relative')
-            .first()
-            .click({ force: true });
+          // ── Category (Searchable_Dropdown) ──
+          cy.get(".fixed .w-full.relative").first().click({ force: true });
           cy.wait(400);
           cy.get("ul li").first().click({ force: true });
           cy.wait(300);
@@ -464,66 +468,65 @@ describe("Warehouse — Products Tab", () => {
 
           // ── Product Name ──
           const updatedName = `Updated${Date.now().toString().slice(-5)}`;
-          cy.get('input[type="text"]').filter(":visible").first().clear().type(updatedName);
+          cy.get(".fixed input[type='text']").first().clear({ force: true }).type(updatedName, { force: true });
           cy.log(`New product name: "${updatedName}"`);
 
           // ── Price ──
-          cy.get('input[type="number"]').filter(":visible").first().clear().type("199");
+          cy.get(".fixed input[type='number']").first().clear({ force: true }).type("199", { force: true });
           cy.log("Price updated to 199");
 
-          // ── Units — first uncheck unlimited if checked, then set units ──
-          cy.get('#unlimited').then(($checkbox) => {
-            if ($checkbox.is(":checked")) {
-              cy.wrap($checkbox).click({ force: true });
-              cy.wait(200);
-            }
+          // ── Units — uncheck unlimited first if needed ──
+          cy.get("#unlimited").then(($cb) => {
+            if ($cb.is(":checked")) cy.wrap($cb).click({ force: true });
           });
-          cy.get('input[type="number"]').filter(":visible").eq(1).clear().type("50");
+          cy.get(".fixed input[type='number']").eq(1).clear({ force: true }).type("50", { force: true });
           cy.log("Units updated to 50");
 
-          // ── Bonus Eligible checkbox — toggle it ──
-          cy.get('#bonus_eligible').then(($checkbox) => {
-            const wasChecked = $checkbox.is(":checked");
-            cy.wrap($checkbox).click({ force: true });
-            cy.wait(200);
-            cy.log(`Bonus eligible toggled: ${wasChecked} → ${!wasChecked}`);
+          // ── Bonus Eligible checkbox ──
+          cy.get("#bonus_eligible").then(($cb) => {
+            const was = $cb.is(":checked");
+            cy.wrap($cb).click({ force: true });
+            cy.log(`Bonus eligible toggled: ${was} → ${!was}`);
           });
 
-          // ── Unlimited checkbox — toggle on then off to verify it works ──
-          cy.get('#unlimited').click({ force: true });
+          // ── Unlimited — toggle on then off ──
+          cy.get("#unlimited").click({ force: true });
           cy.wait(200);
-          cy.log("Unlimited checkbox toggled on");
-          cy.get('#unlimited').click({ force: true });
+          cy.get("#unlimited").click({ force: true });
           cy.wait(200);
-          cy.log("Unlimited checkbox toggled off");
+          cy.log("Unlimited toggled on then off");
 
-          // Submit update
+          // Submit
           cy.contains("button", "Update").click({ force: true });
 
-          // Wait for success toast — the API succeeded and closeModalHandle() was called
-          cy.contains("Updated successfully", { timeout: 15000 }).should("exist");
-          cy.wait(1500);
+          // Wait for the API PATCH to complete — definitive signal
+          cy.wait("@updateProduct", { timeout: 15000 });
+          cy.log("Update API call completed");
 
-          // Use force:true — Flowbite modal backdrop may still be animating out
-          cy.get('input[placeholder="Search By Product"]').type(updatedName, { force: true });
+          // Wait for modal title to disappear — closeModalHandle() was called
+          cy.contains("Update Product", { timeout: 15000 }).should("not.exist");
+          cy.log("Update Product modal closed");
+
+          // Search for updated product
+          cy.get('input[placeholder="Search By Product"]').clear().type(updatedName);
           cy.wait(500);
           cy.contains(updatedName, { timeout: 10000 }).should("exist");
           cy.log(`Updated product "${updatedName}" found in table`);
 
-          // Verify price column shows updated value
+          // Verify price
           cy.contains(updatedName).closest("tr").find("td").eq(3).invoke("text").then((price) => {
             expect(price.trim()).to.eq("199");
             cy.log(`Price confirmed: ${price.trim()}`);
           });
 
-          // Verify units column shows updated value
+          // Verify units
           cy.contains(updatedName).closest("tr").find("td").eq(4).invoke("text").then((units) => {
             expect(units.trim()).to.eq("50");
             cy.log(`Units confirmed: ${units.trim()}`);
           });
 
-          // Cleanup: clear search
-          cy.get('input[placeholder="Search By Product"]').clear({ force: true });
+          // Cleanup
+          cy.get('input[placeholder="Search By Product"]').clear();
         });
       });
     });
