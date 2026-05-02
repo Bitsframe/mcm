@@ -429,12 +429,22 @@ describe("Warehouse — Products Tab", () => {
       cy.log("Create Product modal opened");
 
       // ── Category (Searchable_Dropdown) ──
-      // Click the trigger div to open, then type in the search input to filter, then click first li
-      cy.get(".fixed .w-full.relative").first().find("div").first().click({ force: true });
-      cy.get(".fixed .w-full.relative").first().find("ul").should("exist");
-      cy.get(".fixed .w-full.relative").first().find("ul li").first().click({ force: true });
+      // The Searchable_Dropdown renders: outer .w-full.relative > trigger div > (ul when open)
+      // Click the trigger div (direct child with cursor-pointer class), wait for ul, click first li
+      cy.get(".fixed .w-full.relative").first().as("catDropdown");
+      cy.get("@catDropdown").find("div.cursor-pointer").click({ force: true });
       cy.wait(400);
-      cy.log("Category selected");
+      cy.get("@catDropdown").find("ul").should("exist");
+      cy.get("@catDropdown").find("ul li").first().then(($li) => {
+        const catText = $li.text().trim();
+        cy.wrap($li).click({ force: true });
+        cy.wait(400);
+        cy.log(`Category selected: "${catText}"`);
+        // Verify the trigger now shows the selected category (not the placeholder)
+        cy.get("@catDropdown").find("div.cursor-pointer p").invoke("text").then((txt) => {
+          expect(txt.trim()).to.eq(catText);
+        });
+      });
 
       // ── Name — scope by label text to find the right input ──
       // The modal has: Category (dropdown), Name (text), Price (number), Units (number)
@@ -504,11 +514,16 @@ describe("Warehouse — Products Tab", () => {
           cy.log("Update Product modal opened");
 
           // ── Category (Searchable_Dropdown) ──
-          cy.get(".fixed .w-full.relative").first().find("div").first().click({ force: true });
-          cy.get(".fixed .w-full.relative").first().find("ul").should("exist");
-          cy.get(".fixed .w-full.relative").first().find("ul li").first().click({ force: true });
+          cy.get(".fixed .w-full.relative").first().as("catDropdownUpdate");
+          cy.get("@catDropdownUpdate").find("div.cursor-pointer").click({ force: true });
           cy.wait(400);
-          cy.log("Category selected");
+          cy.get("@catDropdownUpdate").find("ul").should("exist");
+          cy.get("@catDropdownUpdate").find("ul li").first().then(($li) => {
+            const catText = $li.text().trim();
+            cy.wrap($li).click({ force: true });
+            cy.wait(400);
+            cy.log(`Category selected: "${catText}"`);
+          });
 
           // Uncheck Unlimited first so Units input is enabled
           cy.get("#unlimited").then(($cb) => {
