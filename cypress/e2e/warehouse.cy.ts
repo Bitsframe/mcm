@@ -304,6 +304,12 @@ describe("Warehouse — Categories Tab", () => {
 
 describe("Warehouse — Products Tab", () => {
 
+  beforeEach(() => {
+    // Close any open modals from previous tests by pressing Escape
+    cy.get("body").type("{esc}", { force: true });
+    cy.wait(300);
+  });
+
   it("should navigate to Products tab and show product list", () => {
     loginAndVisit(WAREHOUSE_PRODUCTS_URL);
 
@@ -422,23 +428,32 @@ describe("Warehouse — Products Tab", () => {
       cy.contains("Create Product", { timeout: 10000 }).should("exist");
       cy.log("Create Product modal opened");
 
-      // Category — Searchable_Dropdown: click trigger div, wait for ul, click first li
-      cy.get(".fixed .w-full.relative").first().click({ force: true });
-      cy.wait(500);
-      cy.get(".fixed .w-full.relative ul li").first().click({ force: true });
-      cy.wait(300);
+      // ── Category (Searchable_Dropdown) ──
+      // Click the trigger div to open, then type in the search input to filter, then click first li
+      cy.get(".fixed .w-full.relative").first().find("div").first().click({ force: true });
+      cy.get(".fixed .w-full.relative").first().find("ul").should("exist");
+      cy.get(".fixed .w-full.relative").first().find("ul li").first().click({ force: true });
+      cy.wait(400);
       cy.log("Category selected");
 
-      // Name — Input_Component renders <input id="section">
-      setReactInputValue('input[id="section"]', newProdName);
+      // ── Name — scope by label text to find the right input ──
+      // The modal has: Category (dropdown), Name (text), Price (number), Units (number)
+      // All Input_Component instances render id="section" — scope by parent label
+      cy.contains("label", "Name").siblings("div").find('input').first()
+        .clear({ force: true }).type(newProdName, { force: true });
+      cy.wait(200);
       cy.log(`Name set to: "${newProdName}"`);
 
-      // Price — first number input
-      setReactInputValue('.fixed input[type="number"]', "50", 0);
+      // ── Price ──
+      cy.contains("label", "Price").siblings("div").find('input[type="number"]').first()
+        .clear({ force: true }).type("50", { force: true });
+      cy.wait(200);
       cy.log("Price set to 50");
 
-      // Units — second number input
-      setReactInputValue('.fixed input[type="number"]', "100", 1);
+      // ── Units ──
+      cy.contains("label", "Units").siblings("div").find('input[type="number"]').first()
+        .clear({ force: true }).type("100", { force: true });
+      cy.wait(200);
       cy.log("Units set to 100");
 
       cy.contains("button", "Create").click({ force: true });
@@ -488,11 +503,11 @@ describe("Warehouse — Products Tab", () => {
           cy.contains("Update Product", { timeout: 10000 }).should("exist");
           cy.log("Update Product modal opened");
 
-          // Category dropdown
-          cy.get(".fixed .w-full.relative").first().click({ force: true });
-          cy.wait(500);
-          cy.get(".fixed .w-full.relative ul li").first().click({ force: true });
-          cy.wait(300);
+          // ── Category (Searchable_Dropdown) ──
+          cy.get(".fixed .w-full.relative").first().find("div").first().click({ force: true });
+          cy.get(".fixed .w-full.relative").first().find("ul").should("exist");
+          cy.get(".fixed .w-full.relative").first().find("ul li").first().click({ force: true });
+          cy.wait(400);
           cy.log("Category selected");
 
           // Uncheck Unlimited first so Units input is enabled
@@ -501,20 +516,26 @@ describe("Warehouse — Products Tab", () => {
           });
           cy.wait(200);
 
-          // Name
+          // ── Name — scope by label ──
           const updatedName = `Updated${Date.now().toString().slice(-5)}`;
-          setReactInputValue('input[id="section"]', updatedName);
+          cy.contains("label", "Name").siblings("div").find('input').first()
+            .clear({ force: true }).type(updatedName, { force: true });
+          cy.wait(200);
           cy.log(`Name set to: "${updatedName}"`);
 
-          // Price — first number input
-          setReactInputValue('.fixed input[type="number"]', "199", 0);
+          // ── Price — scope by label ──
+          cy.contains("label", "Price").siblings("div").find('input[type="number"]').first()
+            .clear({ force: true }).type("199", { force: true });
+          cy.wait(200);
           cy.log("Price set to 199");
 
-          // Units — second number input
-          setReactInputValue('.fixed input[type="number"]', "50", 1);
+          // ── Units — scope by label ──
+          cy.contains("label", "Units").siblings("div").find('input[type="number"]').first()
+            .clear({ force: true }).type("50", { force: true });
+          cy.wait(200);
           cy.log("Units set to 50");
 
-          // Bonus Eligible
+          // ── Bonus Eligible ──
           cy.get("#bonus_eligible").then(($cb) => {
             const was = $cb.is(":checked");
             cy.wrap($cb).click({ force: true });
@@ -741,8 +762,10 @@ describe("Warehouse — Products Tab", () => {
             cy.wait(500);
 
             cy.contains("Number of Units").should("exist");
-            // Use index 0 — the only number input in the assign modal
-            setReactInputValue('input[id="section"]', "3");
+            // Scope the quantity input by its label to avoid id="section" ambiguity
+            cy.contains("label", "Number of Units").siblings("div").find('input[type="number"]').first()
+              .clear({ force: true }).type("3", { force: true });
+            cy.wait(300);
             cy.log("Quantity set to 3");
 
             cy.get("body").then(($body2) => {
@@ -912,19 +935,19 @@ describe("Warehouse — Products Tab", () => {
           cy.contains(`Available: ${inv.quantity}`, { timeout: 10000 }).should("exist");
           cy.log(`Available units confirmed: ${inv.quantity}`);
 
-          // Set units — Input_Component calls onChange(e.target.value) = setUnits(value)
-          // Use the search input approach: the Input_Component renders <input id="section">
-          // but we need to trigger React's onChange properly
-          cy.get('input[id="section"]').should("not.be.disabled").clear({ force: true }).type(String(transferUnits), { force: true });
+          // Set units — scope by label to avoid id="section" ambiguity
+          cy.contains("label", /Units.*Available/).siblings("div").find('input[type="number"]').first()
+            .should("not.be.disabled")
+            .clear({ force: true })
+            .type(String(transferUnits), { force: true });
           cy.wait(500);
           cy.log(`Units entered: ${transferUnits}`);
 
-          // Verify the Transfer button is now enabled (all fields filled)
+          // Verify the Transfer button is now enabled
           cy.contains("button", "Transfer").last().should("not.be.disabled");
           cy.log("Transfer button is enabled — all fields valid");
 
-          // Intercept must be set before the click
-          cy.contains("button", "Transfer").last().click();
+          cy.contains("button", "Transfer").last().click({ force: true });
 
           waitForApiCall("@transferUnits");
 
