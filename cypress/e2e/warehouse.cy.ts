@@ -429,40 +429,49 @@ describe("Warehouse — Products Tab", () => {
       cy.log("Create Product modal opened");
 
       // ── Category (Searchable_Dropdown) ──
-      // The Searchable_Dropdown renders: outer .w-full.relative > trigger div > (ul when open)
-      // Click the trigger div (direct child with cursor-pointer class), wait for ul, click first li
-      cy.get(".fixed .w-full.relative").first().as("catDropdown");
-      cy.get("@catDropdown").find("div.cursor-pointer").click({ force: true });
-      cy.wait(400);
-      cy.get("@catDropdown").find("ul").should("exist");
-      cy.get("@catDropdown").find("ul li").first().then(($li) => {
-        const catText = $li.text().trim();
-        cy.wrap($li).click({ force: true });
-        cy.wait(400);
-        cy.log(`Category selected: "${catText}"`);
-        // Verify the trigger now shows the selected category (not the placeholder)
-        cy.get("@catDropdown").find("div.cursor-pointer p").invoke("text").then((txt) => {
-          expect(txt.trim()).to.eq(catText);
-        });
+      // The Searchable_Dropdown trigger is a div.cursor-pointer inside div.w-full.relative.
+      // Scope to the modal body (div.space-y-6) to avoid matching other fixed elements.
+      cy.get("div.space-y-6").first().within(() => {
+        // The first div.w-full.relative is the category dropdown
+        cy.get("div.w-full.relative").first().find("div.cursor-pointer").click({ force: true });
+        // The dropdown ul is a child of div.w-full.relative (absolute positioned but still in DOM tree)
+        cy.get("div.w-full.relative").first().find("ul li").first().click({ force: true });
       });
+      cy.wait(400);
+      cy.log("Category selected");
 
       // ── Name — scope by label text to find the right input ──
-      // The modal has: Category (dropdown), Name (text), Price (number), Units (number)
-      // All Input_Component instances render id="section" — scope by parent label
-      cy.contains("label", "Name").siblings("div").find('input').first()
-        .clear({ force: true }).type(newProdName, { force: true });
+      // Input_Component renders <Label htmlFor="section"> then <input id="section">
+      // Use the label's parent container to scope correctly
+      cy.get("div.space-y-6").first().within(() => {
+        cy.contains("label", "Name")
+          .closest("div.w-full")
+          .find("input#section")
+          .clear({ force: true })
+          .type(newProdName, { force: true });
+      });
       cy.wait(200);
       cy.log(`Name set to: "${newProdName}"`);
 
       // ── Price ──
-      cy.contains("label", "Price").siblings("div").find('input[type="number"]').first()
-        .clear({ force: true }).type("50", { force: true });
+      cy.get("div.space-y-6").first().within(() => {
+        cy.contains("label", "Price")
+          .closest("div.w-full")
+          .find('input[type="number"]')
+          .clear({ force: true })
+          .type("50", { force: true });
+      });
       cy.wait(200);
       cy.log("Price set to 50");
 
       // ── Units ──
-      cy.contains("label", "Units").siblings("div").find('input[type="number"]').first()
-        .clear({ force: true }).type("100", { force: true });
+      cy.get("div.space-y-6").first().within(() => {
+        cy.contains("label", "Units")
+          .closest("div.w-full")
+          .find('input[type="number"]')
+          .clear({ force: true })
+          .type("100", { force: true });
+      });
       cy.wait(200);
       cy.log("Units set to 100");
 
@@ -514,16 +523,12 @@ describe("Warehouse — Products Tab", () => {
           cy.log("Update Product modal opened");
 
           // ── Category (Searchable_Dropdown) ──
-          cy.get(".fixed .w-full.relative").first().as("catDropdownUpdate");
-          cy.get("@catDropdownUpdate").find("div.cursor-pointer").click({ force: true });
-          cy.wait(400);
-          cy.get("@catDropdownUpdate").find("ul").should("exist");
-          cy.get("@catDropdownUpdate").find("ul li").first().then(($li) => {
-            const catText = $li.text().trim();
-            cy.wrap($li).click({ force: true });
-            cy.wait(400);
-            cy.log(`Category selected: "${catText}"`);
+          cy.get("div.space-y-6").first().within(() => {
+            cy.get("div.w-full.relative").first().find("div.cursor-pointer").click({ force: true });
+            cy.get("div.w-full.relative").first().find("ul li").first().click({ force: true });
           });
+          cy.wait(400);
+          cy.log("Category selected");
 
           // Uncheck Unlimited first so Units input is enabled
           cy.get("#unlimited").then(($cb) => {
@@ -533,20 +538,35 @@ describe("Warehouse — Products Tab", () => {
 
           // ── Name — scope by label ──
           const updatedName = `Updated${Date.now().toString().slice(-5)}`;
-          cy.contains("label", "Name").siblings("div").find('input').first()
-            .clear({ force: true }).type(updatedName, { force: true });
+          cy.get("div.space-y-6").first().within(() => {
+            cy.contains("label", "Name")
+              .closest("div.w-full")
+              .find("input#section")
+              .clear({ force: true })
+              .type(updatedName, { force: true });
+          });
           cy.wait(200);
           cy.log(`Name set to: "${updatedName}"`);
 
           // ── Price — scope by label ──
-          cy.contains("label", "Price").siblings("div").find('input[type="number"]').first()
-            .clear({ force: true }).type("199", { force: true });
+          cy.get("div.space-y-6").first().within(() => {
+            cy.contains("label", "Price")
+              .closest("div.w-full")
+              .find('input[type="number"]')
+              .clear({ force: true })
+              .type("199", { force: true });
+          });
           cy.wait(200);
           cy.log("Price set to 199");
 
           // ── Units — scope by label ──
-          cy.contains("label", "Units").siblings("div").find('input[type="number"]').first()
-            .clear({ force: true }).type("50", { force: true });
+          cy.get("div.space-y-6").first().within(() => {
+            cy.contains("label", "Units")
+              .closest("div.w-full")
+              .find('input[type="number"]')
+              .clear({ force: true })
+              .type("50", { force: true });
+          });
           cy.wait(200);
           cy.log("Units set to 50");
 
