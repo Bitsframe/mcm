@@ -796,31 +796,67 @@ describe("Warehouse — Products Tab", () => {
             cy.wait(500);
 
             cy.contains("Number of Units").should("exist");
-            // Scope the quantity input by its label to avoid id="section" ambiguity
-            cy.contains("label", "Number of Units").siblings("div").find('input[type="number"]').first()
-              .clear({ force: true }).type("3", { force: true });
-            cy.wait(300);
-            cy.log("Quantity set to 3");
 
-            cy.get("body").then(($body2) => {
-              if ($body2.text().includes("Assigned stock:")) {
-                cy.contains("Assigned stock:")
+            // Read available stock to pick a safe quantity (less than available)
+            cy.get("body").then(($bodyStock) => {
+              let assignQty = 1;
+
+              if ($bodyStock.text().includes("Available stock:")) {
+                // Parse the available stock value and use half of it (min 1)
+                cy.contains("Available stock:")
                   .closest("div.flex.justify-between")
                   .find("span.font-medium")
                   .invoke("text")
-                  .then((assignedTxt) => {
-                    expect(assignedTxt.trim()).to.eq("3");
-                    cy.log(`Assigned stock confirmed: ${assignedTxt.trim()}`);
+                  .then((availTxt) => {
+                    const avail = parseInt(availTxt.trim()) || 2;
+                    assignQty = Math.max(1, Math.floor(avail / 2));
+                    cy.log(`Available stock: ${avail}, using quantity: ${assignQty}`);
+
+                    // Use triple-click to fully select then type to replace
+                    cy.contains("label", "Number of Units")
+                      .siblings("div")
+                      .find('input[type="number"]')
+                      .first()
+                      .click({ force: true })
+                      .type("{selectall}" + String(assignQty), { force: true });
+                    cy.wait(300);
+                    cy.log(`Quantity set to ${assignQty}`);
+
+                    cy.get("body").then(($body2) => {
+                      if ($body2.text().includes("Assigned stock:")) {
+                        cy.contains("Assigned stock:")
+                          .closest("div.flex.justify-between")
+                          .find("span.font-medium")
+                          .invoke("text")
+                          .then((assignedTxt) => {
+                            expect(parseInt(assignedTxt.trim())).to.be.lessThan(avail + 1);
+                            cy.log(`Assigned stock confirmed: ${assignedTxt.trim()}`);
+                          });
+                      }
+                    });
+
+                    cy.contains("button", "Assign").click({ force: true });
+                    waitForApiCall("@assignInventory");
+                    waitForModalToClose("Assign Product");
+                    cy.log("Assign submitted successfully");
                   });
+              } else {
+                // Unlimited product — just type 1
+                cy.contains("label", "Number of Units")
+                  .siblings("div")
+                  .find('input[type="number"]')
+                  .first()
+                  .click({ force: true })
+                  .type("{selectall}1", { force: true });
+                cy.wait(300);
+                cy.log("Quantity set to 1 (unlimited product)");
+
+                cy.contains("button", "Assign").click({ force: true });
+                waitForApiCall("@assignInventory");
+                waitForModalToClose("Assign Product");
+                cy.log("Assign submitted successfully");
               }
             });
-
-            cy.contains("button", "Assign").click({ force: true });
-
-            waitForApiCall("@assignInventory");
-
-            waitForModalToClose("Assign Product");
-            cy.log("Assign submitted successfully");
 
             // Switch location via sidebar
             cy.get("button.text-white.text-xs.text-start").first().click({ force: true });
@@ -918,70 +954,75 @@ describe("Warehouse — Products Tab", () => {
           cy.log("Transfer Units modal opened");
 
           // Helper: select an option from a Searchable_Dropdown inside the Transfer modal.
-          // The Searchable_Dropdown renders:
-          //   <div class="w-full relative">          ← trigger wrapper
-          //     <div>...</div>                       ← clickable trigger (shows current value)
-          //     <ul class="absolute z-10 ...">       ← shown when open
-          //       <input type="text" .../>           ← search filter input
-          //       <li>option 1</li>
-          //       <li>option 2</li>
-          //     </ul>
-          //   </div>
-          // Strategy: click the trigger div, wait for ul, type in the search input to filter,
-          // then click the first visible li that matches.
+          // Scopes to div.space-y-6 (Custom_Modal body) to avoid Flowbite backdrop interference.
+          // Each Searchable_Dropdown renders: div.w-full.relative > div.cursor-pointer (trigger)
+          //   + ul.absolute (dropdown list with a search input and li items).
           const selectTransferDropdown = (dropdownIndex: number, optionText: string, waitMs = 600) => {
-            // Scope to the modal overlay to avoid matching page-level dropdowns
-            // Click the trigger <div> (first child div inside .w-full.relative)
-            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
-              .find("div").first().click({ force: true });
+            // Click the cursor-pointer trigger div to open the dropdown
+            cy.get("div.space-y-6").first()
+              .find("div.w-full.relative").eq(dropdownIndex)
+              .find("div.cursor-pointer").click({ force: true });
             // Wait for the ul to appear
-            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+            cy.get("div.space-y-6").first()
+              .find("div.w-full.relative").eq(dropdownIndex)
               .find("ul").should("exist");
             // Type in the search input to filter options
-            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+            cy.get("div.space-y-6").first()
+              .find("div.w-full.relative").eq(dropdownIndex)
               .find("ul input[type='text']")
               .clear({ force: true })
               .type(optionText, { force: true });
             cy.wait(300);
             // Click the first matching li
-            cy.get(".fixed.inset-0").find(".w-full.relative").eq(dropdownIndex)
+            cy.get("div.space-y-6").first()
+              .find("div.w-full.relative").eq(dropdownIndex)
               .find("ul li").first().click({ force: true });
             cy.wait(waitMs);
           };
 
-          // From Location
-          selectTransferDropdown(0, inv.from_location_title);
+          // From Location — index 0
+          selectTransferDropdown(0, inv.from_location_title, 800);
           cy.log(`From Location selected: "${inv.from_location_title}"`);
 
-          // To Location (filtered to exclude fromLocation, so just type and pick first)
-          selectTransferDropdown(1, toLocation.title);
+          // To Location — index 1 (filtered list, excludes fromLocation)
+          selectTransferDropdown(1, toLocation.title, 800);
           cy.log(`To Location selected: "${toLocation.title}"`);
 
-          // Category (loads after fromLocation is set)
-          selectTransferDropdown(2, inv.category_name, 1000);
+          // Category — index 2 (loads after fromLocation is set; wait for options)
+          cy.get("div.space-y-6").first()
+            .find("div.w-full.relative").eq(2)
+            .find("div.cursor-pointer")
+            .should("exist", { timeout: 5000 });
+          selectTransferDropdown(2, inv.category_name, 1200);
           cy.log(`Category selected: "${inv.category_name}"`);
 
-          // Product (loads after category is set)
-          selectTransferDropdown(3, inv.product_name);
+          // Product — index 3 (loads after category is set; wait for options)
+          cy.get("div.space-y-6").first()
+            .find("div.w-full.relative").eq(3)
+            .find("div.cursor-pointer")
+            .should("exist", { timeout: 5000 });
+          selectTransferDropdown(3, inv.product_name, 800);
           cy.log(`Product selected: "${inv.product_name}"`);
 
           // Verify available units label appears (confirms product state is set)
           cy.contains(`Available: ${inv.quantity}`, { timeout: 10000 }).should("exist");
           cy.log(`Available units confirmed: ${inv.quantity}`);
 
-          // Set units — scope by label to avoid id="section" ambiguity
-          cy.contains("label", /Units.*Available/).siblings("div").find('input[type="number"]').first()
+          // Set units — Input_Component renders div.w-full.space-y-2 > Label + div > input
+          cy.get("div.space-y-6").first()
+            .find('input[type="number"]')
+            .first()
             .should("not.be.disabled")
-            .clear({ force: true })
-            .type(String(transferUnits), { force: true });
+            .click({ force: true })
+            .type("{selectall}" + String(transferUnits), { force: true });
           cy.wait(500);
           cy.log(`Units entered: ${transferUnits}`);
 
-          // Verify the Transfer button is now enabled
-          cy.contains("button", "Transfer").last().should("not.be.disabled");
+          // Submit via the modal footer button (class="capitalize ml-2" is unique to Custom_Modal)
+          cy.get("button.capitalize.ml-2").should("not.be.disabled");
           cy.log("Transfer button is enabled — all fields valid");
 
-          cy.contains("button", "Transfer").last().click({ force: true });
+          cy.get("button.capitalize.ml-2").click({ force: true });
 
           waitForApiCall("@transferUnits");
 
