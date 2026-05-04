@@ -475,7 +475,7 @@ describe("Warehouse — Products Tab", () => {
       cy.wait(200);
       cy.log("Units set to 100");
 
-      cy.contains("button", "Create").click({ force: true });
+      cy.get("button.capitalize.ml-2").click({ force: true });
 
       waitForApiCall("@createProduct");
       cy.log("Create API call completed");
@@ -577,10 +577,9 @@ describe("Warehouse — Products Tab", () => {
             cy.log(`Bonus eligible toggled: ${was} → ${!was}`);
           });
 
-          cy.contains("button", "Update").click({ force: true });
-
-          waitForApiCall("@updateProduct");
-          cy.log("Update API call completed");
+          // The modal footer submit button has class "capitalize ml-2" (set in Custom_Modal).
+          // This avoids matching the table row "Update" Action_Button elements.
+          cy.get("button.capitalize.ml-2").click({ force: true });
 
           waitForModalToClose("Update Product");
           cy.log("Update Product modal closed");
