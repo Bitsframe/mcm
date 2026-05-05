@@ -47,8 +47,9 @@ function Login() {
               <span className="text-sm">&#x2715;</span>
             </button>
           </div>
-        )}else {
-          setTimeout(() => router.push("/?toast=login_success"), 1500);
+        )        } else {
+          const loc = (params.locale as string) || "en";
+          setTimeout(() => router.push(`/${loc}?toast=login_success`), 1500);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -67,6 +68,11 @@ function Login() {
           </CardHeader>
           <CardContent>
             <form className="space-y-6" onSubmit={handleSubmit}>
+              <input
+                type="hidden"
+                name="locale"
+                value={(params.locale as string) || "en"}
+              />
               <Input
                 id="email"
                 name="email"

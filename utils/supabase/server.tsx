@@ -50,11 +50,22 @@ import { cookies } from 'next/headers'
 export const createClient = () => {
   const cookieStore = cookies()
 
-  // Use publishable key for authentication and general operations
-  // Secret key should only be used for specific admin operations that require elevated privileges
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const anonOrPublishable = (
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    ""
+  ).trim()
+
+  if (!url || !anonOrPublishable) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (or PUBLISHABLE_KEY)"
+    )
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Use publishable key for auth
+    url,
+    anonOrPublishable,
     {
       cookies: {
         get(name: string) {

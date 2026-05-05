@@ -3,8 +3,13 @@ import  { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
 
+const allowedLocales = new Set(['en', 'es'])
+
 export async function login(formData: FormData) {
   const supabase = createClient()
+
+  const localeRaw = (formData.get('locale') as string) || 'en'
+  const locale = allowedLocales.has(localeRaw) ? localeRaw : 'en'
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
@@ -34,7 +39,7 @@ export async function login(formData: FormData) {
 
   // revalidatePath('/', 'layout')
 
-  return redirect('/')
+  redirect(`/${locale}`)
 }
 
 
