@@ -4,6 +4,7 @@
 
 function loginAndVisitInventory() {
   cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
+  cy.wait(3000);
   cy.visit("/en/inventory/manage");
   cy.wait(2000);
 }
