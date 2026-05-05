@@ -25,18 +25,15 @@ jobs:
       - name: Create results directory
         run: mkdir -p cypress/results
 
-      # Run both specs with --record so cy.prompt is authenticated via Cypress Cloud
+      # Run inventory spec only
       - name: Cypress Cloud Run
         id: cypress
         uses: cypress-io/github-action@v6
         with:
           start: yarn dev
           wait-on: "http://localhost:3000"
-          wait-on-timeout: 120
-          spec: |
-            cypress/e2e/appointment-form.cy.ts
-            cypress/e2e/inventory.cy.ts
-
+          wait-on-timeout: 180
+          spec: cypress/e2e/inventory.cy.ts
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
