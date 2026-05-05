@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { dbSync } from '@/utils/sync/directDbSync';
+import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
 /**
  * UPDATE PHARMACY
@@ -9,10 +9,7 @@ export const PUT = async (
   req: Request,
   { params }: { params: { id: string } }
 ) => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
   const id = Number(params.id); // 🔑 ensure integer
 
   try {
@@ -85,10 +82,7 @@ export const DELETE = async (
   _req: Request,
   { params }: { params: { id: string } }
 ) => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
   const id = Number(params.id); // 🔑 ensure integer
 
   try {

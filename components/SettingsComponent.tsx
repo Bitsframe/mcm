@@ -15,7 +15,10 @@ import {
 } from "@/components/ui/select";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const supabasePublishableKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "";
 
 if (!supabaseUrl || !supabasePublishableKey) {
   console.error("Missing Supabase environment variables");
@@ -25,7 +28,13 @@ const formattedTime = (time?: string) => {
   return time ? moment(time, "HH:mm:ss").format("hh:mm A") : "";
 };
 
-const supabase = createClient(supabaseUrl, supabasePublishableKey);
+let settingsSupabase: ReturnType<typeof createClient> | null = null;
+function getSettingsSupabase() {
+  if (!settingsSupabase) {
+    settingsSupabase = createClient(supabaseUrl, supabasePublishableKey);
+  }
+  return settingsSupabase;
+}
 
 interface Location {
   id: number;
@@ -103,11 +112,11 @@ const SettingsComponent: React.FC = () => {
   const fetchLocations = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("Locations").select("*");
+      const { data, error } = await getSettingsSupabase().from("Locations").select("*");
       if (error) throw error;
       if (data?.length) {
-        setLocations(data);
-        selectLocation(data[0]);
+        setLocations(data as unknown as Location[]);
+        selectLocation(data[0] as unknown as Location);
       }
     } catch (error: any) {
       console.error("Error fetching locations:", error.message || error);
@@ -130,7 +139,7 @@ const SettingsComponent: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      const { error } = await supabase
+      const { error } = await getSettingsSupabase()
         .from("Locations")
         .update({ report_time: selectedTime })
         .eq("id", selectedLocation.id);

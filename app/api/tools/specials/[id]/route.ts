@@ -1,14 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-
-const supabase = createClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.SUPABASE_SECRET_KEY!
-);
+import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
 // Get specials (all or single)
 export const GET = async (_req: Request, { params }: { params: { id: string } }) => {
 	try {
+		const supabase = getServiceRoleSupabase();
 		const { id } = params;
 
 		if (id === "all") {
@@ -40,6 +36,7 @@ export const GET = async (_req: Request, { params }: { params: { id: string } })
 // Create (insert) special
 export const POST = async (req: Request) => {
 	try {
+		const supabase = getServiceRoleSupabase();
 		const body = await req.json();
 		const { file_path, display = false, title = null } = body;
 
@@ -65,6 +62,7 @@ export const POST = async (req: Request) => {
 // Update special
 export const PUT = async (req: Request, { params }: { params: { id: string } }) => {
 	try {
+		const supabase = getServiceRoleSupabase();
 		const { id } = params;
 		const body = await req.json();
 		const { file_path, display, title } = body;
@@ -93,6 +91,7 @@ export const PUT = async (req: Request, { params }: { params: { id: string } }) 
 // Delete special
 export const DELETE = async (_req: Request, { params }: { params: { id: string } }) => {
 	try {
+		const supabase = getServiceRoleSupabase();
 		const { id } = params;
 
 		const { data, error } = await supabase

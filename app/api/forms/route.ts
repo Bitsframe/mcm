@@ -1,12 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { dbSync } from '@/utils/sync/directDbSync';
+import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
 export const GET = async () => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
 
   try {
     const { data: forms, error } = await supabase
@@ -24,10 +21,7 @@ export const GET = async () => {
 };
 
 export const POST = async (req: Request) => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
 
   try {
     const body = await req.json();
@@ -66,10 +60,7 @@ export const POST = async (req: Request) => {
 };
 
 export const PUT = async (req: Request) => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
 
   try {
     const body = await req.json();
@@ -106,10 +97,7 @@ export const PUT = async (req: Request) => {
 };
 
 export const DELETE = async (req: Request) => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const supabase = getServiceRoleSupabase();
 
   try {
     const { searchParams } = new URL(req.url);

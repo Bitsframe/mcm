@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase client setup
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client'
 
 export async function POST(req: NextRequest) {
+  const supabase = getServiceRoleSupabase()
   const contentType = req.headers.get('content-type') || ''
 
   if (!contentType.includes('multipart/form-data')) {
