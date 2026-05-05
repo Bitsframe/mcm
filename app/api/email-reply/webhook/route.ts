@@ -1,41 +1,34 @@
-// pages/api/email-reply/webhook.js
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
-
-// Reuse a service-role Supabase client if already created (avoid recreating on hot reload)
-declare global {
-  // allow global to have this property across modules
-  // eslint-disable-next-line no-var
-  var __supabase_service_client__: SupabaseClient | undefined;
+function getServiceSupabase(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+  if (!url?.trim() || !key?.trim()) return null;
+  return createClient(url, key);
 }
-
-const supabase: SupabaseClient =
-  global.__supabase_service_client__ ||
-  (function createServiceClient() {
-    const client = createClient(supabaseUrl || '', supabaseSecretKey || '');
-    // store on global for reuse
-    try {
-      global.__supabase_service_client__ = client;
-    } catch (e) {
-      // ignore in environments where global is read-only
-    }
-    return client;
-  })();
 
 export async function POST(req: Request) {
   try {
-    const { from, subject, body, messageId } = await req.json();
-
-    // Validate the required fields are present
-    if (!from || !subject || !body || !messageId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const supabase = getServiceSupabase();
+    if (!supabase) {
+      return NextResponse.json(
+        {
+          error:
+            "Server misconfigured: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY",
+        },
+        { status: 503 }
+      );
     }
 
-    // Store the reply in Supabase
-    const { data, error } = await supabase.from('email_replies').insert([
+    const { from, subject, body, messageId } = await req.json();
+
+    if (!from || !subject || !body || !messageId) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const { error } = await supabase.from("email_replies").insert([
       {
         from,
         subject,
@@ -47,12 +40,18 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error(error);
-      return NextResponse.json({ error: 'Error saving reply to Supabase' }, { status: 500 });
+      return NextResponse.json(
+        { error: "Error saving reply to Supabase" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ message: 'Reply saved successfully' }, { status: 200 });
+    return NextResponse.json({ message: "Reply saved successfully" }, { status: 200 });
   } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: error?.message || 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
