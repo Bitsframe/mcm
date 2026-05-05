@@ -1,13 +1,24 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
-const supabase = createClient(supabaseUrl, supabaseSecretKey);
-
 export async function GET() {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Missing Supabase configuration. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     // Step 1: Fetch profile_ids and location_ids from user_locations table
     const { data: userLocations, error: locationsError } = await supabase
       .from("user_locations")
@@ -49,16 +60,17 @@ export async function GET() {
     }
 
     // Step 5: Extract permission IDs from the user permissions
-    const extractedPermissionsIds = userPermissions 
+    const extractedPermissionsIds = userPermissions
       ? userPermissions.map((permission) => permission.permissions)
       : [];
-    
+
     // Step 6: Fetch permission details from permissions table
-    const { data: permissionDetails, error: permissionDetailsError } = await supabase
-      .from("permissions")
-      .select("*")
-      .in("id", extractedPermissionsIds.flat());
-      
+    const { data: permissionDetails, error: permissionDetailsError } =
+      await supabase
+        .from("permissions")
+        .select("*")
+        .in("id", extractedPermissionsIds.flat());
+
     if (permissionDetailsError) {
       throw new Error(
         `Error fetching permission details: ${permissionDetailsError.message}`
