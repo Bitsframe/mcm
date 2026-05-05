@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,6 +101,11 @@ export const POST = async (req: Request) => {
             );
         }
 
+        const resolvedAddress =
+            patientData.address ?? patientData.streetAddress ?? null;
+        const resolvedDob =
+            patientData.dob ?? patientData.dateOfBirth ?? null;
+
         if (existingPatients && existingPatients.length > 0) {
             // Update the first matching patient
             const patient = existingPatients[0];
@@ -110,9 +116,13 @@ export const POST = async (req: Request) => {
                     email: patientData.email,
                     phone: patientData.phone,
                     note: patientData?.note,
-                    address: patientData?.streetAddress,
-                    dob: patientData?.dateOfBirth,
+                    address: resolvedAddress,
+                    dob: resolvedDob,
                     gender: patientData?.gender,
+                    ...(patientData.treatmenttype != null &&
+                    patientData.treatmenttype !== ""
+                        ? { treatmenttype: patientData.treatmenttype }
+                        : {}),
                 })
                 .eq("id", patient.id)
                 .select();
@@ -143,9 +153,10 @@ export const POST = async (req: Request) => {
                         email: patientData.email,
                         phone: patientData.phone,
                         note: patientData?.note,
-                        address: patientData?.streetAddress,
-                        dob: patientData?.dateOfBirth,
-                    }
+                        address: resolvedAddress,
+                        dob: resolvedDob,
+                        treatmenttype: patientData.treatmenttype ?? null,
+                    },
                 ])
                 .select();
 
@@ -154,6 +165,51 @@ export const POST = async (req: Request) => {
                     { success: false, message: insertError.message },
                     { status: 400 }
                 );
+            }
+
+            const newRow = inserted?.[0];
+            const patientId = newRow?.id;
+
+            if (
+                patientId != null &&
+                patientData.create_pos_walkin_appointment === true &&
+                patientData.treatmenttype
+            ) {
+                const appointmentPayload = {
+                    location_id: Number(patientData.locationid),
+                    patient_id: patientId,
+                    first_name: patientData.firstname,
+                    last_name: patientData.lastname,
+                    email_address: patientData.email ?? null,
+                    phone: patientData.phone ?? null,
+                    sex: patientData.gender ?? null,
+                    dob: resolvedDob,
+                    address: resolvedAddress,
+                    service: patientData.treatmenttype,
+                    in_office_patient: true,
+                    new_patient: false,
+                    date_and_time: null,
+                    text_opt: false,
+                    email_opt: false,
+                    isApproved: true,
+                };
+
+                const admin = createAdminClient();
+                const { error: apptError } = await admin
+                    .from("Appoinments")
+                    .insert([appointmentPayload]);
+
+                if (apptError) {
+                    await admin.from("allpatients").delete().eq("id", patientId);
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            message: apptError.message,
+                            detail: "Failed to create walk-in appointment",
+                        },
+                        { status: 400 }
+                    );
+                }
             }
 
             return NextResponse.json(

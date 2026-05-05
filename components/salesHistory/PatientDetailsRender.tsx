@@ -50,7 +50,10 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk19")}:</span><br />
-          <strong>{treatmenttype}</strong>
+          <strong>
+            {(treatmenttype && String(treatmenttype).trim()) ||
+              t("POS-Historyk51")}
+          </strong>
         </p>
         <p>
           <span className="text-sm text-gray-500">{t("POS-Historyk20")}:</span><br />
