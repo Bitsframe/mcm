@@ -224,6 +224,10 @@ const Patients = () => {
   const [editAddressSuggestions, setEditAddressSuggestions] = useState<any[]>([]);
   const [showEditAddressSuggestions, setShowEditAddressSuggestions] = useState(false);
   const [editAddressLoading, setEditAddressLoading] = useState(false);
+  /** Matches `localStorage` @pos-patient so the Select button shows selected (blue) */
+  const [selectedPosPatientId, setSelectedPosPatientId] = useState<number | null>(
+    null
+  );
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -354,6 +358,26 @@ const Patients = () => {
   }, [fetch_handle, selectedLocation?.id]);
 
   useEffect(() => {
+    try {
+      const raw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("@pos-patient")
+          : null;
+      if (!raw) {
+        setSelectedPosPatientId(null);
+        return;
+      }
+      const p = JSON.parse(raw);
+      const pid = p?.id;
+      setSelectedPosPatientId(
+        pid == null || pid === "" ? null : Number(pid)
+      );
+    } catch {
+      setSelectedPosPatientId(null);
+    }
+  }, [dataList, selectedLocation?.id]);
+
+  useEffect(() => {
     const fetchServices = async () => {
       let { data, error } = await supabase.from("services").select("title");
 
@@ -391,9 +415,25 @@ const Patients = () => {
   };
 
   const selectHandle = (data: any) => {
+    if (data?.id != null) setSelectedPosPatientId(Number(data.id));
     localStorage.setItem("@pos-patient", JSON.stringify(data));
     router.push("/pos/sales");
   };
+
+  const isRowSelectedForPos = (row: { id?: number | string }) =>
+    selectedPosPatientId != null &&
+    !Number.isNaN(selectedPosPatientId) &&
+    Number(row?.id) === selectedPosPatientId;
+
+  const selectPatientButtonClass = (selected: boolean) =>
+    selected
+      ? "bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
+      : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 justify-center transition-colors";
+
+  const selectPatientButtonClassDesktop = (selected: boolean) =>
+    selected
+      ? "bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
+      : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors";
 
   const modalInputChangeHandle = (e: any, id: string) => {
     if (id === "email") {
@@ -527,38 +567,42 @@ const Patients = () => {
         break;
     }
   };
-const createNewDataHandle = async () => {
+const createNewDataHandle = async (): Promise<boolean> => {
   const requiredFields = [
     "locationid",
     "firstname",
     "lastname",
     "email",
     "gender",
-    "phone",  
+    "phone",
     "address",
     "dob",
+    "treatmenttype",
   ];
 
-  // Log form data before validation
   console.log("Form Data Before Validation:", createActionData);
 
-  // Validate the form data
   const validateData = validateFormData(createActionData);
   console.log("Validation Result:", validateData);
 
   if (!validateData) {
     console.log("Validation Failed");
-    return;
+    return false;
   }
 
-  // Check for valid email
   if (createActionData.email && !isValidEmail(createActionData.email)) {
     console.log("Invalid Email Address:", createActionData.email);
     toast.error("Please enter a valid email address.");
-    return;
+    return false;
   }
 
-  // Prepare post data
+  if (!services || services.length === 0) {
+    toast.error(
+      "Treatment types could not be loaded. Refresh the page or check the services table."
+    );
+    return false;
+  }
+
   const postData = {
     firstname: createActionData.firstname,
     lastname: createActionData.lastname,
@@ -567,19 +611,19 @@ const createNewDataHandle = async () => {
     gender: createActionData.gender,
     address: createActionData.address,
     dob: createActionData.dob,
+    treatmenttype: createActionData.treatmenttype,
     locationid: selectedLocation?.id || "",
     onsite: true,
+    create_pos_walkin_appointment: true,
   };
 
-  // Log the post data before checking for missing fields
   console.log("Post Data Before Checking Required Fields:", postData);
 
-  // Check if all required fields are present
   for (const field of requiredFields) {
     if (!postData[field as keyof typeof postData]) {
       console.log(`Missing field: ${field}`);
       toast.warning(`Please fill in the ${field}`);
-      return;
+      return false;
     }
   }
 
@@ -587,16 +631,27 @@ const createNewDataHandle = async () => {
     console.log("Making POST request with data:", postData);
     const response = await axios.post("/api/user", postData);
 
-    if (response) {
+    if (response?.data) {
       console.log("Response received:", response);
       toast.success("Patient successfully added!");
       setCreateActionData({});
       setEmailError("");
       fetch_handle(selectedLocation?.id);
+      return true;
     }
-  } catch (error) {
+    return false;
+  } catch (error: any) {
     console.error("Error adding patient:", error);
-    toast.error("Failed to add patient. Please try again.");
+    const msg =
+      error?.response?.data?.message ||
+      error?.response?.data?.detail ||
+      error?.message;
+    toast.error(
+      typeof msg === "string"
+        ? msg
+        : "Failed to add patient. Please try again."
+    );
+    return false;
   }
 };
 
@@ -756,8 +811,11 @@ const createNewDataHandle = async () => {
                       Edit
                     </button>
                     <button
+                      type="button"
                       onClick={() => selectHandle(elem)}
-                      className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 justify-center"
+                      className={selectPatientButtonClass(
+                        isRowSelectedForPos(elem)
+                      )}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -772,7 +830,9 @@ const createNewDataHandle = async () => {
                         <polyline points="9 11 12 14 22 4"></polyline>
                         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                       </svg>
-                      Select
+                      {isRowSelectedForPos(elem)
+                        ? t("POS-Sales_k112")
+                        : t("POS-Sales_k40")}
                     </button>
                   </div>
                 </div>
@@ -901,8 +961,11 @@ const createNewDataHandle = async () => {
                         {t("POS-Sales_k39")}
                       </button>
                       <button
+                        type="button"
                         onClick={() => selectHandle(elem)}
-                        className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                        className={selectPatientButtonClassDesktop(
+                          isRowSelectedForPos(elem)
+                        )}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -917,7 +980,9 @@ const createNewDataHandle = async () => {
                           <polyline points="9 11 12 14 22 4"></polyline>
                           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                         </svg>
-                        {t("POS-Sales_k40")}
+                        {isRowSelectedForPos(elem)
+                          ? t("POS-Sales_k112")
+                          : t("POS-Sales_k40")}
                       </button>
                     </div>
                   </div>
@@ -984,6 +1049,23 @@ const createNewDataHandle = async () => {
                     addPatientFieldsChange(e.target.value, "gender")
                   }
                   label={t("POS-Sales_k21")}
+                />
+              </div>
+
+              <div>
+                <Select_Dropdown
+                  value={createActionData.treatmenttype || ""}
+                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  start_empty={true}
+                  options_arr={(services || []).map((title) => ({
+                    value: title,
+                    label: title,
+                  }))}
+                  required={true}
+                  on_change_handle={(e: any) =>
+                    addPatientFieldsChange(e.target.value, "treatmenttype")
+                  }
+                  label={t("POS-Sales_k24")}
                 />
               </div>
 
@@ -1074,9 +1156,9 @@ const createNewDataHandle = async () => {
 
           <DialogFooter>
             <Button
-              onClick={() => {
-                createNewDataHandle();
-                setAddPatientModalOpen(false);
+              onClick={async () => {
+                const ok = await createNewDataHandle();
+                if (ok) setAddPatientModalOpen(false);
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
             >

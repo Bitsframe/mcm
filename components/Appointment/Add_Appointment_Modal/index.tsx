@@ -191,7 +191,7 @@ export const Add_Appointment_Modal = ({
     setAddressLoading(true);
     try {
       const response = await fetch(
-        `https://mcm-pharmacy-production.up.railway.app/api/address/suggestions?search=${encodeURIComponent(query)}`
+        `/api/address/suggestions?search=${encodeURIComponent(query)}`
       );
       const data = await response.json();
 

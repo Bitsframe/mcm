@@ -22,7 +22,43 @@ export const POST = async (req: Request) => {
       selectParam: ', Locations(title)',
       matchCase: { key: 'id', value: patientId }
     });
-    console.log(posRecords)
+    console.log(posRecords);
+
+    /** When `allpatients.treatmenttype` is empty (e.g. patient added elsewhere), use latest appointment `service`. */
+    const idsMissingTreatment = (posRecords || [])
+      .filter(
+        (p: any) =>
+          p?.id != null &&
+          (!p.treatmenttype || String(p.treatmenttype).trim() === '')
+      )
+      .map((p: any) => p.id);
+
+    const treatmentFromAppointment: Record<number, string> = {};
+    if (idsMissingTreatment.length > 0) {
+      try {
+        const appts = await fetch_content_service({
+          table: 'Appoinments',
+          matchCase: null,
+          filterOptions: [
+            { column: 'patient_id', operator: 'in', value: idsMissingTreatment },
+          ],
+          sortOptions: { column: 'created_at', order: 'desc' },
+        });
+        for (const row of appts || []) {
+          const pid = Number((row as any)?.patient_id);
+          if (Number.isNaN(pid) || treatmentFromAppointment[pid]) continue;
+          const svc = (row as any)?.service;
+          if (svc != null && String(svc).trim() !== '') {
+            treatmentFromAppointment[pid] = String(svc).trim();
+          }
+        }
+      } catch (e) {
+        console.warn(
+          'previous-order-history: appointment treatment fallback skipped',
+          e
+        );
+      }
+    }
 
     const posIds = posRecords.map((pos: any) => pos.id);
 
@@ -186,7 +222,10 @@ export const POST = async (req: Request) => {
             firstname: pos.firstname,
             patientid: pos.patientid,
             locationid: pos.locationid,
-            treatmenttype: pos.treatmenttype,
+            treatmenttype:
+              pos.treatmenttype ||
+              treatmentFromAppointment[Number(pos.id)] ||
+              null,
             Locations: { title: pos.Locations.title }
           },
           sales_history: salesDetails,
