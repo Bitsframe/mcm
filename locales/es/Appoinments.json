@@ -68,7 +68,13 @@
     "Appoinments_k68": "Ingrese el apellido",
     "Appoinments_k69": "Ingrese el correo electrónico",
     "Appoinments_k70": "Ingrese su dirección",
-    "Appoinments_k71": "Ingrese el código postal"
+    "Appoinments_k71": "Ingrese el código postal",
+    "Appoinments_k72": "Ciudad",
+    "Appoinments_k73": "Verificar dirección",
+    "Appoinments_k74": "Dirección verificada",
+    "Appoinments_k75": "Verifique la dirección con el botón antes de enviar.",
+    "Appoinments_k76": "Ingrese calle, estado y código postal antes de verificar.",
+    "Appoinments_k77": "Dirección verificada correctamente."
 
   }
   

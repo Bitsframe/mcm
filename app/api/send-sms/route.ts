@@ -1,16 +1,31 @@
 import { NextResponse } from "next/server";
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 
-const snsClient = new SNSClient({
-  region: "us-east-2",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+const SNS_REGION = "us-east-2";
 
+/** Amplify/hosting often blocks env names containing `AWS_`; prefer SNS_* in production. */
+let snsClientSingleton: SNSClient | null = null;
+function getSnsClient() {
+  const accessKeyId =
+    process.env.SNS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey =
+    process.env.SNS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error(
+      "SMS credentials missing. Set SNS_ACCESS_KEY_ID and SNS_SECRET_ACCESS_KEY (recommended for Amplify), or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for local only."
+    );
+  }
+  if (!snsClientSingleton) {
+    snsClientSingleton = new SNSClient({
+      region: SNS_REGION,
+      credentials: { accessKeyId, secretAccessKey },
+    });
+  }
+  return snsClientSingleton;
+}
 
 export const POST = async (req: Request) => {
+  const snsClient = getSnsClient();
   try {
     const { phoneNumbers, message } = await req.json();
 

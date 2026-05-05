@@ -125,15 +125,14 @@ export const Add_Appointment_Modal = ({
   const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-  const [addressLoading, setAddressLoading] = useState(false);
-  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressVerifying, setAddressVerifying] = useState(false);
+  const [verifiedFormattedAddress, setVerifiedFormattedAddress] = useState("");
+  const [smartyConfiguredUi, setSmartyConfiguredUi] = useState(false);
 
   const close_handle = () => {
     setOpen(false);
     setEmailError("");
-    setAddressSuggestions([]);
-    setShowAddressSuggestions(false);
+    setVerifiedFormattedAddress("");
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
@@ -163,8 +162,13 @@ export const Add_Appointment_Modal = ({
         sex: "",
         service: "",
         date_and_time: "",
+        street_address: "",
+        city: "",
+        address_state: "",
+        zipcode: "",
       };
     });
+    setVerifiedFormattedAddress("");
 
     // clear any previously selected coming-back patient so modal always opens fresh
     setSelectedComingBackPatient(null);
@@ -176,59 +180,6 @@ export const Add_Appointment_Modal = ({
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  // Debounce function for address search
-  const debounceTimer = React.useRef<NodeJS.Timeout | null>(null);
-
-  const fetchAddressSuggestions = async (query: string) => {
-    if (query.length < 3) {
-      setAddressSuggestions([]);
-      setShowAddressSuggestions(false);
-      return;
-    }
-
-    setAddressLoading(true);
-    try {
-      const response = await fetch(
-        `/api/address/suggestions?search=${encodeURIComponent(query)}`
-      );
-      const data = await response.json();
-
-      if (data.success && data.suggestions) {
-        setAddressSuggestions(data.suggestions);
-        setShowAddressSuggestions(data.suggestions.length > 0);
-      } else {
-        setAddressSuggestions([]);
-        setShowAddressSuggestions(false);
-      }
-    } catch (error) {
-      console.error('Error fetching address suggestions:', error);
-      setAddressSuggestions([]);
-      setShowAddressSuggestions(false);
-    } finally {
-      setAddressLoading(false);
-    }
-  };
-
-  const handleAddressChange = (value: string) => {
-    setFormData((pre: any) => ({ ...pre, street_address: value }));
-
-    // Clear previous timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    // Set new timer for debounced search
-    debounceTimer.current = setTimeout(() => {
-      fetchAddressSuggestions(value);
-    }, 300);
-  };
-
-  const selectAddressSuggestion = (suggestion: any) => {
-    setFormData((pre: any) => ({ ...pre, street_address: suggestion.fullAddress }));
-    setShowAddressSuggestions(false);
-    setAddressSuggestions([]);
   };
 
   const select_change_handle = (key: string, val: string | number) => {
@@ -246,6 +197,14 @@ export const Add_Appointment_Modal = ({
     setFormData((pre: any) => {
       return { ...pre, [key]: val };
     });
+    if (
+      key === "street_address" ||
+      key === "city" ||
+      key === "address_state" ||
+      key === "zipcode"
+    ) {
+      setVerifiedFormattedAddress("");
+    }
     // If selecting 'Coming back' (existing patient), fetch existing appointments
     if (key === "new_patient" && val === "false") {
       (async () => {
@@ -305,7 +264,12 @@ export const Add_Appointment_Modal = ({
         sex: "",
         service: "",
         date_and_time: "",
+        street_address: "",
+        city: "",
+        address_state: "",
+        zipcode: "",
       }));
+      setVerifiedFormattedAddress("");
     }
   };
   
@@ -401,6 +365,44 @@ export const Add_Appointment_Modal = ({
       return;
     }
 
+    let addressLine = "";
+    if (isNew && !selectedComingBackPatient) {
+      const st = String(formData.street_address || "").trim();
+      const ct = String(formData.city || "").trim();
+      const sta = String(formData.address_state || "").trim();
+      const zip = String(formData.zipcode || "").trim();
+
+      if (!st || !sta || !zip) {
+        toast.warning(
+          `${t("Appoinments_k4")}, ${t("Appoinments_k6")}, ${t("Appoinments_k5")}`
+        );
+        setLoading(false);
+        return;
+      }
+
+      let smConfigured = false;
+      try {
+        const r = await fetch("/api/address/validate");
+        const j = await r.json();
+        smConfigured = !!j.configured;
+      } catch {
+        smConfigured = false;
+      }
+
+      if (smConfigured) {
+        if (!verifiedFormattedAddress) {
+          toast.error(t("Appoinments_k75"));
+          setLoading(false);
+          return;
+        }
+        addressLine = verifiedFormattedAddress;
+      } else {
+        addressLine = [st, ct, `${sta} ${zip}`].filter(Boolean).join(", ");
+      }
+    }
+
+    appointmentDetails.address = addressLine;
+
     const postData = {
       ...appointmentDetails,
       date_and_time,
@@ -434,7 +436,7 @@ export const Add_Appointment_Modal = ({
             service,
             date_and_time,
             dob: dob || null, // Send null if DOB is empty
-            address: formData.street_address || null, // Include street address
+            address: addressLine || "",
           }),
         });
 
@@ -530,7 +532,7 @@ export const Add_Appointment_Modal = ({
           service,
           date_and_time,
           dob: dob || null, // Send null if DOB is empty
-          address: formData.street_address || null, // Include street address
+          address: addressLine || "",
         }),
       });
 
@@ -547,6 +549,7 @@ export const Add_Appointment_Modal = ({
           service,
           date_and_time,
           dob: dob || null,
+          address: addressLine || "",
         });
         throw new Error(errorData.error || 'Failed to create appointment');
       }
@@ -555,6 +558,21 @@ export const Add_Appointment_Modal = ({
       
       if (result.success) {
         newAddedRow(result.appointment);
+
+        if (result.appointment?.id && addressLine) {
+          try {
+            await fetch("/api/appointments/set-address", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                appointmentId: result.appointment.id,
+                address: addressLine,
+              }),
+            });
+          } catch (e) {
+            console.warn("set-address (new patient)", e);
+          }
+        }
 
         toast.success(
           <div className="flex justify-between">
@@ -637,16 +655,63 @@ export const Add_Appointment_Modal = ({
         location_id: selectedLocation.id,
       });
     }
-
-    // Cleanup debounce timer on unmount
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
   }, [selectedLocation]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
+
+  useEffect(() => {
+    if (!open || formData.new_patient === "false") {
+      setSmartyConfiguredUi(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/address/validate");
+        const j = await r.json();
+        if (!cancelled) setSmartyConfiguredUi(!!j.configured);
+      } catch {
+        if (!cancelled) setSmartyConfiguredUi(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, formData.new_patient]);
+
+  const verifyAddressSmarty = async () => {
+    const st = String(formData.street_address || "").trim();
+    const ct = String(formData.city || "").trim();
+    const sta = String(formData.address_state || "").trim();
+    const zip = String(formData.zipcode || "").trim();
+    if (!st || !sta || !zip) {
+      toast.warning(t("Appoinments_k76"));
+      return;
+    }
+    setAddressVerifying(true);
+    setVerifiedFormattedAddress("");
+    try {
+      const r = await fetch("/api/address/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          street: st,
+          city: ct,
+          state: sta,
+          zipcode: zip,
+        }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        toast.error(typeof j.error === "string" ? j.error : "Verification failed");
+        return;
+      }
+      if (j.formatted) setVerifiedFormattedAddress(j.formatted);
+      toast.success(t("Appoinments_k77"));
+    } finally {
+      setAddressVerifying(false);
+    }
+  };
 
   return (
     <div>
@@ -825,52 +890,90 @@ export const Add_Appointment_Modal = ({
                   </div>
                 </div>
 
-                <div className="space-y-2 relative">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    Street Address
-                  </Label>
-                  <Input_Component_Appointment
-                    onChange={(e: string) => handleAddressChange(e)}
-                    value={formData.street_address || ''}
-                    placeholder="Enter street address"
-                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                  />
-                  {addressLoading && (
-                    <div className="absolute right-3 top-[42px] text-gray-500">
-                      <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
+
+                <div className="space-y-3">
+                  <p className="font-medium text-gray-800 dark:text-gray-300">
+                    {t("Appoinments_k32")}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label className="font-medium text-gray-800 dark:text-gray-300">
+                        {t("Appoinments_k4")}
+                      </Label>
+                      <Input_Component_Appointment
+                        required
+                        onChange={(e: string) =>
+                          select_change_handle("street_address", e)
+                        }
+                        value={formData.street_address || ""}
+                        placeholder={t("Appoinments_k70")}
+                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      />
                     </div>
-                  )}
-                  {showAddressSuggestions && addressSuggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-[#122136] border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {addressSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          onClick={() => selectAddressSuggestion(suggestion)}
-                          className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#1a2f4a] border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-                        >
-                          <div className="font-medium text-black dark:text-white">
-                            {suggestion.streetLine}
-                            {suggestion.secondary && ` ${suggestion.secondary}`}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {suggestion.city}, {suggestion.state} {suggestion.zipcode}
-                          </div>
-                          {suggestion.entries > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                              {suggestion.entries} units
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      <Label className="font-medium text-gray-800 dark:text-gray-300">
+                        {t("Appoinments_k72")}
+                      </Label>
+                      <Input_Component_Appointment
+                        onChange={(e: string) => select_change_handle("city", e)}
+                        value={formData.city || ""}
+                        placeholder={t("Appoinments_k72")}
+                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-medium text-gray-800 dark:text-gray-300">
+                        {t("Appoinments_k6")}
+                      </Label>
+                      <Select
+                        value={formData.address_state || ""}
+                        onChange={(e) =>
+                          select_change_handle("address_state", e.target.value)
+                        }
+                        className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white"
+                      >
+                        <option value="">{t("Appoinments_k6")}</option>
+                        {usStates.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-medium text-gray-800 dark:text-gray-300">
+                        {t("Appoinments_k5")}
+                      </Label>
+                      <Input_Component_Appointment
+                        required
+                        onChange={(e: string) => select_change_handle("zipcode", e)}
+                        value={formData.zipcode || ""}
+                        placeholder={t("Appoinments_k71")}
+                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      />
+                    </div>
+                  </div>
+                  {smartyConfiguredUi && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={verifyAddressSmarty}
+                        disabled={addressVerifying}
+                        className="text-sm px-4 py-2 rounded-md bg-[#0066ff] text-white hover:bg-[#0052cc] disabled:opacity-60"
+                      >
+                        {addressVerifying ? "…" : t("Appoinments_k73")}
+                      </button>
+                      {verifiedFormattedAddress ? (
+                        <span className="text-sm text-green-600 dark:text-green-400">
+                          {t("Appoinments_k74")}: {verifiedFormattedAddress}
+                        </span>
+                      ) : null}
                     </div>
                   )}
                 </div>
               </>
             )}
-
-            <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-
-            {/* state/zipcode/street_address removed from UI per request */}
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
 

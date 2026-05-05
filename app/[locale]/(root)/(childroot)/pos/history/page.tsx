@@ -102,40 +102,126 @@ const SalesHistory = () => {
         console.debug("POS History - could not read user from supabase client", e);
       }
       
-      const fetched_data = await fetch_content_service({
-        table: "orders",
-        language: "",
-        selectParam: `, order_date, paid_amount, cash, card, zelle, pos:allpatients (
+      // Orders + embedded sales_history in one query times out for large IN lists; load pos here, sales_history below.
+      const orderSelectLight = `, order_date, paid_amount, cash, card, zelle, pos:allpatients (
           lastname,
           firstname,
           email,
           phone,
           dob,
           locationid,
+          treatmenttype,
           patientid:id
-        ),
-        sales_history (
-          sales_history_id,
-          inventory_id,
-          date_sold,
-          quantity_sold,
-          total_price
-        )`,
-        matchCase: {
-          key: "pos.locationid",
-          value: location_id,
-        },
-        filterOptions: [
-          { operator: "not", column: "pos", value: null },
-          { operator: "not", column: "allpatients.id", value: null },
-        ],
+        )`;
+
+      const chunk = <T,>(arr: T[], size: number): T[][] => {
+        const out: T[][] = [];
+        for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+        return out;
+      };
+
+      // Avoid full-table orders scan (times out on large DBs); scope by location via patients + sales_team.
+      const patientsAtLocation = await fetch_content_service({
+        table: "allpatients",
+        language: "",
+        selectParam: ",id",
+        matchCase: { key: "locationid", value: location_id },
+        skipLocationFilter: true,
         fetchAll: true,
       });
-      
-      const filteredData = fetched_data.filter((elem) => elem.pos !== null);
-      
-      setDataList(filteredData);
-      setAllData(filteredData);
+      const patientIds = (patientsAtLocation || [])
+        .map((p: any) => p?.id)
+        .filter(Boolean);
+
+      const salesTeamsAtLocation = await fetch_content_service({
+        table: "sales_team",
+        language: "",
+        selectParam: ",id",
+        matchCase: { key: "location_id", value: location_id },
+        fetchAll: true,
+      });
+      const salesTeamIds = (salesTeamsAtLocation || [])
+        .map((t: any) => t?.id)
+        .filter(Boolean);
+
+      if (!patientIds.length && !salesTeamIds.length) {
+        setDataList([]);
+        setAllData([]);
+        return;
+      }
+
+      const PATIENT_CHUNK = 40;
+      const TEAM_CHUNK = 40;
+      const ordersByPatient: any[] = [];
+      const patientChunks = chunk(patientIds, PATIENT_CHUNK);
+      for (let i = 0; i < patientChunks.length; i += 2) {
+        const batch = patientChunks.slice(i, i + 2);
+        const parts = await Promise.all(
+          batch.map((pidChunk) =>
+            fetch_content_service({
+              table: "orders",
+              language: "",
+              selectParam: orderSelectLight,
+              filterOptions: [{ operator: "in", column: "patient_id", value: pidChunk }],
+              fetchAll: true,
+            })
+          )
+        );
+        for (const part of parts) ordersByPatient.push(...(part || []));
+      }
+
+      const ordersByTeam: any[] = [];
+      const teamChunks = chunk(salesTeamIds, TEAM_CHUNK);
+      for (const tidChunk of teamChunks) {
+        const part = await fetch_content_service({
+          table: "orders",
+          language: "",
+          selectParam: orderSelectLight,
+          filterOptions: [{ operator: "in", column: "sales_team_id", value: tidChunk }],
+          fetchAll: true,
+        });
+        ordersByTeam.push(...(part || []));
+      }
+
+      const mergedMap = new Map<number, any>();
+      [...ordersByPatient, ...ordersByTeam].forEach((order: any) => {
+        if (order?.order_id != null) mergedMap.set(order.order_id, order);
+      });
+      let rows = Array.from(mergedMap.values());
+
+      rows = rows.filter(
+        (order: any) => Number(order?.pos?.locationid) === Number(location_id)
+      );
+
+      const orderIdsForHistory = rows
+        .map((o: any) => o.order_id)
+        .filter((id: any) => id != null);
+      const HISTORY_CHUNK = 80;
+      const historyRows: any[] = [];
+      for (const oidChunk of chunk(orderIdsForHistory, HISTORY_CHUNK)) {
+        const h = await fetch_content_service({
+          table: "sales_history",
+          language: "",
+          selectParam:
+            ",sales_history_id,order_id,inventory_id,date_sold,quantity_sold,total_price",
+          filterOptions: [{ operator: "in", column: "order_id", value: oidChunk }],
+          fetchAll: true,
+        });
+        historyRows.push(...(h || []));
+      }
+      const historyByOrder = new Map<number, any[]>();
+      for (const h of historyRows) {
+        const oid = h.order_id;
+        if (oid == null) continue;
+        if (!historyByOrder.has(oid)) historyByOrder.set(oid, []);
+        historyByOrder.get(oid)!.push(h);
+      }
+      rows.forEach((o: any) => {
+        o.sales_history = historyByOrder.get(o.order_id) || [];
+      });
+
+      setDataList(rows);
+      setAllData(rows);
     } catch (error) {
       console.error("Error fetching sales history", error);
     } finally {
