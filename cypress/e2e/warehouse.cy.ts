@@ -884,18 +884,26 @@ describe("Warehouse — Products Tab", () => {
             cy.contains(productName, { timeout: 15000 }).should("exist");
             cy.log(`Product "${productName}" found in table at assigned location`);
 
-            cy.contains("td", productName).closest("tr").within(() => {
-              cy.find("td").eq(1).invoke("text").then((cat) => {
+            cy.contains("td", productName)
+              .closest("tr")
+              .find("td")
+              .eq(1)
+              .invoke("text")
+              .then((cat) => {
                 expect(cat.trim()).to.eq(categoryName);
               });
 
-              cy.find("td").eq(4).invoke("text").then((qty) => {
+            cy.contains("td", productName)
+              .closest("tr")
+              .find("td")
+              .eq(4)
+              .invoke("text")
+              .then((qty) => {
                 const qtyTrimmed = qty.trim();
                 if (qtyTrimmed !== "Unlimited") {
                   expect(parseInt(qtyTrimmed)).to.be.greaterThan(0);
                 }
               });
-            });
 
             cy.log("Assign product flow fully verified");
           });
@@ -1078,16 +1086,19 @@ describe("Warehouse — Products Tab", () => {
 
           cy.contains(inv.product_name, { timeout: 15000 }).should("exist");
 
-          cy.contains("td", inv.product_name).closest("tr").within(() => {
-            cy.find("td").then(($tds) => {
-              const unitsText = ($tds[4]?.textContent || "").trim();
-              // DB trigger may recalculate quantities; verify it's a positive number
-              if (unitsText !== "Unlimited") {
-                expect(parseInt(unitsText)).to.be.greaterThan(0);
+          // Re-query the row fresh to avoid stale DOM reference after page navigation
+          cy.contains("td", inv.product_name)
+            .closest("tr")
+            .find("td")
+            .eq(4)
+            .invoke("text")
+            .then((unitsText) => {
+              const trimmed = unitsText.trim();
+              cy.log(`Destination inventory qty in UI: ${trimmed}`);
+              if (trimmed !== "Unlimited") {
+                expect(parseInt(trimmed)).to.be.greaterThan(0);
               }
-              cy.log(`Destination inventory qty in UI: ${unitsText}`);
             });
-          });
 
           cy.log("Transfer test fully verified");
         });

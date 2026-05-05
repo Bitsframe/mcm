@@ -8,7 +8,11 @@
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "cy:open": "npx start-server-and-test dev http://localhost:3000 cypress:open-only",
+    "cy:run": "npx start-server-and-test dev http://localhost:3000 cypress:run-only",
+    "cypress:open-only": "cypress open",
+    "cypress:run-only": "cypress run"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.772.0",
