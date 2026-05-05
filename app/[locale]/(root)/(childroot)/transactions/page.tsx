@@ -88,18 +88,106 @@ const TransactionsPage = () => {
   const fetchPatientTransactions = async (patientId: number) => {
     setLoading(true)
     try {
-      const data = await fetch_content_service({
+      // First get transaction history
+      const transactionData = await fetch_content_service({
         table: "transaction_history",
         selectParam: "*",
         matchCase: { key: "patient_id", value: patientId },
       })
-      setTransactions(data || [])
+
+      if (!transactionData || transactionData.length === 0) {
+        setTransactions([])
+        return
+      }
+
+      // Get order details for transactions that have order_id
+      const transactionsWithOrders = await Promise.all(
+        transactionData.map(async (tx: any) => {
+          if (tx.order_id) {
+            try {
+              const orderData = await fetch_content_service({
+                table: "orders",
+                selectParam: "order_id, cash, card, zelle",
+                matchCase: { key: "order_id", value: tx.order_id },
+              })
+              
+              const order = orderData && orderData.length > 0 ? orderData[0] : null
+              
+              return {
+                transaction_id: tx.id,
+                transaction_date: tx.created_at,
+                transaction_type: tx.type,
+                amount: tx.amount,
+                balance: tx.balance,
+                order_id: tx.order_id,
+                cash: order?.cash || 0,
+                card: order?.card || 0,
+                zelle: order?.zelle || 0,
+                payment_method: getPaymentMethodFromAmounts(
+                  order?.cash || 0,
+                  order?.card || 0,
+                  order?.zelle || 0
+                )
+              }
+            } catch (err) {
+              console.error('Error fetching order data:', err)
+              return {
+                transaction_id: tx.id,
+                transaction_date: tx.created_at,
+                transaction_type: tx.type,
+                amount: tx.amount,
+                balance: tx.balance,
+                order_id: tx.order_id,
+                cash: 0,
+                card: 0,
+                zelle: 0,
+                payment_method: 'No Order Data'
+              }
+            }
+          } else {
+            return {
+              transaction_id: tx.id,
+              transaction_date: tx.created_at,
+              transaction_type: tx.type,
+              amount: tx.amount,
+              balance: tx.balance,
+              order_id: null,
+              cash: 0,
+              card: 0,
+              zelle: 0,
+              payment_method: 'No Order Data'
+            }
+          }
+        })
+      )
+
+      // Sort by date descending (latest first)
+      transactionsWithOrders.sort((a, b) => 
+        new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
+      )
+
+      setTransactions(transactionsWithOrders)
     } catch (err) {
+      console.error('Failed to fetch transactions:', err)
       setTransactions([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Helper function to determine payment method from amounts
+  const getPaymentMethodFromAmounts = (cash: number, card: number, zelle: number) => {
+    const methods = []
+    if (cash > 0) methods.push('Cash')
+    if (card > 0) methods.push('Card')
+    if (zelle > 0) methods.push('Zelle')
+    
+    if (methods.length === 0) return 'No Order Data'
+    if (methods.length === 1) return methods[0]
+    return methods.join(' + ')
+  }
+
+  const generateTransactionId = (transactionId: number) => `TXN${String(transactionId).padStart(3, "0")}`
 
   const handlePatientClick = (patient: any) => {
     setSelectedPatient(patient)
@@ -116,14 +204,11 @@ const TransactionsPage = () => {
         return patient.email?.toLowerCase().includes(searchLower)
       case "Phone":
         return patient.phone?.toLowerCase().includes(searchLower)
-      case "Treatment Type":
-        return patient.treatmenttype?.toLowerCase().includes(searchLower)
       default:
         return (
           `${patient.firstname} ${patient.lastname}`.toLowerCase().includes(searchLower) ||
           patient.email?.toLowerCase().includes(searchLower) ||
-          patient.phone?.toLowerCase().includes(searchLower) ||
-          patient.treatmenttype?.toLowerCase().includes(searchLower)
+          patient.phone?.toLowerCase().includes(searchLower)
         )
     }
   })
@@ -142,44 +227,6 @@ const TransactionsPage = () => {
   }
 
   const { t } = useTranslation(translationConstant.TRANSACTION)
-
-  const generateTransactionId = (index: number) => `TXN${String(index + 1).padStart(3, "0")}`
-
-  const getTransactionStatus = (transaction: any) => {
-    const statuses = ["Completed", "Pending", "Partial"]
-    return statuses[Math.floor(Math.random() * statuses.length)]
-  }
-
-  const getPaymentMethod = (transaction: any) => {
-    const methods = ["Credit Card", "Cash", "Insurance", "Bank Transfer"]
-    return methods[Math.floor(Math.random() * methods.length)]
-  }
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-        return "default"
-      case "pending":
-        return "secondary"
-      case "partial":
-        return "outline"
-      default:
-        return "default"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-        return "bg-green-100 text-green-800 hover:bg-green-100"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-      case "partial":
-        return "bg-orange-100 text-orange-800 hover:bg-orange-100"
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100"
-    }
-  }
 
     return (
     <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
@@ -204,7 +251,6 @@ const TransactionsPage = () => {
                 <SelectItem value="Name" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k9")}</SelectItem>
                 <SelectItem value="Email" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k10")}</SelectItem>
                 <SelectItem value="Phone" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k11")}</SelectItem>
-                <SelectItem value="Treatment Type" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700">{t("Transaction_k5")}</SelectItem>
               </SelectContent>
             </Select>
           <span className="text-gray-400">=</span>
@@ -235,7 +281,6 @@ const TransactionsPage = () => {
                     <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t("Transaction_k9")}</TableHead>
                     <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t("Transaction_k10")}</TableHead>
                     <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t("Transaction_k11")}</TableHead>
-                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t("Transaction_k5")}</TableHead>
                     <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t("Transaction_k12")}</TableHead>
                     <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t("Transaction_k13")}</TableHead>
                   </TableRow>
@@ -268,7 +313,6 @@ const TransactionsPage = () => {
                           <TableCell className="dark:text-white">
                             {patient.phone || "-"}
                           </TableCell>
-                          <TableCell className="dark:text-white">{patient.treatmenttype || "-"}</TableCell>
                           <TableCell>
                             <span
                               className={`font-semibold ${
@@ -299,7 +343,7 @@ const TransactionsPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-400 dark:text-gray-300">
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-300">
                         No patients found
                       </TableCell>
                     </TableRow>
@@ -438,40 +482,28 @@ const TransactionsPage = () => {
                   </div>
                 ) : transactions.length > 0 ? (
                   transactions.map((tx: any, index: number) => {
-                    const status = getTransactionStatus(tx)
-                    const paymentMethod = getPaymentMethod(tx)
                     return (
-                      <div key={tx.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <div key={tx.transaction_id || index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <div className="grid grid-cols-1 gap-3">
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600 dark:text-gray-400">Transaction ID:</span>
-                            <span className="font-semibold dark:text-white">{generateTransactionId(index)}</span>
+                            <span className="font-semibold dark:text-white">{generateTransactionId(tx.transaction_id)}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k3")}:</span>
-                            <span className="dark:text-white">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : "-"}</span>
+                            <span className="dark:text-white">{tx.transaction_date ? new Date(tx.transaction_date).toLocaleDateString() : "-"}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k4")}:</span>
-                            <span className="font-semibold dark:text-white">${tx.amount?.toFixed(2)}</span>
+                            <span className="font-semibold dark:text-white">${tx.amount?.toFixed(2) || "0.00"}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k6")}:</span>
-                            <span className="dark:text-white">${tx.balance?.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Treatment Type:</span>
-                            <span className="dark:text-white">{tx.type}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Status:</span>
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                              {status}
-                            </span>
+                            <span className="dark:text-white">${tx.balance?.toFixed(2) || "0.00"}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600 dark:text-gray-400">Payment Method:</span>
-                            <span className="dark:text-white">{paymentMethod}</span>
+                            <span className="dark:text-white">{tx.payment_method || "No Order Data"}</span>
                           </div>
                           <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
                             <span className="font-medium text-gray-600 dark:text-gray-400">Actions:</span>

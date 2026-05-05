@@ -31,7 +31,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k17')}</label>
             <select
               id="filter-name-input-modal"
-              className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+              className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mt-1"
               value={filterDraft.name ?? ''}
               onChange={(e) => setFilterDraft((s: any) => ({ ...s, name: e.target.value }))}
             >
@@ -49,7 +49,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <div>
               <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k19')}</label>
               <input
-                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mt-1"
                 placeholder="Min"
                 value={filterDraft.totalMin ?? ''}
                 onChange={(e) => setFilterDraft((s: any) => ({ ...s, totalMin: e.target.value }))}
@@ -59,7 +59,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <div>
               <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k20')}</label>
               <input
-                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mt-1"
                 placeholder="Min"
                 value={filterDraft.limitMin ?? ''}
                 onChange={(e) => setFilterDraft((s: any) => ({ ...s, limitMin: e.target.value }))}
@@ -72,7 +72,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <div>
               <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k21')}</label>
               <select
-                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mt-1"
                 value={filterDraft.type ?? 'ALL'}
                 onChange={(e) => setFilterDraft((s: any) => ({ ...s, type: e.target.value }))}
               >
@@ -84,7 +84,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <div>
               <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k22')}</label>
               <input
-                className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+                className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mt-1"
                 placeholder="Min"
                 value={filterDraft.valueMin ?? ''}
                 onChange={(e) => setFilterDraft((s: any) => ({ ...s, valueMin: e.target.value }))}
@@ -96,7 +96,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
           <div>
             <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k23')}</label>
             <input
-              className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+              className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mt-1"
               placeholder="Min"
               value={filterDraft.bonusMin ?? ''}
               onChange={(e) => setFilterDraft((s: any) => ({ ...s, bonusMin: e.target.value }))}
@@ -107,7 +107,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
           <div>
             <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k24')}</label>
             <select
-              className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+              className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mt-1"
               value={filterDraft.bonusEligibility ?? ''}
               onChange={(e) => setFilterDraft((s: any) => ({ ...s, bonusEligibility: e.target.value }))}
               aria-label="Filter by bonus eligibility"
@@ -122,7 +122,7 @@ export default function BonusFilterSheet({ open, onOpenChange, filterDraft, setF
             <label className="block text-sm text-gray-700 dark:text-gray-300">{t('Bonus_k25')}</label>
             <input
               type="date"
-              className="w-full text-sm border border-black dark:border-black rounded px-2 py-1 bg-transparent dark:text-white mt-1"
+              className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mt-1"
               value={filterDraft.date ?? ''}
               onChange={(e) => setFilterDraft((s: any) => ({ ...s, date: e.target.value }))}
               max={getYesterdayYMD()}

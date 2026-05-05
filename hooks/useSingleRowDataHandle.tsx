@@ -194,6 +194,13 @@ function useSingleRowDataHandle(paramData: DataInterface) {
             set_update_loading(false);
             set_is_edited(false);
         } else if (update_content_service && data) {
+            // Critical check: Ensure ID exists before attempting update
+            if (!data.id) {
+                toast.error('Cannot update: No ID found in data');
+                set_update_loading(false);
+                return;
+            }
+            
             set_update_loading(true);
             try {
                 const res_data = await update_content_service({
@@ -201,6 +208,7 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     language: selected_language,
                     post_data: data
                 });
+                
                 if (res_data?.length) {
                     setData_list(prevList => 
                         prevList.map(item => 

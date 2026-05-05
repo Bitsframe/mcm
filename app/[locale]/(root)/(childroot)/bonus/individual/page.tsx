@@ -403,7 +403,7 @@ export default function IndividualBonusPage() {
       { id: 'highest_location_paid', title: t('Bonus_k2'), value: `$${highestLocation.amount.toFixed(2)}`, subtitle: highestLocation.name },
       { id: 'highest_person_paid', title: t('Bonus_k3'), value: `$${highestPersonAmount.toFixed(2)}`, subtitle: highestPersonSubtitle },
     ]
-  }, [rows, appliedFilters])
+  }, [rows, appliedFilters, t])
 
   const handlePay = async (row: any) => {
     if (row.paid) return
@@ -499,14 +499,14 @@ export default function IndividualBonusPage() {
           </div>
 
           {pickerOpen && (
-            <div className="absolute right-0 z-20 mt-10 w-72 bg-white rounded border border-gray-200 p-3 shadow-lg">
-              <div className="mb-2 text-sm font-medium">{pickerMode === 'week' ? t('Bonus_k50') : t('Bonus_k51')}</div>
+            <div className="absolute right-0 z-20 mt-10 w-72 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 p-3 shadow-lg">
+              <div className="mb-2 text-sm font-medium text-gray-900 dark:text-white">{pickerMode === 'week' ? t('Bonus_k50') : t('Bonus_k51')}</div>
               {pickerMode === 'week' ? (
                 <div className="space-y-2">
-                  <input className="w-full border p-1 rounded" type="date" value={weekStart ?? ''} onChange={(e) => setWeekStart(e.target.value)} />
-                  <div className="text-xs text-gray-500">{t('Bonus_k52')} {weekStart ? `${weekStart} → ${new Date(new Date(weekStart).getTime() + 6*24*3600*1000).toISOString().slice(0,10)}` : '-'}</div>
+                  <input className="w-full border border-gray-200 dark:border-gray-600 p-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" type="date" value={weekStart ?? ''} onChange={(e) => setWeekStart(e.target.value)} />
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{t('Bonus_k52')} {weekStart ? `${weekStart} → ${new Date(new Date(weekStart).getTime() + 6*24*3600*1000).toISOString().slice(0,10)}` : '-'}</div>
                   <div className="flex justify-end gap-2 mt-2">
-                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
+                    <button className="px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
                     <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
                       if (weekStart) {
                         const s = new Date(weekStart)
@@ -523,10 +523,10 @@ export default function IndividualBonusPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <input className="w-full border p-1 rounded" type="month" value={monthValue ?? ''} onChange={(e) => setMonthValue(e.target.value)} />
-                  <div className="text-xs text-gray-500">{t('Bonus_k53')} {monthValue ?? '-'}</div>
+                  <input className="w-full border border-gray-200 dark:border-gray-600 p-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" type="month" value={monthValue ?? ''} onChange={(e) => setMonthValue(e.target.value)} />
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{t('Bonus_k53')} {monthValue ?? '-'}</div>
                   <div className="flex justify-end gap-2 mt-2">
-                    <button className="px-2 py-1 text-sm bg-gray-100 rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
+                    <button className="px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded" onClick={() => setPickerOpen(false)}>{t('Bonus_k54')}</button>
                     <button className="px-2 py-1 text-sm bg-blue-600 text-white rounded" onClick={() => {
                       if (monthValue) {
                         const [y, m] = monthValue.split('-').map(Number)
@@ -579,7 +579,7 @@ export default function IndividualBonusPage() {
             aria-label="Distribute individual bonuses"
             title="Distribute individual bonuses"
           >
-            {calcRunning ? 'Calculating...' : 'Calculate'}
+            {calcRunning ? t('Bonus_k55') : t('Bonus_k82')}
           </button>
           
         </div>
@@ -611,8 +611,8 @@ export default function IndividualBonusPage() {
       <div className="flex items-center justify-start gap-4 mt-4 mb-4">
         {selectedRange && (
           <div className="flex items-center gap-2">
-            <div className="px-2 py-1 bg-gray-50 border rounded text-sm">{selectedRange.start.slice(0,10)} → {(() => { const e = new Date(selectedRange.end); const incl = new Date(e.getTime() - 24*3600*1000); return incl.toISOString().slice(0,10) })()}</div>
-            <button className="text-xs text-red-600" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>{t('Bonus_k26')}</button>
+            <div className="px-2 py-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-white">{selectedRange.start.slice(0,10)} → {(() => { const e = new Date(selectedRange.end); const incl = new Date(e.getTime() - 24*3600*1000); return incl.toISOString().slice(0,10) })()}</div>
+            <button className="text-xs text-red-600 dark:text-red-400" onClick={async () => { setSelectedRange(null); try { await fetchRows() } catch(_){} }}>{t('Bonus_k26')}</button>
           </div>
         )}
       </div>
@@ -620,21 +620,33 @@ export default function IndividualBonusPage() {
       {/* Filter modal */}
       {filterModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/40">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-auto bg-white rounded shadow-lg p-10">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-10 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">{t('Bonus_k62')}</h3>
-              <button className="text-sm text-gray-600" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k63')}</button>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('Bonus_k62')}</h3>
+              <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors" onClick={() => setFilterModalOpen(false)}>{t('Bonus_k63')}</button>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-6">
-                <label className="inline-flex items-center gap-2">
-                  <input type="radio" name="filterMode" checked={filterMode === 'staff'} onChange={() => setFilterMode('staff')} />
-                  <span>{t('Bonus_k16')}</span>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="filterMode" 
+                    checked={filterMode === 'staff'} 
+                    onChange={() => setFilterMode('staff')}
+                    className="text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-gray-900 dark:text-gray-100">{t('Bonus_k16')}</span>
                 </label>
-                <label className="inline-flex items-center gap-2">
-                  <input type="radio" name="filterMode" checked={filterMode === 'location'} onChange={() => setFilterMode('location')} />
-                  <span>{t('Bonus_k38')}</span>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="filterMode" 
+                    checked={filterMode === 'location'} 
+                    onChange={() => setFilterMode('location')}
+                    className="text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-gray-900 dark:text-gray-100">{t('Bonus_k38')}</span>
                 </label>
               </div>
 
@@ -642,12 +654,12 @@ export default function IndividualBonusPage() {
               {filterMode === 'staff' && (
                 <div className="flex items-center gap-6 mb-4">
                   <div className="flex items-center gap-3">
-                    <label className="w-28 text-sm">Staff name</label>
+                    <label className="w-28 text-sm text-gray-700 dark:text-white">{t('Bonus_k83')}</label>
                     <div className="relative w-64">
                       <input
                         type="text"
-                        className="mt-1 w-full border border-gray-200 p-2 rounded text-sm focus:outline-none focus:ring-0 focus:border-gray-300 bg-white"
-                        placeholder="Search staff"
+                        className="mt-1 w-full border border-gray-200 dark:border-gray-600 p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        placeholder={t('Bonus_k84')}
                         value={filterStaffName}
                         onChange={(e) => {
                           setFilterStaffName(e.target.value)
@@ -662,15 +674,15 @@ export default function IndividualBonusPage() {
                       />
 
                       {staffSearchOpen && filterStaffName !== '' && (
-                        <div className="absolute z-40 mt-1 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
+                        <div className="absolute z-40 mt-1 w-full max-h-48 overflow-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg">
                           {staffOptions.filter(s => s.full_name.toLowerCase().includes(filterStaffName.toLowerCase())).length > 0 ? (
                             staffOptions.filter(s => s.full_name.toLowerCase().includes(filterStaffName.toLowerCase())).map((s) => (
-                              <div key={s.full_name} className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm" onMouseDown={() => handleStaffSelect(s.full_name)}>
+                              <div key={s.full_name} className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-900 dark:text-white" onMouseDown={() => handleStaffSelect(s.full_name)}>
                                 {s.full_name}
                               </div>
                             ))
                           ) : (
-                            <div className="px-3 py-2 text-sm text-gray-500">(no matches)</div>
+                            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">(no matches)</div>
                           )}
                         </div>
                       )}
@@ -678,32 +690,32 @@ export default function IndividualBonusPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <label className="w-28 text-sm">{t('Bonus_k38')}</label>
-                    <div className="mt-1 w-64 border rounded p-2 cursor-pointer relative" onClick={() => setLocDropdownOpen((s) => !s)}>
+                    <label className="w-28 text-sm text-gray-700 dark:text-white">{t('Bonus_k38')}</label>
+                    <div className="mt-1 w-64 border border-gray-200 dark:border-gray-600 rounded p-2 cursor-pointer relative bg-white dark:bg-gray-700" onClick={() => setLocDropdownOpen((s) => !s)}>
                       <div className="flex flex-wrap gap-2 items-center">
-                        {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
+                        {filterLocationIds.length === 0 && <div className="text-gray-500 dark:text-gray-400">{t('Bonus_k28')}</div>}
                         {filterLocationIds.map((id) => {
                           const loc = locationOptions.find((l) => l.id === id)
                           return loc ? (
-                            <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
+                            <span key={id} className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-2 py-1 rounded flex items-center gap-2">
                               <span className="text-sm">{loc.title}</span>
-                              <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
+                              <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 dark:text-green-400 font-bold hover:text-green-900 dark:hover:text-green-200">×</button>
                             </span>
                           ) : null
                         })}
-                        <div className="ml-auto text-gray-400">▾</div>
+                        <div className="ml-auto text-gray-400 dark:text-gray-500">▾</div>
                       </div>
 
                       {locDropdownOpen && (
-                        <div className="absolute z-40 mt-1 left-0 w-full max-h-48 overflow-auto bg-white border rounded shadow-lg">
+                        <div className="absolute z-40 mt-1 left-0 w-full max-h-48 overflow-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg">
                           {locationOptions.length > 0 ? (
                             locationOptions.map((loc) => (
-                              <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.includes(loc.id) ? prev : [...prev, loc.id]); setLocDropdownOpen(false) }}>
+                              <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer flex items-center justify-between text-gray-900 dark:text-white" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.includes(loc.id) ? prev : [...prev, loc.id]); setLocDropdownOpen(false) }}>
                                   <div className="text-sm">{loc.title}</div>
                                 </div>
                               ))
                           ) : (
-                            <div className="px-3 py-2 text-sm text-gray-500">(no locations)</div>
+                            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">(no locations)</div>
                           )}
                         </div>
                       )}
@@ -717,36 +729,41 @@ export default function IndividualBonusPage() {
                   the existing staff-mode logic. */}
               {filterMode === 'location' && (
                 <div className="flex items-center gap-6 mb-4">
-                  <label className="w-28 text-sm">{t('Bonus_k38')}</label>
-                  <div className="mt-1 w-96 border rounded p-2 cursor-pointer relative" onClick={() => setLocDropdownOpen((s) => !s)}>
+                  <label className="w-28 text-sm text-gray-700 dark:text-white">{t('Bonus_k38')}</label>
+                  <div className="mt-1 w-96 border border-gray-200 dark:border-gray-600 rounded p-2 cursor-pointer relative bg-white dark:bg-gray-700" onClick={() => setLocDropdownOpen((s) => !s)}>
                     <div className="flex flex-wrap gap-2 items-center">
-                      {filterLocationIds.length === 0 && <div className="text-gray-500">{t('Bonus_k28')}</div>}
+                      {filterLocationIds.length === 0 && <div className="text-gray-500 dark:text-gray-400">{t('Bonus_k28')}</div>}
                       {filterLocationIds.map((id) => {
                         const loc = allLocations.find((l) => l.id === id)
                         return loc ? (
-                          <span key={id} className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-2">
+                          <span key={id} className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 px-2 py-1 rounded flex items-center gap-2">
                             <span className="text-sm">{loc.title}</span>
-                            <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 font-bold">×</button>
+                            <button type="button" onClick={(ev) => { ev.stopPropagation(); setFilterLocationIds(prev => prev.filter(x => x !== id)) }} className="text-green-700 dark:text-green-400 font-bold hover:text-green-900 dark:hover:text-green-200">×</button>
                           </span>
                         ) : null
                       })}
-                      <div className="ml-auto text-gray-400">▾</div>
+                      <div className="ml-auto text-gray-400 dark:text-gray-500">▾</div>
                     </div>
 
                     {locDropdownOpen && (
-                      <div className="absolute z-40 mt-1 left-0 w-full max-h-64 overflow-auto bg-white border rounded shadow-lg">
+                      <div className="absolute z-40 mt-1 left-0 w-full max-h-64 overflow-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg">
                         {allLocations.length > 0 ? (
                           allLocations.map((loc) => (
-                            <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center" onClick={() => {
+                            <div key={loc.id} className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer flex items-center text-gray-900 dark:text-white" onClick={() => {
                               // toggle selection but do not auto-close the dropdown
                               setFilterLocationIds(prev => prev.includes(loc.id) ? prev.filter(x => x !== loc.id) : [...prev, loc.id])
                             }}>
-                              <input type="checkbox" readOnly checked={filterLocationIds.includes(loc.id)} className="mr-2" />
+                              <input 
+                                type="checkbox" 
+                                readOnly 
+                                checked={filterLocationIds.includes(loc.id)} 
+                                className="mr-2 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600" 
+                              />
                               <div className="text-sm">{loc.title}</div>
                             </div>
                           ))
                         ) : (
-                          <div className="px-3 py-2 text-sm text-gray-500">(no locations)</div>
+                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">(no locations)</div>
                         )}
                       </div>
                     )}
@@ -754,10 +771,10 @@ export default function IndividualBonusPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 items-start">
-                <div className="flex flex-col items-center">
-                  <label className="text-sm mb-2">Bonus date</label>
-                  <div className="w-full flex justify-center">
+              <div className="grid grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white text-center">{t('Bonus_k85')}</label>
+                  <div className="flex justify-center">
                     <RangeDatePicker
                       start={filterBonusStart}
                       end={filterBonusEnd}
@@ -769,9 +786,9 @@ export default function IndividualBonusPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center">
-                  <label className="text-sm mb-2">Paid date</label>
-                  <div className="w-full flex justify-center">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white text-center">{t('Bonus_k86')}</label>
+                  <div className="flex justify-center">
                     <RangeDatePicker
                       start={filterPaidStart}
                       end={filterPaidEnd}
@@ -784,8 +801,8 @@ export default function IndividualBonusPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3">
-                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => {
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" onClick={() => {
                   // Reset modal fields (does not apply filters)
                   setFilterStaffName('')
                   setFilterLocationIds([])
@@ -795,8 +812,8 @@ export default function IndividualBonusPage() {
                   setFilterPaidEnd(null)
                   setLocationOptions(allLocations)
                   setLocDropdownOpen(false)
-                }}>Reset</button>
-                <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={async () => {
+                }}>{ t('Bonus_k87')}</button>
+                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium" onClick={async () => {
                   // Validate staff selection: only allow names that exist in the dropdown list.
                   if (filterMode === 'staff' && filterStaffName.trim()) {
                     const exists = staffOptions.some((s) => s.full_name === filterStaffName.trim())

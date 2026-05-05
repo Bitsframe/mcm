@@ -247,7 +247,7 @@ const PharmacyList = () => {
                                             <TableCell className="py-4 pr-3 dark:bg-[#0E1725]"></TableCell>
                                             <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.name}</TableCell>
                                             <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.address}</TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.phone}</TableCell>
+                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.phone_number}</TableCell>
                                             <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.delivers ? t("Pharmacy_k10") : t("Pharmacy_k11")}</TableCell>
                                             <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">
                                                 <div className="flex items-center space-x-4 justify-end">
@@ -255,13 +255,13 @@ const PharmacyList = () => {
                                                         className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                         onClick={() => openEditModal(elem)}
                                                     >
-                                                        Update
+                                                        {t("Pharmacy_k38")}
                                                     </button>
                                                     <button
                                                         className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                         onClick={() => deleteHandle(elem.id)}
                                                     >
-                                                        Delete
+                                                        {t("Pharmacy_k39")}
                                                     </button>
                                                 </div>
                                             </TableCell>
@@ -298,13 +298,13 @@ const PharmacyList = () => {
                                                 className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
                                                 onClick={() => openEditModal(elem)}
                                             >
-                                                Update
+                                                {t("Pharmacy_k38")}
                                             </button>
                                             <button
                                                 className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-700 transition-colors"
                                                 onClick={() => deleteHandle(elem.id)}
                                             >
-                                                Delete
+                                                {t("Pharmacy_k39")}
                                             </button>
                                         </div>
                                     </div>
@@ -313,7 +313,7 @@ const PharmacyList = () => {
                                             <p className="text-sm text-gray-500 dark:text-gray-300">
                                                 {t("Pharmacy_k7")}
                                             </p>
-                                            <p className="text-sm dark:text-white">{elem.phone || "N/A"}</p>
+                                            <p className="text-sm dark:text-white">{elem.phone_number || "N/A"}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 dark:text-gray-300">{t("Pharmacy_k8")}</p>

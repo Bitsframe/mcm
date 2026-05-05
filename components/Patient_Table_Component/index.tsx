@@ -92,12 +92,13 @@ interface Patient {
   lastname: string;
   phone: string;
   email: string;
-  treatmenttype: string;
   gender: string;
   created_at: string;
   lastvisit: string;
   note: string;
   deleted_at?: string | null;
+  address?: string;
+  dob?: string;
 }
 
 interface Props {
@@ -139,14 +140,19 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     lastname: "",
     phone: "",
     email: "",
-    treatmenttype: "",
     gender: "",
     onsite: true,
     locationId: 0,
     note: "",
+    streetAddress: "",
+    dateOfBirth: "",
   });
 
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -165,6 +171,108 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     } else {
       setEmailError("");
     }
+  };
+
+  const isValidPhone = (phone: string) => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    // US phone numbers should be 10 digits (without country code) or 11 digits (with country code 1)
+    return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly.startsWith('1'));
+  };
+
+  const formatPhoneInput = (value: string) => {
+    // Remove all non-digit characters except + at the beginning
+    let cleaned = value.replace(/[^\d+]/g, '');
+    
+    // If it starts with +1, keep it, otherwise remove any + not at the beginning
+    if (cleaned.startsWith('+1')) {
+      cleaned = '+1' + cleaned.slice(2).replace(/\+/g, '');
+    } else if (cleaned.startsWith('+')) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 12 characters (+1 + 10 digits)
+    if (cleaned.startsWith('+1')) {
+      cleaned = cleaned.slice(0, 12);
+    } else {
+      cleaned = cleaned.slice(0, 10);
+    }
+    
+    return cleaned;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const formattedPhone = formatPhoneInput(rawValue);
+    
+    setPatientData({
+      ...patientData,
+      phone: formattedPhone,
+    });
+    
+    if (formattedPhone && !isValidPhone(formattedPhone)) {
+      setPhoneError("Please enter a valid US phone number (10-11 digits)");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  // Simple debounce function
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
+
+  // Debounced address search function
+  const searchAddresses = debounce(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+
+    setAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(true);
+      } else {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, 300);
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setPatientData({
+      ...patientData,
+      streetAddress: address,
+    });
+    
+    // Trigger address search
+    searchAddresses(address);
+  };
+
+  const handleAddressSelect = (suggestion: any) => {
+    setPatientData({
+      ...patientData,
+      streetAddress: suggestion.fullAddress,
+    });
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   const [sortConfig, setSortConfig] = useState({
@@ -379,11 +487,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         email: patientData.email,
         phone: patientData.phone,
         gender: patientData.gender,
-        treatmenttype: patientData.treatmenttype,
         locationid: selectedLocation?.id || 17,
         lastvisit: new Date(),
         onsite: patientData.onsite,
         note: patientData.note,
+        streetAddress: patientData.streetAddress,
+        dateOfBirth: patientData.dateOfBirth,
       });
 
       fetchPatients();
@@ -424,11 +533,14 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       patientData.lastname &&
       patientData.email &&
       patientData.phone &&
-      patientData.treatmenttype &&
       patientData.gender &&
-      patientData.onsite !== undefined
+      patientData.onsite !== undefined &&
+      patientData.streetAddress &&
+      patientData.dateOfBirth &&
+      !emailError &&
+      !phoneError
     );
-  }, [patientData]);
+  }, [patientData, emailError, phoneError]);
 
   const togglePatientSelection = (patientId: number) => {
     setSelectedPatients((prev) => {
@@ -805,14 +917,24 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     /> */}
                     <PhoneNumberInput
                       value={patientData.phone}
-                      onChange={(value: string) =>
+                      onChange={(value: string) => {
+                        const formattedPhone = formatPhoneInput(value);
                         setPatientData({
                           ...patientData,
-                          phone: value,
-                        })
-                      }
+                          phone: formattedPhone,
+                        });
+                        
+                        if (formattedPhone && !isValidPhone(formattedPhone)) {
+                          setPhoneError("Please enter a valid US phone number (10-11 digits)");
+                        } else {
+                          setPhoneError("");
+                        }
+                      }}
                       breakpoint={false}
                     />
+                    {phoneError && (
+                      <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -839,32 +961,76 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
                 <div className="space-y-2">
                   <Label
-                    htmlFor="treatmenttype"
+                    htmlFor="streetAddress"
                     className="text-sm text-gray-500 dark:text-gray-400"
                   >
-                    {t("Patients_k11")}
+                    Street Address
                   </Label>
-                  <Select
-                    onValueChange={(value) =>
-                      setPatientData({ ...patientData, treatmenttype: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-[#7f7f80] dark:[&>span]:text-[#a3a3a3]">
-                      <SelectValue placeholder={t("Patients_k54")} />
-                    </SelectTrigger>
+                  <div className="relative">
+                    <Input
+                      id="streetAddress"
+                      placeholder="Enter street address"
+                      value={patientData.streetAddress}
+                      onChange={handleAddressChange}
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0) {
+                          setShowAddressSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow for selection
+                        setTimeout(() => setShowAddressSuggestions(false), 200);
+                      }}
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                    />
+                    {addressLoading && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <Spinner size="sm" />
+                      </div>
+                    )}
+                    {showAddressSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {addressSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => handleAddressSelect(suggestion)}
+                          >
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {suggestion.streetLine}
+                              {suggestion.secondary && ` ${suggestion.secondary}`}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                    <SelectContent className="dark:bg-[#122136] dark:border-gray-700">
-                      {serviceList.map((service: { title: string }) => (
-                        <SelectItem
-                          key={service.title}
-                          value={service.title}
-                          className="dark:hover:bg-gray-700 dark:text-white"
-                        >
-                          {service.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="dateOfBirth"
+                      className="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      Date of Birth
+                    </Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      onChange={(e) =>
+                        setPatientData({
+                          ...patientData,
+                          dateOfBirth: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div></div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1373,6 +1539,19 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
   const [formData, setFormData] = useState<Patient>(editPatientData);
   const [emailError, setEmailError] = useState("");
 
+  // Strip +1 prefix from phone number when loading data
+  useEffect(() => {
+    let displayPhone = editPatientData.phone || "";
+    if (displayPhone.startsWith("+1")) {
+      displayPhone = displayPhone.slice(2);
+    }
+    
+    setFormData({
+      ...editPatientData,
+      phone: displayPhone,
+    });
+  }, [editPatientData]);
+
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -1392,6 +1571,25 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
     }
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    // Remove all non-digit characters
+    let cleaned = rawValue.replace(/\D/g, '');
+    
+    // If it starts with 1, remove it (country code)
+    if (cleaned.startsWith('1') && cleaned.length === 11) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 10 digits
+    cleaned = cleaned.slice(0, 10);
+    
+    setFormData({
+      ...formData,
+      phone: cleaned,
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -1402,16 +1600,20 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
   const handleSave = async () => {
     try {
+      // Prepare phone number with +1 prefix
+      const phoneWithCountryCode = formData.phone ? `+1${formData.phone}` : "";
+      
       const response = await axios.put("/api/user", {
         id: patient.id,
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        phone: formData.phone,
-        treatmenttype: formData.treatmenttype,
+        phone: phoneWithCountryCode,
         gender: formData.gender,
         onsite: formData.onsite,
         note: formData.note,
+        streetAddress: formData.address,
+        dateOfBirth: formData.dob,
       });
 
       if (response.data.success) {
@@ -1457,12 +1659,18 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
           <Label className="text-sm text-gray-500 dark:text-gray-400">
             {t("Patients_k19")}
           </Label>
-          <Input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10">
+              +1
+            </span>
+            <Input
+              name="phone"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              className="w-full pl-10 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+              placeholder="Enter 10-digit phone number"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
@@ -1480,36 +1688,6 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
             <p className="text-red-500 text-sm mt-1">{emailError}</p>
           )}
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm text-gray-500 dark:text-gray-400">
-          {t("Patients_k11")}
-        </Label>
-        <Select
-          value={formData.treatmenttype}
-          onValueChange={(value) =>
-            setFormData({ ...formData, treatmenttype: value })
-          }
-        >
-          <SelectTrigger className="w-full bg-[#F1F4F9] dark:bg-[#122136] border-none text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white">
-            <SelectValue
-              placeholder="Select treatment type"
-              className="text-gray-900 dark:text-white"
-            />
-          </SelectTrigger>
-          <SelectContent className="bg-[#F1F4F9] dark:bg-[#122136] dark:border-gray-700">
-            {serviceList.map((service) => (
-              <SelectItem
-                key={service.title}
-                value={service.title}
-                className="text-gray-900 dark:text-gray-100 dark:hover:bg-gray-700 hover:bg-gray-200"
-              >
-                {service.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="space-y-2">
@@ -1602,6 +1780,32 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
               </div>
             )}
           </RadioGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Street Address
+          </Label>
+          <Input
+            name="address"
+            value={formData.address || ""}
+            onChange={handleChange}
+            placeholder="Enter street address"
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm text-gray-500 dark:text-gray-400">
+            Date of Birth
+          </Label>
+          <Input
+            name="dob"
+            type="date"
+            value={formData.dob || ""}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+          />
         </div>
       </div>
 
@@ -1705,19 +1909,28 @@ const PatientDetails: FC<{
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t("Patients_k11")}
+            {t("Patients_k24")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.treatmenttype}
+            {patient.note || "No note available"}
           </p>
         </div>
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t("Patients_k24")}
+            Street Address
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.note || "No note available"}
+            {patient.address || "No address provided"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Date of Birth
+          </p>
+          <p className="text-base font-medium dark:text-gray-300">
+            {patient.dob ? new Date(patient.dob).toLocaleDateString() : "No date provided"}
           </p>
         </div>
 
@@ -1768,18 +1981,52 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     lastname: "",
     phone: "",
     email: "",
-    treatmenttype: "",
     note: "",
+    streetaddress: "",
+    dateofbirth: "",
+    gender: "",
   });
 
   const [loading, setLoading] = useState(false);
   const { selectedLocation } = useContext(LocationContext);
   const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const isValidPhone = (phone: string) => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    // US phone numbers should be 10 digits (without country code) or 11 digits (with country code 1)
+    return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly.startsWith('1'));
+  };
+
+  const formatPhoneInput = (value: string) => {
+    // Remove all non-digit characters except + at the beginning
+    let cleaned = value.replace(/[^\d+]/g, '');
+    
+    // If it starts with +1, keep it, otherwise remove any + not at the beginning
+    if (cleaned.startsWith('+1')) {
+      cleaned = '+1' + cleaned.slice(2).replace(/\+/g, '');
+    } else if (cleaned.startsWith('+')) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 12 characters (+1 + 10 digits)
+    if (cleaned.startsWith('+1')) {
+      cleaned = cleaned.slice(0, 12);
+    } else {
+      cleaned = cleaned.slice(0, 10);
+    }
+    
+    return cleaned;
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1796,21 +2043,112 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     }
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    // Remove all non-digit characters
+    let cleaned = rawValue.replace(/\D/g, '');
+    
+    // If it starts with 1, remove it (country code)
+    if (cleaned.startsWith('1') && cleaned.length === 11) {
+      cleaned = cleaned.slice(1);
+    }
+    
+    // Limit to 10 digits
+    cleaned = cleaned.slice(0, 10);
+    
+    setPatientData({
+      ...patientData,
+      phone: cleaned,
+    });
+    
+    if (cleaned && cleaned.length !== 10) {
+      setPhoneError("Please enter a valid 10-digit US phone number");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  // Simple debounce function for EditPatientModal
+  const debounceModal = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+  };
+
+  // Debounced address search function for EditPatientModal
+  const searchAddressesModal = debounceModal(async (searchTerm: string) => {
+    if (searchTerm.length < 4) {
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      return;
+    }
+
+    setAddressLoading(true);
+    try {
+      const response = await fetch(`/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setAddressSuggestions(data.suggestions);
+        setShowAddressSuggestions(true);
+      } else {
+        setAddressSuggestions([]);
+        setShowAddressSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, 300);
+
+  const handleAddressChangeModal = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setPatientData({
+      ...patientData,
+      streetaddress: address,
+    });
+    
+    // Trigger address search
+    searchAddressesModal(address);
+  };
+
+  const handleAddressSelectModal = (suggestion: any) => {
+    setPatientData({
+      ...patientData,
+      streetaddress: suggestion.fullAddress,
+    });
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
   useEffect(() => {
     if (patientDetails) {
+      // Strip +1 prefix from phone number for display
+      let displayPhone = patientDetails.phone || "";
+      if (displayPhone.startsWith("+1")) {
+        displayPhone = displayPhone.slice(2);
+      }
+      
       setPatientData({
         firstname: patientDetails.firstname || "",
         lastname: patientDetails.lastname || "",
-        phone: patientDetails.phone || "",
+        phone: displayPhone,
         email: patientDetails.email || "",
-        treatmenttype: patientDetails.treatmenttype || "",
         note: patientDetails.note || "",
+        streetaddress: patientDetails.address || "",
+        dateofbirth: patientDetails.dob || "",
+        gender: patientDetails.gender || "",
       });
     }
   }, [patientDetails]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     e.preventDefault();
     setPatientData({ ...patientData, [e.target.name]: e.target.value });
@@ -1821,14 +2159,19 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
     setErrorMessage("");
 
     try {
+      // Prepare phone number with +1 prefix
+      const phoneWithCountryCode = patientData?.phone ? `+1${patientData.phone}` : "";
+      
       const data = await axios.put("/api/user", {
         id: patientDetails?.id,
         firstname: patientData?.firstname,
         lastname: patientData?.lastname,
         email: patientData?.email,
-        phone: patientData?.phone,
-        treatmenttype: patientData?.treatmenttype,
+        phone: phoneWithCountryCode,
         note: patientData?.note,
+        streetAddress: patientData?.streetaddress,
+        dateOfBirth: patientData?.dateofbirth,
+        gender: patientData?.gender,
       });
 
       if (data?.data?.success === true) {
@@ -1896,6 +2239,21 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium dark:text-gray-300">
+                {t("Patients_k12")}
+              </Label>
+              <select
+                name="gender"
+                value={patientData.gender}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">{t("Patients_k40")}</option>
+                <option value="Female">{t("Patients_k41")}</option>
+              </select>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -1903,13 +2261,24 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               <Label className="text-sm font-medium dark:text-gray-300">
                 {t("Patients_k19")}
               </Label>
-              <Input
-                type="text"
-                name="phone"
-                value={patientData.phone}
-                onChange={handleChange}
-                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 z-10">
+                  +1
+                </span>
+                <Input
+                  type="text"
+                  name="phone"
+                  value={patientData.phone}
+                  onChange={handlePhoneChange}
+                  className={`w-full pl-10 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white ${
+                    phoneError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  placeholder="Enter 10-digit phone number"
+                />
+              </div>
+              {phoneError && (
+                <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium dark:text-gray-300">
@@ -1946,46 +2315,69 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium dark:text-gray-300">
-              {t("Patients_k11")}
+              Street Address
             </Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-[#F1F4F9] dark:bg-[#122136] border-none dark:text-white"
-                >
-                  {patientData.treatmenttype || "Select Treatment"}
-                  <MoreHorizontal className="h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full min-w-[200px] dark:bg-gray-800 dark:border-gray-700">
-                <DropdownMenuLabel className="dark:text-gray-300">
-                  {t("Patients_k11")}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="dark:bg-gray-700" />
-                <ScrollArea className="h-72 w-full">
-                  {serviceList.map((service) => (
-                    <DropdownMenuItem
-                      key={service.title}
-                      onSelect={() =>
-                        setPatientData((prev) => ({
-                          ...prev,
-                          treatmenttype: service.title,
-                        }))
-                      }
-                      className="dark:hover:bg-gray-700 dark:text-white"
+            <div className="relative">
+              <Input
+                type="text"
+                name="streetaddress"
+                value={patientData.streetaddress}
+                onChange={handleAddressChangeModal}
+                onFocus={() => {
+                  if (addressSuggestions.length > 0) {
+                    setShowAddressSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay hiding suggestions to allow for selection
+                  setTimeout(() => setShowAddressSuggestions(false), 200);
+                }}
+                className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+                placeholder="Enter street address"
+              />
+              {addressLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Spinner size="sm" />
+                </div>
+              )}
+              {showAddressSuggestions && addressSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {addressSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                      onClick={() => handleAddressSelectModal(suggestion)}
                     >
-                      {service.title}
-                    </DropdownMenuItem>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {suggestion.streetLine}
+                        {suggestion.secondary && ` ${suggestion.secondary}`}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                      </div>
+                    </div>
                   ))}
-                </ScrollArea>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium dark:text-gray-300">
+              Date of Birth
+            </Label>
+            <Input
+              type="date"
+              name="dateofbirth"
+              value={patientData.dateofbirth}
+              onChange={handleChange}
+              className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+            />
           </div>
         </div>
 
         <AlertDialogFooter className="mt-6 flex justify-end gap-2">
-          <AlertDialogCancel className="border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800">
+          <AlertDialogCancel className="bg-red-500 hover:bg-red-600 text-white border-red-500 dark:border-red-500 dark:text-white dark:bg-red-500 dark:hover:bg-red-600">
             {t("Patients_k21")}
           </AlertDialogCancel>
           <AlertDialogAction

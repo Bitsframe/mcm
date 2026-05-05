@@ -295,11 +295,32 @@ const StockAlertsComponent: React.FC = () => {
   const getPriorityText = (priority: string) => {
     switch (priority) {
       case "Critical":
-        return "Critical";
+        return t("SP_k23");
       case "Warning":
-        return "High";
+        return t("SP_k25");
       default:
-        return "Medium";
+        return t("SP_k26");
+    }
+  };
+
+  const getAnomalyText = (severity: string) => {
+    switch (severity?.toLowerCase()) {
+      case "high":
+        return t("SP_k25"); // Alto
+      case "medium":
+        return t("SP_k26"); // Medio
+      case "low":
+        return t("SP_k27"); // Bajo
+      case "normal":
+        return t("SP_k28"); // Normal
+      case "warning":
+        return t("SP_k24"); // Advertencia
+      case "critical":
+        return t("SP_k23"); // Crítico
+      case "healthy":
+        return t("SP_k29"); // Saludable
+      default:
+        return severity || "-";
     }
   };
 
@@ -326,7 +347,7 @@ const StockAlertsComponent: React.FC = () => {
             type="text"
             value={searchTerm}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Search alerts..."
+            placeholder={t("SP_k22")}
             onChange={onSearchHandle}
           />
         </div>
@@ -338,7 +359,7 @@ const StockAlertsComponent: React.FC = () => {
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <span className="text-gray-600 dark:text-gray-400">
-                Loading AI Analysis...
+                {t("SP_k30")}
               </span>
             </div>
           </div>
@@ -468,7 +489,7 @@ const StockAlertsComponent: React.FC = () => {
                               : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                           }`}
                         >
-                          {item.anomaly_severity || "-"}
+                          {getAnomalyText(item.anomaly_severity)}
                         </span>
                       </td>
                     </tr>
@@ -480,8 +501,8 @@ const StockAlertsComponent: React.FC = () => {
             <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] px-4">
               <div>
                 {sortedData.length === 0
-                  ? `Showing 0 to 0 of 0`
-                  : `Showing ${startIndex + 1} to ${endIndex} of ${
+                  ? `${t("SP_k16")} 0 ${t("SP_k17")} 0 ${t("SP_k18")} 0`
+                  : `${t("SP_k16")} ${startIndex + 1} ${t("SP_k17")} ${endIndex} ${t("SP_k18")} ${
                       sortedData.length
                     }`}
               </div>
@@ -493,7 +514,7 @@ const StockAlertsComponent: React.FC = () => {
                     currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  Previous
+                  {t("SP_k15")}
                 </button>
                 <button
                   onClick={handleNextPage}
@@ -506,7 +527,7 @@ const StockAlertsComponent: React.FC = () => {
                       : ""
                   }`}
                 >
-                  Next
+                  {t("SP_k14")}
                 </button>
               </div>
             </div>
@@ -583,7 +604,7 @@ const StockAlertsComponent: React.FC = () => {
                       {t("anomaly_severity")}
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {selectedAlert.anomaly_severity || "-"}
+                      {getAnomalyText(selectedAlert.anomaly_severity)}
                     </p>
                   </div>
                 </div>

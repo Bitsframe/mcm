@@ -4,11 +4,11 @@
 // export const createClient = () => {
 //   const cookieStore = cookies();
 //   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-//   // Prefer the service role key on the server if present (required for writes when RLS is enabled).
-//   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+//   // Prefer the secret key on the server if present (required for writes when RLS is enabled).
+//   const supabaseKey = process.env.SUPABASE_SECRET_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
-//   // Note: SUPABASE_SERVICE_ROLE_KEY must be set in your server environment for elevated privileges.
-//   // Do NOT expose the service role key to the browser or commit it to source control.
+//   // Note: SUPABASE_SECRET_KEY must be set in your server environment for elevated privileges.
+//   // Do NOT expose the secret key to the browser or commit it to source control.
 
 //   return createServerClient(
 //     supabaseUrl,
@@ -50,9 +50,11 @@ import { cookies } from 'next/headers'
 export const createClient = () => {
   const cookieStore = cookies()
 
+  // Use publishable key for authentication and general operations
+  // Secret key should only be used for specific admin operations that require elevated privileges
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // ✅ anon only
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Use publishable key for auth
     {
       cookies: {
         get(name: string) {

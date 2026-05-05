@@ -360,17 +360,22 @@ export async function fetch_content_service({
 }
 
 export async function update_content_service({ table, language = '', post_data, matchKey = 'id' }: UpdateContentServiceInterface) {
-  console.log("[update_content_service] Starting update...");
-  console.log("[update_content_service] Table:", `${table}${language}`);
-  console.log("[update_content_service] Raw post_data:", post_data);
-  console.log("[update_content_service] matchKey:", matchKey);
+  // Check authentication status but don't fail if not authenticated (RLS allows anonymous)
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+  } catch (authCheckError) {
+    // Continue with anonymous access
+  }
   
   const id = post_data[matchKey]
-  console.log("[update_content_service] Extracted ID:", id);
+  
+  // Critical check: If no ID, this will become an INSERT instead of UPDATE
+  if (id == null || id === undefined || id === '') {
+    throw new Error(`No ${matchKey} found in post_data. Cannot update without ID. Available keys: ${Object.keys(post_data).join(', ')}`);
+  }
   
   const dataToUpdate = { ...post_data };
   delete dataToUpdate[matchKey];
-  console.log("[update_content_service] Data to update (after removing ID):", dataToUpdate);
   
   const { data, error } = await supabase
     //  @ts-ignore
@@ -379,12 +384,8 @@ export async function update_content_service({ table, language = '', post_data, 
     .eq(matchKey, id)
     .select()
   
-  console.log("[update_content_service] Response data:", data);
-  console.log("[update_content_service] Response error:", error);
-  
   if (error) {
-    console.error("[update_content_service] Update failed:", error.message);
-    throw new Error(error.message);
+    throw new Error(`Update failed: ${error.message} (Code: ${error.code})`);
   }
 
   return data;

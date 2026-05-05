@@ -14,6 +14,9 @@
     "Settings_k14": "Nueva Contraseña",
     "Settings_k15": "Repetir Nueva Contraseña",
     "Settings_k17": "Actualizar",
-    "Settings_k18": "Cancelar"
+    "Settings_k18": "Cancelar",
+    "Settings_k19": "La contraseña debe contener una letra mayúscula",
+    "Settings_k20": "La contraseña debe contener un número",
+    "Settings_k21": "La contraseña debe contener un carácter especial"
   }
   

@@ -70,18 +70,26 @@ const Services = () => {
 
     // Fetch the complete service data
     const tableName = selectedLanguage === "en" ? "services" : "services_es";
+    
+    // Convert selectedId to number for database query
+    const numericId = parseInt(selectedId, 10);
+    
     const { data: serviceData, error } = await supabase
       .from(tableName)
       .select("*")
-      .eq("id", selectedId)
+      .eq("id", numericId)
       .single();
 
     if (serviceData) {
-      // Update the form data with all fields
+      // CRITICAL: Make sure to include the ID in the form data
+      // Convert numeric ID to string for the form handler
+      on_change_handle("id", serviceData.id.toString());
       on_change_handle("title", serviceData.title);
       on_change_handle("description", serviceData.description);
       on_change_handle("image", serviceData.image);
       on_change_handle("icon", serviceData.icon || "");
+    } else if (error) {
+      console.error("Error fetching service data:", error);
     }
   };
 

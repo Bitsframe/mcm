@@ -5,12 +5,12 @@ import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { signOut } from '@/actions/supabase_auth/action';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
+import { createClient } from '@/utils/supabase/client';
 const passwordSchema = z.object({
   newPassword: z.string()
     .regex(/[A-Z]/, "Must include at least one uppercase letter")
@@ -18,21 +18,6 @@ const passwordSchema = z.object({
     .regex(/[^A-Za-z0-9]/, "Must include at least one special character"),
   retypePassword: z.string()
 });
-
-const passwordRules = [
-  {
-    label: "Password must contain capital letter",
-    test: (val: string) => /[A-Z]/.test(val)
-  },
-  {
-    label: "Password must contain number",
-    test: (val: string) => /[0-9]/.test(val)
-  },
-  {
-    label: "Password must contain special character",
-    test: (val: string) => /[^A-Za-z0-9]/.test(val)
-  }
-];
 
 const Security = () => {
   const [passwords, setPasswords] = useState({
@@ -53,6 +38,21 @@ const Security = () => {
   const router = useRouter();
   const { userProfile } = useContext(AuthContext);
   const { t } = useTranslation(translationConstant.SETTINGS);
+
+  const passwordRules = [
+    {
+      label: t("Settings_k19"),
+      test: (val: string) => /[A-Z]/.test(val)
+    },
+    {
+      label: t("Settings_k20"),
+      test: (val: string) => /[0-9]/.test(val)
+    },
+    {
+      label: t("Settings_k21"),
+      test: (val: string) => /[^A-Za-z0-9]/.test(val)
+    }
+  ];
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswords(prev => ({
@@ -66,6 +66,24 @@ const Security = () => {
       ...prev,
       [field]: !prev[field]
     }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Clear any local storage or session data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      window.location.href = '/login';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,17 +108,29 @@ const Security = () => {
     }
 
     try {
-      await axios.post('/api/admin/users/change-password', {
+      const response = await axios.post('/api/admin/users/change-password', {
         id: userProfile.id,
         password: passwords.newPassword
       }, { withCredentials: true });
 
-      await signOut();
-      router.push('/login');
-      toast.success("Password has been changed! Please login again.");
+      // Only logout if password change was successful
+      if (response.status === 200) {
+        toast.success("Password has been changed! Please login again.");
+        
+        // Wait a moment for the toast to show, then logout
+        setTimeout(() => {
+          handleLogout();
+        }, 2000);
+      }
     } catch (error: any) {
-      console.log("Error:", error);
-      // toast.error("Something went wrong while changing the password");
+      console.error("Password change error:", error);
+      
+      // Show specific error message
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          "Something went wrong while changing the password";
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -208,7 +238,7 @@ const Security = () => {
               type="submit"
               className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg"
             >
-              Update
+              {t("Settings_k17")}
             </Button>
           </div>
         </div>

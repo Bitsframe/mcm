@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
 import { useProductsClinica } from "@/hooks/useProductsClinica";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 import axios from "axios";
 
 interface TransferUnitsProps {
@@ -19,6 +21,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
     onClose,
     onTransferSuccess,
 }) => {
+    const { t } = useTranslation(translationConstant.INVENTORY);
     const { locations } = useLocationClinica();
 
 
@@ -92,20 +95,20 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
 
     const handleTransferSubmit = async () => {
         if (!fromLocation || !toLocation || !selectedCategory || !selectedProduct) {
-            setTransferError('All fields are required.');
+            setTransferError(t('Inventory_k55'));
             return;
         }
         if (fromLocation === toLocation) {
-            setTransferError('From and To locations must be different.');
+            setTransferError(t('Inventory_k56'));
             return;
         }
         const unitsVal = parseInt(units, 10);
         if (!unitsVal || unitsVal <= 0) {
-            setTransferError('Units must be greater than 0.');
+            setTransferError(t('Inventory_k57'));
             return;
         }
         if (unitsVal > availableUnits) {
-            setTransferError(`Cannot transfer more than available units (${availableUnits})`);
+            setTransferError(`${t('Inventory_k58')} (${availableUnits})`);
             return;
         }
         setTransferLoading(true);
@@ -118,17 +121,17 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                 units: unitsVal,
             });
             if (response.data && response.data.success) {
-                toast.success('Units transferred successfully!');
+                toast.success(t('Inventory_k59'));
                 onClose();
                 if (onTransferSuccess) onTransferSuccess();
             } else {
-                setTransferError(response.data?.message || 'Transfer failed.');
+                setTransferError(response.data?.message || t('Inventory_k60'));
             }
         } catch (error: any) {
             if (axios.isAxiosError(error)) {
-                setTransferError(error.response?.data?.message || 'Transfer failed.');
+                setTransferError(error.response?.data?.message || t('Inventory_k60'));
             } else {
-                setTransferError('Transfer failed.');
+                setTransferError(t('Inventory_k60'));
             }
         } finally {
             setTransferLoading(false);
@@ -144,12 +147,12 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
     return (
         <Custom_Modal
             open_handle={() => { }}
-            Title="Transfer Units"
+            Title={t("Inventory_k49")}
             loading={transferLoading}
             is_open={open}
             close_handle={onClose}
             create_new_handle={handleTransferSubmit}
-            buttonLabel="Transfer"
+            buttonLabel={t("Inventory_k44")}
             Trigger_Button={null}
             disabled={
                 transferLoading ||
@@ -164,9 +167,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
         >
             <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Location</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k50")}</label>
                     <Searchable_Dropdown
-                        label="From Location"
+                        label={t("Inventory_k50")}
                         value={fromLocation}
                         options_arr={locations.map((loc: any) => ({ value: loc.id, label: loc.title }))}
                         on_change_handle={(e: any) => setFromLocation(Number(e.target.value))}
@@ -174,9 +177,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Location</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k51")}</label>
                     <Searchable_Dropdown
-                        label="To Location"
+                        label={t("Inventory_k51")}
                         value={toLocation}
                         options_arr={locations.filter((loc: any) => loc.id !== fromLocation).map((loc: any) => ({ value: loc.id, label: loc.title }))}
                         on_change_handle={(e: any) => setToLocation(Number(e.target.value))}
@@ -184,9 +187,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k32")}</label>
                     <Searchable_Dropdown
-                        label="Category"
+                        label={t("Inventory_k32")}
                         value={selectedCategory}
                         options_arr={categories.map((cat: any) => ({ value: cat.category_id, label: cat.category_name }))}
                         on_change_handle={(e: any) => selectedCategoryHandle(Number(e.target.value))}
@@ -194,9 +197,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k52")}</label>
                     <Searchable_Dropdown
-                        label="Product"
+                        label={t("Inventory_k52")}
                         value={selectedProduct}
                         options_arr={products.filter((prod: any) => !prod.unlimited).map((prod: any) => ({ value: prod.main_product_id, label: prod.product_name }))}
                         on_change_handle={(e: any) => setSelectedProduct(Number(e.target.value))}
@@ -210,7 +213,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                         value={units}
                         onChange={setUnits}
                         border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                        label={`Units (Available: ${availableUnits})`}
+                        label={`${t("Inventory_k53")} (${t("Inventory_k54")}: ${availableUnits})`}
                         bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                         disabled={!selectedProduct}
                     />

@@ -635,7 +635,7 @@ const Products = () => {
                       ) : dataList.length === 0 ? (
                         <TableRow className="flex h-[70dvh]">
                           <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
-                            <h1>No Product is available</h1>
+                            <h1>{t("Inventory_k45")}</h1>
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -717,7 +717,7 @@ const Products = () => {
                                       label={
                                         getDataArchiveType
                                           ? t("Inventory_k30")
-                                          : t("Inventory_k5")
+                                          : t("Inventory_k33")
                                       }
                                       text_color={
                                         getDataArchiveType
@@ -788,7 +788,7 @@ const Products = () => {
                   </div>
                 ) : dataList.length === 0 ? (
                   <div className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
-                    <h1>No Product is available</h1>
+                    <h1>{t("Inventory_k45")}</h1>
                   </div>
                 ) : (
                   <>
@@ -919,7 +919,7 @@ const Products = () => {
 
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
-        Title={`${modalState} Product`}
+        Title={modalState === modalStateEnum.CREATE ? t("Inventory_k61") : modalState === modalStateEnum.UPDATE ? t("Inventory_k62") : `${modalState} Product`}
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
@@ -928,7 +928,7 @@ const Products = () => {
             ? assignSubmitHandle
             : modalSubmitHandle
         }
-        buttonLabel={modalState}
+        buttonLabel={modalState === modalStateEnum.CREATE ? t("Inventory_k47") : modalState === modalStateEnum.UPDATE ? t("Inventory_k17") : modalState}
         Trigger_Button={null}
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
@@ -937,7 +937,7 @@ const Products = () => {
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Select clinic
+                  {t("Inventory_k65")}
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -994,7 +994,7 @@ const Products = () => {
                   value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
                   border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                  label="Number of Units"
+                  label={t("Inventory_k66")}
                   bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                 />
               </div>
@@ -1047,7 +1047,7 @@ const Products = () => {
                     </div>
                     {calculateTotalAssigned() > modalData.stock && (
                       <div className="text-sm text-red-500 mt-2">
-                        Cannot assign more than available stock
+                        {t("Inventory_k67")}
                       </div>
                     )}
                   </>
@@ -1075,7 +1075,7 @@ const Products = () => {
                     on_change_handle={(e: any) =>
                       modalInputChangeHandle(id, e.target.value)
                     }
-                    label="Category"
+                    label={t("Inventory_k32")}
                   />
                 </div>
               ) : (
@@ -1085,7 +1085,7 @@ const Products = () => {
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
                     border="border-[1px] border-gray-300 rounded-md dark:border-none"
-                    label={label}
+                    label={id === "product_name" ? t("Inventory_k8") : id === "price" ? t("Inventory_k63") : id === "stock" ? t("Inventory_k53") : label}
                     bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
                     disabled={id === "stock" && modalData.unlimited}
                   />
@@ -1125,7 +1125,7 @@ const Products = () => {
                   htmlFor="bonus_eligible"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Bonus-eligible
+                  {t("Inventory_k64")}
                 </label>
               </div>
             </div>
@@ -1156,7 +1156,7 @@ const Products = () => {
                   color="gray"
                   className="dark:bg-gray-700 dark:text-white"
                 >
-                  Cancel
+                  {t("Inventory_k13")}
                 </Button>
                 <Button
                   isProcessing={deleteLoading}
@@ -1164,7 +1164,7 @@ const Products = () => {
                   onClick={deleteHandle}
                   className="dark:bg-red-700 dark:hover:bg-red-800"
                 >
-                  {getDataArchiveType ? "Unarchive" : "Archive"}
+                  {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k33")}
                 </Button>
               </div>
             </div>

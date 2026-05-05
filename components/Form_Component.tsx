@@ -25,11 +25,16 @@ export const Form_Component = (props: any) => {
   const { t } = useTranslation(translationConstant.WEBCONT);
 
   const handleUpdate = async () => {
+    console.log("🔵 [Form_Component] Update button clicked");
+    console.log("🔵 [Form_Component] About to call handle_update function");
+    
     try {
       await handle_update();
-      toast.success("Location updated successfully!");
+      console.log("✅ [Form_Component] handle_update completed successfully");
+      toast.success("Updated successfully!");
     } catch (error) {
-      toast.error("Failed to update location");
+      console.error("❌ [Form_Component] handle_update failed:", error);
+      toast.error("Failed to update");
     }
   };
 

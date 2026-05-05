@@ -1,5 +1,6 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { dbSync } from '@/utils/sync/directDbSync';
 
 /**
  * UPDATE PHARMACY
@@ -8,7 +9,10 @@ export const PUT = async (
   req: Request,
   { params }: { params: { id: string } }
 ) => {
-  const supabase = createClient();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
   const id = Number(params.id); // 🔑 ensure integer
 
   try {
@@ -16,26 +20,32 @@ export const PUT = async (
     const {
       name,
       address,
+      city,
       state,
+      zip_code,
       zipcode,
+      phone_number,
       phone,
       delivers,
       opening_hours,
       is_active,
     } = body;
 
+    const updateData = {
+      name,
+      address,
+      city: city || null,
+      state,
+      zip_code: zip_code || zipcode,
+      phone_number: phone_number || phone,
+      delivers,
+      opening_hours,
+      is_active,
+    };
+
     const { data, error } = await supabase
       .from('pharmacy')
-      .update({
-        name,
-        address,
-        state,
-        zipcode,
-        phone,
-        delivers,
-        opening_hours,
-        is_active,
-      })
+      .update(updateData)
       .eq('id', id)
       .select(); // ✅ no .single()
 
@@ -47,6 +57,9 @@ export const PUT = async (
         { status: 404 }
       );
     }
+
+    // 🔄 Sync to child database
+    dbSync.syncUpdate('pharmacy', id, data[0]);
 
     return NextResponse.json(
       {
@@ -72,7 +85,10 @@ export const DELETE = async (
   _req: Request,
   { params }: { params: { id: string } }
 ) => {
-  const supabase = createClient();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
   const id = Number(params.id); // 🔑 ensure integer
 
   try {
@@ -90,6 +106,9 @@ export const DELETE = async (
         { status: 404 }
       );
     }
+
+    // 🔄 Sync to child database
+    dbSync.syncDelete('pharmacy', id);
 
     return NextResponse.json(
       {

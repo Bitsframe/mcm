@@ -4,7 +4,6 @@ import { i18nRouter } from "next-i18n-router";
 import i18nConfig from "./i18config";
 
 export async function middleware(request: NextRequest) {
-  const supabase = createClient();
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
 
@@ -30,6 +29,7 @@ export async function middleware(request: NextRequest) {
   const response = i18nResponse || NextResponse.next();
 
   try {
+    const supabase = createClient();
     const {
       data: { session },
       error,

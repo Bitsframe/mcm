@@ -231,7 +231,7 @@ const Categories = () => {
           }`}
         >
           <Archive size={16} />
-          <span>{t("Inventory_k6")}</span>
+          <span>{t("Inventory_k33")}</span>
         </button>
       </div>
     ),
@@ -341,7 +341,7 @@ const Categories = () => {
                             className="w-full flex items-center justify-center bg-white dark:bg-[#0e1725]"
                           >
                             <h1 className="text-gray-700 dark:text-white">
-                              No Category is available
+                              {t("Inventory_k48")}
                             </h1>
                           </TableCell>
                         </TableRow>
@@ -398,7 +398,7 @@ const Categories = () => {
                 ) : dataList.length === 0 ? (
                   <div className="h-[70dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
                     <h1 className="text-gray-700 dark:text-white">
-                      No Category is available
+                      {t("Inventory_k48")}
                     </h1>
                   </div>
                 ) : (
@@ -475,19 +475,19 @@ const Categories = () => {
 
       <Custom_Modal
         open_handle={() => openModalHandle(modalStateEnum.CREATE)}
-        Title={`${modalState} Category`}
+        Title={t("Inventory_k46")}
         loading={modalEventLoading}
         is_open={openModal}
         close_handle={closeModalHandle}
         create_new_handle={createNewHandle}
-        buttonLabel={modalState}
+        buttonLabel={t("Inventory_k47")}
         Trigger_Button={null}
       >
         <Input_Component
           value={modalData["category_name"]}
           onChange={(e) => modalInputChangeHandle("category_name", e)}
           py="py-3"
-          label="Category"
+          label={t("Inventory_k32")}
           darkMode={true}
           bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"
         />

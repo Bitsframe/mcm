@@ -181,8 +181,8 @@ const StockPanel = () => {
           title="Exclude zero quantity products"
         >
           <Filter className="w-4 h-4" />
-          <span className="hidden sm:inline">{t("SP_k1")} exluding 0</span>
-          <span className="sm:hidden">Filter</span>
+          <span className="hidden sm:inline">{t("SP_k1")} {t("SP_k20")}</span>
+          <span className="sm:hidden">{t("SP_k21")}</span>
         </button>
       </div>
     ),

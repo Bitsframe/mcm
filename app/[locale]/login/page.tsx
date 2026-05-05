@@ -19,13 +19,16 @@ function Login() {
   
   useEffect(() => {
     const locale = params.locale as string;
-    if (locale && i18n.language !== locale) {
+    if (locale && i18n && i18n.language !== locale && typeof i18n.changeLanguage === 'function') {
       i18n.changeLanguage(locale);
     }
   }, [params.locale, i18n]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    if (loading) return; // Prevent double submission
+    
     setLoading(true);
 
     try {
@@ -36,7 +39,7 @@ function Login() {
         
         toast(
           <div className="flex justify-between">
-            <p>Incorrect Credentials. Please try again.</p>
+            <p>{result.error}</p>
             <button
               onClick={() => toast.dismiss()} 
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
@@ -47,6 +50,9 @@ function Login() {
         )}else {
           setTimeout(() => router.push("/?toast=login_success"), 1500);
       }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

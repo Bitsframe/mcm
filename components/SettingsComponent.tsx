@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/select";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabasePublishableKey) {
   console.error("Missing Supabase environment variables");
 }
 
@@ -25,7 +25,7 @@ const formattedTime = (time?: string) => {
   return time ? moment(time, "HH:mm:ss").format("hh:mm A") : "";
 };
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
 interface Location {
   id: number;

@@ -898,7 +898,7 @@ const BonusPage = () => {
       
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Bonus</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{t('Bonus_k1')}</h1>
         </div>
       </div>
 
@@ -957,7 +957,7 @@ const BonusPage = () => {
                       aria-label="Show today"
                       title="Show today"
                     >
-                      Today
+                      {t('Bonus_k88')}
                     </Button>
                     <Button
                       size="sm"
@@ -971,7 +971,7 @@ const BonusPage = () => {
                       aria-label="Show yesterday"
                       title="Show yesterday"
                     >
-                      Yesterday
+                      {t('Bonus_k89')}
                     </Button>
                   </div>
                 </div>
@@ -994,14 +994,14 @@ const BonusPage = () => {
                       const { data: updateBonusData, error: updateBonusError } = await supabase.rpc('update_bonus_totalsales')
                       if (updateBonusError) {
                         console.error('RPC update_bonus_totalsales error:', updateBonusError)
-                        toast.error('Failed to trigger calculation')
+                        toast.error(t('Bonus_k90'))
                       } else {
-                        toast.success('Calculation triggered')
+                        toast.success(t('Bonus_k91'))
                         try { if (typeof fetchData === 'function') await fetchData() } catch(_){}
                       }
                     } catch (err) {
                       console.error('Failed to call RPC:', err)
-                      toast.error('Failed to trigger calculation')
+                      toast.error(t('Bonus_k90'))
                     } finally {
                       setCalcRunning(false)
                     }
@@ -1009,7 +1009,7 @@ const BonusPage = () => {
                   aria-label="Calculate bonuses"
                   title="Calculate bonuses"
                 >
-                  {calcRunning ? 'Calculating...' : 'Calculate'}
+                  {calcRunning ? t('Bonus_k55') : t('Bonus_k82')}
                 </Button>
               </div>
               <Table>
@@ -1214,13 +1214,13 @@ const BonusPage = () => {
                                 if (has) {
                                   return (
                                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
-                                      Yes
+                                      {t('Bonus_k30')}
                                     </span>
                                   )
                                 }
                                 return (
                                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">
-                                    No
+                                    {t('Bonus_k31')}
                                   </span>
                                 )
                               })()}
@@ -1243,7 +1243,7 @@ const BonusPage = () => {
                                       !isGenerated
                                         ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200'
                                         : (isPaid
-                                            ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                                            ? 'bg-blue-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                                             : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
                                     }
                                     onClick={async (e) => {
@@ -1262,19 +1262,19 @@ const BonusPage = () => {
                                         if (!resp.ok) {
                                           // revert
                                           setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
-                                          toast.error('Failed to update paid status')
+                                          toast.error(t('Bonus_k92'))
                                         } else {
-                                          toast.success(newPaid ? 'Marked as paid' : 'Marked as unpaid')
+                                          toast.success(newPaid ? t('Bonus_k93') : t('Bonus_k94'))
                                           try { fetchData() } catch (_) {}
                                         }
                                       } catch (err) {
                                         setPaidByPatient((s) => ({ ...s, [key]: isPaid }))
-                                        toast.error('Failed to update paid status')
+                                        toast.error(t('Bonus_k92'))
                                       }
                                     }}
                                     aria-pressed={isPaid}
                                   >
-                                    <span className="text-white">{isPaid ? t('Bonus_k36') : t('Bonus_k37')}</span>
+                                    {isPaid ? t('Bonus_k36') : t('Bonus_k37')}
                                   </Button>
                                 )
                               })()}
@@ -1534,29 +1534,29 @@ const BonusPage = () => {
   {activeTab === 'set-limits' && (
     <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
       <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh] p-6">
-        <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Set limits</h2>
+        <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{t('Bonus_k4')}</h2>
         {/* Replace single-location form with a table of all locations for bulk editing */}
         <div className="overflow-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Location</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Flat / Percentage</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Value</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Bonus Threshold</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Actions</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k38')}</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k39')}</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k11')}</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k9')}</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k40')}</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
               {(patients || []).map((p: any) => {
                 const key = String(p.id)
                 const row = limitsByLocation[key] || { flat_percentage: 'FLAT' as const, value: '', bonus_threshold: '' }
                 return (
-                  <tr key={key} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 text-sm text-gray-700">{p.title ?? `Location ${p.id}`}</td>
+                  <tr key={key} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-white">{p.title ?? `Location ${p.id}`}</td>
                     <td className="px-4 py-2">
                       <select
-                        className="rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent"
+                        className="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         value={row.flat_percentage}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), flat_percentage: (e.target.value as 'FLAT' | 'PERCENTAGE'), edited: true } }))}
                       >
@@ -1568,10 +1568,10 @@ const BonusPage = () => {
                       <div className="relative">
                         {/* Prefix or suffix depending on FLAT / PERCENTAGE */}
                         {((row.flat_percentage ?? 'FLAT') === 'FLAT') && (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700">$</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">$</span>
                         )}
                         <input
-                          className={"w-full rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
+                          className={"w-full rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
                           value={row.value ?? ''}
                           onChange={(e) => {
                             let v = String(e.target.value).replace(/[^0-9.]/g, '')
@@ -1595,13 +1595,13 @@ const BonusPage = () => {
                           inputMode="decimal"
                         />
                         {((row.flat_percentage ?? 'FLAT') === 'PERCENTAGE') && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700">%</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">%</span>
                         )}
                       </div>
                     </td>
                     <td className="px-4 py-2">
                       <input
-                        className="w-full rounded border border-gray-300 dark:border-gray-700 px-2 py-1 text-sm bg-transparent"
+                        className="w-full rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         value={row.bonus_threshold ?? ''}
                         onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), bonus_threshold: e.target.value, edited: true } }))}
                         inputMode="numeric"
@@ -1613,7 +1613,7 @@ const BonusPage = () => {
                         disabled={!row?.edited || setLimitSubmitting}
                         aria-disabled={!row?.edited || setLimitSubmitting}
                         className={(!row?.edited || setLimitSubmitting)
-                          ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200 px-3 py-1'
+                          ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 px-3 py-1'
                           : 'px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600'
                         }
                         onClick={async (ev) => {
@@ -1714,9 +1714,9 @@ const BonusPage = () => {
                           </TableCell>
                           <TableCell>
                             { (b?.paid) ? (
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100">Paid</span>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100">{t('Bonus_k36')}</span>
                             ) : (
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700 border border-red-100">Unpaid</span>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700 border border-red-100">{t('Bonus_k95')}</span>
                             ) }
                           </TableCell>
                         </TableRow>
@@ -1724,7 +1724,7 @@ const BonusPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">No paid bonuses</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">{t('Bonus_k96')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
