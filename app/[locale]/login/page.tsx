@@ -10,7 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
-const normalizeLoginError = (message: string) => {
+const normalizeLoginError = (message: string, authCode?: string) => {
   const lowerMessage = message.toLowerCase();
 
   if (
@@ -19,6 +19,15 @@ const normalizeLoginError = (message: string) => {
     lowerMessage.includes("rate limit")
   ) {
     return "Too many login attempts. Please wait a minute and try again.";
+  }
+
+  // Supabase may still return captcha-protection errors until disabled in dashboard; no CAPTCHA widget in-app.
+  if (
+    authCode === "captcha_failed" ||
+    lowerMessage.includes("captcha protection") ||
+    lowerMessage.includes("timeout-or-duplicate")
+  ) {
+    return "Login temporarily unavailable. Please try again in a moment.";
   }
 
   // Sometimes server action payload noise leaks into the UI.
@@ -112,7 +121,7 @@ function Login() {
 
       if (authError) {
         const message = authError.message || "Login failed";
-        let errorMessage = normalizeLoginError(message);
+        const errorMessage = normalizeLoginError(message, authError.code);
 
         // Structured safe log for debugging production auth failures.
         console.warn("Login auth failure", {
@@ -126,12 +135,6 @@ function Login() {
           const retryMs = 60_000;
           setCooldownUntil(Date.now() + retryMs);
           setSecondsLeft(Math.ceil(retryMs / 1000));
-        }
-        if (
-          message.toLowerCase().includes("timeout-or-duplicate") ||
-          authError.code === "captcha_failed"
-        ) {
-          errorMessage = "CAPTCHA expired or already used. Please complete it again.";
         }
 
         toast(
