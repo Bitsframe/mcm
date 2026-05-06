@@ -13,9 +13,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Skip auth for internal API routes (server-to-server)
-  if (pathname.startsWith("/api/reminder")) {
-    console.log("Bypassing middleware for /api/reminder");
+  // Avoid auth/session work for API requests to prevent token-refresh bursts.
+  if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
@@ -24,9 +23,17 @@ export async function middleware(request: NextRequest) {
 
   const isLoginPage = pathname === "/login" || pathname.startsWith(`/${locale}/login`);
   const isAPIRequest = pathname.startsWith("/api/");
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
 
   const i18nResponse = await i18nRouter(request, i18nConfig);
   const response = i18nResponse || NextResponse.next();
+
+  // Avoid unnecessary auth calls on login when no session cookies exist.
+  if (isLoginPage && !hasAuthCookie) {
+    return response;
+  }
 
   try {
     const supabase = createClient();
@@ -75,7 +82,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/api/:path*",
     "/login",
     "/en/login",
     "/es/login",

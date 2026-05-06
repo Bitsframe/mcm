@@ -28,7 +28,10 @@ export async function login(formData: FormData) {
       return { error: 'Invalid email or password' }
     } else if (error.message.includes('Email not confirmed')) {
       return { error: 'Please check your email and confirm your account' }
-    } else if (error.message.includes('Too many requests')) {
+    } else if (
+      error.message.includes('Too many requests') ||
+      error.message.includes('Request rate limit reached')
+    ) {
       return { error: 'Too many login attempts. Please try again later' }
     } else {
       return { error: error.message }

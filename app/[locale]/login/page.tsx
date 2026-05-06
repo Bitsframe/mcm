@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { login } from "@/actions/supabase_auth/action";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,13 +8,68 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: string | HTMLElement,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "expired-callback"?: () => void;
+          "error-callback"?: () => void;
+          theme?: "light" | "dark" | "auto";
+        }
+      ) => string;
+      reset: (widgetId?: string) => void;
+    };
+  }
+}
+
+const normalizeLoginError = (message: string) => {
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("request rate limit reached") ||
+    lowerMessage.includes("too many requests") ||
+    lowerMessage.includes("rate limit")
+  ) {
+    return "Too many login attempts. Please wait a minute and try again.";
+  }
+
+  // Sometimes server action payload noise leaks into the UI.
+  if (message.includes('0:["$@1"')) {
+    return "Temporary login issue. Please try again in a moment.";
+  }
+
+  return message;
+};
+
+const isRateLimitedError = (message: string) => {
+  const lowerMessage = message.toLowerCase();
+  return (
+    lowerMessage.includes("request rate limit reached") ||
+    lowerMessage.includes("too many requests") ||
+    lowerMessage.includes("rate limit")
+  );
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function Login() {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaWidgetId, setCaptchaWidgetId] = useState<string | null>(null);
   const params = useParams();
   const router = useRouter();
+  const supabase = createClient();
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
   
   useEffect(() => {
     const locale = params.locale as string;
@@ -24,22 +78,130 @@ function Login() {
     }
   }, [params.locale, i18n]);
 
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining === 0) {
+        setCooldownUntil(0);
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownUntil]);
+
+  useEffect(() => {
+    if (!turnstileSiteKey) return;
+
+    const scriptId = "cf-turnstile-script";
+    const renderWidget = () => {
+      if (!window.turnstile || captchaWidgetId) return;
+      const widgetId = window.turnstile.render("#turnstile-container", {
+        sitekey: turnstileSiteKey,
+        callback: (token: string) => setCaptchaToken(token),
+        "expired-callback": () => setCaptchaToken(""),
+        "error-callback": () => setCaptchaToken(""),
+        theme: "auto",
+      });
+      setCaptchaWidgetId(widgetId);
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+      return;
+    }
+
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    script.addEventListener("load", renderWidget);
+    return () => script?.removeEventListener("load", renderWidget);
+  }, [turnstileSiteKey, captchaWidgetId]);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
     if (loading) return; // Prevent double submission
+    if (cooldownUntil && Date.now() < cooldownUntil) {
+      toast(`Please wait ${secondsLeft || 1}s before trying again.`);
+      return;
+    }
+    if (turnstileSiteKey && !captchaToken) {
+      toast("Please complete the CAPTCHA first.");
+      return;
+    }
     
     setLoading(true);
 
     try {
       const formData = new FormData(event.currentTarget);
-      const result = await login(formData);
-      // @ts-ignore
-      if (result?.error) {
-        
+      const email = (formData.get("email") as string)?.trim();
+      const password = (formData.get("password") as string) || "";
+      const loc = (params.locale as string) || "en";
+
+      // Retry once for transient auth/provider failures.
+      // Turnstile tokens are single-use, so never retry when CAPTCHA is enabled.
+      let authError: any = null;
+      const maxAttempts = turnstileSiteKey ? 1 : 2;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: turnstileSiteKey ? { captchaToken } : undefined,
+        });
+        authError = error;
+        if (!error) {
+          setTimeout(() => router.push(`/${loc}?toast=login_success`), 500);
+          return;
+        }
+
+        const isRateLimit = isRateLimitedError(error.message || "");
+        if (attempt === 0 && !isRateLimit && maxAttempts > 1) {
+          await wait(500);
+          continue;
+        }
+        break;
+      }
+
+      if (authError) {
+        const message = authError.message || "Login failed";
+        let errorMessage = normalizeLoginError(message);
+
+        // Structured safe log for debugging production auth failures.
+        console.warn("Login auth failure", {
+          status: authError.status,
+          code: authError.code,
+          message,
+          isRateLimited: isRateLimitedError(message),
+        });
+
+        if (isRateLimitedError(message)) {
+          const retryMs = 60_000;
+          setCooldownUntil(Date.now() + retryMs);
+          setSecondsLeft(Math.ceil(retryMs / 1000));
+        }
+        if (
+          message.toLowerCase().includes("timeout-or-duplicate") ||
+          authError.code === "captcha_failed"
+        ) {
+          errorMessage = "CAPTCHA expired or already used. Please complete it again.";
+        }
+        if (turnstileSiteKey && window.turnstile && captchaWidgetId) {
+          window.turnstile.reset(captchaWidgetId);
+          setCaptchaToken("");
+        }
+
         toast(
           <div className="flex justify-between">
-            <p>{result.error}</p>
+            <p>{errorMessage}</p>
             <button
               onClick={() => toast.dismiss()} 
               className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
@@ -47,9 +209,7 @@ function Login() {
               <span className="text-sm">&#x2715;</span>
             </button>
           </div>
-        )        } else {
-          const loc = (params.locale as string) || "en";
-          setTimeout(() => router.push(`/${loc}?toast=login_success`), 1500);
+        );
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -100,13 +260,23 @@ function Login() {
                 </button>
               </div>
 
+              {turnstileSiteKey ? (
+                <div id="turnstile-container" className="flex justify-center" />
+              ) : (
+                <p className="text-xs text-amber-700 text-center">
+                  CAPTCHA is not configured. Set <code>NEXT_PUBLIC_TURNSTILE_SITE_KEY</code> and redeploy.
+                </p>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-primary_color text-white disabled:opacity-70 hover:opacity-90 active:opacity-80"
-                disabled={loading}
+                disabled={loading || (cooldownUntil > Date.now()) || (turnstileSiteKey && !captchaToken)}
               >
                 {loading ? (
                   <Loader2 className="animate-spin text-white" size={20} />
+                ) : cooldownUntil > Date.now() ? (
+                  `Try again in ${secondsLeft}s`
                 ) : (
                   t("Login_k1")
                 )}
