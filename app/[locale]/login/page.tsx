@@ -9,26 +9,6 @@ import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
-import { useRef } from "react";
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (
-        container: string | HTMLElement,
-        options: {
-          sitekey: string;
-          callback: (token: string) => void;
-          "expired-callback"?: () => void;
-          "error-callback"?: () => void;
-          theme?: "light" | "dark" | "auto";
-        }
-      ) => string;
-      reset: (widgetId?: string) => void;
-      remove?: (widgetId?: string) => void;
-    };
-  }
-}
 
 const normalizeLoginError = (message: string) => {
   const lowerMessage = message.toLowerCase();
@@ -66,15 +46,9 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaBypass, setCaptchaBypass] = useState(false);
-  const captchaWidgetRef = useRef<string | null>(null);
-  const captchaRenderRequestedRef = useRef(false);
   const params = useParams();
   const router = useRouter();
   const supabase = createClient();
-  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
-  const isCaptchaRequired = Boolean(turnstileSiteKey);
   
   useEffect(() => {
     const locale = params.locale as string;
@@ -97,79 +71,12 @@ function Login() {
     return () => clearInterval(timer);
   }, [cooldownUntil]);
 
-  useEffect(() => {
-    if (!turnstileSiteKey) return;
-
-    const scriptId = "cf-turnstile-script";
-    const renderWidget = () => {
-      if (!window.turnstile || captchaWidgetRef.current || captchaRenderRequestedRef.current) return;
-      const container = document.getElementById("turnstile-container");
-      if (!container || container.childElementCount > 0) return;
-      captchaRenderRequestedRef.current = true;
-      try {
-        const widgetId = window.turnstile.render("#turnstile-container", {
-          sitekey: turnstileSiteKey,
-          callback: (token: string) => {
-            setCaptchaBypass(false);
-            setCaptchaToken(token);
-          },
-          "expired-callback": () => setCaptchaToken(""),
-          "error-callback": () => {
-            setCaptchaToken("");
-            setCaptchaBypass(true);
-          },
-          theme: "auto",
-        });
-        captchaWidgetRef.current = widgetId;
-      } catch {
-        setCaptchaBypass(true);
-      }
-    };
-
-    if (window.turnstile) {
-      renderWidget();
-      return;
-    }
-
-    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (!script) {
-      script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-    const scriptErrorHandler = () => setCaptchaBypass(true);
-    script.addEventListener("error", scriptErrorHandler);
-    script.addEventListener("load", renderWidget);
-    const renderTimeout = window.setTimeout(() => {
-      if (!captchaWidgetRef.current) {
-        setCaptchaBypass(true);
-      }
-    }, 5000);
-    return () => {
-      window.clearTimeout(renderTimeout);
-      script?.removeEventListener("error", scriptErrorHandler);
-      script?.removeEventListener("load", renderWidget);
-      if (window.turnstile && captchaWidgetRef.current) {
-        window.turnstile.remove?.(captchaWidgetRef.current);
-        captchaWidgetRef.current = null;
-      }
-      captchaRenderRequestedRef.current = false;
-    };
-  }, [turnstileSiteKey]);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
     if (loading) return; // Prevent double submission
     if (cooldownUntil && Date.now() < cooldownUntil) {
       toast(`Please wait ${secondsLeft || 1}s before trying again.`);
-      return;
-    }
-    if (isCaptchaRequired && !captchaBypass && !captchaToken) {
-      toast("Please complete the CAPTCHA first.");
       return;
     }
     
@@ -182,15 +89,12 @@ function Login() {
       const loc = (params.locale as string) || "en";
 
       // Retry once for transient auth/provider failures.
-      // Turnstile tokens are single-use, so never retry when CAPTCHA is enabled.
       let authError: any = null;
-      const shouldUseCaptcha = isCaptchaRequired && !captchaBypass && Boolean(captchaToken);
-      const maxAttempts = shouldUseCaptcha ? 1 : 2;
+      const maxAttempts = 2;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: shouldUseCaptcha ? { captchaToken } : undefined,
         });
         authError = error;
         if (!error) {
@@ -228,10 +132,6 @@ function Login() {
           authError.code === "captcha_failed"
         ) {
           errorMessage = "CAPTCHA expired or already used. Please complete it again.";
-        }
-        if (isCaptchaRequired && window.turnstile && captchaWidgetRef.current) {
-          window.turnstile.reset(captchaWidgetRef.current);
-          setCaptchaToken("");
         }
 
         toast(
@@ -295,23 +195,10 @@ function Login() {
                 </button>
               </div>
 
-              {isCaptchaRequired ? (
-                <div id="turnstile-container" className="flex justify-center" />
-              ) : (
-                <p className="text-xs text-amber-700 text-center">
-                  CAPTCHA is not configured. Set <code>NEXT_PUBLIC_TURNSTILE_SITE_KEY</code> and redeploy.
-                </p>
-              )}
-              {captchaBypass ? (
-                <p className="text-xs text-amber-700 text-center">
-                  CAPTCHA service unavailable. Continuing login without CAPTCHA.
-                </p>
-              ) : null}
-
               <Button
                 type="submit"
                 className="w-full bg-primary_color text-white disabled:opacity-70 hover:opacity-90 active:opacity-80"
-                disabled={loading || (cooldownUntil > Date.now()) || (isCaptchaRequired && !captchaBypass && !captchaToken)}
+                disabled={loading || (cooldownUntil > Date.now())}
               >
                 {loading ? (
                   <Loader2 className="animate-spin text-white" size={20} />
