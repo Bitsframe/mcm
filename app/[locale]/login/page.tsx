@@ -70,6 +70,7 @@ function Login() {
   const router = useRouter();
   const supabase = createClient();
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+  const isCaptchaRequired = Boolean(turnstileSiteKey);
   
   useEffect(() => {
     const locale = params.locale as string;
@@ -134,7 +135,7 @@ function Login() {
       toast(`Please wait ${secondsLeft || 1}s before trying again.`);
       return;
     }
-    if (turnstileSiteKey && !captchaToken) {
+    if (isCaptchaRequired && !captchaToken) {
       toast("Please complete the CAPTCHA first.");
       return;
     }
@@ -150,12 +151,12 @@ function Login() {
       // Retry once for transient auth/provider failures.
       // Turnstile tokens are single-use, so never retry when CAPTCHA is enabled.
       let authError: any = null;
-      const maxAttempts = turnstileSiteKey ? 1 : 2;
+      const maxAttempts = isCaptchaRequired ? 1 : 2;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: turnstileSiteKey ? { captchaToken } : undefined,
+          options: isCaptchaRequired ? { captchaToken } : undefined,
         });
         authError = error;
         if (!error) {
@@ -194,7 +195,7 @@ function Login() {
         ) {
           errorMessage = "CAPTCHA expired or already used. Please complete it again.";
         }
-        if (turnstileSiteKey && window.turnstile && captchaWidgetId) {
+        if (isCaptchaRequired && window.turnstile && captchaWidgetId) {
           window.turnstile.reset(captchaWidgetId);
           setCaptchaToken("");
         }
@@ -260,7 +261,7 @@ function Login() {
                 </button>
               </div>
 
-              {turnstileSiteKey ? (
+              {isCaptchaRequired ? (
                 <div id="turnstile-container" className="flex justify-center" />
               ) : (
                 <p className="text-xs text-amber-700 text-center">
@@ -271,7 +272,7 @@ function Login() {
               <Button
                 type="submit"
                 className="w-full bg-primary_color text-white disabled:opacity-70 hover:opacity-90 active:opacity-80"
-                disabled={loading || (cooldownUntil > Date.now()) || (turnstileSiteKey && !captchaToken)}
+                disabled={loading || (cooldownUntil > Date.now()) || (isCaptchaRequired && !captchaToken)}
               >
                 {loading ? (
                   <Loader2 className="animate-spin text-white" size={20} />
