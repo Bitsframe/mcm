@@ -11,7 +11,41 @@ function loginAndVisitInventory() {
 
 describe("Inventory Management", () => {
 
-  
+  it("should show archived records in Archive tab or 'No Product is available'", () => {
+    loginAndVisitInventory();
+
+    cy.contains("button", "Archive", { timeout: 15000 }).click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Archive").should("have.class", "bg-blue-600");
+    cy.log("Archive tab selected");
+
+    cy.window().then((win) => {
+      let locationId = 0;
+      for (let i = 0; i < win.localStorage.length; i++) {
+        const key = win.localStorage.key(i);
+        if (key && key.startsWith("@location")) {
+          locationId = parseInt(win.localStorage.getItem(key) || "0", 10);
+          if (locationId > 0) break;
+        }
+      }
+      cy.log(`Active location: ${locationId}`);
+
+      cy.task("getArchivedInventoryCount", { locationId }).then((dbCount) => {
+        cy.log(`DB archived count for location ${locationId}: ${dbCount}`);
+
+        if ((dbCount as number) === 0) {
+          cy.contains("No Product is available", { timeout: 10000 }).should("exist");
+          cy.log("No archived inventory — 'No Product is available' shown correctly");
+        } else {
+          cy.get("table tbody tr", { timeout: 10000 }).should("have.length.greaterThan", 0);
+          cy.log(`${dbCount} archived record(s) in DB — table rows visible`);
+          cy.get("table tbody tr").first().find("button").should("contain.text", "Unarchive");
+          cy.log("Unarchive button present on archived items");
+        }
+      });
+    });
+  });
+
 
   it("should archive an item, remove it from Active tab, and update DB archived=true", () => {
     loginAndVisitInventory();

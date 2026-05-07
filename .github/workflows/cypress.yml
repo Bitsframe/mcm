@@ -9,6 +9,15 @@ jobs:
   cypress-run:
     runs-on: ubuntu-latest
 
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+      CYPRESS_BASE_URL: http://localhost:3000
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,26 +34,35 @@ jobs:
       - name: Create results directory
         run: mkdir -p cypress/results
 
+      # Start the dev server and pre-compile every route used by any spec.
+      # Next.js dev compiles routes on first request; doing this before Cypress
+      # starts prevents ESOCKETTIMEDOUT mid-test when a route is hit cold.
+      - name: Start dev server and warm up all routes
+        run: |
+          yarn dev &
+          echo "Waiting for server to be ready..."
+          npx wait-on http://localhost:3000 --timeout 120000
+          echo "Server ready. Pre-compiling all routes..."
+          curl -s --max-time 60 http://localhost:3000/en/login > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/inventory/manage > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/sales/patients > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/history > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/return > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/transactions > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/warehouse/manage > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/warehouse/manage/products > /dev/null
+          echo "All routes pre-compiled."
+
       # Run inventory spec only
       - name: Cypress Cloud Run
         id: cypress
         uses: cypress-io/github-action@v6
         with:
-          start: yarn dev
-          wait-on: "http://localhost:3000/en/login"
-          wait-on-timeout: 240
+          # Server is already running from the warm-up step — just point at it
+          wait-on: "http://localhost:3000"
+          wait-on-timeout: 30
           spec: cypress/e2e/inventory.cy.ts
           record: true
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          CYPRESS_E2E_EMAIL: ${{ secrets.CYPRESS_E2E_EMAIL }}
-          CYPRESS_E2E_PASSWORD: ${{ secrets.CYPRESS_E2E_PASSWORD }}
-          CYPRESS_BASE_URL: http://localhost:3000
 
       - name: Get Cypress Run ID
         if: always()
@@ -66,18 +84,3 @@ jobs:
           else
             echo "⚠️ No mochawesome JSON files found to merge"
           fi
-
-      # - name: Create ClickUp tasks for failed tests
-      #   if: failure() || steps.cypress.outcome == 'failure'
-      #   env:
-      #     CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
-      #     CLICKUP_LIST_ID: ${{ secrets.CLICKUP_LIST_ID }}
-      #     CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
-      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-      #     CYPRESS_RUN_ID: ${{ steps.get-run-id.outputs.runId }}
-      #     GITHUB_SHA: ${{ github.sha }}
-      #     GITHUB_REF_NAME: ${{ github.ref_name }}
-      #     GITHUB_REPOSITORY: ${{ github.repository }}
-      #     GITHUB_RUN_ID: ${{ github.run_id }}
-      #     GITHUB_ACTOR: ${{ github.actor }}
-      #   run: node scripts/create-clickup-tasks-cloud.js
