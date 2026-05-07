@@ -25,22 +25,31 @@ jobs:
       - name: Create results directory
         run: mkdir -p cypress/results
 
-      - name: Build Next.js app
-        run: yarn build
+      # Pre-warm Next.js dev server routes so on-demand compilation doesn't
+      # cause ESOCKETTIMEDOUT between tests
+      - name: Pre-warm routes
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          yarn dev &
+          npx wait-on http://localhost:3000 --timeout 120000
+          curl -s http://localhost:3000/en/login > /dev/null
+          curl -s http://localhost:3000/en/inventory/manage > /dev/null
+          curl -s http://localhost:3000/en/warehouse/manage > /dev/null
+          sleep 5
+          kill %1 || true
 
-      # Run inventory spec only — uses `next start` (production build) for a stable server
+      # Run inventory spec only
       - name: Cypress Cloud Run
         id: cypress
         uses: cypress-io/github-action@v6
         with:
-          start: yarn start
+          start: yarn dev
           wait-on: "http://localhost:3000"
-          wait-on-timeout: 60
+          wait-on-timeout: 180
           spec: cypress/e2e/inventory.cy.ts
           record: true
         env:
@@ -50,6 +59,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # CYPRESS_E2E_EMAIL: ${{ secrets.CYPRESS_E2E_EMAIL }}
+          # CYPRESS_E2E_PASSWORD: ${{ secrets.CYPRESS_E2E_PASSWORD }}
           CYPRESS_BASE_URL: http://localhost:3000
 
       - name: Get Cypress Run ID
