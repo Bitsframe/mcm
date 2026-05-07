@@ -31,8 +31,8 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           start: yarn dev
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 180
+          wait-on: "http://localhost:3000/en/login, http://localhost:3000/en/inventory/manage"
+          wait-on-timeout: 240
           spec: cypress/e2e/inventory.cy.ts
           record: true
         env:
