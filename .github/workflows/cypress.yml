@@ -25,15 +25,22 @@ jobs:
       - name: Create results directory
         run: mkdir -p cypress/results
 
-      # Run inventory spec only
+      - name: Build Next.js app
+        run: yarn build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Run inventory spec only — uses `next start` (production build) for a stable server
       - name: Cypress Cloud Run
         id: cypress
         uses: cypress-io/github-action@v6
         with:
-          build: yarn build
           start: yarn start
           wait-on: "http://localhost:3000"
-          wait-on-timeout: 300
+          wait-on-timeout: 60
           spec: cypress/e2e/inventory.cy.ts
           record: true
         env:
@@ -43,8 +50,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # CYPRESS_E2E_EMAIL: ${{ secrets.CYPRESS_E2E_EMAIL }}
-          # CYPRESS_E2E_PASSWORD: ${{ secrets.CYPRESS_E2E_PASSWORD }}
           CYPRESS_BASE_URL: http://localhost:3000
 
       - name: Get Cypress Run ID
