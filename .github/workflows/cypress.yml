@@ -62,7 +62,7 @@ jobs:
           # Server is already running from the warm-up step — just point at it
           wait-on: "http://localhost:3000"
           wait-on-timeout: 30
-          spec: cypress/e2e/inventory.cy.ts
+          spec: cypress/e2e/bonus_location.cy.ts
           record: true
 
       - name: Get Cypress Run ID
