@@ -51,6 +51,7 @@ jobs:
           curl -s --max-time 60 http://localhost:3000/en/transactions > /dev/null
           curl -s --max-time 60 http://localhost:3000/en/warehouse/manage > /dev/null
           curl -s --max-time 60 http://localhost:3000/en/warehouse/manage/products > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/bonus/location > /dev/null
           echo "All routes pre-compiled."
 
       # Run inventory spec only
