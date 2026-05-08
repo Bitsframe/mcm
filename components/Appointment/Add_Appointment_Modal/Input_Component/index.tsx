@@ -13,6 +13,9 @@ interface Props {
     pattern?: string;
     title?: string;
     hasError?: boolean;
+    onFocus?: React.FocusEventHandler<HTMLInputElement>;
+    onBlur?: React.FocusEventHandler<HTMLInputElement>;
+    id?: string;
 }
 
 export const Input_Component_Appointment: FC<Props> = ({
@@ -26,13 +29,16 @@ export const Input_Component_Appointment: FC<Props> = ({
     bg_color = "",
     pattern,
     title,
-    hasError = false
+    hasError = false,
+    onFocus,
+    onBlur,
+    id = "section",
 }) => {
     return (
         <div className='w-full flex flex-1 flex-col space-y-1'>
             {label && (
                 <Label
-                    htmlFor="section"
+                    htmlFor={id}
                     value={label}
                     className={`font-bold break-words ${bg_color}`}
                 />
@@ -43,13 +49,15 @@ export const Input_Component_Appointment: FC<Props> = ({
                     max={type === 'date' ? max : undefined}
                     placeholder={placeholder}
                     onChange={(e) => onChange(e.target.value)}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
                     type={type}
                     required={required}
                     pattern={pattern}
                     title={title}
                     className={`w-full h-auto rounded-lg py-2 px-3 outline-none
                         ${bg_color} ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                    id="section"
+                    id={id}
                     value={value}
                 />
             </div>

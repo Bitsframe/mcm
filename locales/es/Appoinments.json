@@ -73,8 +73,16 @@
     "Appoinments_k73": "Verificar dirección",
     "Appoinments_k74": "Dirección verificada",
     "Appoinments_k75": "Verifique la dirección con el botón antes de enviar.",
-    "Appoinments_k76": "Ingrese calle, estado y código postal antes de verificar.",
-    "Appoinments_k77": "Dirección verificada correctamente."
+    "Appoinments_k76": "Ingrese una dirección antes de verificar.",
+    "Appoinments_k77": "Dirección verificada correctamente.",
+    "Appoinments_k78": "Información del paciente",
+    "Appoinments_k79": "Detalles de la cita",
+    "Appoinments_k80": "Visita",
+    "Appoinments_k82": "Cualquier fecha",
+    "Appoinments_k83": "Buscar por nombre",
+    "Appoinments_k84": "Filtrar por fecha de nacimiento",
+    "Appoinments_k85": "Quitar filtro de fecha",
+    "Appoinments_k86": "Ningún paciente coincide con su búsqueda."
 
   }
   

@@ -195,9 +195,18 @@ const Appointments = () => {
         
         const searchInAppointments = (appointments: Appointment[]) => {
           return appointments.filter((appointment) => {
-            const name = `${appointment.first_name || ''} ${appointment.last_name || ''}`.toLowerCase()
-            const phone = (appointment.phone || '').toLowerCase()
-            const email = (appointment.email_address || '').toLowerCase()
+            const ap = appointment as Appointment & {
+              allpatients?: { firstname?: string; lastname?: string; email?: string }
+            }
+            const fn = ap.allpatients?.firstname || ap.first_name
+            const ln = ap.allpatients?.lastname || ap.last_name
+            const name = `${fn || ""} ${ln || ""}`.toLowerCase().trim()
+            const phone = (appointment.phone || "").toLowerCase()
+            const email = (
+              ap.allpatients?.email ||
+              appointment.email_address ||
+              ""
+            ).toLowerCase()
 
             if (searchType === 'name') {
               return name.includes(searchValue)
@@ -261,11 +270,28 @@ const Appointments = () => {
       setSortColumn(column)
       const sortAppointments = (appointments: Appointment[]) => {
         return [...appointments].sort((a, b) => {
+          const aa = a as Appointment & {
+            allpatients?: { firstname?: string; lastname?: string; gender?: string; email?: string }
+          }
+          const bb = b as Appointment & {
+            allpatients?: { firstname?: string; lastname?: string; gender?: string; email?: string }
+          }
           switch (column) {
-            case "name":
-              return `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
-            case "gender":
-              return a.sex.localeCompare(b.sex)
+            case "name": {
+              const nameA = `${aa.allpatients?.firstname || aa.first_name || ""} ${aa.allpatients?.lastname || aa.last_name || ""}`
+              const nameB = `${bb.allpatients?.firstname || bb.first_name || ""} ${bb.allpatients?.lastname || bb.last_name || ""}`
+              return nameA.localeCompare(nameB)
+            }
+            case "email": {
+              const emA = (aa.allpatients?.email || aa.email_address || "").toLowerCase()
+              const emB = (bb.allpatients?.email || bb.email_address || "").toLowerCase()
+              return emA.localeCompare(emB)
+            }
+            case "gender": {
+              const gA = aa.allpatients?.gender || aa.sex || ""
+              const gB = bb.allpatients?.gender || bb.sex || ""
+              return gA.localeCompare(gB)
+            }
             case "service":
               return a.service.localeCompare(b.service)
             case "slot":

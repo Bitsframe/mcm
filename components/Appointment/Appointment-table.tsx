@@ -16,16 +16,39 @@ import ApprovedAppointmentModal from "./ApprovedAppointmentModal"
 
 interface Appointment {
   id: string
-  first_name: string
-  last_name: string
-  sex: string
+  first_name?: string | null
+  last_name?: string | null
+  email_address?: string | null
+  sex?: string | null
   service: string
   date_and_time: string
   allpatients?: {
-    firstname: string
-    lastname: string
-    gender: string
+    firstname?: string | null
+    lastname?: string | null
+    gender?: string | null
+    email?: string | null
   }
+}
+
+function displayPatientName(appointment: Appointment) {
+  const first =
+    appointment.allpatients?.firstname || appointment.first_name || ""
+  const last =
+    appointment.allpatients?.lastname || appointment.last_name || ""
+  return `${first} ${last}`.trim() || "—"
+}
+
+function displayGender(appointment: Appointment) {
+  return appointment.allpatients?.gender || appointment.sex || "—"
+}
+
+function displayEmail(appointment: Appointment) {
+  const fromPatient = appointment.allpatients?.email
+  if (fromPatient != null && String(fromPatient).trim() !== "")
+    return String(fromPatient).trim()
+  if (appointment.email_address != null && String(appointment.email_address).trim() !== "")
+    return String(appointment.email_address).trim()
+  return "—"
 }
 
 interface AppointmentsTableProps {
@@ -161,11 +184,12 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           {/* Desktop Table View */}
           <div className="hidden md:flex relative flex-col h-[260px] overflow-x-auto rounded-lg">
           <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full rounded-lg">
-              <Table className="border-collapse min-w-[600px] w-full text-xs sm:text-sm rounded-lg">
+              <Table className="border-collapse min-w-[780px] w-full text-xs sm:text-sm rounded-lg">
                 <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
                   <TableRow className="dark:border-gray-700">
                     {[
                       { label: t("Appoinments_k26"), sort: "name" },
+                      { label: t("Appoinments_k11"), sort: "email" },
                       { label: t("Appoinments_k27"), sort: "gender" },
                       { label: t("Appoinments_k28"), sort: "service" },
                       { label: t("Appoinments_k2"), sort: "slot" },
@@ -324,18 +348,20 @@ const MemoizedTableRow = memo(
 
     const { date, time } = extractDateTime(appointment.date_and_time)
 
-    // Use data from allpatients if available, otherwise fallback to Appoinments table
-    const firstName = appointment.allpatients?.firstname || appointment.first_name
-    const lastName = appointment.allpatients?.lastname || appointment.last_name
-    const gender = appointment.allpatients?.gender || appointment.sex
+    const name = displayPatientName(appointment)
+    const gender = displayGender(appointment)
+    const email = displayEmail(appointment)
 
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
         className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm"
       >
-        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-2 sm:py-3">
-          {firstName} {lastName}
+        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-2 sm:py-3 max-w-[160px] truncate" title={name}>
+          {name}
+        </TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300 max-w-[180px] truncate" title={email !== "—" ? email : undefined}>
+          {email}
         </TableCell>
         <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{gender}</TableCell>
         <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.service}</TableCell>
@@ -412,10 +438,9 @@ const MemoizedAppointmentCard = memo(
 
     const { date, time } = extractDateTime(appointment.date_and_time)
 
-    // Use data from allpatients if available, otherwise fallback to Appoinments table
-    const firstName = appointment.allpatients?.firstname || appointment.first_name
-    const lastName = appointment.allpatients?.lastname || appointment.last_name
-    const gender = appointment.allpatients?.gender || appointment.sex
+    const name = displayPatientName(appointment)
+    const gender = displayGender(appointment)
+    const email = displayEmail(appointment)
 
     return (
       <Card
@@ -427,9 +452,12 @@ const MemoizedAppointmentCard = memo(
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-medium text-sm dark:text-white">
-                  {firstName} {lastName}
+                  {name}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{gender}</p>
+                {email !== "—" && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 break-all">{email}</p>
+                )}
               </div>
               <div className="flex space-x-2">
                 <button

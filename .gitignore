@@ -32,6 +32,8 @@ yarn-error.log*
 .env*.local
 .env
 .env.local
+# pulled from Infisical (yarn env:pull)
+.env.infisical
 
 # vercel
 .vercel

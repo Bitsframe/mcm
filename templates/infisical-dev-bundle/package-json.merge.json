@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "dev": "node scripts/infisical-run.cjs run -- next dev",
+    "fast-dev": "node scripts/infisical-run.cjs run -- next dev",
+    "dev:local": "next dev",
+    "build:infisical": "cross-env NODE_OPTIONS=\"--no-deprecation\" node scripts/infisical-run.cjs run -- next build",
+    "infisical": "node scripts/infisical-run.cjs",
+    "env:pull": "node scripts/fetch-infisical-env.cjs"
+  },
+  "devDependencies": {
+    "@infisical/cli": "^0.43.82",
+    "prompts": "^2.4.2"
+  }
+}

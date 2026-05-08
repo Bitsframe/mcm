@@ -1,13 +1,10 @@
 import { translationConstant } from '@/utils/translationConstants';
-import { renderFormattedDate } from '@/helper/common_functions';
 import React, { FC, useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar } from "@/components/ui/calendar"; // shadcn calendar component
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format, parse } from "date-fns";
-import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 
@@ -178,72 +175,39 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         selectDateTimeSlotHandle(date, val)
     }
     
-    const { t } = useTranslation(translationConstant.APPOINMENTS)
-    
-    return (
-        <div className="flex flex-col md:flex-row-reverse justify-between w-full gap-5 md:gap-x-5 items-center">
-            <div className="flex gap-x-3 items-center w-full md:w-1/2 justify-center">
-                <label className="text-[16px] text-customGray font-poppins font-bold">
-                    {t("Appoinments_k1")}<span className='text-red-700'>&nbsp;*</span>
-                </label>
-                <select
-                    value={selectedSlot}
-                    onChange={(e) => selectSlotHandle(e.target.value)}
-                    className='w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2'
-                    style={{
-                        backgroundColor: document.documentElement.classList.contains('dark') ? '#122136' : '#f1f4f9',
-                        border: 'none',
-                        outline: 'none'
-                    }}
-                    disabled={isClosed}
-                >
-                    {isClosed ? (
-                        <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">Closed</option>
-                    ) : (
-                        availableTimes.length > 0 ? <> <option value='' className="bg-white dark:bg-[#122136] text-black dark:text-white">
-                            Select Slot
-                        </option> {
-                                availableTimes.map((time, index) => {
-                                    const timeKey = String(time).trim().toUpperCase();
-                                    const isBooked = bookedSet.has(timeKey);
-                                    return (
-                                        <option
-                                            key={index}
-                                            value={time}
-                                            disabled={isBooked}
-                                            className={`bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 ${isBooked ? 'opacity-60' : ''}`}
-                                        >
-                                            {time}{isBooked ? ' (Booked)' : ''}
-                                        </option>
-                                    );
-                                })
-                            }</> : (
-                            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">No available times</option>
-                        )
-                    )}
-                </select>
-            </div>
+    const { t } = useTranslation(translationConstant.APPOINMENTS);
 
-            <div className="flex gap-x-3 items-center w-full md:w-1/2 justify-center">
-                <label className="text-[16px] text-customGray font-poppins font-bold">
-                    {t("Appoinments_k2")}<span className='text-red-700'>&nbsp;*</span>
+    const fieldSurface =
+        "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 text-base text-black outline-none transition-shadow focus:border-[#0066ff] focus:ring-2 focus:ring-[#0066ff]/20 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:focus:border-[#0066ff]";
+
+    const selectSurface =
+        `${fieldSurface} cursor-pointer py-2 disabled:cursor-not-allowed disabled:opacity-60`;
+
+    return (
+        <div className="grid w-full grid-cols-1 gap-5 pb-4 pt-1 sm:grid-cols-2 sm:gap-6 sm:pb-6">
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="appointment-schedule-date">
+                    {t("Appoinments_k2")}
+                    <span className="text-red-500"> *</span>
                 </label>
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className="w-full h-[46px] text-[16px] text-[#000000] dark:text-white rounded-lg justify-start text-left font-normal hover:bg-gray-50 dark:hover:bg-gray-700"
-                            style={{
-                                backgroundColor: document.documentElement.classList.contains('dark') ? '#122136' : '#f1f4f9',
-                                border: 'none',
-                                outline: 'none'
-                            }}
+                        <button
+                            id="appointment-schedule-date"
+                            type="button"
+                            className={`${fieldSurface} flex h-[46px] cursor-pointer items-center justify-start gap-2 py-2 font-normal hover:bg-[#e8edf4] dark:hover:bg-[#1a2d4a]`}
                         >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "MM-dd-yyyy") : <span>Pick a date</span>}
-                        </Button>
+                            <CalendarIcon className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                            <span className="truncate">
+                                {date ? (
+                                    format(date, "MM-dd-yyyy")
+                                ) : (
+                                    <span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k56")}</span>
+                                )}
+                            </span>
+                        </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                    <PopoverContent className="w-auto border border-gray-200 bg-white p-0 shadow-lg dark:border-gray-700 dark:bg-gray-800" align="start">
                         <Calendar
                             mode="single"
                             selected={date}
@@ -277,8 +241,51 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     </PopoverContent>
                 </Popover>
             </div>
+
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="appointment-schedule-time">
+                    {t("Appoinments_k1")}
+                    <span className="text-red-500"> *</span>
+                </label>
+                <select
+                    id="appointment-schedule-time"
+                    value={selectedSlot}
+                    onChange={(e) => selectSlotHandle(e.target.value)}
+                    className={selectSurface}
+                    disabled={isClosed}
+                    aria-label={t("Appoinments_k1")}
+                >
+                    {isClosed ? (
+                        <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">Closed</option>
+                    ) : (
+                        availableTimes.length > 0 ? (
+                            <>
+                                <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                                    {t("Appoinments_k55")}
+                                </option>
+                                {availableTimes.map((time, index) => {
+                                    const timeKey = String(time).trim().toUpperCase();
+                                    const isBooked = bookedSet.has(timeKey);
+                                    return (
+                                        <option
+                                            key={index}
+                                            value={time}
+                                            disabled={isBooked}
+                                            className={`bg-white dark:bg-[#122136] text-black dark:text-white ${isBooked ? "opacity-60" : ""}`}
+                                        >
+                                            {time}{isBooked ? " (Booked)" : ""}
+                                        </option>
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">No available times</option>
+                        )
+                    )}
+                </select>
+            </div>
         </div>
-    )
+    );
 }
 
 export default ScheduleDateTime;

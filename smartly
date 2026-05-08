@@ -270,7 +270,7 @@ const handleAddressChange = async (value: string) => {
 
 ### Manual Testing Steps
 
-1. Start development server: `npm run dev`
+1. Start development server: `yarn dev`
 2. Open browser console (F12)
 3. Navigate to the form with address field
 4. Type a partial address (e.g., "1600 Pennsylvania")

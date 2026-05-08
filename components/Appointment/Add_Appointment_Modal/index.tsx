@@ -1,20 +1,21 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
-import { Label, Modal, Radio, Select } from "flowbite-react";
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import { Label, Modal, Radio } from "flowbite-react";
+import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
 import ScheduleDateTime from "./ScheduleDateTime";
 import { supabase } from "@/services/supabase";
 import moment from "moment";
 import { toast } from "sonner";
-import { usStates } from "@/us-states";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, Loader2, MapPin } from "lucide-react";
 import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
 import { sendEmail } from "@/utils/emailService";
 import { LocationContext, AuthContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import ComingBackTable from "@/components/Appointment/ComingBackTable";
+import { DobWheelField } from "@/components/Appointment/Add_Appointment_Modal/DobWheelField";
+import { normalizeDobParts } from "@/components/Appointment/Add_Appointment_Modal/dobUtils";
 
 
 interface RadioButtonOptionsInterface {
@@ -85,7 +86,7 @@ const RadioButtons = ({
             </span>
           </span>
 
-          <span className="select-none text-lg">{opt.label}</span>
+          <span className="select-none text-base">{opt.label}</span>
         </label>
       ))}
     </div>
@@ -108,6 +109,39 @@ const gender_options: RadioButtonOptionsInterface[] = [
   { label: "Other", value: "Other" },
 ];
 
+/** Grouped block with title for scannable form layout */
+function FormSection({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-xl border border-gray-200/90 bg-white/70 p-4 shadow-sm ring-1 ring-black/5 dark:border-gray-700 dark:bg-[#0c1626] dark:ring-white/5 sm:p-5 ${className}`}
+    >
+      <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+        {title}
+      </h2>
+      <div className="space-y-5">{children}</div>
+    </section>
+  );
+}
+
+const nativeSelectClassName =
+  "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 py-2 text-base text-black outline-none transition-shadow focus:border-[#0066ff] focus:ring-2 focus:ring-[#0066ff]/20 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:focus:border-[#0066ff]";
+
+type AddressUiSuggestion = {
+  fullAddress: string;
+  streetLine?: string;
+  secondary?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
+};
 
 export const Add_Appointment_Modal = ({
   newAddedRow,
@@ -125,14 +159,22 @@ export const Add_Appointment_Modal = ({
   const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [addressVerifying, setAddressVerifying] = useState(false);
-  const [verifiedFormattedAddress, setVerifiedFormattedAddress] = useState("");
-  const [smartyConfiguredUi, setSmartyConfiguredUi] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressUiSuggestion[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressSuggestionsLoading, setAddressSuggestionsLoading] = useState(false);
+  const lastSelectedAddressRef = useRef("");
+  const addressSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dobParts, setDobParts] = useState({ y: "", m: "", d: "" });
 
   const close_handle = () => {
+    if (addressSearchTimerRef.current) clearTimeout(addressSearchTimerRef.current);
     setOpen(false);
     setEmailError("");
-    setVerifiedFormattedAddress("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
+    setAddressSuggestionsLoading(false);
+    lastSelectedAddressRef.current = "";
+    setDobParts({ y: "", m: "", d: "" });
     if (selectedLocation) {
       setFormData({
         location_id: selectedLocation.id,
@@ -162,13 +204,14 @@ export const Add_Appointment_Modal = ({
         sex: "",
         service: "",
         date_and_time: "",
-        street_address: "",
-        city: "",
-        address_state: "",
-        zipcode: "",
+        patient_address: "",
       };
     });
-    setVerifiedFormattedAddress("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
+    setAddressSuggestionsLoading(false);
+    lastSelectedAddressRef.current = "";
+    setDobParts({ y: "", m: "", d: "" });
 
     // clear any previously selected coming-back patient so modal always opens fresh
     setSelectedComingBackPatient(null);
@@ -197,14 +240,6 @@ export const Add_Appointment_Modal = ({
     setFormData((pre: any) => {
       return { ...pre, [key]: val };
     });
-    if (
-      key === "street_address" ||
-      key === "city" ||
-      key === "address_state" ||
-      key === "zipcode"
-    ) {
-      setVerifiedFormattedAddress("");
-    }
     // If selecting 'Coming back' (existing patient), fetch existing appointments
     if (key === "new_patient" && val === "false") {
       (async () => {
@@ -248,6 +283,11 @@ export const Add_Appointment_Modal = ({
       setComingBackData([]);
       setSelectedComingBackPatient(null);
 
+      setAddressSuggestions([]);
+      setShowAddressSuggestions(false);
+      lastSelectedAddressRef.current = "";
+      setDobParts({ y: "", m: "", d: "" });
+
       // Reset all form fields to defaults for a fresh 'New' patient entry.
       setFormData((pre: any) => ({
         // preserve location if available, otherwise keep previous
@@ -264,15 +304,73 @@ export const Add_Appointment_Modal = ({
         sex: "",
         service: "",
         date_and_time: "",
-        street_address: "",
-        city: "",
-        address_state: "",
-        zipcode: "",
+        patient_address: "",
       }));
-      setVerifiedFormattedAddress("");
     }
   };
-  
+
+  const handleDobWheelCommit = (next: ReturnType<typeof normalizeDobParts>) => {
+    setDobParts({ y: next.y, m: next.m, d: next.d });
+    setFormData((pre: any) => ({ ...pre, dob: next.full }));
+  };
+
+  const scheduleAddressSearch = useCallback((searchTerm: string) => {
+    if (addressSearchTimerRef.current) clearTimeout(addressSearchTimerRef.current);
+    addressSearchTimerRef.current = setTimeout(() => {
+      void (async () => {
+        if (searchTerm.length < 3) {
+          setAddressSuggestions([]);
+          setShowAddressSuggestions(false);
+          return;
+        }
+        setAddressSuggestionsLoading(true);
+        try {
+          const response = await fetch(
+            `/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`
+          );
+          const data = await response.json();
+          if (data.success && Array.isArray(data.suggestions)) {
+            setAddressSuggestions(data.suggestions);
+            setShowAddressSuggestions(data.suggestions.length > 0);
+          } else {
+            setAddressSuggestions([]);
+            setShowAddressSuggestions(false);
+          }
+        } catch {
+          setAddressSuggestions([]);
+          setShowAddressSuggestions(false);
+        } finally {
+          setAddressSuggestionsLoading(false);
+        }
+      })();
+    }, 300);
+  }, []);
+
+  const handlePatientAddressChange = useCallback(
+    (val: string) => {
+      setFormData((pre: any) => ({ ...pre, patient_address: val }));
+      if (val === lastSelectedAddressRef.current) return;
+      lastSelectedAddressRef.current = "";
+      scheduleAddressSearch(val);
+    },
+    [scheduleAddressSearch]
+  );
+
+  const handlePatientAddressSelect = useCallback((suggestion: AddressUiSuggestion) => {
+    lastSelectedAddressRef.current = suggestion.fullAddress;
+    setFormData((pre: any) => ({ ...pre, patient_address: suggestion.fullAddress }));
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (addressSearchTimerRef.current) {
+        clearTimeout(addressSearchTimerRef.current);
+      }
+    };
+  }, []);
+
   const selectDateTimeSlotHandle = useCallback(
     (date: Date | "", time?: string | "") => {
       // Use functional state update to avoid reading stale closure values
@@ -300,7 +398,7 @@ export const Add_Appointment_Modal = ({
   const submitHandle = async () => {
     setLoading(true);
     const {
-      location_id,
+      location_id: locationIdRaw,
       first_name,
       last_name,
       email_address,
@@ -312,6 +410,8 @@ export const Add_Appointment_Modal = ({
       date_and_time,
       service,
     } = formData;
+    const location_id =
+      locationIdRaw ?? (selectedLocation as any)?.id ?? undefined;
 
     let appointmentDetails: any = {
       location_id,
@@ -351,7 +451,9 @@ export const Add_Appointment_Modal = ({
     }
 
     for (const field of requiredFields) {
-      if (!formData[field]) {
+      const val =
+        field === "location_id" ? location_id : formData[field];
+      if (val === "" || val === undefined || val === null) {
         toast.warning(`Please fill in the ${field}`);
         setLoading(false);
         return;
@@ -367,38 +469,15 @@ export const Add_Appointment_Modal = ({
 
     let addressLine = "";
     if (isNew && !selectedComingBackPatient) {
-      const st = String(formData.street_address || "").trim();
-      const ct = String(formData.city || "").trim();
-      const sta = String(formData.address_state || "").trim();
-      const zip = String(formData.zipcode || "").trim();
+      const addr = String(formData.patient_address || "").trim();
 
-      if (!st || !sta || !zip) {
-        toast.warning(
-          `${t("Appoinments_k4")}, ${t("Appoinments_k6")}, ${t("Appoinments_k5")}`
-        );
+      if (!addr) {
+        toast.warning(t("Appoinments_k70"));
         setLoading(false);
         return;
       }
 
-      let smConfigured = false;
-      try {
-        const r = await fetch("/api/address/validate");
-        const j = await r.json();
-        smConfigured = !!j.configured;
-      } catch {
-        smConfigured = false;
-      }
-
-      if (smConfigured) {
-        if (!verifiedFormattedAddress) {
-          toast.error(t("Appoinments_k75"));
-          setLoading(false);
-          return;
-        }
-        addressLine = verifiedFormattedAddress;
-      } else {
-        addressLine = [st, ct, `${sta} ${zip}`].filter(Boolean).join(", ");
-      }
+      addressLine = addr;
     }
 
     appointmentDetails.address = addressLine;
@@ -437,6 +516,7 @@ export const Add_Appointment_Modal = ({
             date_and_time,
             dob: dob || null, // Send null if DOB is empty
             address: addressLine || "",
+            patient_id: selectedComingBackPatient.id,
           }),
         });
 
@@ -453,6 +533,7 @@ export const Add_Appointment_Modal = ({
             service,
             date_and_time,
             dob: dob || null,
+            patient_id: selectedComingBackPatient.id,
           });
           throw new Error(errorData.error || 'Failed to create appointment');
         }
@@ -650,68 +731,15 @@ export const Add_Appointment_Modal = ({
 
     fetchServices();
 
-    if (selectedLocation) {
-      setFormData({
+    if (selectedLocation?.id != null) {
+      setFormData((pre: any) => ({
+        ...(pre || {}),
         location_id: selectedLocation.id,
-      });
+      }));
     }
   }, [selectedLocation]);
 
   const { t } = useTranslation(translationConstant.APPOINMENTS);
-
-  useEffect(() => {
-    if (!open || formData.new_patient === "false") {
-      setSmartyConfiguredUi(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/address/validate");
-        const j = await r.json();
-        if (!cancelled) setSmartyConfiguredUi(!!j.configured);
-      } catch {
-        if (!cancelled) setSmartyConfiguredUi(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, formData.new_patient]);
-
-  const verifyAddressSmarty = async () => {
-    const st = String(formData.street_address || "").trim();
-    const ct = String(formData.city || "").trim();
-    const sta = String(formData.address_state || "").trim();
-    const zip = String(formData.zipcode || "").trim();
-    if (!st || !sta || !zip) {
-      toast.warning(t("Appoinments_k76"));
-      return;
-    }
-    setAddressVerifying(true);
-    setVerifiedFormattedAddress("");
-    try {
-      const r = await fetch("/api/address/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          street: st,
-          city: ct,
-          state: sta,
-          zipcode: zip,
-        }),
-      });
-      const j = await r.json();
-      if (!r.ok) {
-        toast.error(typeof j.error === "string" ? j.error : "Verification failed");
-        return;
-      }
-      if (j.formatted) setVerifiedFormattedAddress(j.formatted);
-      toast.success(t("Appoinments_k77"));
-    } finally {
-      setAddressVerifying(false);
-    }
-  };
 
   return (
     <div>
@@ -722,114 +750,103 @@ export const Add_Appointment_Modal = ({
         <CirclePlus color="white" />
         {t("Appoinments_k15")}
       </button>
-      <Modal show={open} onClose={close_handle}>
+      <Modal
+        show={open}
+        onClose={close_handle}
+        size="4xl"
+        dismissible
+      >
         <Modal.Header className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
-          <div>
-            <h1 className="font-bold text-xl text-black dark:text-white">
+          <div className="pr-8">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
               {t("Appoinments_k15")}
             </h1>
-            <p className="text-base text-gray-600 dark:text-gray-300">
+            <p className="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
               {t("Appoinments_k50")}
             </p>
           </div>
         </Modal.Header>
 
         <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p>{t("Appoinments_k51")} </p>
-              <h1 className="font-bold text-xl">{selectedLocation?.title}</h1>
-              {/* <Label className="font-medium text-gray-800 dark:text-gray-300">
-                Locations
-              </Label>x
-              <Select
-                value={formData.location_id}
-                onChange={(e) =>
-                  select_change_handle("location_id", e.target.value)
-                }
-                className="bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-              >
-                <option value="" className="bg-white dark:bg-[#080e16]">
-                  All locations
-                </option>
-                {locations.map((location: any, index: any) => (
-                  <option
-                    key={index}
-                    value={location.id}
-                    className="bg-white dark:bg-[#080e16]"
-                  >
-                    {location.address}
-                  </option>
-                ))}
-              </Select> */}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 order-1 md:order-none">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k17")}
-                </Label>
-                <RadioButtons
-                  name="in_office_patient"
-                  options={in_office_patient_options}
-                  selectedValue={formData.in_office_patient}
-                  onChange={(e) => select_change_handle("in_office_patient", e)}
-                  className="flex gap-2"
-                />
-              </div>
-
-              <div className="space-y-2 order-2 md:order-none">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k20")}
-                </Label>
-                <RadioButtons
-                  name="new_patient"
-                  options={patient_type_options}
-                  selectedValue={formData.new_patient}
-                  onChange={(e) => select_change_handle("new_patient", e)}
-                  className="flex gap-2"
-                />
+          <div className="mx-auto max-w-3xl space-y-6 px-1 py-1 sm:px-0 max-h-[min(72vh,720px)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+            <div className="flex items-start gap-3 rounded-xl border border-blue-100/90 bg-gradient-to-br from-blue-50/90 to-slate-50/50 px-4 py-3 dark:border-blue-900/50 dark:from-blue-950/40 dark:to-[#0c1626]">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm dark:bg-[#122136] dark:text-blue-400">
+                <MapPin className="h-4 w-4" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-900/70 dark:text-blue-200/80">
+                  {t("Appoinments_k51")}
+                </p>
+                <p className="truncate text-lg font-semibold leading-snug text-gray-900 dark:text-white">
+                  {selectedLocation?.title}
+                </p>
               </div>
             </div>
 
-            <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-
-            {formData.new_patient !== "false" && (
-              <div className="grid grid-cols-2 gap-4">
+            <FormSection title={t("Appoinments_k80")}>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k13")}
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("Appoinments_k17")}
                   </Label>
-                  <Input_Component_Appointment
-                    required
-                    onChange={(e: string) =>
-                      select_change_handle("first_name", e)
-                    }
-                    value={formData.first_name}
-                    placeholder={t("Appoinments_k67")}
-                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  <RadioButtons
+                    name="in_office_patient"
+                    options={in_office_patient_options}
+                    selectedValue={formData.in_office_patient}
+                    onChange={(e) => select_change_handle("in_office_patient", e)}
+                    className="flex flex-wrap gap-x-4 gap-y-2"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k12")}
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("Appoinments_k20")}
                   </Label>
-                  <Input_Component_Appointment
-                    required
-                    onChange={(e: string) => select_change_handle("last_name", e)}
-                    value={formData.last_name}
-                    placeholder={t("Appoinments_k68")}
-                    bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                  <RadioButtons
+                    name="new_patient"
+                    options={patient_type_options}
+                    selectedValue={formData.new_patient}
+                    onChange={(e) => select_change_handle("new_patient", e)}
+                    className="flex flex-wrap gap-x-4 gap-y-2"
                   />
                 </div>
               </div>
-            )}
+            </FormSection>
 
             {formData.new_patient !== "false" && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
+              <FormSection title={t("Appoinments_k78")}>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {t("Appoinments_k13")}
+                    </Label>
+                    <Input_Component_Appointment
+                      required
+                      onChange={(e: string) =>
+                        select_change_handle("first_name", e)
+                      }
+                      value={formData.first_name}
+                      placeholder={t("Appoinments_k67")}
+                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {t("Appoinments_k12")}
+                    </Label>
+                    <Input_Component_Appointment
+                      required
+                      onChange={(e: string) => select_change_handle("last_name", e)}
+                      value={formData.last_name}
+                      placeholder={t("Appoinments_k68")}
+                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {t("Appoinments_k11")}
                     </Label>
                     <Input_Component_Appointment
@@ -845,11 +862,11 @@ export const Add_Appointment_Modal = ({
                       hasError={!!emailError}
                     />
                     {emailError && (
-                      <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                      <p className="mt-1 text-sm text-red-500">{emailError}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {t("Appoinments_k10")}
                     </Label>
                     <PhoneNumberInput
@@ -861,127 +878,91 @@ export const Add_Appointment_Modal = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
                   <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {t("Appoinments_k9")}
                     </Label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.dob || ''}
-                      onChange={(e) => select_change_handle("dob", e.target.value)}
-                      className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
-                      max={new Date().toISOString().split('T')[0]}
+                    <DobWheelField
+                      dobParts={dobParts}
+                      formDob={formData.dob || ""}
+                      onCommit={handleDobWheelCommit}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-medium text-gray-800 dark:text-gray-300">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {t("Appoinments_k8")}
                     </Label>
-                    <RadioButtons
-                      name="sex"
-                      options={gender_options}
-                      selectedValue={formData.sex}
-                      required
-                      onChange={(e) => select_change_handle("sex", e)}
-                      className="flex gap-2 flex-wrap sm:flex-nowrap"
-                    />
-                  </div>
-                </div>
-
-                <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-
-                <div className="space-y-3">
-                  <p className="font-medium text-gray-800 dark:text-gray-300">
-                    {t("Appoinments_k32")}
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="font-medium text-gray-800 dark:text-gray-300">
-                        {t("Appoinments_k4")}
-                      </Label>
-                      <Input_Component_Appointment
+                    <div className="min-h-[46px] flex items-center">
+                      <RadioButtons
+                        name="sex"
+                        options={gender_options}
+                        selectedValue={formData.sex}
                         required
-                        onChange={(e: string) =>
-                          select_change_handle("street_address", e)
-                        }
-                        value={formData.street_address || ""}
-                        placeholder={t("Appoinments_k70")}
-                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-medium text-gray-800 dark:text-gray-300">
-                        {t("Appoinments_k72")}
-                      </Label>
-                      <Input_Component_Appointment
-                        onChange={(e: string) => select_change_handle("city", e)}
-                        value={formData.city || ""}
-                        placeholder={t("Appoinments_k72")}
-                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-medium text-gray-800 dark:text-gray-300">
-                        {t("Appoinments_k6")}
-                      </Label>
-                      <Select
-                        value={formData.address_state || ""}
-                        onChange={(e) =>
-                          select_change_handle("address_state", e.target.value)
-                        }
-                        className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white"
-                      >
-                        <option value="">{t("Appoinments_k6")}</option>
-                        {usStates.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-medium text-gray-800 dark:text-gray-300">
-                        {t("Appoinments_k5")}
-                      </Label>
-                      <Input_Component_Appointment
-                        required
-                        onChange={(e: string) => select_change_handle("zipcode", e)}
-                        value={formData.zipcode || ""}
-                        placeholder={t("Appoinments_k71")}
-                        bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                        onChange={(e) => select_change_handle("sex", e)}
+                        className="flex flex-wrap gap-x-4 gap-y-2"
                       />
                     </div>
                   </div>
-                  {smartyConfiguredUi && (
-                    <div className="flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={verifyAddressSmarty}
-                        disabled={addressVerifying}
-                        className="text-sm px-4 py-2 rounded-md bg-[#0066ff] text-white hover:bg-[#0052cc] disabled:opacity-60"
-                      >
-                        {addressVerifying ? "…" : t("Appoinments_k73")}
-                      </button>
-                      {verifiedFormattedAddress ? (
-                        <span className="text-sm text-green-600 dark:text-green-400">
-                          {t("Appoinments_k74")}: {verifiedFormattedAddress}
-                        </span>
-                      ) : null}
-                    </div>
-                  )}
                 </div>
-              </>
+              </FormSection>
             )}
 
-            <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full my-4"></div>
-
-            {/* service select moved below selected patient summary */}
+            {formData.new_patient !== "false" && (
+              <FormSection title={t("Appoinments_k32")}>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("Appoinments_k4")}
+                  </Label>
+                  <div className="relative w-full">
+                    <Input_Component_Appointment
+                      required
+                      id="appointment-patient-address"
+                      onChange={handlePatientAddressChange}
+                      value={formData.patient_address || ""}
+                      placeholder={t("Appoinments_k70")}
+                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0) {
+                          setShowAddressSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowAddressSuggestions(false), 200);
+                      }}
+                    />
+                    {addressSuggestionsLoading && (
+                      <div className="pointer-events-none absolute right-3 top-[10px]">
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                      </div>
+                    )}
+                    {showAddressSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        {addressSuggestions.map((suggestion, index) => (
+                          <div
+                            key={`${suggestion.fullAddress}-${index}`}
+                            className="cursor-pointer border-b border-gray-100 px-4 py-2 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700 last:border-b-0"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handlePatientAddressSelect(suggestion)}
+                          >
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {suggestion.streetLine}
+                              {suggestion.secondary ? ` ${suggestion.secondary}` : ""}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {suggestion.city}, {suggestion.state} {suggestion.zipcode}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FormSection>
+            )}
 
             {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
-              <div className="mt-4">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">Coming back patients</Label>
+              <FormSection title={t("Appoinments_k14")}>
                 <ComingBackTable
                   data={comingBackData.map((p: any) => ({
                     id: p.id ?? p.patientid ?? p.patient_id,
@@ -998,12 +979,13 @@ export const Add_Appointment_Modal = ({
                     if (patient) {
                       setFormData((pre: any) => ({
                         ...pre,
+                        location_id:
+                          pre?.location_id ?? (selectedLocation as any)?.id,
                         first_name: patient.first_name,
                         last_name: patient.last_name,
                         email_address: patient.email_address,
                         phone: patient.phone,
                         dob: patient.dob || "",
-                        // intentionally NOT setting date_and_time from selected patient
                         date_and_time: "",
                         sex: patient.sex,
                         new_patient: "false",
@@ -1011,14 +993,13 @@ export const Add_Appointment_Modal = ({
                     }
                   }}
                 />
-              </div>
+              </FormSection>
             )}
 
-            {/* When showing the ComingBackTable (returning patients), also show service & scheduling fields below it */}
             {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
-              <>
-                <div className="mt-4 space-y-2">
-                  <Label className="font-medium text-gray-800 dark:text-gray-300">
+              <FormSection title={t("Appoinments_k79")} className="!pb-9 sm:!pb-10">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {t("Appoinments_k3")}
                   </Label>
                   <select
@@ -1027,16 +1008,7 @@ export const Add_Appointment_Modal = ({
                     onChange={(e) =>
                       select_change_handle("service", e.target.value)
                     }
-                    className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
-                    style={{
-                      backgroundColor: document.documentElement.classList.contains(
-                        "dark"
-                      )
-                        ? "#122136"
-                        : "#f1f4f9",
-                      border: "none",
-                      outline: "none",
-                    }}
+                    className={nativeSelectClassName}
                   >
                     <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
                       {t("Appoinments_k28")}
@@ -1045,7 +1017,7 @@ export const Add_Appointment_Modal = ({
                       <option
                         key={index}
                         value={service}
-                        className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
                       >
                         {service}
                       </option>
@@ -1053,92 +1025,6 @@ export const Add_Appointment_Modal = ({
                   </select>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 mt-4">
-                  <div className="space-y-2">
-                    {locations.length > 0 && (
-                      <ScheduleDateTime
-                        data={locations[0]}
-                        selectDateTimeSlotHandle={selectDateTimeSlotHandle}
-                      />
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Show a friendly message when comingBackData was fetched but contains no rows
-                Only show this when 'Coming Back' is selected (new_patient === "false"). */}
-            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
-              <div className="mt-4 p-4 rounded bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
-                <p className="font-medium">No returning patient</p>
-                
-              </div>
-            )}
-
-            {selectedComingBackPatient && (
-              <div className="mt-4 p-4 border rounded bg-gray-50 dark:bg-[#071226]">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-lg">Selected patient</h3>
-                    <p className="mt-2"><strong>Name:</strong> {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
-                    <p className="mt-1"><strong>Phone:</strong> {selectedComingBackPatient.phone || '-'}</p>
-                      <p className="mt-1"><strong>Sex:</strong> {selectedComingBackPatient.sex || '-'}</p>
-                  </div>
-                  <div>
-                    <button
-                      onClick={() => {
-                        // clear selection and show table again
-                        setSelectedComingBackPatient(null);
-                        setFormData((pre: any) => ({ ...pre, new_patient: "false" }));
-                      }}
-                      className="px-3 py-1 bg-white border rounded text-sm"
-                    >Change</button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Service select should appear after patient details / selected patient */}
-            {(formData.new_patient !== "false" || selectedComingBackPatient) && (
-              <div className="mt-4 space-y-2">
-                <Label className="font-medium text-gray-800 dark:text-gray-300">
-                  {t("Appoinments_k3")}
-                </Label>
-                <select
-                  required
-                  value={formData.service}
-                  onChange={(e) =>
-                    select_change_handle("service", e.target.value)
-                  }
-                  className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
-                  style={{
-                    backgroundColor: document.documentElement.classList.contains(
-                      "dark"
-                    )
-                      ? "#122136"
-                      : "#f1f4f9",
-                    border: "none",
-                    outline: "none",
-                  }}
-                >
-                  <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
-                    {t("Appoinments_k28")}
-                  </option>
-                  {services?.map((service: string, index: any) => (
-                    <option
-                      key={index}
-                      value={service}
-                      className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      {service}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {(formData.new_patient !== "false" || selectedComingBackPatient) && (
-              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   {locations.length > 0 && (
                     <ScheduleDateTime
@@ -1147,25 +1033,96 @@ export const Add_Appointment_Modal = ({
                     />
                   )}
                 </div>
+              </FormSection>
+            )}
+
+            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
+              <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-100">
+                <p className="text-sm font-medium">No returning patient</p>
               </div>
+            )}
+
+            {selectedComingBackPatient && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-4 dark:border-gray-700 dark:bg-[#071226]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1.5 text-sm">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">Selected patient</h3>
+                    <p><span className="text-gray-500 dark:text-gray-400">Name</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">Phone</span> — {selectedComingBackPatient.phone || "—"}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">Sex</span> — {selectedComingBackPatient.sex || "—"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedComingBackPatient(null);
+                      setFormData((pre: any) => ({ ...pre, new_patient: "false" }));
+                    }}
+                    className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(formData.new_patient !== "false" || selectedComingBackPatient) && (
+              <FormSection title={t("Appoinments_k79")} className="!pb-9 sm:!pb-10">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("Appoinments_k3")}
+                  </Label>
+                  <select
+                    required
+                    value={formData.service}
+                    onChange={(e) =>
+                      select_change_handle("service", e.target.value)
+                    }
+                    className={nativeSelectClassName}
+                  >
+                    <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                      {t("Appoinments_k28")}
+                    </option>
+                    {services?.map((service: string, index: any) => (
+                      <option
+                        key={index}
+                        value={service}
+                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
+                      >
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  {locations.length > 0 && (
+                    <ScheduleDateTime
+                      data={locations[0]}
+                      selectDateTimeSlotHandle={selectDateTimeSlotHandle}
+                    />
+                  )}
+                </div>
+              </FormSection>
             )}
           </div>
         </Modal.Body>
 
-        <Modal.Footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0e1725]">
-          <div className="flex flex-col sm:flex-row w-full justify-end gap-2 sm:gap-3">
+        <Modal.Footer className="border-t border-gray-200 bg-gray-50/80 dark:border-gray-700 dark:bg-[#0e1725]">
+          <div className="mx-auto flex w-full max-w-3xl flex-col-reverse gap-2 px-1 sm:flex-row sm:justify-end sm:gap-3">
             <button
+              type="button"
               onClick={close_handle}
-              className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-black dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="min-h-[44px] rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
             >
               {t("Appoinments_k58")}
             </button>
             <button
+              type="button"
               disabled={loading}
               onClick={submitHandle}
-              className={`bg-[#0066ff] ${
-                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#0052cc]"
-              } px-4 py-2 rounded-md text-white transition-colors`}
+              className={`min-h-[44px] min-w-[160px] rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
+                loading ? "cursor-not-allowed bg-[#0066ff]/70" : "bg-[#0066ff] hover:bg-[#0052cc]"
+              }`}
             >
               {loading ? "Submitting..." : t("Appoinments_k57")}
             </button>
