@@ -331,18 +331,13 @@ describe("Bonus — Location Bonus Page", () => {
 
     cy.contains("button", "Set limits").click({ force: true });
     cy.wait(1000);
-
     cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-    // Read the first location name and its ID from the row
+    // ── PHASE 1: Update in Set limits ──────────────────────────────────────────
     cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locationName) => {
       const locName = locationName.trim();
-      cy.log(`Editing Set limits for location: "${locName}"`);
+      cy.log(`[SET LIMITS] Editing location: "${locName}"`);
 
-      // We need the location ID — read it from the DOM data or derive from the page's patients list.
-      // The Set limits table renders location title in td[0]; we'll verify DB by name match after save.
-
-      // Set type to FLAT
       cy.get("table tbody tr").first().find("select").first()
         .select("FLAT", { force: true });
       cy.wait(200);
@@ -351,86 +346,79 @@ describe("Bonus — Location Bonus Page", () => {
       const testThreshold = "500";
 
       cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
-        .click({ force: true })
-        .type("{selectall}" + testValue, { force: true });
+        .click({ force: true }).type("{selectall}" + testValue, { force: true });
       cy.wait(200);
 
       cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
-        .click({ force: true })
-        .type("{selectall}" + testThreshold, { force: true });
+        .click({ force: true }).type("{selectall}" + testThreshold, { force: true });
       cy.wait(200);
 
       cy.intercept("POST", "**/api/bonuses/save*").as("saveConfig");
-
       cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
 
       cy.wait("@saveConfig", { timeout: 15000 }).then((interception) => {
-        // Log the request payload for traceability
-        const reqBody = interception.request.body;
-        cy.log(`[DB] Save API request: ${JSON.stringify(reqBody)}`);
+        const locationId = interception.request.body?.bonuses?.[0]?.location_id;
+        cy.log(`[SET LIMITS] Save API called for location_id=${locationId}, payload: ${JSON.stringify(interception.request.body)}`);
+      });
 
-        // Extract location_id from the intercepted payload
-        const locationId = reqBody?.bonuses?.[0]?.location_id;
-        cy.log(`[DB] Saving config for location_id: ${locationId}`);
+      // Toast confirms save
+      cy.get(".Toastify__toast--success", { timeout: 10000 })
+        .should("contain.text", "Configuration saved");
+      cy.log("[SET LIMITS] ✓ 'Configuration saved' toast shown");
 
-        // Toast: "Configuration saved"
-        cy.get(".Toastify__toast--success", { timeout: 10000 })
-          .should("contain.text", "Configuration saved");
-        cy.log("'Configuration saved' toast shown");
+      // ── PHASE 2: DB verification ───────────────────────────────────────────
+      cy.wait(1500); // let DB write settle
 
-        // ── DB verification: bonus_config_history ──
-        cy.wait(1000); // let DB write settle
+      // Re-read locationId from the API intercept alias body
+      cy.get("@saveConfig").then((interception: any) => {
+        const locationId = interception.request.body?.bonuses?.[0]?.location_id;
+
         cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
           cy.log(`[DB] bonus_config_history active row: ${JSON.stringify(config)}`);
-          expect(config).to.not.be.null;
+          expect(config, "active config should exist in DB").to.not.be.null;
           const cfg = config as Record<string, unknown>;
           expect(String(cfg.flat_percentage).toUpperCase()).to.eq("FLAT");
           expect(Number(cfg.value)).to.be.closeTo(Number(testValue), 1);
           expect(Number(cfg.bonus_threshold)).to.be.closeTo(Number(testThreshold), 1);
           expect(cfg.effective_to).to.be.null;
-          cy.log(`[DB] ✓ flat_percentage=FLAT, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}, effective_to=null`);
+          cy.log(`[DB] ✓ flat_percentage=${cfg.flat_percentage}, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}, effective_to=null`);
         });
 
         cy.task("getBonusConfigHistory", { locationId: Number(locationId) }).then((history) => {
-          cy.log(`[DB] bonus_config_history rows (latest 10): ${JSON.stringify(history)}`);
-          expect((history as any[]).length).to.be.greaterThan(0);
-          const latest = (history as any[])[0];
-          cy.log(`[DB] Latest config row: id=${latest.id}, effective_from=${latest.effective_from}, effective_to=${latest.effective_to}`);
+          const rows = history as any[];
+          cy.log(`[DB] bonus_config_history latest rows (${rows.length}): ${JSON.stringify(rows)}`);
+          expect(rows.length).to.be.greaterThan(0);
+          const latest = rows[0];
+          cy.log(`[DB] Latest row — id=${latest.id}, effective_from=${latest.effective_from}, effective_to=${latest.effective_to}, flat_percentage=${latest.flat_percentage}, value=${latest.value}, bonus_threshold=${latest.bonus_threshold}`);
+        });
+      });
+
+      // ── PHASE 3: UI verification in Calculation tab ────────────────────────
+      cy.contains("button", "Bonus calculation").click({ force: true });
+      cy.wait(1500);
+
+      cy.contains("td", locName, { timeout: 15000 })
+        .closest("tr").find("td").eq(3).invoke("text")
+        .then((thresholdText) => {
+          const displayed = thresholdText.replace(/[$,]/g, "").trim();
+          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testThreshold), 1);
+          cy.log(`[CALC TAB] ✓ Bonus Threshold: "${displayed}" matches saved "${testThreshold}"`);
         });
 
-        // ── UI verification: Calculation tab ──
-        cy.contains("button", "Bonus calculation").click({ force: true });
-        cy.wait(1500);
+      cy.contains("td", locName)
+        .closest("tr").find("td").eq(4).invoke("text")
+        .then((typeText) => {
+          expect(typeText.trim().toUpperCase()).to.include("FLAT");
+          cy.log(`[CALC TAB] ✓ Flat/Percentage: "${typeText.trim()}"`);
+        });
 
-        cy.contains("td", locName, { timeout: 15000 })
-          .closest("tr")
-          .find("td").eq(3)
-          .invoke("text")
-          .then((thresholdText) => {
-            const displayed = thresholdText.replace(/[$,]/g, "").trim();
-            expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testThreshold), 1);
-            cy.log(`[UI] Bonus Threshold in Calculation tab: "${displayed}" ✓`);
-          });
-
-        cy.contains("td", locName)
-          .closest("tr")
-          .find("td").eq(4)
-          .invoke("text")
-          .then((typeText) => {
-            expect(typeText.trim().toUpperCase()).to.include("FLAT");
-            cy.log(`[UI] Flat/Percentage in Calculation tab: "${typeText.trim()}" ✓`);
-          });
-
-        cy.contains("td", locName)
-          .closest("tr")
-          .find("td").eq(5)
-          .invoke("text")
-          .then((valueText) => {
-            const displayed = valueText.replace(/[$%,]/g, "").trim();
-            expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testValue), 1);
-            cy.log(`[UI] Value in Calculation tab: "${displayed}" ✓`);
-          });
-      });
+      cy.contains("td", locName)
+        .closest("tr").find("td").eq(5).invoke("text")
+        .then((valueText) => {
+          const displayed = valueText.replace(/[$%,]/g, "").trim();
+          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testValue), 1);
+          cy.log(`[CALC TAB] ✓ Value: "${displayed}" matches saved "${testValue}"`);
+        });
     });
   });
 
@@ -439,11 +427,12 @@ describe("Bonus — Location Bonus Page", () => {
 
     cy.contains("button", "Set limits").click({ force: true });
     cy.wait(1000);
-
     cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
+    // ── PHASE 1: Update in Set limits ──────────────────────────────────────────
     cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locationName) => {
       const locName = locationName.trim();
+      cy.log(`[SET LIMITS] Editing location: "${locName}"`);
 
       cy.get("table tbody tr").first().find("select").first()
         .select("PERCENTAGE", { force: true });
@@ -453,56 +442,77 @@ describe("Bonus — Location Bonus Page", () => {
       const testThreshold = "1000";
 
       cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
-        .click({ force: true })
-        .type("{selectall}" + testPct, { force: true });
+        .click({ force: true }).type("{selectall}" + testPct, { force: true });
       cy.wait(200);
 
       cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
-        .click({ force: true })
-        .type("{selectall}" + testThreshold, { force: true });
+        .click({ force: true }).type("{selectall}" + testThreshold, { force: true });
       cy.wait(200);
 
       cy.intercept("POST", "**/api/bonuses/save*").as("saveConfig");
-
       cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
 
       cy.wait("@saveConfig", { timeout: 15000 }).then((interception) => {
         const locationId = interception.request.body?.bonuses?.[0]?.location_id;
-        cy.log(`[DB] Saving PERCENTAGE config for location_id: ${locationId}`);
+        cy.log(`[SET LIMITS] Save API called for location_id=${locationId}, payload: ${JSON.stringify(interception.request.body)}`);
+      });
 
-        cy.get(".Toastify__toast--success", { timeout: 10000 })
-          .should("contain.text", "Configuration saved");
-        cy.log("'Configuration saved' toast shown");
+      cy.get(".Toastify__toast--success", { timeout: 10000 })
+        .should("contain.text", "Configuration saved");
+      cy.log("[SET LIMITS] ✓ 'Configuration saved' toast shown");
 
-        cy.wait(1000);
+      // ── PHASE 2: DB verification ───────────────────────────────────────────
+      cy.wait(1500);
+
+      cy.get("@saveConfig").then((interception: any) => {
+        const locationId = interception.request.body?.bonuses?.[0]?.location_id;
+
         cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
           cy.log(`[DB] bonus_config_history active row: ${JSON.stringify(config)}`);
-          expect(config).to.not.be.null;
+          expect(config, "active config should exist in DB").to.not.be.null;
           const cfg = config as Record<string, unknown>;
           expect(String(cfg.flat_percentage).toUpperCase()).to.eq("PERCENTAGE");
           expect(Number(cfg.value)).to.be.closeTo(Number(testPct), 1);
           expect(Number(cfg.bonus_threshold)).to.be.closeTo(Number(testThreshold), 1);
           expect(cfg.effective_to).to.be.null;
-          cy.log(`[DB] ✓ flat_percentage=PERCENTAGE, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}`);
+          cy.log(`[DB] ✓ flat_percentage=${cfg.flat_percentage}, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}, effective_to=null`);
         });
 
         cy.task("getBonusConfigHistory", { locationId: Number(locationId) }).then((history) => {
-          cy.log(`[DB] Full bonus_config_history for location ${locationId}: ${JSON.stringify(history)}`);
+          const rows = history as any[];
+          cy.log(`[DB] bonus_config_history latest rows (${rows.length}): ${JSON.stringify(rows)}`);
+          expect(rows.length).to.be.greaterThan(0);
+          const latest = rows[0];
+          cy.log(`[DB] Latest row — id=${latest.id}, effective_from=${latest.effective_from}, effective_to=${latest.effective_to}, flat_percentage=${latest.flat_percentage}, value=${latest.value}, bonus_threshold=${latest.bonus_threshold}`);
+        });
+      });
+
+      // ── PHASE 3: UI verification in Calculation tab ────────────────────────
+      cy.contains("button", "Bonus calculation").click({ force: true });
+      cy.wait(1500);
+
+      cy.contains("td", locName, { timeout: 15000 })
+        .closest("tr").find("td").eq(4).invoke("text")
+        .then((typeText) => {
+          expect(typeText.trim().toUpperCase()).to.include("PERCENTAGE");
+          cy.log(`[CALC TAB] ✓ Flat/Percentage: "${typeText.trim()}"`);
         });
 
-        // UI check
-        cy.contains("button", "Bonus calculation").click({ force: true });
-        cy.wait(1500);
+      cy.contains("td", locName)
+        .closest("tr").find("td").eq(3).invoke("text")
+        .then((thresholdText) => {
+          const displayed = thresholdText.replace(/[$,]/g, "").trim();
+          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testThreshold), 1);
+          cy.log(`[CALC TAB] ✓ Bonus Threshold: "${displayed}" matches saved "${testThreshold}"`);
+        });
 
-        cy.contains("td", locName, { timeout: 15000 })
-          .closest("tr")
-          .find("td").eq(4)
-          .invoke("text")
-          .then((typeText) => {
-            expect(typeText.trim().toUpperCase()).to.include("PERCENTAGE");
-            cy.log(`[UI] Flat/Percentage in Calculation tab: "${typeText.trim()}" ✓`);
-          });
-      });
+      cy.contains("td", locName)
+        .closest("tr").find("td").eq(5).invoke("text")
+        .then((valueText) => {
+          const displayed = valueText.replace(/[$%,]/g, "").trim();
+          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testPct), 1);
+          cy.log(`[CALC TAB] ✓ Value: "${displayed}" matches saved "${testPct}"`);
+        });
     });
   });
 
@@ -584,23 +594,51 @@ describe("Bonus — Location Bonus Page", () => {
 
     cy.contains("button", "Bonus calculation").click({ force: true });
     cy.wait(500);
+
+    // Helper: find the index of the first row with an enabled Pay button
+    const findPayRowIndex = ($rows: JQuery<HTMLElement>): number => {
+      let idx = -1;
+      $rows.each((i, row) => {
+        if (idx >= 0) return;
+        const btn = Cypress.$(row).find("button").filter(
+          (_, b) => b.textContent?.trim() === "Pay" && !b.hasAttribute("disabled")
+        );
+        if (btn.length > 0) idx = i;
+      });
+      return idx;
+    };
+
+    // Try Yesterday first, then Today if no eligible row found
     cy.contains("button", "Yesterday").click({ force: true });
     cy.wait(1500);
 
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
-      let payRowIndex = -1;
-      $rows.each((i, row) => {
-        if (payRowIndex >= 0) return;
-        const btn = Cypress.$(row).find("button").filter((_, b) => b.textContent?.trim() === "Pay" && !b.hasAttribute("disabled"));
-        if (btn.length > 0) payRowIndex = i;
-      });
+      let payRowIndex = findPayRowIndex($rows);
 
       if (payRowIndex < 0) {
-        cy.log("No eligible unpaid rows for yesterday — skipping Pay toggle test");
-        return;
-      }
+        cy.log("No eligible Pay rows for Yesterday — switching to Today");
 
-      // Read location name from the row so we can query DB
+        cy.contains("button", "Today").click({ force: true });
+        cy.wait(1500);
+
+        cy.get("table tbody tr", { timeout: 15000 }).then(($todayRows) => {
+          payRowIndex = findPayRowIndex($todayRows);
+
+          if (payRowIndex < 0) {
+            cy.log("No eligible Pay rows for Today either — skipping Pay toggle test (no bonus data with eligibility=true)");
+            return;
+          }
+
+          cy.log(`[UI] Found eligible Pay row at index ${payRowIndex} for Today`);
+          runPayToggle(payRowIndex);
+        });
+      } else {
+        cy.log(`[UI] Found eligible Pay row at index ${payRowIndex} for Yesterday`);
+        runPayToggle(payRowIndex);
+      }
+    });
+
+    function runPayToggle(payRowIndex: number) {
       cy.get("table tbody tr").eq(payRowIndex).find("td").eq(0).invoke("text").then((locName) => {
         cy.log(`[UI] Toggling Pay for location: "${locName.trim()}"`);
 
@@ -610,14 +648,15 @@ describe("Bonus — Location Bonus Page", () => {
 
         cy.wait("@updatePaid", { timeout: 15000 }).then((interception) => {
           const reqBody = interception.request.body;
-          cy.log(`[DB] update-paid request: ${JSON.stringify(reqBody)}`);
+          cy.log(`[API] update-paid request: ${JSON.stringify(reqBody)}`);
 
           const locationId = reqBody?.items?.[0]?.location_id;
           const date = reqBody?.items?.[0]?.date;
-          cy.log(`[DB] Checking bonus table for location_id=${locationId}, date=${date}`);
+          cy.log(`[API] location_id=${locationId}, date=${date}`);
 
+          // Toast
           cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
-          cy.log("[UI] Toast shown after Pay toggle");
+          cy.log("[UI] ✓ Toast shown after Pay toggle");
 
           // DB verification
           cy.wait(1000);
@@ -625,14 +664,14 @@ describe("Bonus — Location Bonus Page", () => {
             locationId: Number(locationId),
             date: String(date),
           }).then((bonusRow) => {
-            cy.log(`[DB] bonus table row: ${JSON.stringify(bonusRow)}`);
+            cy.log(`[DB] bonus row for location_id=${locationId}, date=${date}: ${JSON.stringify(bonusRow)}`);
             if (bonusRow) {
               const row = bonusRow as Record<string, unknown>;
               expect(row.paid).to.eq(true);
-              cy.log(`[DB] ✓ paid=true for location_id=${locationId}, date=${date}`);
-              cy.log(`[DB] paid_date=${row.paid_date}, bonus_amount=${row.bonus_amount}, bonus_eligibility=${row.bonus_eligibility}`);
+              cy.log(`[DB] ✓ paid=true`);
+              cy.log(`[DB] paid_date=${row.paid_date}, bonus_amount=${row.bonus_amount}, bonus_eligibility=${row.bonus_eligibility}, bonus_sales=${row.bonus_sales}`);
             } else {
-              cy.log(`[DB] No bonus row found for location_id=${locationId}, date=${date} — may have been created inline`);
+              cy.log(`[DB] No bonus row found for location_id=${locationId}, date=${date}`);
             }
           });
 
@@ -641,7 +680,7 @@ describe("Bonus — Location Bonus Page", () => {
           });
         });
       });
-    });
+    }
   });
 
 });
