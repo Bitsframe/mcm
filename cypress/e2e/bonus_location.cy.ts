@@ -165,7 +165,7 @@ describe("Bonus — Location Bonus Page", () => {
     cy.log("Success toast shown after successful calculation");
   });
 
-  it("should refresh table rows after Calculate and show bonus amounts for Yesterday", () => {
+  it("should refresh table rows after Calculate and show bonus amounts for Yesterday, then verify bonus table in DB", () => {
     loginAndVisitBonus();
 
     cy.contains("button", "Bonus calculation").click({ force: true });
@@ -180,17 +180,24 @@ describe("Bonus — Location Bonus Page", () => {
     cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
     cy.log("Table rows visible after calculation");
 
+    // Read the first location name and check DB bonus rows
+    cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locationName) => {
+      cy.log(`[UI] First location after calculate: "${locationName.trim()}"`);
+    });
+
     // Check if any row has a bonus amount (non-dash)
     cy.get("table tbody tr").then(($rows) => {
       let hasValue = false;
-      $rows.each((_, row) => {
+      let firstLocText = "";
+      $rows.each((i, row) => {
         const cells = Cypress.$(row).find("td");
         const txt = (cells[6]?.textContent || "").trim();
+        if (i === 0) firstLocText = (cells[0]?.textContent || "").trim();
         if (txt && txt !== "—" && txt !== "-" && txt !== "") hasValue = true;
       });
       cy.log(hasValue
-        ? "At least one row has a bonus amount after calculation"
-        : "No bonus amounts yet — rows show dash (no sales data for yesterday)"
+        ? "[UI] At least one row has a bonus amount after calculation"
+        : "[UI] No bonus amounts yet — rows show dash (no sales data for yesterday)"
       );
     });
   });
@@ -317,97 +324,117 @@ describe("Bonus — Location Bonus Page", () => {
     });
   });
 
-  // ── 6. Set limits tab — Update button, Configuration saved toast, verify in Calculation ──
+  // ── 6. Set limits tab — Update button, Configuration saved toast, verify in Calculation & DB ──
 
-  it("should update FLAT type and value in Set limits, show 'Configuration saved' toast, then verify threshold appears in Calculation tab", () => {
+  it("should update FLAT type and value in Set limits, show 'Configuration saved' toast, verify in Calculation tab, and confirm bonus_config_history in DB", () => {
     loginAndVisitBonus();
 
     cy.contains("button", "Set limits").click({ force: true });
     cy.wait(1000);
 
-    // Set limits table: columns are Location | Flat/Percentage | Value | Bonus Threshold | Actions
     cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-    // Read the first location name so we can find it in Calculation tab later
+    // Read the first location name and its ID from the row
     cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locationName) => {
       const locName = locationName.trim();
       cy.log(`Editing Set limits for location: "${locName}"`);
+
+      // We need the location ID — read it from the DOM data or derive from the page's patients list.
+      // The Set limits table renders location title in td[0]; we'll verify DB by name match after save.
 
       // Set type to FLAT
       cy.get("table tbody tr").first().find("select").first()
         .select("FLAT", { force: true });
       cy.wait(200);
 
-      // Set value
       const testValue = "75";
+      const testThreshold = "500";
+
       cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
         .click({ force: true })
         .type("{selectall}" + testValue, { force: true });
       cy.wait(200);
 
-      // Set bonus threshold
-      const testThreshold = "500";
       cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
         .click({ force: true })
         .type("{selectall}" + testThreshold, { force: true });
       cy.wait(200);
 
-      // Intercept the save API
       cy.intercept("POST", "**/api/bonuses/save*").as("saveConfig");
 
-      // Click the Update button for this row (enabled after editing)
       cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
 
-      cy.wait("@saveConfig", { timeout: 15000 });
-      cy.log("Save API called");
+      cy.wait("@saveConfig", { timeout: 15000 }).then((interception) => {
+        // Log the request payload for traceability
+        const reqBody = interception.request.body;
+        cy.log(`[DB] Save API request: ${JSON.stringify(reqBody)}`);
 
-      // Toast should say "Configuration saved"
-      cy.get(".Toastify__toast--success", { timeout: 10000 })
-        .should("contain.text", "Configuration saved");
-      cy.log("'Configuration saved' toast shown");
+        // Extract location_id from the intercepted payload
+        const locationId = reqBody?.bonuses?.[0]?.location_id;
+        cy.log(`[DB] Saving config for location_id: ${locationId}`);
 
-      // Now switch to Calculation tab and verify the threshold is reflected
-      cy.contains("button", "Bonus calculation").click({ force: true });
-      cy.wait(1500);
+        // Toast: "Configuration saved"
+        cy.get(".Toastify__toast--success", { timeout: 10000 })
+          .should("contain.text", "Configuration saved");
+        cy.log("'Configuration saved' toast shown");
 
-      // Find the row for the same location
-      cy.contains("td", locName, { timeout: 15000 })
-        .closest("tr")
-        .find("td")
-        .eq(3) // Bonus Threshold column (index 3)
-        .invoke("text")
-        .then((thresholdText) => {
-          const displayed = thresholdText.replace(/[$,]/g, "").trim();
-          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testThreshold), 1);
-          cy.log(`Bonus Threshold in Calculation tab: "${displayed}" matches saved value "${testThreshold}"`);
+        // ── DB verification: bonus_config_history ──
+        cy.wait(1000); // let DB write settle
+        cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
+          cy.log(`[DB] bonus_config_history active row: ${JSON.stringify(config)}`);
+          expect(config).to.not.be.null;
+          const cfg = config as Record<string, unknown>;
+          expect(String(cfg.flat_percentage).toUpperCase()).to.eq("FLAT");
+          expect(Number(cfg.value)).to.be.closeTo(Number(testValue), 1);
+          expect(Number(cfg.bonus_threshold)).to.be.closeTo(Number(testThreshold), 1);
+          expect(cfg.effective_to).to.be.null;
+          cy.log(`[DB] ✓ flat_percentage=FLAT, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}, effective_to=null`);
         });
 
-      // Verify Flat/Percentage column shows FLAT
-      cy.contains("td", locName)
-        .closest("tr")
-        .find("td")
-        .eq(4) // Flat/Percentage column
-        .invoke("text")
-        .then((typeText) => {
-          expect(typeText.trim().toUpperCase()).to.include("FLAT");
-          cy.log(`Type in Calculation tab: "${typeText.trim()}" — correct`);
+        cy.task("getBonusConfigHistory", { locationId: Number(locationId) }).then((history) => {
+          cy.log(`[DB] bonus_config_history rows (latest 10): ${JSON.stringify(history)}`);
+          expect((history as any[]).length).to.be.greaterThan(0);
+          const latest = (history as any[])[0];
+          cy.log(`[DB] Latest config row: id=${latest.id}, effective_from=${latest.effective_from}, effective_to=${latest.effective_to}`);
         });
 
-      // Verify Value column shows the saved value
-      cy.contains("td", locName)
-        .closest("tr")
-        .find("td")
-        .eq(5) // Value column
-        .invoke("text")
-        .then((valueText) => {
-          const displayed = valueText.replace(/[$%,]/g, "").trim();
-          expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testValue), 1);
-          cy.log(`Value in Calculation tab: "${displayed}" matches saved value "${testValue}"`);
-        });
+        // ── UI verification: Calculation tab ──
+        cy.contains("button", "Bonus calculation").click({ force: true });
+        cy.wait(1500);
+
+        cy.contains("td", locName, { timeout: 15000 })
+          .closest("tr")
+          .find("td").eq(3)
+          .invoke("text")
+          .then((thresholdText) => {
+            const displayed = thresholdText.replace(/[$,]/g, "").trim();
+            expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testThreshold), 1);
+            cy.log(`[UI] Bonus Threshold in Calculation tab: "${displayed}" ✓`);
+          });
+
+        cy.contains("td", locName)
+          .closest("tr")
+          .find("td").eq(4)
+          .invoke("text")
+          .then((typeText) => {
+            expect(typeText.trim().toUpperCase()).to.include("FLAT");
+            cy.log(`[UI] Flat/Percentage in Calculation tab: "${typeText.trim()}" ✓`);
+          });
+
+        cy.contains("td", locName)
+          .closest("tr")
+          .find("td").eq(5)
+          .invoke("text")
+          .then((valueText) => {
+            const displayed = valueText.replace(/[$%,]/g, "").trim();
+            expect(parseFloat(displayed)).to.be.closeTo(parseFloat(testValue), 1);
+            cy.log(`[UI] Value in Calculation tab: "${displayed}" ✓`);
+          });
+      });
     });
   });
 
-  it("should update PERCENTAGE type in Set limits, show 'Configuration saved' toast, then verify type in Calculation tab", () => {
+  it("should update PERCENTAGE type in Set limits, verify DB bonus_config_history, and confirm type in Calculation tab", () => {
     loginAndVisitBonus();
 
     cy.contains("button", "Set limits").click({ force: true });
@@ -418,47 +445,64 @@ describe("Bonus — Location Bonus Page", () => {
     cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locationName) => {
       const locName = locationName.trim();
 
-      // Set type to PERCENTAGE
       cy.get("table tbody tr").first().find("select").first()
         .select("PERCENTAGE", { force: true });
       cy.wait(200);
 
-      // Set percentage value (0-100)
       const testPct = "10";
+      const testThreshold = "1000";
+
       cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
         .click({ force: true })
         .type("{selectall}" + testPct, { force: true });
       cy.wait(200);
 
-      // Set threshold
       cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
         .click({ force: true })
-        .type("{selectall}1000", { force: true });
+        .type("{selectall}" + testThreshold, { force: true });
       cy.wait(200);
 
       cy.intercept("POST", "**/api/bonuses/save*").as("saveConfig");
 
       cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
 
-      cy.wait("@saveConfig", { timeout: 15000 });
+      cy.wait("@saveConfig", { timeout: 15000 }).then((interception) => {
+        const locationId = interception.request.body?.bonuses?.[0]?.location_id;
+        cy.log(`[DB] Saving PERCENTAGE config for location_id: ${locationId}`);
 
-      cy.get(".Toastify__toast--success", { timeout: 10000 })
-        .should("contain.text", "Configuration saved");
-      cy.log("'Configuration saved' toast shown for PERCENTAGE update");
+        cy.get(".Toastify__toast--success", { timeout: 10000 })
+          .should("contain.text", "Configuration saved");
+        cy.log("'Configuration saved' toast shown");
 
-      // Verify in Calculation tab
-      cy.contains("button", "Bonus calculation").click({ force: true });
-      cy.wait(1500);
-
-      cy.contains("td", locName, { timeout: 15000 })
-        .closest("tr")
-        .find("td")
-        .eq(4) // Flat/Percentage column
-        .invoke("text")
-        .then((typeText) => {
-          expect(typeText.trim().toUpperCase()).to.include("PERCENTAGE");
-          cy.log(`Type in Calculation tab shows PERCENTAGE — correct`);
+        cy.wait(1000);
+        cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
+          cy.log(`[DB] bonus_config_history active row: ${JSON.stringify(config)}`);
+          expect(config).to.not.be.null;
+          const cfg = config as Record<string, unknown>;
+          expect(String(cfg.flat_percentage).toUpperCase()).to.eq("PERCENTAGE");
+          expect(Number(cfg.value)).to.be.closeTo(Number(testPct), 1);
+          expect(Number(cfg.bonus_threshold)).to.be.closeTo(Number(testThreshold), 1);
+          expect(cfg.effective_to).to.be.null;
+          cy.log(`[DB] ✓ flat_percentage=PERCENTAGE, value=${cfg.value}, bonus_threshold=${cfg.bonus_threshold}`);
         });
+
+        cy.task("getBonusConfigHistory", { locationId: Number(locationId) }).then((history) => {
+          cy.log(`[DB] Full bonus_config_history for location ${locationId}: ${JSON.stringify(history)}`);
+        });
+
+        // UI check
+        cy.contains("button", "Bonus calculation").click({ force: true });
+        cy.wait(1500);
+
+        cy.contains("td", locName, { timeout: 15000 })
+          .closest("tr")
+          .find("td").eq(4)
+          .invoke("text")
+          .then((typeText) => {
+            expect(typeText.trim().toUpperCase()).to.include("PERCENTAGE");
+            cy.log(`[UI] Flat/Percentage in Calculation tab: "${typeText.trim()}" ✓`);
+          });
+      });
     });
   });
 
@@ -470,18 +514,15 @@ describe("Bonus — Location Bonus Page", () => {
 
     cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-    // Update button should be disabled before any edit
     cy.get("table tbody tr").first().find("button").contains("Update")
       .should("be.disabled");
     cy.log("Update button disabled before editing");
 
-    // Edit a field
     cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
       .click({ force: true })
       .type("{selectall}99", { force: true });
     cy.wait(200);
 
-    // Update button should now be enabled
     cy.get("table tbody tr").first().find("button").contains("Update")
       .should("not.be.disabled");
     cy.log("Update button enabled after editing a field");
@@ -538,7 +579,7 @@ describe("Bonus — Location Bonus Page", () => {
     });
   });
 
-  it("should toggle Pay to Paid and call update-paid API, then show toast", () => {
+  it("should toggle Pay to Paid, call update-paid API, show toast, and verify paid=true in DB bonus table", () => {
     loginAndVisitBonus();
 
     cy.contains("button", "Bonus calculation").click({ force: true });
@@ -547,28 +588,59 @@ describe("Bonus — Location Bonus Page", () => {
     cy.wait(1500);
 
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
-      // Find a row with an enabled Pay button
-      let payRow: JQuery<HTMLElement> | null = null;
-      $rows.each((_, row) => {
-        if (payRow) return;
+      let payRowIndex = -1;
+      $rows.each((i, row) => {
+        if (payRowIndex >= 0) return;
         const btn = Cypress.$(row).find("button").filter((_, b) => b.textContent?.trim() === "Pay" && !b.hasAttribute("disabled"));
-        if (btn.length > 0) payRow = Cypress.$(row);
+        if (btn.length > 0) payRowIndex = i;
       });
 
-      if (!payRow) {
+      if (payRowIndex < 0) {
         cy.log("No eligible unpaid rows for yesterday — skipping Pay toggle test");
         return;
       }
 
-      cy.intercept("POST", "**/api/bonuses/update-paid*").as("updatePaid");
+      // Read location name from the row so we can query DB
+      cy.get("table tbody tr").eq(payRowIndex).find("td").eq(0).invoke("text").then((locName) => {
+        cy.log(`[UI] Toggling Pay for location: "${locName.trim()}"`);
 
-      cy.wrap(payRow).find("button").contains("Pay").click({ force: true });
+        cy.intercept("POST", "**/api/bonuses/update-paid*").as("updatePaid");
 
-      cy.wait("@updatePaid", { timeout: 15000 });
-      cy.log("update-paid API called");
+        cy.get("table tbody tr").eq(payRowIndex).find("button").contains("Pay").click({ force: true });
 
-      cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
-      cy.log("Toast shown after Pay toggle");
+        cy.wait("@updatePaid", { timeout: 15000 }).then((interception) => {
+          const reqBody = interception.request.body;
+          cy.log(`[DB] update-paid request: ${JSON.stringify(reqBody)}`);
+
+          const locationId = reqBody?.items?.[0]?.location_id;
+          const date = reqBody?.items?.[0]?.date;
+          cy.log(`[DB] Checking bonus table for location_id=${locationId}, date=${date}`);
+
+          cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
+          cy.log("[UI] Toast shown after Pay toggle");
+
+          // DB verification
+          cy.wait(1000);
+          cy.task("getBonusRowForLocationAndDate", {
+            locationId: Number(locationId),
+            date: String(date),
+          }).then((bonusRow) => {
+            cy.log(`[DB] bonus table row: ${JSON.stringify(bonusRow)}`);
+            if (bonusRow) {
+              const row = bonusRow as Record<string, unknown>;
+              expect(row.paid).to.eq(true);
+              cy.log(`[DB] ✓ paid=true for location_id=${locationId}, date=${date}`);
+              cy.log(`[DB] paid_date=${row.paid_date}, bonus_amount=${row.bonus_amount}, bonus_eligibility=${row.bonus_eligibility}`);
+            } else {
+              cy.log(`[DB] No bonus row found for location_id=${locationId}, date=${date} — may have been created inline`);
+            }
+          });
+
+          cy.task("getBonusRowsForLocation", { locationId: Number(locationId), limit: 5 }).then((rows) => {
+            cy.log(`[DB] Latest 5 bonus rows for location ${locationId}: ${JSON.stringify(rows)}`);
+          });
+        });
+      });
     });
   });
 

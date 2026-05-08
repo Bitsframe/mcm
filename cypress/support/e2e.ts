@@ -43,6 +43,22 @@ declare global {
         event: "getPatientsCountByLocation",
         arg: { locationid: number },
       ): Chainable<number>;
+      task(
+        event: "getActiveBonusConfig",
+        arg: { locationId: number },
+      ): Chainable<Record<string, unknown> | null>;
+      task(
+        event: "getBonusRowForLocationAndDate",
+        arg: { locationId: number; date: string },
+      ): Chainable<Record<string, unknown> | null>;
+      task(
+        event: "getBonusConfigHistory",
+        arg: { locationId: number },
+      ): Chainable<Record<string, unknown>[]>;
+      task(
+        event: "getBonusRowsForLocation",
+        arg: { locationId: number; limit?: number },
+      ): Chainable<Record<string, unknown>[]>;
     }
   }
 }

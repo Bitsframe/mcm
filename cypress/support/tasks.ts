@@ -322,4 +322,85 @@ export const supabaseTasks = {
     if (error) return 0;
     return count ?? 0;
   },
+
+  /**
+   * Get the latest active bonus_config_history row for a location
+   * (where effective_to IS NULL — the currently active config).
+   */
+  async getActiveBonusConfig({
+    locationId,
+  }: {
+    locationId: number;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("bonus_config_history")
+      .select("id, location_id, flat_percentage, value, bonus_threshold, effective_from, effective_to")
+      .eq("location_id", locationId)
+      .is("effective_to", null)
+      .order("effective_from", { ascending: false })
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
+   * Get the bonus row for a specific location and date from the bonus table.
+   * Returns fields: id, location_id, date, total_sales, bonus_eligibility, bonus_amount, paid, paid_date.
+   */
+  async getBonusRowForLocationAndDate({
+    locationId,
+    date,
+  }: {
+    locationId: number;
+    date: string;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("bonus")
+      .select("id, location_id, date, total_sales, bonus_eligibility, bonus_amount, paid, paid_date, bonus_sales")
+      .eq("location_id", locationId)
+      .eq("date", date)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
+   * Get all bonus_config_history rows for a location ordered by effective_from desc.
+   * Useful for verifying a new config was inserted after a Set limits save.
+   */
+  async getBonusConfigHistory({
+    locationId,
+  }: {
+    locationId: number;
+  }): Promise<Record<string, unknown>[]> {
+    const { data, error } = await supabase
+      .from("bonus_config_history")
+      .select("id, location_id, flat_percentage, value, bonus_threshold, effective_from, effective_to")
+      .eq("location_id", locationId)
+      .order("effective_from", { ascending: false })
+      .limit(10);
+    if (error || !data) return [];
+    return data;
+  },
+
+  /**
+   * Get all bonus rows for a location ordered by date desc.
+   * Useful for verifying bonus_eligibility, bonus_amount, bonus_sales after calculation.
+   */
+  async getBonusRowsForLocation({
+    locationId,
+    limit,
+  }: {
+    locationId: number;
+    limit?: number;
+  }): Promise<Record<string, unknown>[]> {
+    const { data, error } = await supabase
+      .from("bonus")
+      .select("id, location_id, date, total_sales, bonus_sales, bonus_eligibility, bonus_amount, paid, paid_date")
+      .eq("location_id", locationId)
+      .order("date", { ascending: false })
+      .limit(limit ?? 10);
+    if (error || !data) return [];
+    return data;
+  },
 };
