@@ -503,9 +503,16 @@ describe("Bonus — Location Bonus Page", () => {
         });
       });
 
-      // PHASE 3: UI verify in Calculation tab
+      // PHASE 3: UI verify in Calculation tab — trigger Calculate first so new config is applied
       cy.contains("button", "Bonus calculation").click({ force: true });
+      cy.wait(1000);
+
+      cy.intercept("POST", "**/rpc/update_bonus_totalsales*").as("calcRpcFlat");
+      cy.contains("button", "Calculate").click({ force: true });
+      cy.wait("@calcRpcFlat", { timeout: 30000 });
+      cy.get(".Toastify__toast", { timeout: 15000 }).should("exist");
       cy.wait(1500);
+      cy.log("[CALC] ✓ Calculate triggered after FLAT config save");
 
       cy.contains("td", locName, { timeout: 15000 }).closest("tr").find("td").eq(3).invoke("text")
         .then((t) => {
@@ -576,9 +583,16 @@ describe("Bonus — Location Bonus Page", () => {
         });
       });
 
-      // PHASE 3: UI verify in Calculation tab
+      // PHASE 3: UI verify in Calculation tab — trigger Calculate first so new config is applied
       cy.contains("button", "Bonus calculation").click({ force: true });
+      cy.wait(1000);
+
+      cy.intercept("POST", "**/rpc/update_bonus_totalsales*").as("calcRpcPct");
+      cy.contains("button", "Calculate").click({ force: true });
+      cy.wait("@calcRpcPct", { timeout: 30000 });
+      cy.get(".Toastify__toast", { timeout: 15000 }).should("exist");
       cy.wait(1500);
+      cy.log("[CALC] ✓ Calculate triggered after PERCENTAGE config save");
 
       cy.contains("td", locName, { timeout: 15000 }).closest("tr").find("td").eq(4).invoke("text")
         .then((t) => { expect(t.trim().toUpperCase()).to.include("PERCENTAGE"); cy.log(`[CALC TAB] ✓ Type: "${t.trim()}"`); });
