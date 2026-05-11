@@ -263,186 +263,211 @@ describe("Bonus — Location Bonus Page", () => {
   // This runs BEFORE the Set limits FLAT/PERCENTAGE tests so that when those
   // tests run, there is already an eligible row in the Calculation tab to verify.
 
-  it("should set threshold=$1, place POS sale, run Calculate, verify bonus_eligibility=true in DB and Yes badge in UI, then click Pay and verify in Transactions tab", () => {
+  it("should place POS sale, set threshold below sale amount, run Calculate, verify bonus_eligibility=true in DB and Yes badge in UI, then click Pay and verify in Transactions tab", () => {
 
-    // STEP 1: Set threshold=$1 (FLAT, value=$75) so any sale qualifies
-    cy.log("=== STEP 1: Set bonus threshold=$1 in Set limits ===");
     cy.loginWithCredentials(TEST_EMAIL, TEST_PASSWORD);
     cy.wait(2000);
-    cy.visit(BONUS_LOCATION_URL);
+
+    // STEP 1: Place POS sale first — read the product price, place order, capture sale amount
+    cy.log("=== STEP 1: Place POS sale and capture sale amount ===");
+    cy.visit("/en/pos/sales/patients");
     cy.wait(2000);
 
-    cy.contains("button", "Set limits").click({ force: true });
-    cy.wait(1000);
-    cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
+    getActiveLocationId().then((activeLocId) => {
+      cy.log(`[POS] Active location_id: ${activeLocId}`);
+      selectFirstPatient();
 
-    cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locNameRaw) => {
-      const locName = locNameRaw.trim();
-      cy.log(`[SET LIMITS] Configuring: "${locName}"`);
+      // Open Add Product modal and read the first product price before adding
+      cy.contains("button", "Add Product").click({ force: true });
+      cy.get('input[placeholder="Search product..."]', { timeout: 10000 }).should("be.visible");
+      cy.get("table tbody tr", { timeout: 10000 }).should("have.length.greaterThan", 0);
 
-      cy.get("table tbody tr").first().find("select").first().select("FLAT", { force: true });
-      cy.wait(200);
-      cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
-        .click({ force: true }).type("{selectall}75", { force: true });
-      cy.wait(200);
-      cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
-        .click({ force: true }).type("{selectall}1", { force: true });
-      cy.wait(200);
+      cy.get("table tbody tr").first().find("td").eq(3).invoke("text").then((priceText) => {
+        const productPrice = parseFloat(priceText.replace(/[^0-9.]/g, "")) || 10;
+        cy.log(`[POS] Product unit price: $${productPrice}`);
 
-      cy.intercept("POST", "**/api/bonuses/save*").as("saveThreshold");
-      cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
-      cy.wait("@saveThreshold", { timeout: 15000 });
-      cy.get(".Toastify__toast--success", { timeout: 10000 }).should("contain.text", "Configuration saved");
-      cy.log("[SET LIMITS] ✓ Threshold=$1 saved");
+        cy.get("table tbody tr").first().find("button").contains("+").click({ force: true });
+        cy.wait(200);
+        cy.contains("button", "Add to Cart").click({ force: true });
+        cy.wait(300);
+        cy.get('button[aria-label="Close modal"]').click({ force: true });
+        cy.wait(300);
 
-      cy.wait(1000);
-      cy.get("@saveThreshold").then((interception: any) => {
-        const locationId = interception.request.body?.bonuses?.[0]?.location_id;
+        cy.get('input[placeholder="0.00"]').first()
+          .click({ force: true }).type("{selectall}" + productPrice.toFixed(2), { force: true });
+        cy.wait(300);
 
-        cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
-          cy.log(`[DB] Config after save: ${JSON.stringify(config)}`);
-          expect(config).to.not.be.null;
-          expect(Number((config as Record<string, unknown>).bonus_threshold)).to.be.closeTo(1, 0.5);
-          cy.log("[DB] ✓ bonus_threshold≈$1");
-        });
+        cy.intercept("POST", "**/api/orders*").as("placeOrder");
+        cy.get("button.rounded.py-1.px-3.text-white.w-1\\/2.flex.justify-between.items-center.text-sm")
+          .should("not.be.disabled").click({ force: true });
+        cy.wait("@placeOrder", { timeout: 30000 });
+        cy.contains(/order has been placed|order #/i, { timeout: 15000 }).should("exist");
+        cy.log(`[POS] Order placed for $${productPrice}`);
 
-        // STEP 2: Place POS sale
-        cy.log("=== STEP 2: Place POS sale ===");
-        cy.visit("/en/pos/sales/patients");
+        // Threshold = half the product price so total_sales > threshold is guaranteed
+        const threshold = Math.max(1, Math.floor(productPrice / 2));
+        const bonusValue = 50;
+        cy.log(`[THRESHOLD] Sale=$${productPrice} → threshold=$${threshold} (half), bonus value=$${bonusValue}`);
+
+        // STEP 2: Set threshold in Set limits
+        cy.log(`=== STEP 2: Set bonus threshold=$${threshold} in Set limits ===`);
+        cy.visit(BONUS_LOCATION_URL);
         cy.wait(2000);
 
-        getActiveLocationId().then((activeLocId) => {
-          cy.log(`[POS] Active location_id: ${activeLocId}`);
-          selectFirstPatient();
-          addProductAndPlaceOrder();
+        cy.contains("button", "Set limits").click({ force: true });
+        cy.wait(1000);
+        cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-          // STEP 3: Run Calculate
-          cy.log("=== STEP 3: Run Calculate ===");
-          cy.visit(BONUS_LOCATION_URL);
-          cy.wait(2000);
+        cy.get("table tbody tr").first().find("td").eq(0).invoke("text").then((locNameRaw) => {
+          const locName = locNameRaw.trim();
+          cy.log(`[SET LIMITS] Configuring: "${locName}" — threshold=$${threshold}, value=$${bonusValue}`);
 
-          cy.contains("button", "Bonus calculation").click({ force: true });
-          cy.wait(500);
-          cy.contains("button", "Today").click({ force: true });
-          cy.wait(800);
+          cy.get("table tbody tr").first().find("select").first().select("FLAT", { force: true });
+          cy.wait(200);
+          cy.get("table tbody tr").first().find('input[inputmode="decimal"]').first()
+            .click({ force: true }).type("{selectall}" + bonusValue, { force: true });
+          cy.wait(200);
+          cy.get("table tbody tr").first().find('input[inputmode="numeric"]').first()
+            .click({ force: true }).type("{selectall}" + threshold, { force: true });
+          cy.wait(200);
 
-          cy.intercept("POST", "**/rpc/update_bonus_totalsales*").as("calcRpc");
-          cy.contains("button", "Calculate").click({ force: true });
-          cy.contains("button", "Calculating...", { timeout: 5000 }).should("exist");
-          cy.wait("@calcRpc", { timeout: 30000 });
-          cy.get(".Toastify__toast--success", { timeout: 15000 }).should("exist");
-          cy.log("[CALC] ✓ Calculation triggered");
-          cy.wait(2000);
+          cy.intercept("POST", "**/api/bonuses/save*").as("saveThreshold");
+          cy.get("table tbody tr").first().find("button").contains("Update").click({ force: true });
+          cy.wait("@saveThreshold", { timeout: 15000 });
+          cy.get(".Toastify__toast--success", { timeout: 10000 }).should("contain.text", "Configuration saved");
+          cy.log(`[SET LIMITS] Configuration saved toast shown`);
 
-          // STEP 4: DB verify — bonus_eligibility=true
-          cy.log("=== STEP 4: Verify DB bonus table ===");
-          const today = getTodayYMD();
-          cy.task("getBonusRowForLocationAndDate", { locationId: Number(locationId), date: today }).then((bonusRow) => {
-            cy.log(`[DB] bonus row for location_id=${locationId}, date=${today}: ${JSON.stringify(bonusRow)}`);
-            if (!bonusRow) { cy.log("[DB] No bonus row yet — RPC may need sales data"); return; }
-            const row = bonusRow as Record<string, unknown>;
-            cy.log(`[DB] total_sales=${row.total_sales}, bonus_sales=${row.bonus_sales}, bonus_amount=${row.bonus_amount}, bonus_eligibility=${row.bonus_eligibility}`);
-            expect(row.bonus_eligibility).to.eq(true);
-            expect(Number(row.total_sales)).to.be.greaterThan(1);
-            cy.log("[DB] ✓ bonus_eligibility=true, total_sales>$1");
-          });
-          cy.task("getBonusRowsForLocation", { locationId: Number(locationId), limit: 5 }).then((rows) => {
-            cy.log(`[DB] Latest 5 bonus rows for location ${locationId}: ${JSON.stringify(rows)}`);
-          });
+          cy.wait(1000);
+          cy.get("@saveThreshold").then((interception: any) => {
+            const locationId = interception.request.body?.bonuses?.[0]?.location_id;
 
-          // STEP 5: UI verify — Yes badge exists for at least one location
-          cy.log("=== STEP 5: Verify UI — Yes badge and Pay button enabled ===");
-          cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
-
-          // Find any row with Yes badge — may not be locName if table reordered after Calculate
-          cy.get("table tbody tr").then(($rows) => {
-            let eligibleRow = -1;
-            let eligibleName = "";
-            $rows.each((i, row) => {
-              if (eligibleRow >= 0) return;
-              const cells = Cypress.$(row).find("td");
-              if ((cells[7]?.textContent || "").trim() === "Yes") {
-                eligibleRow = i;
-                eligibleName = (cells[0]?.textContent || "").trim();
-              }
+            cy.task("getActiveBonusConfig", { locationId: Number(locationId) }).then((config) => {
+              cy.log(`[DB] Config after save: ${JSON.stringify(config)}`);
+              expect(config).to.not.be.null;
+              const cfg = config as Record<string, unknown>;
+              expect(Number(cfg.bonus_threshold)).to.be.closeTo(threshold, 1);
+              expect(String(cfg.flat_percentage).toUpperCase()).to.eq("FLAT");
+              cy.log(`[DB] bonus_threshold=${cfg.bonus_threshold} (set to $${threshold}, sale was $${productPrice})`);
             });
 
-            if (eligibleRow < 0) {
-              cy.log("[UI] No eligible rows visible after Calculate — bonus_eligibility not set yet");
-              return;
-            }
-            cy.log(`[UI] ✓ Bonus Eligibility="Yes" for "${eligibleName}" (row ${eligibleRow})`);
+            // STEP 3: Run Calculate
+            cy.log("=== STEP 3: Run Calculate ===");
+            cy.contains("button", "Bonus calculation").click({ force: true });
+            cy.wait(500);
+            cy.contains("button", "Today").click({ force: true });
+            cy.wait(800);
 
-            // Verify Pay/Paid button is enabled for that row
-            cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((statusText) => {
-              const btnText = statusText.trim();
-              expect(["Pay", "Paid"]).to.include(btnText);
-              cy.log(`[UI] ✓ Status button: "${btnText}" — enabled`);
+            cy.intercept("POST", "**/rpc/update_bonus_totalsales*").as("calcRpc");
+            cy.contains("button", "Calculate").click({ force: true });
+            cy.contains("button", "Calculating...", { timeout: 5000 }).should("exist");
+            cy.wait("@calcRpc", { timeout: 30000 });
+            cy.get(".Toastify__toast--success", { timeout: 15000 }).should("exist");
+            cy.log("[CALC] Calculation triggered");
+            cy.wait(2000);
+
+            // STEP 4: DB verify — bonus_eligibility=true, total_sales > threshold
+            cy.log("=== STEP 4: Verify DB bonus table ===");
+            const today = getTodayYMD();
+            cy.task("getBonusRowForLocationAndDate", { locationId: Number(locationId), date: today }).then((bonusRow) => {
+              cy.log(`[DB] bonus row for location_id=${locationId}, date=${today}: ${JSON.stringify(bonusRow)}`);
+              if (!bonusRow) { cy.log("[DB] No bonus row yet"); return; }
+              const row = bonusRow as Record<string, unknown>;
+              cy.log(`[DB] total_sales=${row.total_sales}, bonus_sales=${row.bonus_sales}, bonus_amount=${row.bonus_amount}, bonus_eligibility=${row.bonus_eligibility}`);
+              expect(row.bonus_eligibility).to.eq(true);
+              expect(Number(row.total_sales)).to.be.greaterThan(threshold);
+              cy.log(`[DB] bonus_eligibility=true, total_sales=${row.total_sales} > threshold=$${threshold}`);
+            });
+            cy.task("getBonusRowsForLocation", { locationId: Number(locationId), limit: 5 }).then((rows) => {
+              cy.log(`[DB] Latest 5 bonus rows for location ${locationId}: ${JSON.stringify(rows)}`);
             });
 
-            // STEP 6: Click Pay on the eligible row and verify in Transactions tab
-            cy.log("=== STEP 6: Click Pay and verify in Transactions tab ===");
+            // STEP 5: UI verify — find any row with Yes badge
+            cy.log("=== STEP 5: Verify UI — Yes badge and Pay button enabled ===");
+            cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-            cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((btnText) => {
-              if (btnText.trim() !== "Pay") {
-                cy.log(`[UI] Row already shows "${btnText.trim()}" — already paid, switching to Transactions tab`);
+            cy.get("table tbody tr").then(($rows) => {
+              let eligibleRow = -1;
+              let eligibleName = "";
+              $rows.each((i, row) => {
+                if (eligibleRow >= 0) return;
+                const cells = Cypress.$(row).find("td");
+                if ((cells[7]?.textContent || "").trim() === "Yes") {
+                  eligibleRow = i;
+                  eligibleName = (cells[0]?.textContent || "").trim();
+                }
+              });
 
-                cy.contains("button", "Bonus transactions").click({ force: true });
-                cy.wait(1500);
-                cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
-                cy.log("[UI] ✓ Paid row visible in Transactions tab");
+              if (eligibleRow < 0) {
+                cy.log("[UI] No eligible rows after Calculate — no sales data yet");
                 return;
               }
+              cy.log(`[UI] Bonus Eligibility="Yes" for "${eligibleName}" (row ${eligibleRow})`);
 
-              cy.intercept("POST", "**/api/bonuses/update-paid*").as("updatePaid");
-              cy.get("table tbody tr").eq(eligibleRow).find("button").contains("Pay").click({ force: true });
+              cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((statusText) => {
+                expect(["Pay", "Paid"]).to.include(statusText.trim());
+                cy.log(`[UI] Status button: "${statusText.trim()}" — enabled`);
+              });
 
-              cy.wait("@updatePaid", { timeout: 15000 }).then((interception) => {
-                const reqLocationId = interception.request.body?.items?.[0]?.location_id;
-                const reqDate = interception.request.body?.items?.[0]?.date;
-                cy.log(`[API] update-paid: location_id=${reqLocationId}, date=${reqDate}`);
+              // STEP 6: Click Pay and verify in Transactions tab
+              cy.log("=== STEP 6: Click Pay and verify in Transactions tab ===");
 
-                cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
-                cy.log("[UI] ✓ Toast shown after Pay");
+              cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((btnText) => {
+                if (btnText.trim() !== "Pay") {
+                  cy.log(`[UI] Already "${btnText.trim()}" — switching to Transactions tab`);
+                  cy.contains("button", "Bonus transactions").click({ force: true });
+                  cy.wait(1500);
+                  cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
+                  cy.log("[UI] Paid row visible in Transactions tab");
+                  return;
+                }
 
-                // DB verify paid=true
-                cy.wait(1000);
-                cy.task("getBonusRowForLocationAndDate", {
-                  locationId: Number(reqLocationId),
-                  date: String(reqDate),
-                }).then((bonusRow) => {
-                  cy.log(`[DB] bonus row after Pay: ${JSON.stringify(bonusRow)}`);
-                  if (bonusRow) {
-                    const row = bonusRow as Record<string, unknown>;
-                    expect(row.paid).to.eq(true);
-                    cy.log(`[DB] ✓ paid=true, paid_date=${row.paid_date}, bonus_amount=${row.bonus_amount}`);
-                  }
-                });
+                cy.intercept("POST", "**/api/bonuses/update-paid*").as("updatePaid");
+                cy.get("table tbody tr").eq(eligibleRow).find("button").contains("Pay").click({ force: true });
 
-                // Switch to Transactions tab and verify the row appears
-                cy.contains("button", "Bonus transactions").click({ force: true });
-                cy.wait(1500);
+                cy.wait("@updatePaid", { timeout: 15000 }).then((payInterception) => {
+                  const reqLocationId = payInterception.request.body?.items?.[0]?.location_id;
+                  const reqDate = payInterception.request.body?.items?.[0]?.date;
+                  cy.log(`[API] update-paid: location_id=${reqLocationId}, date=${reqDate}`);
 
-                cy.get("body").then(($body) => {
-                  if ($body.text().includes("No paid bonuses") || $body.text().includes("No bonuses found")) {
-                    cy.reload();
-                    cy.wait(2000);
-                    cy.contains("button", "Bonus transactions").click({ force: true });
-                    cy.wait(1500);
-                  }
-                });
+                  cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
+                  cy.log("[UI] Toast shown after Pay");
 
-                cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
-                cy.log("[UI] ✓ Paid row appears in Transactions tab");
+                  cy.wait(1000);
+                  cy.task("getBonusRowForLocationAndDate", {
+                    locationId: Number(reqLocationId),
+                    date: String(reqDate),
+                  }).then((bonusRow) => {
+                    cy.log(`[DB] bonus row after Pay: ${JSON.stringify(bonusRow)}`);
+                    if (bonusRow) {
+                      const row = bonusRow as Record<string, unknown>;
+                      expect(row.paid).to.eq(true);
+                      cy.log(`[DB] paid=true, paid_date=${row.paid_date}, bonus_amount=${row.bonus_amount}, bonus_sales=${row.bonus_sales}`);
+                    }
+                  });
 
-                // Verify Status="Paid" and paid_date is set
-                cy.get("table tbody tr").first().find("td").last().invoke("text").then((s) => {
-                  expect(s.trim()).to.eq("Paid");
-                  cy.log(`[UI] ✓ Status="Paid" in Transactions tab`);
-                });
-                cy.get("table tbody tr").first().find("td").eq(7).invoke("text").then((d) => {
-                  expect(d.trim()).to.not.eq("-");
-                  cy.log(`[UI] ✓ paid_date="${d.trim()}" in Transactions tab`);
+                  cy.contains("button", "Bonus transactions").click({ force: true });
+                  cy.wait(1500);
+
+                  cy.get("body").then(($body) => {
+                    if ($body.text().includes("No paid bonuses") || $body.text().includes("No bonuses found")) {
+                      cy.reload();
+                      cy.wait(2000);
+                      cy.contains("button", "Bonus transactions").click({ force: true });
+                      cy.wait(1500);
+                    }
+                  });
+
+                  cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
+                  cy.log("[UI] Paid row appears in Transactions tab");
+
+                  cy.get("table tbody tr").first().find("td").last().invoke("text").then((s) => {
+                    expect(s.trim()).to.eq("Paid");
+                    cy.log(`[UI] Status="Paid" in Transactions tab`);
+                  });
+                  cy.get("table tbody tr").first().find("td").eq(7).invoke("text").then((d) => {
+                    expect(d.trim()).to.not.eq("-");
+                    cy.log(`[UI] paid_date="${d.trim()}" in Transactions tab`);
+                  });
                 });
               });
             });
