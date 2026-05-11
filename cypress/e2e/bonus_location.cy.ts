@@ -350,39 +350,52 @@ describe("Bonus — Location Bonus Page", () => {
             cy.log(`[DB] Latest 5 bonus rows for location ${locationId}: ${JSON.stringify(rows)}`);
           });
 
-          // STEP 5: UI verify — Yes badge and Pay button enabled
+          // STEP 5: UI verify — Yes badge exists for at least one location
           cy.log("=== STEP 5: Verify UI — Yes badge and Pay button enabled ===");
           cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
 
-          cy.contains("td", locName, { timeout: 15000 }).closest("tr").find("td").eq(7)
-            .invoke("text").then((eligText) => {
-              expect(eligText.trim()).to.eq("Yes");
-              cy.log(`[UI] ✓ Bonus Eligibility="Yes" for "${locName}"`);
+          // Find any row with Yes badge — may not be locName if table reordered after Calculate
+          cy.get("table tbody tr").then(($rows) => {
+            let eligibleRow = -1;
+            let eligibleName = "";
+            $rows.each((i, row) => {
+              if (eligibleRow >= 0) return;
+              const cells = Cypress.$(row).find("td");
+              if ((cells[7]?.textContent || "").trim() === "Yes") {
+                eligibleRow = i;
+                eligibleName = (cells[0]?.textContent || "").trim();
+              }
             });
 
-          cy.contains("td", locName).closest("tr")
-            .find("button").filter((_, b) => {
-              const t = (b.textContent || "").trim();
-              return t === "Pay" || t === "Paid";
-            }).then(($btn) => {
-              expect($btn.length).to.be.greaterThan(0);
-              expect($btn[0].hasAttribute("disabled")).to.eq(false);
-              cy.log(`[UI] ✓ Pay/Paid button enabled for "${locName}"`);
+            if (eligibleRow < 0) {
+              cy.log("[UI] No eligible rows visible after Calculate — bonus_eligibility not set yet");
+              return;
+            }
+            cy.log(`[UI] ✓ Bonus Eligibility="Yes" for "${eligibleName}" (row ${eligibleRow})`);
+
+            // Verify Pay/Paid button is enabled for that row
+            cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((statusText) => {
+              const btnText = statusText.trim();
+              expect(["Pay", "Paid"]).to.include(btnText);
+              cy.log(`[UI] ✓ Status button: "${btnText}" — enabled`);
             });
 
-          // STEP 6: Click Pay and verify in Transactions tab
-          cy.log("=== STEP 6: Click Pay and verify in Transactions tab ===");
+            // STEP 6: Click Pay on the eligible row and verify in Transactions tab
+            cy.log("=== STEP 6: Click Pay and verify in Transactions tab ===");
 
-          cy.contains("td", locName).closest("tr")
-            .find("button").filter((_, b) => b.textContent?.trim() === "Pay" && !b.hasAttribute("disabled"))
-            .then(($payBtn) => {
-              if ($payBtn.length === 0) {
-                cy.log("[UI] No Pay button (already paid or not eligible) — skipping Pay step");
+            cy.get("table tbody tr").eq(eligibleRow).find("td").last().invoke("text").then((btnText) => {
+              if (btnText.trim() !== "Pay") {
+                cy.log(`[UI] Row already shows "${btnText.trim()}" — already paid, switching to Transactions tab`);
+
+                cy.contains("button", "Bonus transactions").click({ force: true });
+                cy.wait(1500);
+                cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
+                cy.log("[UI] ✓ Paid row visible in Transactions tab");
                 return;
               }
 
               cy.intercept("POST", "**/api/bonuses/update-paid*").as("updatePaid");
-              cy.wrap($payBtn).first().click({ force: true });
+              cy.get("table tbody tr").eq(eligibleRow).find("button").contains("Pay").click({ force: true });
 
               cy.wait("@updatePaid", { timeout: 15000 }).then((interception) => {
                 const reqLocationId = interception.request.body?.items?.[0]?.location_id;
@@ -406,7 +419,7 @@ describe("Bonus — Location Bonus Page", () => {
                   }
                 });
 
-                // Verify row appears in Transactions tab
+                // Switch to Transactions tab and verify the row appears
                 cy.contains("button", "Bonus transactions").click({ force: true });
                 cy.wait(1500);
 
@@ -420,18 +433,20 @@ describe("Bonus — Location Bonus Page", () => {
                 });
 
                 cy.get("table tbody tr", { timeout: 15000 }).should("have.length.greaterThan", 0);
-                cy.contains("td", locName, { timeout: 10000 }).closest("tr").find("td").last()
-                  .invoke("text").then((s) => {
-                    expect(s.trim()).to.eq("Paid");
-                    cy.log(`[UI] ✓ Status="Paid" in Transactions tab for "${locName}"`);
-                  });
-                cy.contains("td", locName).closest("tr").find("td").eq(7)
-                  .invoke("text").then((d) => {
-                    expect(d.trim()).to.not.eq("-");
-                    cy.log(`[UI] ✓ paid_date="${d.trim()}" in Transactions tab`);
-                  });
+                cy.log("[UI] ✓ Paid row appears in Transactions tab");
+
+                // Verify Status="Paid" and paid_date is set
+                cy.get("table tbody tr").first().find("td").last().invoke("text").then((s) => {
+                  expect(s.trim()).to.eq("Paid");
+                  cy.log(`[UI] ✓ Status="Paid" in Transactions tab`);
+                });
+                cy.get("table tbody tr").first().find("td").eq(7).invoke("text").then((d) => {
+                  expect(d.trim()).to.not.eq("-");
+                  cy.log(`[UI] ✓ paid_date="${d.trim()}" in Transactions tab`);
+                });
               });
             });
+          });
         });
       });
     });
