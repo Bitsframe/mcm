@@ -169,10 +169,14 @@ describe("Bonus — Individual Bonus Page", () => {
     });
   });
 
-  // ── 4. Filter by Location ────────────────────────────────────────────────────
+  // ── 4. Filter by Location (multi-select) ────────────────────────────────────
+  // The location dropdown is a checkbox multi-select — selecting two locations
+  // means rows from EITHER location should appear (OR logic).
 
-  it("should open Filter modal, select Location mode, pick a location, apply, and show only matching rows", () => {
+  it("should open Filter modal, select Location mode, pick two locations via checkboxes, apply, and verify all rows belong to one of the selected locations", () => {
     loginAndVisit();
+
+    const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
 
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
       if ($rows.length === 0) {
@@ -180,67 +184,176 @@ describe("Bonus — Individual Bonus Page", () => {
         return;
       }
 
-      // Grab the first location name from the table (column index 1)
-      cy.get("table tbody tr").first().find("td").eq(1).invoke("text").then((locationName) => {
-        const locName = locationName.trim();
-        if (!locName) {
-          cy.log("[SKIP] First row has no location name");
+      // Collect distinct location names from the table (up to 2)
+      const seenLocs: string[] = [];
+      $rows.each((_, row) => {
+        const loc = (Cypress.$(row).find("td").eq(1).text() || "").trim();
+        if (loc && !seenLocs.find((l) => normalise(l) === normalise(loc))) {
+          seenLocs.push(loc);
+        }
+      });
+
+      if (seenLocs.length === 0) {
+        cy.log("[SKIP] No location names found in table rows");
+        return;
+      }
+
+      // Pick up to 2 distinct locations to select in the filter
+      const locationsToSelect = seenLocs.slice(0, 2);
+      cy.log(`[FILTER] Will select locations: ${JSON.stringify(locationsToSelect)}`);
+
+      cy.contains("button", /filter/i).click({ force: true });
+      cy.wait(500);
+
+      // Switch to Location radio
+      cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
+      cy.wait(300);
+
+      // Open the location checkbox dropdown (triggered by the div containing ▾)
+      cy.get("body").then(($body) => {
+        const triggers = $body.find('[class*="cursor-pointer"]').toArray()
+          .filter((el) => (el.textContent || "").includes("▾"));
+        if (triggers.length > 0) {
+          cy.wrap(triggers[0]).click({ force: true });
+          cy.wait(300);
+        }
+      });
+
+      // Tick each location checkbox by clicking its label text
+      locationsToSelect.forEach((loc) => {
+        cy.contains(loc, { timeout: 8000 }).click({ force: true });
+        cy.wait(200);
+      });
+
+      // Close dropdown by clicking Apply (dropdown stays open until Apply)
+      cy.contains("button", /apply/i).click({ force: true });
+      cy.wait(1500);
+
+      // Applied filter badge should mention Location
+      cy.contains(/location/i, { timeout: 8000 }).should("exist");
+      cy.log(`[FILTER] Location filter badge shown`);
+
+      // Every visible row must belong to one of the selected locations (OR logic)
+      cy.get("table tbody tr").then(($filtered) => {
+        if ($filtered.length === 0) {
+          cy.log("[FILTER] No rows after location filter — acceptable if no data for these locations");
           return;
         }
 
-        cy.log(`[FILTER] Will filter by location: "${locName}"`);
+        const selectedNormalised = locationsToSelect.map(normalise);
 
-        cy.contains("button", /filter/i).click({ force: true });
-        cy.wait(500);
-
-        // Switch to Location radio
-        cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
-        cy.wait(300);
-
-        // Open the location dropdown and pick the matching location
-        cy.get("body").then(($body) => {
-          // The location dropdown trigger is a div with a ▾ arrow
-          const dropdownTriggers = $body.find('[class*="cursor-pointer"]').toArray()
-            .filter((el) => (el.textContent || "").includes("▾"));
-          if (dropdownTriggers.length > 0) {
-            cy.wrap(dropdownTriggers[0]).click({ force: true });
-            cy.wait(300);
-          }
-        });
-
-        // Click the location option matching locName
-        cy.contains(locName, { timeout: 8000 }).click({ force: true });
-        cy.wait(300);
-
-        // Apply
-        cy.contains("button", /apply/i).click({ force: true });
-        cy.wait(1500);
-
-        // Applied filter badge should appear
-        cy.contains(/location/i, { timeout: 8000 }).should("exist");
-        cy.log(`[FILTER] Location filter badge shown for "${locName}"`);
-
-        // All visible rows should contain the exact location name
-        cy.get("table tbody tr").then(($filtered) => {
-          if ($filtered.length === 0) {
-            cy.log("[FILTER] No rows after location filter — acceptable if no data for this location");
-            return;
-          }
-          cy.get("table tbody tr").each(($row) => {
-            cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
-              // Compare full names normalised to NFC so accented chars match regardless
-              // of how the browser serialises them (e.g. "clínica" vs "cli\u0301nica")
-              const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
-              expect(normalise(rowLoc)).to.eq(normalise(locName));
-            });
+        cy.get("table tbody tr").each(($row) => {
+          cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
+            const rowNorm = normalise(rowLoc);
+            expect(selectedNormalised).to.include(rowNorm,
+              `Row location "${rowLoc}" should be one of [${locationsToSelect.join(", ")}]`
+            );
           });
-          cy.log(`[FILTER] All rows match location "${locName}"`);
         });
+        cy.log(`[FILTER] ✓ All rows belong to one of: ${locationsToSelect.join(", ")}`);
       });
     });
   });
 
-  // ── 5. Distribution: RPC calls + table updates + DB verification ────────────
+  // ── 5. Filter by Location + Bonus Date range combined ───────────────────────
+  // Selects a location AND a bonus date range, verifies rows match both constraints.
+
+  it("should filter by Location and Bonus Date range, verify rows match location and bonus_date falls within range", () => {
+    loginAndVisit();
+
+    const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
+
+    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
+      if ($rows.length === 0) {
+        cy.log("[SKIP] No rows — cannot test combined filter without data");
+        return;
+      }
+
+      // Pick the first location from the table
+      const firstLocName = (Cypress.$($rows[0]).find("td").eq(1).text() || "").trim();
+      if (!firstLocName) {
+        cy.log("[SKIP] First row has no location name");
+        return;
+      }
+
+      // Build a wide bonus date range: last 90 days → today
+      const today = new Date();
+      const rangeEnd = today.toISOString().slice(0, 10);
+      const rangeStart = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000)
+        .toISOString().slice(0, 10);
+
+      cy.log(`[FILTER] Location: "${firstLocName}", Bonus date: ${rangeStart} → ${rangeEnd}`);
+
+      cy.contains("button", /filter/i).click({ force: true });
+      cy.wait(500);
+
+      // Switch to Location radio
+      cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
+      cy.wait(300);
+
+      // Open location dropdown and select the first location
+      cy.get("body").then(($body) => {
+        const triggers = $body.find('[class*="cursor-pointer"]').toArray()
+          .filter((el) => (el.textContent || "").includes("▾"));
+        if (triggers.length > 0) {
+          cy.wrap(triggers[0]).click({ force: true });
+          cy.wait(300);
+        }
+      });
+      cy.contains(firstLocName, { timeout: 8000 }).click({ force: true });
+      cy.wait(200);
+
+      // Set Bonus Date range using the two date inputs inside the modal
+      // The modal has two RangeDatePicker sections; the first is Bonus Date
+      cy.get('.fixed input[type="date"]').then(($dateInputs) => {
+        if ($dateInputs.length >= 2) {
+          cy.wrap($dateInputs[0]).clear({ force: true }).type(rangeStart, { force: true });
+          cy.wait(100);
+          cy.wrap($dateInputs[1]).clear({ force: true }).type(rangeEnd, { force: true });
+          cy.wait(100);
+          cy.log(`[FILTER] Bonus date inputs set: ${rangeStart} → ${rangeEnd}`);
+        } else {
+          cy.log("[FILTER] Date inputs not found — applying location-only filter");
+        }
+      });
+
+      cy.contains("button", /apply/i).click({ force: true });
+      cy.wait(1500);
+
+      // Filter badge should appear
+      cy.contains(/location/i, { timeout: 8000 }).should("exist");
+      cy.log("[FILTER] Filter badge visible after apply");
+
+      cy.get("table tbody tr").then(($filtered) => {
+        if ($filtered.length === 0) {
+          cy.log("[FILTER] No rows after combined filter — acceptable if no data in range");
+          return;
+        }
+
+        cy.log(`[FILTER] ${$filtered.length} rows returned`);
+
+        // Every row must match the selected location
+        cy.get("table tbody tr").each(($row) => {
+          cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
+            expect(normalise(rowLoc)).to.eq(normalise(firstLocName));
+          });
+
+          // Bonus date (col 3) must fall within the range
+          cy.wrap($row).find("td").eq(3).invoke("text").then((dateText) => {
+            const trimmed = dateText.trim();
+            if (!trimmed || trimmed === "-") return; // no date set — skip
+            const rowDate = new Date(trimmed);
+            if (isNaN(rowDate.getTime())) return; // unparseable — skip
+            expect(rowDate.getTime()).to.be.at.least(new Date(rangeStart).getTime());
+            expect(rowDate.getTime()).to.be.at.most(new Date(rangeEnd).getTime() + 86400000);
+          });
+        });
+        cy.log(`[FILTER] ✓ All rows match location "${firstLocName}" and bonus date within ${rangeStart} → ${rangeEnd}`);
+      });
+    });
+  });
+
+  // ── 6. Distribution: RPC calls + table updates + DB verification ────────────
 
   it("should click Distribute, call both RPCs, show new rows in table, and verify DB has correct bonus data", () => {
     loginAndVisit();
@@ -249,98 +362,107 @@ describe("Bonus — Individual Bonus Page", () => {
 
     cy.get(distributeBtn, { timeout: 10000 }).should("exist").and("not.be.disabled");
 
-    // Capture initial row count
-    let initialRowCount = 0;
-    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
-      initialRowCount = $rows.length;
-      cy.log(`[BEFORE] Table has ${initialRowCount} rows`);
-    });
-
+    // Intercept the Supabase REST fetch that reloads rows after distribution.
+    // Its response body contains the raw individual_bonus records with their ids —
+    // we use those ids to look up the exact same rows in the DB and compare.
+    cy.intercept("GET", "**/rest/v1/individual_bonus*").as("fetchRows");
     cy.intercept("POST", "**/rpc/calculate_team_bonus_daily*").as("calcRpc");
     cy.intercept("POST", "**/rpc/distribute_individual_bonus_daily*").as("distributeRpc");
 
+    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
+      cy.log(`[BEFORE] Table has ${$rows.length} rows`);
+    });
+
     cy.get(distributeBtn).click({ force: true });
 
-    // Button should enter a loading/disabled state
+    // Button must become disabled immediately
     cy.get(distributeBtn, { timeout: 5000 }).should("be.disabled");
     cy.log("[UI] Distribute button disabled during calculation");
 
-    // Both RPCs should be called
+    // Both RPCs must fire in order
     cy.wait("@calcRpc", { timeout: 30000 });
-    cy.log("[RPC] calculate_team_bonus_daily called");
+    cy.log("[RPC] ✓ calculate_team_bonus_daily called");
 
     cy.wait("@distributeRpc", { timeout: 30000 });
-    cy.log("[RPC] distribute_individual_bonus_daily called");
+    cy.log("[RPC] ✓ distribute_individual_bonus_daily called");
 
-    // Success toast should appear
+    // Success toast
     cy.get(".Toastify__toast--success", { timeout: 15000 }).should("exist");
-    cy.log("[UI] Success toast shown after distribution");
+    cy.log("[UI] ✓ Success toast shown");
 
-    // Button should return to normal
+    // Button re-enables
     cy.get(distributeBtn, { timeout: 15000 }).should("not.be.disabled");
-    cy.log("[UI] Distribute button re-enabled after completion");
+    cy.log("[UI] ✓ Distribute button re-enabled");
 
-    // Wait for table to refresh
-    cy.wait(2000);
+    // Wait for the table-reload fetch triggered by fetchRows() inside the page
+    cy.wait("@fetchRows", { timeout: 15000 }).then((fetchInterception) => {
+      const responseBody = fetchInterception.response?.body;
+      const rawRows: Record<string, unknown>[] = Array.isArray(responseBody)
+        ? responseBody
+        : [];
+      cy.log(`[API] fetchRows response: ${rawRows.length} raw rows`);
 
-    // ── Verify table updated ──────────────────────────────────────────────────
-    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
-      const newRowCount = $rows.length;
-      cy.log(`[AFTER] Table has ${newRowCount} rows (was ${initialRowCount})`);
+      // ── Table structure check ─────────────────────────────────────────────
+      cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
+        cy.log(`[AFTER] Table has ${$rows.length} rows`);
 
-      if (newRowCount === 0) {
-        cy.log("[TABLE] No rows after distribution — may indicate no eligible bonuses for today");
-        return;
-      }
-
-      // Verify at least one row has data
-      cy.get("table tbody tr").first().within(() => {
-        cy.get("td").eq(0).invoke("text").should("not.be.empty"); // Staff name
-        cy.get("td").eq(2).invoke("text").then((bonusText) => {
-          const bonus = parseFloat(bonusText.replace(/[^0-9.]/g, ""));
-          expect(bonus).to.be.greaterThan(0);
-          cy.log(`[TABLE] First row bonus: ${bonus}`);
-        });
-      });
-
-      // ── DB verification ────────────────────────────────────────────────────
-      cy.task("getRecentIndividualBonusRows", { limit: 10 }).then((dbRows) => {
-        cy.log(`[DB] Recent individual_bonus rows: ${JSON.stringify(dbRows)}`);
-        const rows = dbRows as Record<string, unknown>[];
-
-        if (rows.length === 0) {
-          cy.log("[DB] No rows in individual_bonus table — distribution may not have created data");
+        if ($rows.length === 0) {
+          cy.log("[TABLE] No rows after distribution — no eligible bonuses for today");
           return;
         }
 
-        // Verify DB rows have correct structure
-        const firstRow = rows[0];
-        expect(firstRow).to.have.property("id");
-        expect(firstRow).to.have.property("bonus");
-        expect(firstRow).to.have.property("bonus_date");
-        expect(firstRow).to.have.property("paid");
-        cy.log(`[DB] ✓ Row structure correct: id=${firstRow.id}, bonus=${firstRow.bonus}, paid=${firstRow.paid}`);
-
-        // Verify bonus amounts are positive
-        rows.forEach((row, i) => {
-          const bonus = Number(row.bonus || 0);
-          expect(bonus).to.be.at.least(0);
-          if (i < 3) cy.log(`[DB] Row ${i}: bonus=${bonus}, paid=${row.paid}, bonus_date=${row.bonus_date}`);
+        // First row must have a non-empty staff name and a positive bonus
+        cy.get("table tbody tr").first().within(() => {
+          cy.get("td").eq(0).invoke("text").should("not.be.empty");
+          cy.get("td").eq(2).invoke("text").then((bonusText) => {
+            const bonus = parseFloat(bonusText.replace(/[^0-9.]/g, ""));
+            expect(bonus).to.be.greaterThan(0);
+            cy.log(`[TABLE] First row UI bonus: ${bonus}`);
+          });
         });
 
-        // ── Cross-check: UI bonus matches DB bonus for first row ──────────────
-        cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((uiBonus) => {
-          const uiBonusNum = parseFloat(uiBonus.replace(/[^0-9.]/g, ""));
-          const dbBonusNum = Number(firstRow.bonus || 0);
-          // Allow small floating-point tolerance
-          expect(uiBonusNum).to.be.closeTo(dbBonusNum, 0.01);
-          cy.log(`[VERIFY] ✓ UI bonus (${uiBonusNum}) matches DB bonus (${dbBonusNum})`);
-        });
+        // ── DB cross-check: match each UI row to its DB record by id ─────────
+        // rawRows preserves insertion order which the page maps 1-to-1 to table rows.
+        // We check up to 3 rows to keep the test fast.
+        const checkCount = Math.min($rows.length, rawRows.length, 3);
+
+        for (let i = 0; i < checkCount; i++) {
+          const rawRow = rawRows[i];
+          const rowId = rawRow?.id;
+          if (!rowId) {
+            cy.log(`[DB] Row ${i} has no id — skipping`);
+            continue;
+          }
+
+          // Read the bonus displayed in the UI for this row index
+          cy.get("table tbody tr").eq(i).find("td").eq(2).invoke("text").then((uiText) => {
+            const uiBonusNum = parseFloat(uiText.replace(/[^0-9.]/g, ""));
+            cy.log(`[UI] Row ${i} id=${rowId}, displayed bonus=${uiBonusNum}`);
+
+            // Fetch the exact same row from the DB by id
+            cy.task("getIndividualBonusById", { id: rowId }).then((dbRow) => {
+              cy.log(`[DB] Row ${i}: ${JSON.stringify(dbRow)}`);
+              expect(dbRow).to.not.be.null;
+              const row = dbRow as Record<string, unknown>;
+
+              // Structure checks
+              expect(row).to.have.property("id");
+              expect(row).to.have.property("bonus");
+              expect(row).to.have.property("bonus_date");
+              expect(row).to.have.property("paid");
+
+              // UI bonus must match the DB bonus for the same record
+              const dbBonusNum = Number(row.bonus || 0);
+              expect(uiBonusNum).to.be.closeTo(dbBonusNum, 0.01);
+              cy.log(`[VERIFY] ✓ Row ${i}: UI bonus (${uiBonusNum}) === DB bonus (${dbBonusNum})`);
+            });
+          });
+        }
       });
     });
   });
 
-  // ── 6. Pay action: click Pay → button becomes Paid (disabled) + DB verify ────
+  // ── 7. Pay action: click Pay → button becomes Paid (disabled) + DB verify ────
 
   it("should click Pay on an unpaid row, show paid state in Actions column, and verify paid=true with paid_date in individual_bonus DB", () => {
     loginAndVisit();
