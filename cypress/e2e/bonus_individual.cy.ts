@@ -20,6 +20,81 @@ function loginAndVisit() {
   cy.wait(2000);
 }
 
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
+
+/**
+ * Opens the filter modal, switches to Location mode, opens the location
+ * checkbox dropdown, and ticks every location name in `locNames`.
+ * Leaves the modal open so the caller can add more interactions before Apply.
+ */
+function openModalAndSelectLocations(locNames: string[]) {
+  cy.contains("button", /filter/i).click({ force: true });
+  cy.wait(500);
+
+  // Switch to Location radio (last radio in the group)
+  cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
+  cy.wait(300);
+
+  // The location dropdown trigger is the div that contains the placeholder text
+  // or selected chips + the ▾ arrow. It has an onClick that toggles locDropdownOpen.
+  // Scope inside the modal (fixed overlay) to avoid hitting other elements.
+  cy.get('[class*="fixed"]').within(() => {
+    // Click the dropdown trigger — it's the first div with cursor-pointer that
+    // contains the ▾ character after switching to location mode
+    cy.contains("▾").click({ force: true });
+    cy.wait(300);
+
+    // Tick each location by clicking its text inside the dropdown list
+    locNames.forEach((loc) => {
+      cy.contains(loc, { timeout: 8000 }).click({ force: true });
+      cy.wait(150);
+    });
+  });
+}
+
+/**
+ * Clicks a specific day number in the RangeDatePicker calendar that is
+ * currently visible inside the modal. `nth` selects which calendar instance
+ * (0 = Bonus Date, 1 = Paid Date).
+ */
+function clickCalendarDay(nth: number, day: number) {
+  cy.get('[class*="fixed"]')
+    .find('[class*="grid-cols-7"]')
+    // Each RangeDatePicker has one header row (day labels) + week rows.
+    // We want the nth calendar's day buttons — find all calendar grids,
+    // skip the header grids (they contain text like Su/Mo/Tu…), and pick
+    // the nth data grid set.
+    .then(($grids) => {
+      // Filter to grids that contain actual day buttons (not header labels)
+      const dataGrids = $grids.toArray().filter((g) =>
+        Cypress.$(g).find("button").length > 0
+      );
+      // Each calendar has multiple week rows — group by calendar instance.
+      // The nth calendar's week rows start after nth * (weeks per month) offset.
+      // Simpler: find all day buttons across all calendars and pick the right one.
+      const allDayBtns = $grids
+        .toArray()
+        .filter((g) => Cypress.$(g).find("button").length > 0)
+        .flatMap((g) => Cypress.$(g).find("button").toArray());
+
+      // Split into two halves: first calendar buttons, second calendar buttons
+      const half = Math.ceil(allDayBtns.length / 2);
+      const calBtns = nth === 0 ? allDayBtns.slice(0, half) : allDayBtns.slice(half);
+
+      const target = calBtns.find(
+        (b) => (b.textContent || "").trim() === String(day)
+      );
+      if (target) {
+        cy.wrap(target).click({ force: true });
+        cy.wait(150);
+      } else {
+        cy.log(`[CAL] Day ${day} not found in calendar ${nth} — skipping`);
+      }
+    });
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("Bonus — Individual Bonus Page", () => {
@@ -159,7 +234,6 @@ describe("Bonus — Individual Bonus Page", () => {
           }
           cy.get("table tbody tr").each(($row) => {
             cy.wrap($row).find("td").eq(0).invoke("text").then((rowName) => {
-              const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
               expect(normalise(rowName)).to.include(normalise(name).split(" ")[0]);
             });
           });
@@ -176,15 +250,13 @@ describe("Bonus — Individual Bonus Page", () => {
   it("should open Filter modal, select Location mode, pick two locations via checkboxes, apply, and verify all rows belong to one of the selected locations", () => {
     loginAndVisit();
 
-    const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
-
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
       if ($rows.length === 0) {
         cy.log("[SKIP] No rows in table — cannot test location filter without data");
         return;
       }
 
-      // Collect distinct location names from the table (up to 2)
+      // Collect up to 2 distinct location names already visible in the table
       const seenLocs: string[] = [];
       $rows.each((_, row) => {
         const loc = (Cypress.$(row).find("td").eq(1).text() || "").trim();
@@ -198,40 +270,17 @@ describe("Bonus — Individual Bonus Page", () => {
         return;
       }
 
-      // Pick up to 2 distinct locations to select in the filter
       const locationsToSelect = seenLocs.slice(0, 2);
-      cy.log(`[FILTER] Will select locations: ${JSON.stringify(locationsToSelect)}`);
+      cy.log(`[FILTER] Selecting locations: ${JSON.stringify(locationsToSelect)}`);
 
-      cy.contains("button", /filter/i).click({ force: true });
-      cy.wait(500);
+      openModalAndSelectLocations(locationsToSelect);
 
-      // Switch to Location radio
-      cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
-      cy.wait(300);
-
-      // Open the location checkbox dropdown (triggered by the div containing ▾)
-      cy.get("body").then(($body) => {
-        const triggers = $body.find('[class*="cursor-pointer"]').toArray()
-          .filter((el) => (el.textContent || "").includes("▾"));
-        if (triggers.length > 0) {
-          cy.wrap(triggers[0]).click({ force: true });
-          cy.wait(300);
-        }
-      });
-
-      // Tick each location checkbox by clicking its label text
-      locationsToSelect.forEach((loc) => {
-        cy.contains(loc, { timeout: 8000 }).click({ force: true });
-        cy.wait(200);
-      });
-
-      // Close dropdown by clicking Apply (dropdown stays open until Apply)
       cy.contains("button", /apply/i).click({ force: true });
       cy.wait(1500);
 
-      // Applied filter badge should mention Location
+      // Applied filter badge must mention Location
       cy.contains(/location/i, { timeout: 8000 }).should("exist");
-      cy.log(`[FILTER] Location filter badge shown`);
+      cy.log("[FILTER] Location filter badge shown");
 
       // Every visible row must belong to one of the selected locations (OR logic)
       cy.get("table tbody tr").then(($filtered) => {
@@ -240,12 +289,12 @@ describe("Bonus — Individual Bonus Page", () => {
           return;
         }
 
-        const selectedNormalised = locationsToSelect.map(normalise);
+        const selectedNorm = locationsToSelect.map(normalise);
 
         cy.get("table tbody tr").each(($row) => {
           cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
-            const rowNorm = normalise(rowLoc);
-            expect(selectedNormalised).to.include(rowNorm,
+            expect(selectedNorm).to.include(
+              normalise(rowLoc),
               `Row location "${rowLoc}" should be one of [${locationsToSelect.join(", ")}]`
             );
           });
@@ -256,12 +305,11 @@ describe("Bonus — Individual Bonus Page", () => {
   });
 
   // ── 5. Filter by Location + Bonus Date range combined ───────────────────────
-  // Selects a location AND a bonus date range, verifies rows match both constraints.
+  // Selects one location AND a bonus date range via the calendar widget,
+  // then verifies rows match the location and have bonus_date within the range.
 
   it("should filter by Location and Bonus Date range, verify rows match location and bonus_date falls within range", () => {
     loginAndVisit();
-
-    const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
 
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
       if ($rows.length === 0) {
@@ -276,51 +324,23 @@ describe("Bonus — Individual Bonus Page", () => {
         return;
       }
 
-      // Build a wide bonus date range: last 90 days → today
-      const today = new Date();
-      const rangeEnd = today.toISOString().slice(0, 10);
-      const rangeStart = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000)
-        .toISOString().slice(0, 10);
+      cy.log(`[FILTER] Location: "${firstLocName}"`);
 
-      cy.log(`[FILTER] Location: "${firstLocName}", Bonus date: ${rangeStart} → ${rangeEnd}`);
+      // Open modal, switch to Location mode, select the location
+      openModalAndSelectLocations([firstLocName]);
 
-      cy.contains("button", /filter/i).click({ force: true });
-      cy.wait(500);
-
-      // Switch to Location radio
-      cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
-      cy.wait(300);
-
-      // Open location dropdown and select the first location
-      cy.get("body").then(($body) => {
-        const triggers = $body.find('[class*="cursor-pointer"]').toArray()
-          .filter((el) => (el.textContent || "").includes("▾"));
-        if (triggers.length > 0) {
-          cy.wrap(triggers[0]).click({ force: true });
-          cy.wait(300);
-        }
-      });
-      cy.contains(firstLocName, { timeout: 8000 }).click({ force: true });
-      cy.wait(200);
-
-      // Set Bonus Date range using the two date inputs inside the modal
-      // The modal has two RangeDatePicker sections; the first is Bonus Date
-      cy.get('.fixed input[type="date"]').then(($dateInputs) => {
-        if ($dateInputs.length >= 2) {
-          cy.wrap($dateInputs[0]).clear({ force: true }).type(rangeStart, { force: true });
-          cy.wait(100);
-          cy.wrap($dateInputs[1]).clear({ force: true }).type(rangeEnd, { force: true });
-          cy.wait(100);
-          cy.log(`[FILTER] Bonus date inputs set: ${rangeStart} → ${rangeEnd}`);
-        } else {
-          cy.log("[FILTER] Date inputs not found — applying location-only filter");
-        }
-      });
+      // Now set the Bonus Date range using the calendar widget.
+      // Strategy: click day 1 as start and day 28 as end in the current month
+      // (day 28 always exists in every month). This gives a wide enough range
+      // to capture any existing data without needing to know exact dates.
+      cy.log("[FILTER] Setting bonus date range via calendar: day 1 → day 28");
+      clickCalendarDay(0, 1);   // start = 1st of current month
+      clickCalendarDay(0, 28);  // end   = 28th of current month
 
       cy.contains("button", /apply/i).click({ force: true });
       cy.wait(1500);
 
-      // Filter badge should appear
+      // Filter badge must appear
       cy.contains(/location/i, { timeout: 8000 }).should("exist");
       cy.log("[FILTER] Filter badge visible after apply");
 
@@ -332,23 +352,29 @@ describe("Bonus — Individual Bonus Page", () => {
 
         cy.log(`[FILTER] ${$filtered.length} rows returned`);
 
-        // Every row must match the selected location
+        // Build the expected date range from what we clicked (1st → 28th of current month)
+        const now = new Date();
+        const rangeStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const rangeEnd   = new Date(now.getFullYear(), now.getMonth(), 28);
+
         cy.get("table tbody tr").each(($row) => {
+          // Column 1: location must match
           cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
             expect(normalise(rowLoc)).to.eq(normalise(firstLocName));
           });
 
-          // Bonus date (col 3) must fall within the range
+          // Column 3: bonus_date must fall within the selected range (if present)
           cy.wrap($row).find("td").eq(3).invoke("text").then((dateText) => {
             const trimmed = dateText.trim();
-            if (!trimmed || trimmed === "-") return; // no date set — skip
+            if (!trimmed || trimmed === "-") return;
             const rowDate = new Date(trimmed);
-            if (isNaN(rowDate.getTime())) return; // unparseable — skip
-            expect(rowDate.getTime()).to.be.at.least(new Date(rangeStart).getTime());
-            expect(rowDate.getTime()).to.be.at.most(new Date(rangeEnd).getTime() + 86400000);
+            if (isNaN(rowDate.getTime())) return;
+            expect(rowDate.getTime()).to.be.at.least(rangeStart.getTime());
+            // add 1 day buffer for timezone edge cases
+            expect(rowDate.getTime()).to.be.at.most(rangeEnd.getTime() + 86400000);
           });
         });
-        cy.log(`[FILTER] ✓ All rows match location "${firstLocName}" and bonus date within ${rangeStart} → ${rangeEnd}`);
+        cy.log(`[FILTER] ✓ All rows match location "${firstLocName}" and bonus date within range`);
       });
     });
   });
