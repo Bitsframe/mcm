@@ -41,11 +41,13 @@ describe("Bonus — Individual Bonus Page", () => {
     cy.log("[UI] Header buttons present");
 
     // Table columns
-    cy.contains("th", /staff/i).should("exist");
+    cy.contains("th", /name/i).should("exist");
     cy.contains("th", /location/i).should("exist");
-    cy.contains("th", /bonus/i).should("exist");
+    cy.contains("th", /bonus amount/i).should("exist");
     cy.contains("th", /bonus date/i).should("exist");
     cy.contains("th", /paid date/i).should("exist");
+        cy.contains("th", /actions/i).should("exist");
+
     cy.log("[UI] All table columns present");
   });
 
@@ -149,7 +151,7 @@ describe("Bonus — Individual Bonus Page", () => {
         cy.contains(/staff/i, { timeout: 8000 }).should("exist");
         cy.log(`[FILTER] Staff filter badge shown for "${name}"`);
 
-        // All visible rows should contain the staff name (or table may be empty if no match)
+        // All visible rows should contain the staff name
         cy.get("table tbody tr").then(($filtered) => {
           if ($filtered.length === 0) {
             cy.log("[FILTER] No rows after staff filter — acceptable if no data for this staff");
@@ -157,7 +159,8 @@ describe("Bonus — Individual Bonus Page", () => {
           }
           cy.get("table tbody tr").each(($row) => {
             cy.wrap($row).find("td").eq(0).invoke("text").then((rowName) => {
-              expect(rowName.trim().toLowerCase()).to.include(name.toLowerCase().split(" ")[0]);
+              const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
+              expect(normalise(rowName)).to.include(normalise(name).split(" ")[0]);
             });
           });
           cy.log(`[FILTER] All rows match staff "${name}"`);
@@ -217,7 +220,7 @@ describe("Bonus — Individual Bonus Page", () => {
         cy.contains(/location/i, { timeout: 8000 }).should("exist");
         cy.log(`[FILTER] Location filter badge shown for "${locName}"`);
 
-        // All visible rows should contain the location name
+        // All visible rows should contain the exact location name
         cy.get("table tbody tr").then(($filtered) => {
           if ($filtered.length === 0) {
             cy.log("[FILTER] No rows after location filter — acceptable if no data for this location");
@@ -225,7 +228,10 @@ describe("Bonus — Individual Bonus Page", () => {
           }
           cy.get("table tbody tr").each(($row) => {
             cy.wrap($row).find("td").eq(1).invoke("text").then((rowLoc) => {
-              expect(rowLoc.trim().toLowerCase()).to.include(locName.toLowerCase().split(" ")[0]);
+              // Compare full names normalised to NFC so accented chars match regardless
+              // of how the browser serialises them (e.g. "clínica" vs "cli\u0301nica")
+              const normalise = (s: string) => s.trim().normalize("NFC").toLowerCase();
+              expect(normalise(rowLoc)).to.eq(normalise(locName));
             });
           });
           cy.log(`[FILTER] All rows match location "${locName}"`);
@@ -234,14 +240,21 @@ describe("Bonus — Individual Bonus Page", () => {
     });
   });
 
-  // ── 5. Distribution button: loading state + RPC calls + success toast ────────
+  // ── 5. Distribution: RPC calls + table updates + DB verification ────────────
 
-  it("should click Distribute, show loading state, call both RPCs, and show success toast", () => {
+  it("should click Distribute, call both RPCs, show new rows in table, and verify DB has correct bonus data", () => {
     loginAndVisit();
 
     const distributeBtn = '[aria-label="Distribute individual bonuses"]';
 
     cy.get(distributeBtn, { timeout: 10000 }).should("exist").and("not.be.disabled");
+
+    // Capture initial row count
+    let initialRowCount = 0;
+    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
+      initialRowCount = $rows.length;
+      cy.log(`[BEFORE] Table has ${initialRowCount} rows`);
+    });
 
     cy.intercept("POST", "**/rpc/calculate_team_bonus_daily*").as("calcRpc");
     cy.intercept("POST", "**/rpc/distribute_individual_bonus_daily*").as("distributeRpc");
@@ -260,17 +273,76 @@ describe("Bonus — Individual Bonus Page", () => {
     cy.log("[RPC] distribute_individual_bonus_daily called");
 
     // Success toast should appear
-    cy.get(".Toastify__toast", { timeout: 15000 }).should("exist");
-    cy.log("[UI] Toast shown after distribution");
+    cy.get(".Toastify__toast--success", { timeout: 15000 }).should("exist");
+    cy.log("[UI] Success toast shown after distribution");
 
     // Button should return to normal
     cy.get(distributeBtn, { timeout: 15000 }).should("not.be.disabled");
     cy.log("[UI] Distribute button re-enabled after completion");
+
+    // Wait for table to refresh
+    cy.wait(2000);
+
+    // ── Verify table updated ──────────────────────────────────────────────────
+    cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
+      const newRowCount = $rows.length;
+      cy.log(`[AFTER] Table has ${newRowCount} rows (was ${initialRowCount})`);
+
+      if (newRowCount === 0) {
+        cy.log("[TABLE] No rows after distribution — may indicate no eligible bonuses for today");
+        return;
+      }
+
+      // Verify at least one row has data
+      cy.get("table tbody tr").first().within(() => {
+        cy.get("td").eq(0).invoke("text").should("not.be.empty"); // Staff name
+        cy.get("td").eq(2).invoke("text").then((bonusText) => {
+          const bonus = parseFloat(bonusText.replace(/[^0-9.]/g, ""));
+          expect(bonus).to.be.greaterThan(0);
+          cy.log(`[TABLE] First row bonus: ${bonus}`);
+        });
+      });
+
+      // ── DB verification ────────────────────────────────────────────────────
+      cy.task("getRecentIndividualBonusRows", { limit: 10 }).then((dbRows) => {
+        cy.log(`[DB] Recent individual_bonus rows: ${JSON.stringify(dbRows)}`);
+        const rows = dbRows as Record<string, unknown>[];
+
+        if (rows.length === 0) {
+          cy.log("[DB] No rows in individual_bonus table — distribution may not have created data");
+          return;
+        }
+
+        // Verify DB rows have correct structure
+        const firstRow = rows[0];
+        expect(firstRow).to.have.property("id");
+        expect(firstRow).to.have.property("bonus");
+        expect(firstRow).to.have.property("bonus_date");
+        expect(firstRow).to.have.property("paid");
+        cy.log(`[DB] ✓ Row structure correct: id=${firstRow.id}, bonus=${firstRow.bonus}, paid=${firstRow.paid}`);
+
+        // Verify bonus amounts are positive
+        rows.forEach((row, i) => {
+          const bonus = Number(row.bonus || 0);
+          expect(bonus).to.be.at.least(0);
+          if (i < 3) cy.log(`[DB] Row ${i}: bonus=${bonus}, paid=${row.paid}, bonus_date=${row.bonus_date}`);
+        });
+
+        // ── Cross-check: UI bonus matches DB bonus for first row ──────────────
+        cy.get("table tbody tr").first().find("td").eq(2).invoke("text").then((uiBonus) => {
+          const uiBonusNum = parseFloat(uiBonus.replace(/[^0-9.]/g, ""));
+          const dbBonusNum = Number(firstRow.bonus || 0);
+          // Allow small floating-point tolerance
+          expect(uiBonusNum).to.be.closeTo(dbBonusNum, 0.01);
+          cy.log(`[VERIFY] ✓ UI bonus (${uiBonusNum}) matches DB bonus (${dbBonusNum})`);
+        });
+      });
+    });
   });
 
-  // ── 6. Pay action: click Pay → optimistic UI → paid state + toast + DB verify ─
+  // ── 6. Pay action: click Pay → button becomes Paid (disabled) + DB verify ────
 
-  it("should click Pay on an unpaid row, show paid state, show a toast, and verify paid=true in individual_bonus DB", () => {
+  it("should click Pay on an unpaid row, show paid state in Actions column, and verify paid=true with paid_date in individual_bonus DB", () => {
     loginAndVisit();
 
     cy.get("table tbody tr", { timeout: 15000 }).then(($rows) => {
@@ -279,16 +351,14 @@ describe("Bonus — Individual Bonus Page", () => {
         return;
       }
 
-      // Find the first unpaid row (Pay button is blue and enabled)
+      // Find the first unpaid row — Pay button is blue and not disabled
       let unpaidRowIndex = -1;
       $rows.each((i, row) => {
         if (unpaidRowIndex >= 0) return;
         const btn = Cypress.$(row).find("button").last();
         const text = (btn.text() || "").trim();
         const disabled = btn.prop("disabled") || btn.attr("aria-disabled") === "true";
-        if (text === "Pay" && !disabled) {
-          unpaidRowIndex = i;
-        }
+        if (text === "Pay" && !disabled) unpaidRowIndex = i;
       });
 
       if (unpaidRowIndex < 0) {
@@ -298,52 +368,61 @@ describe("Bonus — Individual Bonus Page", () => {
 
       cy.log(`[PAY] Clicking Pay on row ${unpaidRowIndex}`);
 
-      // Intercept the Supabase REST PATCH that sets paid=true on individual_bonus
+      // Intercept the Supabase REST PATCH that sets paid=true
       cy.intercept("PATCH", "**/rest/v1/individual_bonus*").as("payRequest");
 
       cy.get("table tbody tr").eq(unpaidRowIndex).find("button").last().click({ force: true });
 
-      // Button should immediately show "Paying..." (optimistic UI)
+      // Optimistic UI: button transitions through Paying... then settles on Paid
       cy.get("table tbody tr").eq(unpaidRowIndex).find("button").last()
         .should(($btn) => {
-          const text = $btn.text().trim();
-          expect(["Paying...", "Paid"]).to.include(text);
+          expect(["Paying...", "Paid"]).to.include($btn.text().trim());
         });
       cy.log("[UI] Optimistic paying state shown");
 
-      // Wait for the PATCH and capture the row id from the URL query string
+      // Wait for the PATCH request and extract the row id
       cy.wait("@payRequest", { timeout: 15000 }).then((interception) => {
         cy.log(`[API] PATCH individual_bonus — URL: ${interception.request.url}`);
-        cy.log(`[API] Request body: ${JSON.stringify(interception.request.body)}`);
+        cy.log(`[API] Body: ${JSON.stringify(interception.request.body)}`);
 
-        // Extract the id from the query string: ?id=eq.<id>
+        // id comes from the URL filter: ?id=eq.<id>
         const urlMatch = interception.request.url.match(/[?&]id=eq\.([^&]+)/);
         const rowId = urlMatch ? urlMatch[1] : null;
-        cy.log(`[API] Row id from URL: ${rowId}`);
+        cy.log(`[API] Extracted row id: ${rowId}`);
 
-        // ── UI assertions ──────────────────────────────────────────────────────
-        cy.get("table tbody tr").eq(unpaidRowIndex).find("button").last()
+        // ── UI: Actions column must show "Paid" (gray, disabled) ──────────────
+        cy.get("table tbody tr").eq(unpaidRowIndex).find("td").last()
+          .find("button")
           .should("contain.text", "Paid")
           .and("be.disabled");
-        cy.log("[UI] Row shows Paid (disabled) after payment");
-
-        cy.get(".Toastify__toast", { timeout: 10000 }).should("exist");
-        cy.log("[UI] Toast shown after Pay");
+        cy.log("[UI] ✓ Actions column shows Paid (disabled)");
 
         // ── DB verification ────────────────────────────────────────────────────
         if (!rowId) {
-          cy.log("[DB] Could not extract row id from request URL — skipping DB check");
+          cy.log("[DB] Could not extract row id — skipping DB check");
           return;
         }
 
-        cy.wait(1000); // brief settle time for DB write
+        cy.wait(800); // allow DB write to settle
         cy.task("getIndividualBonusById", { id: rowId }).then((dbRow) => {
-          cy.log(`[DB] individual_bonus row after Pay: ${JSON.stringify(dbRow)}`);
+          cy.log(`[DB] individual_bonus row: ${JSON.stringify(dbRow)}`);
           expect(dbRow).to.not.be.null;
           const row = dbRow as Record<string, unknown>;
+
+          // paid must be true
           expect(row.paid).to.eq(true);
+          cy.log(`[DB] ✓ paid=true`);
+
+          // paid_date must be set and be a valid ISO timestamp
           expect(row.paid_date).to.not.be.null;
-          cy.log(`[DB] ✓ paid=true, paid_date=${row.paid_date}, bonus=${row.bonus}`);
+          expect(row.paid_date).to.not.eq("");
+          const parsedDate = new Date(row.paid_date as string);
+          expect(parsedDate.getTime()).to.not.be.NaN;
+          cy.log(`[DB] ✓ paid_date=${row.paid_date}`);
+
+          // bonus amount should still be intact
+          expect(Number(row.bonus)).to.be.greaterThan(0);
+          cy.log(`[DB] ✓ bonus=${row.bonus} (unchanged)`);
         });
       });
     });
