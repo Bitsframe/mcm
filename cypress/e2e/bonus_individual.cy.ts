@@ -174,17 +174,21 @@ describe("Bonus — Individual Bonus Page", () => {
       cy.get('input[type="radio"][name="filterMode"]').last().check({ force: true });
       cy.wait(300);
 
-      // Open the location checkbox dropdown. The trigger is a div inside the modal
-      // that contains the ▾ arrow — scope to the modal overlay to avoid false matches.
-      cy.get('[class*="fixed"]').within(() => {
-        cy.contains("▾").click({ force: true });
-        cy.wait(300);
+      // Open the location checkbox dropdown. The trigger is a div containing ▾.
+      // Use body.then() to find it without .within() (avoids multi-element error).
+      cy.get("body").then(($body) => {
+        const triggers = $body.find('[class*="cursor-pointer"]').toArray()
+          .filter((el) => (el.textContent || "").includes("▾"));
+        if (triggers.length > 0) {
+          cy.wrap(triggers[0]).click({ force: true });
+          cy.wait(300);
+        }
+      });
 
-        // Tick each location by clicking its text in the dropdown list
-        locationsToSelect.forEach((loc) => {
-          cy.contains(loc, { timeout: 8000 }).click({ force: true });
-          cy.wait(150);
-        });
+      // Tick each location by clicking its text in the now-open dropdown list
+      locationsToSelect.forEach((loc) => {
+        cy.contains(loc, { timeout: 8000 }).click({ force: true });
+        cy.wait(150);
       });
 
       cy.contains("button", /apply/i).click({ force: true });
