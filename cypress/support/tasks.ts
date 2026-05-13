@@ -403,4 +403,60 @@ export const supabaseTasks = {
     if (error || !data) return [];
     return data;
   },
+
+  /**
+   * Get a single individual_bonus row by its id.
+   * Returns fields: id, staff_id, sales_team_id, bonus, paid, paid_date, bonus_date, auth_member.
+   */
+  async getIndividualBonusById({
+    id,
+  }: {
+    id: number | string;
+  }): Promise<Record<string, unknown> | null> {
+    const { data, error } = await supabase
+      .from("individual_bonus")
+      .select("id, staff_id, sales_team_id, bonus, paid, paid_date, bonus_date, auth_member")
+      .eq("id", id)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  },
+
+  /**
+   * Get the most recent individual_bonus rows (ordered by bonus_date desc).
+   * Useful for verifying distribution results and paid state after Pay action.
+   */
+  async getRecentIndividualBonusRows({
+    limit,
+  }: {
+    limit?: number;
+  }): Promise<Record<string, unknown>[]> {
+    const { data, error } = await supabase
+      .from("individual_bonus")
+      .select("id, staff_id, sales_team_id, bonus, paid, paid_date, bonus_date, auth_member")
+      .order("bonus_date", { ascending: false })
+      .limit(limit ?? 10);
+    if (error || !data) return [];
+    return data;
+  },
+
+  /**
+   * Get individual_bonus rows for a specific staff_id.
+   */
+  async getIndividualBonusRowsByStaff({
+    staffId,
+    limit,
+  }: {
+    staffId: number;
+    limit?: number;
+  }): Promise<Record<string, unknown>[]> {
+    const { data, error } = await supabase
+      .from("individual_bonus")
+      .select("id, staff_id, sales_team_id, bonus, paid, paid_date, bonus_date, auth_member")
+      .eq("staff_id", staffId)
+      .order("bonus_date", { ascending: false })
+      .limit(limit ?? 10);
+    if (error || !data) return [];
+    return data;
+  },
 };
