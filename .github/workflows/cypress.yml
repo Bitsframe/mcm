@@ -1,0 +1,97 @@
+name: Cypress Tests with Cloud Recording + ClickUp
+
+on:
+  push:
+    branches:
+      - staging
+      - qa
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+      # On staging branch: run against the deployed URL.
+      # On qa branch: fall back to localhost (dev server started below).
+      CYPRESS_BASE_URL: ${{ github.ref == 'refs/heads/staging' && 'https://staging-portal.myclinicmd.com' || 'http://localhost:3000' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Create results directory
+        run: mkdir -p cypress/results
+
+      # ── qa branch only: start local dev server ────────────────────────────
+      - name: Start dev server and warm up all routes (qa only)
+        if: github.ref == 'refs/heads/qa'
+        run: |
+          yarn dev &
+          echo "Waiting for server to be ready..."
+          npx wait-on http://localhost:3000 --timeout 120000
+          echo "Server ready. Pre-compiling all routes..."
+          curl -s --max-time 60 http://localhost:3000/en/login > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/inventory/manage > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/sales/patients > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/history > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/pos/return > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/transactions > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/warehouse/manage > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/warehouse/manage/products > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/bonus/location > /dev/null
+          curl -s --max-time 60 http://localhost:3000/en/bonus/individual > /dev/null
+          echo "All routes pre-compiled."
+
+      # ── staging branch only: verify the deployed site is reachable ────────
+      - name: Verify staging deployment is reachable
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          echo "Checking staging URL..."
+          npx wait-on https://staging-portal.myclinicmd.com --timeout 60000
+          echo "Staging site is reachable."
+
+      # ── Run Cypress against whichever baseUrl is set ──────────────────────
+      - name: Cypress Cloud Run
+        id: cypress
+        uses: cypress-io/github-action@v6
+        with:
+          wait-on: ${{ env.CYPRESS_BASE_URL }}
+          wait-on-timeout: 30
+          spec: cypress/e2e/bonus_individual.cy.ts
+          record: true
+
+      - name: Get Cypress Run ID
+        if: always()
+        id: get-run-id
+        run: |
+          RUN_ID="${{ steps.cypress.outputs.runId }}"
+          echo "runId=${RUN_ID}" >> $GITHUB_OUTPUT
+          echo "🎯 Cypress Run ID: ${RUN_ID}"
+
+      - name: Merge mochawesome reports
+        if: always()
+        run: |
+          echo "📁 Results directory contents:"
+          ls -la cypress/results/ || echo "No results directory"
+          if ls cypress/results/mochawesome*.json 1> /dev/null 2>&1; then
+            echo "🔗 Merging mochawesome reports..."
+            npx mochawesome-merge cypress/results/mochawesome*.json > cypress/results/merged-report.json
+            echo "✅ Merged report created"
+          else
+            echo "⚠️ No mochawesome JSON files found to merge"
+          fi
