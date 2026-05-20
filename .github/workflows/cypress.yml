@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Install Cypress binary
-        run: npm install cypress --no-save
-
       - name: Create results directory
         run: mkdir -p cypress/results
 
