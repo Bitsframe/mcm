@@ -72,7 +72,6 @@ jobs:
         with:
           wait-on: ${{ env.CYPRESS_BASE_URL }}
           wait-on-timeout: 120
-          spec: cypress/e2e/bonus_individual.cy.ts
           record: true
 
       - name: Get Cypress Run ID
