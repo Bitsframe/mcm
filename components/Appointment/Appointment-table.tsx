@@ -177,7 +177,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
         </div>
       ) : appointments.length === 0 ? (
         <div className="flex h-40 flex-col justify-center items-center">
-          <h1 className="text-gray-500 font-medium dark:text-gray-300">No Appointments Available</h1>
+          <h1 className="text-gray-500 font-medium dark:text-gray-300">{t("Appoinments_k87")}</h1>
         </div>
       ) : (
         <>

@@ -296,11 +296,11 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         <div className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Sales Person</h3>
-              <p className="text-xs text-gray-500">Select one or more staff from this location.</p>
+              <h3 className="text-lg font-semibold">Vendedor</h3>
+              <p className="text-xs text-gray-500">Seleccione uno o más empleados de esta ubicación.</p>
             </div>
             <div className="text-xs text-gray-600">
-              Auth ID: <span className="font-mono text-xs">{authUserId ?? "Not logged in"}</span>
+              ID de autenticación: <span className="font-mono text-xs">{authUserId ?? "No ha iniciado sesión"}</span>
             </div>
           </div>
         </div>
@@ -308,13 +308,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
           {/* Left: search + list */}
           <div className="md:col-span-2 flex flex-col min-h-0">
-            <label className="block text-sm font-medium mb-2">Sales Person Name</label>
+            <label className="block text-sm font-medium mb-2">Nombre del vendedor</label>
             {/* Current active team for this location */}
             {hasActiveTeam ? (
               <div className="mb-3 p-2 bg-gray-50 border rounded">
-                <div className="text-sm font-medium mb-1">Current Team</div>
+                <div className="text-sm font-medium mb-1">Equipo actual</div>
                 <div className="text-sm">
-                  {currentTeam.length === 0 && <div className="py-1 text-gray-500 text-xs">No members assigned</div>}
+                  {currentTeam.length === 0 && <div className="py-1 text-gray-500 text-xs">No hay miembros asignados</div>}
                   {currentTeam.map((m) => (
                     <div key={m.id} className="py-1">{m.name}</div>
                   ))}
@@ -323,13 +323,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
                   onClick={handleResetTeam}
                   className="mt-2 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition"
                 >
-                  Reset Team
+                  Restablecer equipo
                 </button>
               </div>
             ) : (
               <div className="mb-3 p-2 bg-blue-50 border rounded">
-                <div className="text-sm font-medium mb-1">Current User</div>
-                <div className="text-sm text-gray-700">{userProfile?.full_name || 'Loading...'}</div>
+                <div className="text-sm font-medium mb-1">Usuario actual</div>
+                <div className="text-sm text-gray-700">{userProfile?.full_name || 'Cargando...'}</div>
               </div>
             )}
 
@@ -337,12 +337,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search sales person..."
+              placeholder="Buscar vendedor..."
               className="w-full border rounded p-2 text-sm mb-2"
             />
 
             <div className="border rounded flex-1 overflow-auto p-2 bg-white min-h-0">
-              {salesPeople.length === 0 && <div className="p-2 text-xs text-gray-500">No staff found for this location</div>}
+              {salesPeople.length === 0 && <div className="p-2 text-xs text-gray-500">No se encontró personal para esta ubicación</div>}
 
               {salesPeople
                 .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
@@ -353,7 +353,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
                       <span className="text-sm">{person.name}</span>
                     </div>
                     <button className="text-xs text-gray-500" onClick={() => handlePersonClick(person)}>
-                      {selected.find((s) => s.id === person.id) ? "Remove" : "Add"}
+                      {selected.find((s) => s.id === person.id) ? "Quitar" : "Agregar"}
                     </button>
                   </div>
                 ))}
@@ -362,37 +362,37 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
 
           {/* Right: selected summary */}
           <div className="md:col-span-1 border rounded p-3 bg-gray-50 flex flex-col min-h-0">
-            <div className="mb-2 font-medium">Selected</div>
+            <div className="mb-2 font-medium">Seleccionado</div>
             <div className="flex-1 overflow-auto min-h-0">
-              {selected.length === 0 && <div className="text-xs text-gray-500">No selection</div>}
+              {selected.length === 0 && <div className="text-xs text-gray-500">Sin selección</div>}
               {selected.map((s) => (
                 <div key={s.id} className="flex items-center justify-between p-2">
                   <div className="text-sm">{s.name}</div>
                   <button className="text-xs text-red-500" onClick={() => setSelected(selected.filter((x) => x.id !== s.id))}>
-                    Remove
+                    Quitar
                   </button>
                 </div>
               ))}
             </div>
 
             <div className="mt-3">
-              <div className="text-xs text-gray-500 mb-2">Tips</div>
-              <div className="text-xs text-gray-600">Use the search to filter staff, then click Add/Remove.</div>
+              <div className="text-xs text-gray-500 mb-2">Consejos</div>
+              <div className="text-xs text-gray-600">Use la búsqueda para filtrar el personal y luego haga clic en Agregar/Quitar.</div>
             </div>
           </div>
         </div>
 
         <div className="mt-4 sticky bottom-0 z-10 bg-white dark:bg-gray-800 border-t py-3 flex justify-end gap-2">
           <button className="px-3 py-1 bg-gray-300 rounded" onClick={onClose}>
-            Cancel
+            Cancelar
           </button>
           <button 
             className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed" 
             onClick={handleSave}
             disabled={hasActiveTeam && selected.length === 0}
-            title={hasActiveTeam && selected.length === 0 ? "Select at least one person or keep current team" : "Save team"}
+            title={hasActiveTeam && selected.length === 0 ? "Seleccione al menos una persona o mantenga el equipo actual" : "Guardar equipo"}
           >
-            Save
+            Guardar
           </button>
         </div>
       </div>

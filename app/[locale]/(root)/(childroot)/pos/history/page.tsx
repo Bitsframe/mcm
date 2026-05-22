@@ -35,27 +35,27 @@ const convertUTCtoCtDate = (utcDateString: string): string => {
 const tableHeader = [
   {
     id: "order_id",
-    label: "Order ID",
+    label: "ID de orden",
     align: "text-center",
     flex: "flex-1",
   },
   {
     id: "patient_name",
-    label: "Patient Name",
+    label: "Nombre del paciente",
     render_value: (_val: any, elem?: any) => `${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`,
     align: "text-center",
     flex: "flex-1",
   },
   {
     id: "phone",
-    label: "Phone Number",
+    label: "Número de teléfono",
     render_value: (_val: any, elem?: any) => elem?.pos?.phone || '',
     align: "text-center",
     flex: "flex-1",
   },
   {
     id: "email",
-    label: "Email",
+    label: "Correo electrónico",
     render_value: (_val: any, elem?: any) => elem?.pos?.email || '',
     align: "text-center",
     flex: "flex-1",
@@ -381,7 +381,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("POS-Historyk35")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk35")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {(() => {
@@ -428,7 +428,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("POS-Historyk36")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk36")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {
@@ -476,7 +476,7 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("POS-Historyk37")} {dobSearch ? `on ${new Date(dobSearch + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk37")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${(() => {

@@ -63,14 +63,14 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
             if (response) {
                 setReturnedQty(forReturnQty)
                 setOtherReturned(true, data?.inventory?.products?.product_name)
-                toast.success("Return processed successfully")
+                toast.success("Devolución procesada correctamente")
                 setShowModal(false)
             }
         } catch (error: any) {
             if (error && error?.message) {
                 toast.error(error?.message)
             } else {
-                toast.error("Something went wrong!")
+                toast.error("¡Algo salió mal!")
             }
         } finally {
             setLoading(false)
@@ -103,18 +103,18 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
                         <div className='flex justify-start flex-col space-y-1'>
                             <label className='text-start font-semibold text-gray-600'>
-                                Quantity
+                                    Cantidad
                             </label>
                             <div className=' border-2 text-sm rounded-md px-2 py-2 flex items-center space-x-2'>
-                                <input required onChange={changeQtyHandle} className='w-full focus:outline-none placeholder-gray-400' placeholder='Enter return QTY' max={data?.quantity_sold} />
+                                    <input required onChange={changeQtyHandle} className='w-full focus:outline-none placeholder-gray-400' placeholder='Ingrese la cantidad a devolver' max={data?.quantity_sold} />
                             </div>
                         </div>
                         <div className='flex justify-start flex-col space-y-1'>
                             <label className='text-start font-semibold text-gray-600'>
-                                Reason of return
+                                    Motivo de la devolución
                             </label>
                             <select onChange={changeReasonHandle} className='border-2 text-sm rounded-md px-2 py-2 flex items-center space-x-2 '>
-                                <option value={''} disabled selected >Select Reason</option>
+                                    <option value={''} disabled selected >Seleccione un motivo</option>
                                 {/* @ts-ignore */}
                                 {preDefinedReasonList.map((opt, ind) => <option key={ind} value={opt?.reason} >{opt?.reason}
 
@@ -125,7 +125,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
 
                         <Button type='submit' disabled={loading || !forReturnReason || !forReturnQty ? true : false} className='disabled:opacity-60 w-full' color="success">
-                            Process Return
+                            Procesar devolución
                         </Button>
                     </form>
                 </div>
@@ -135,13 +135,13 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
 
     if (returnedQty && !loading) {
         return <button className='border-[#E4E4E7] text-[#696969] border-2 text-xs px-3 py-3 rounded-md' disabled>
-            <strong>{returnedQty}</strong> Returned
+            <strong>{returnedQty}</strong> devuelto
         </button>
     }
 
 
     return <button disabled={isAnyReturned} onClick={() => setShowModal(true)} className='bg-[#E1BBB8] text-sm px-3 py-3 rounded-md disabled:opacity-60'>
-        Return
+        Devolver
     </button>
 
 

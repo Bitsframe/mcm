@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
+import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export const POST = async (req: Request) => {
     try {
-        const supabase = supabaseCreateClient();
+        const supabase = getServiceRoleSupabase();
         const { patientId } = await req.json();
 
         console.log('Received patientId:', patientId);

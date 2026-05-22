@@ -93,20 +93,20 @@ const RadioButtons = ({
   );
 };
 
-const in_office_patient_options: RadioButtonOptionsInterface[] = [
-  { label: "Office visit", value: "true" },
-  { label: "Virtual visit", value: "false", disabled: true },
+const get_in_office_patient_options = (t: (k: string) => string): RadioButtonOptionsInterface[] => [
+  { label: t("Appoinments_k18"), value: "true" },
+  { label: t("Appoinments_k19"), value: "false", disabled: true },
 ];
 
-const patient_type_options: RadioButtonOptionsInterface[] = [
-  { label: "New", value: "true" },
-  { label: "Coming Back", value: "false" },
+const get_patient_type_options = (t: (k: string) => string): RadioButtonOptionsInterface[] => [
+  { label: t("Appoinments_k21"), value: "true" },
+  { label: t("Appoinments_k14"), value: "false" },
 ];
 
-const gender_options: RadioButtonOptionsInterface[] = [
-  { label: "Male", value: "Male" },
-  { label: "Female", value: "Female" },
-  { label: "Other", value: "Other" },
+const get_gender_options = (t: (k: string) => string): RadioButtonOptionsInterface[] => [
+  { label: t("Appoinments_k35"), value: "Male" },
+  { label: t("Appoinments_k36"), value: "Female" },
+  { label: t("Appoinments_k37"), value: "Other" },
 ];
 
 /** Grouped block with title for scannable form layout */
@@ -791,7 +791,7 @@ export const Add_Appointment_Modal = ({
                   </Label>
                   <RadioButtons
                     name="in_office_patient"
-                    options={in_office_patient_options}
+                    options={get_in_office_patient_options(t)}
                     selectedValue={formData.in_office_patient}
                     onChange={(e) => select_change_handle("in_office_patient", e)}
                     className="flex flex-wrap gap-x-4 gap-y-2"
@@ -804,7 +804,7 @@ export const Add_Appointment_Modal = ({
                   </Label>
                   <RadioButtons
                     name="new_patient"
-                    options={patient_type_options}
+                    options={get_patient_type_options(t)}
                     selectedValue={formData.new_patient}
                     onChange={(e) => select_change_handle("new_patient", e)}
                     className="flex flex-wrap gap-x-4 gap-y-2"
@@ -896,7 +896,7 @@ export const Add_Appointment_Modal = ({
                     <div className="min-h-[46px] flex items-center">
                       <RadioButtons
                         name="sex"
-                        options={gender_options}
+                        options={get_gender_options(t)}
                         selectedValue={formData.sex}
                         required
                         onChange={(e) => select_change_handle("sex", e)}
@@ -1038,7 +1038,7 @@ export const Add_Appointment_Modal = ({
 
             {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-100">
-                <p className="text-sm font-medium">No returning patient</p>
+                <p className="text-sm font-medium">{t("Appoinments_k92")}</p>
               </div>
             )}
 
@@ -1046,10 +1046,10 @@ export const Add_Appointment_Modal = ({
               <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-4 dark:border-gray-700 dark:bg-[#071226]">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1.5 text-sm">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">Selected patient</h3>
-                    <p><span className="text-gray-500 dark:text-gray-400">Name</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
-                    <p><span className="text-gray-500 dark:text-gray-400">Phone</span> — {selectedComingBackPatient.phone || "—"}</p>
-                    <p><span className="text-gray-500 dark:text-gray-400">Sex</span> — {selectedComingBackPatient.sex || "—"}</p>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">{t("Appoinments_k93")}</h3>
+                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k89")}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k90")}</span> — {selectedComingBackPatient.phone || "—"}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k8")}</span> — {selectedComingBackPatient.sex || "—"}</p>
                   </div>
                   <button
                     type="button"
@@ -1059,7 +1059,7 @@ export const Add_Appointment_Modal = ({
                     }}
                     className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
                   >
-                    Change
+                    {t("Appoinments_k94")}
                   </button>
                 </div>
               </div>

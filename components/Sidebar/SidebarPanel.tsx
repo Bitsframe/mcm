@@ -168,7 +168,7 @@ const CollapsibleRoute = memo(
                 key={item.id}
                 href={item.route || "#"} // ✅ pass href directly
                 onClick={onNavigate}     // ✅ preserve click handler
-                className={`text-left text-sm hover:text-[#0066ff] ${
+                className={`text-left text-sm hover:text-[#0066ff] pl-3 ${
                   isCurrent
                     ? "text-[#0066ff]"
                     : "text-[#79808B] dark:text-gray-400"
@@ -277,8 +277,8 @@ export const SidebarPanel = memo(() => {
       theme={THEME}
       style={STYLE}
     >
-      <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
-        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
+      <Sidebar.Items className="px-3 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
+        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16] px-1">
           {filteredRoutes.map((route) => {
             //@ts-ignore
             if (!route?.children) {

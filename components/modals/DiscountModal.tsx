@@ -12,7 +12,7 @@ interface DiscountModalProps {
 export default function DiscountModal({
   isOpen,
   initialValue,
-  title = "Set product discount",
+  title = "Establecer descuento del producto",
   onApply,
   onClose,
 }: DiscountModalProps) {
@@ -84,7 +84,7 @@ export default function DiscountModal({
           {title}
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-          Enter percentage (0–100) for this product only.
+          Ingrese el porcentaje (0–100) solo para este producto.
         </p>
 
         {/* Discount Input */}
@@ -116,7 +116,7 @@ export default function DiscountModal({
             }
             setInputValue(rawValue);
           }}
-          placeholder="Enter % of discount"
+          placeholder="Ingrese el % de descuento"
           className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
           min={0}
           max={100}
@@ -128,13 +128,13 @@ export default function DiscountModal({
             onClick={onClose}
             className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             onClick={handleApply}
             className="px-3 py-2 rounded-md bg-[#0066FF] text-white hover:opacity-90"
           >
-            Apply
+            Aplicar
           </button>
         </div>
       </div>

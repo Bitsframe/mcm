@@ -216,7 +216,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       setAmountsSaved(true);
     } catch (e: any) {
       console.error("Failed to persist cash/card/zelle amounts", e);
-      toast.error(e?.message || "Failed to save amounts");
+      toast.error(e?.message || "No se pudieron guardar los montos");
       // Re-sync inputs from server state in case of failure
       setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
       setCardInput(dataList?.card != null ? String(Number(dataList.card).toFixed(2)) : "");
@@ -289,7 +289,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
     // Prevent unchecking if it would result in zero selections
     if (selectedCount === 0) {
-      toast.error("At least one payment method must be selected");
+      toast.error("Debe seleccionar al menos un método de pago");
       return;
     }
 
@@ -385,7 +385,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 
                 {/* Right Side - Invoice Summary */}
                 <div className="lg:w-80 bg-white dark:bg-[#0e1725] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                  <h4 className="font-bold text-lg mb-4 text-gray-800 dark:text-gray-200">Invoice Summary</h4>
+                  <h4 className="font-bold text-lg mb-4 text-gray-800 dark:text-gray-200">Resumen de la factura</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Invoice Date:</span>
@@ -467,8 +467,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                               Number(dataList?.zelle || 0) === currentZelle;
                             return !(matchesTotal && !unchanged);
                           })()}
-                          aria-label="Save"
-                          title="Save"
+                          aria-label="Guardar"
+                          title="Guardar"
                           className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -484,7 +484,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       const sum = Number((currentCash + currentCard + currentZelle).toFixed(2));
                       if (Math.abs(sum - Number(splitTotal)) > 0.005) {
                         return (
-                          <div className="text-sm text-red-600 text-right">Sum must equal ${Number(splitTotal).toFixed(2)}</div>
+                          <div className="text-sm text-red-600 text-right">La suma debe ser igual a ${Number(splitTotal).toFixed(2)}</div>
                         );
                       }
                       return null;
@@ -718,7 +718,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Product Discount:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Descuento de producto:</span>
                       <span className="font-medium text-red-600 dark:text-red-400">
                         -${(() => {
                           let totalProductDiscount = 0;
@@ -841,7 +841,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               </div>
 
               <div className="md:shrink-0 w-full md:w-72">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sales Person</h3>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Vendedor</h3>
                 <div className="p-2 bg-gray-50 dark:bg-[#071025] border rounded text-sm">
                   {dataList?.sales_team_members && dataList.sales_team_members.length > 0 ? (
                     <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -850,7 +850,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       ))}
                     </ul>
                   ) : (
-                    <div className="text-xs text-gray-500">No sales person assigned</div>
+                    <div className="text-xs text-gray-500">No hay vendedor asignado</div>
                   )}
                 </div>
               </div>
@@ -881,13 +881,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       <div className="flex flex-col space-y-2">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Product")}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Producto</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300 break-words">
                               {elem?.inventory?.products?.product_name}
                             </p>
                           </div>
                           <div className="ml-4 text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Price")}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Precio</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
                               ${elem?.inventory?.price}
                             </p>
@@ -895,13 +895,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                         </div>
                         <div className="flex justify-between items-center">
                           <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Quantity")}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Cantidad</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
                               {elem?.quantity}
                             </p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Product Discount %</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Descuento del producto %</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
                               {(() => {
                                 const productId = elem?.inventory?.product_id;
@@ -913,7 +913,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             </p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Amount After Discount</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Monto después del descuento</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
                               {(() => {
                                 const originalAmount = elem?.total_price || 0;
@@ -932,7 +932,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("Total")}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
                             <p className="font-medium text-gray-700 dark:text-gray-300">
                               ${calcTotalAmount({ sales_history: [elem] })}
                             </p>

@@ -255,7 +255,7 @@ const Returns: FC<Props> = () => {
         elem.filter((data: any) => data.return_id !== dataDetails?.return_id!)
       );
       setDataDetails(null);
-      toast.success("Return has been discarded");
+      toast.success("La devolución se ha descartado");
     } else if (error) {
       console.log(error.message);
       toast.error(error.message);
@@ -573,7 +573,7 @@ const Returns: FC<Props> = () => {
                   disabled={deleteLoading}
                   className="w-full px-4 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600"
                 >
-                  {deleteLoading ? "Processing..." : t("POS-Returnk17")}
+                  {deleteLoading ? "Procesando..." : t("POS-Returnk17")}
                 </button>
               </div>
             </div>

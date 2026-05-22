@@ -28,6 +28,20 @@
     "EmailB_k27": "Presencial",
     "EmailB_k28": "Remoto",
     "EmailB_k29": "Filtrar pacientes"
-
+    ,
+      "EmailB_k30": "Crear",
+      "EmailB_k31": "Por favor, ingrese el asunto aquí",
+      "EmailB_k32": "Editar plantilla",
+      "EmailB_k33": "Crear plantilla",
+      "EmailB_k34": "Nombre de plantilla",
+      "EmailB_k35": "Por favor, ingrese un nombre de plantilla",
+      "EmailB_k36": "Por favor, ingrese el contenido de la plantilla",
+      "EmailB_k37": "Plantilla creada",
+      "EmailB_k38": "Error al crear la plantilla",
+      "EmailB_k39": "Cerrar",
+      "EmailB_k40": "Cancelar",
+      "EmailB_k41": "Guardar",
+      "EmailB_k42": "De (nombre o correo)",
+      "EmailB_k43": "Ingresar precio"
   }
   

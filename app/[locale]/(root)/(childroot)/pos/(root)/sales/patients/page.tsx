@@ -500,7 +500,7 @@ const Patients = () => {
       setDataList((elem) => elem.filter((data: any) => data.id !== selectedId));
       setAllData((elem) => elem.filter((data: any) => data.id !== selectedId));
       setDetailsView(null);
-      toast.success("Deleled successfully");
+      toast.success("Eliminado correctamente");
       closeModalHandle();
     } else if (error) {
       toast.error(error.message);
@@ -526,7 +526,7 @@ const Patients = () => {
         post_data: updateData,
       });
       if (data?.length) {
-        toast.success("Updated successfully");
+        toast.success("Actualizado correctamente");
         closeModalHandle();
 
         const newData = data[0];
@@ -1094,7 +1094,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Street Address
+                    Dirección
                   </label>
                   <div className="relative">
                     <input
@@ -1110,7 +1110,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         // Delay hiding suggestions to allow for selection
                         setTimeout(() => setShowAddressSuggestions(false), 200);
                       }}
-                      placeholder="Enter street address"
+                      placeholder="Ingrese la dirección"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                     {addressLoading && (
@@ -1145,9 +1145,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 <Input_Component
                   value={createActionData.dob}
                   onChange={(e: string) => addPatientFieldsChange(e, "dob")}
-                  label="Date of Birth"
+                  label="Fecha de nacimiento"
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Select date of birth"
+                  placeholder="Seleccione la fecha de nacimiento"
                   type="date"
                 />
               </div>
@@ -1182,7 +1182,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
       >
         {activeModalMode === "delete" ? (
           <div className="text-gray-800 dark:text-gray-200">
-            <h1>Are you sure you want to delete this POS?</h1>
+            <h1>¿Está seguro de que desea eliminar este POS?</h1>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
@@ -1235,7 +1235,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
             <div className="md:col-span-2">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Street Address
+                  Dirección
                 </label>
                 <div className="relative">
                   <input
@@ -1251,7 +1251,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                       // Delay hiding suggestions to allow for selection
                       setTimeout(() => setShowEditAddressSuggestions(false), 200);
                     }}
-                    placeholder="Enter street address"
+                    placeholder="Ingrese la dirección"
                     className="w-full px-3 py-2 border-2 border-gray-300 dark:border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                   {editAddressLoading && (
@@ -1289,7 +1289,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "dob")}
-                label="Date of Birth"
+                label="Fecha de nacimiento"
               />
             </div>
 

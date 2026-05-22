@@ -79,22 +79,22 @@ interface CartArrayInterface {
 const render_details = [
   {
     key: "name",
-    label: "Name:",
+    label: "Nombre:",
     render_value: (val: any) => `${val?.firstname} ${val?.lastname}`,
   },
   {
     key: "phone",
-    label: "Phone Number:",
+    label: "Teléfono:",
     render_value: (val: any) => formatPhoneNumber(val?.phone),
   },
   {
     key: "email",
-    label: "Email:",
+    label: "Correo electrónico:",
   },
   {
     key: "dob",
-    label: "Date of Birth:",
-    render_value: (val: any) => val?.dob ? new Date(val.dob).toLocaleDateString() : "N/A",
+    label: "Fecha de nacimiento:",
+    render_value: (val: any) => val?.dob ? new Intl.DateTimeFormat("es-ES").format(new Date(val.dob)) : "N/D",
   },
 ];
 
@@ -979,9 +979,9 @@ const addToCartHandle = () => {
       setCreditAmount(newBalance);
       setAddAmount(0);
       setIsAddBalanceModalOpen(false);
-      toast.success("Balance updated successfully");
+      toast.success("Saldo actualizado correctamente");
     } catch (err: any) {
-      toast.error(err.message || "Failed to update balance");
+      toast.error(err.message || "No se pudo actualizar el saldo");
     } finally {
       setAddBalanceLoading(false);
     }
@@ -1050,18 +1050,18 @@ const addToCartHandle = () => {
                     close_handle={() => setIsAddBalanceModalOpen(false)}
                     create_new_handle={handleAddBalance}
                     loading={addBalanceLoading}
-                    Title="Add Balance"
-                    buttonLabel="Add"
+                    Title="Agregar saldo"
+                    buttonLabel="Agregar"
                     submit_button_color="blue"
                     disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
                   >
                     <div>
                       <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <label className="block text-sm font-medium mb-1">Saldo actual</label>
                         <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <label className="block text-sm font-medium mb-1">Monto a agregar</label>
                         <Input
                           type="number"
                           min={1}
@@ -1071,7 +1071,7 @@ const addToCartHandle = () => {
                         />
                       </div>
                       <div className="mb-2">
-                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <label className="block text-sm font-medium mb-1">Nuevo saldo</label>
                         <div
                           className={`
                           p-3 rounded font-bold text-lg 
@@ -1131,7 +1131,7 @@ const addToCartHandle = () => {
                     className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     style={{ minWidth: 0 }}
                   >
-                    Add Product
+                    Agregar producto
                   </button>
                 </div>
               </div>
@@ -1312,7 +1312,7 @@ const addToCartHandle = () => {
     <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
       <div>
         <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-          Enter Discount % (0 - 100)
+          Ingrese el descuento % (0 - 100)
         </h2>
         <input
           type="text"
@@ -1330,7 +1330,7 @@ const addToCartHandle = () => {
               }
             }
           }}
-          placeholder="Enter % of discount"
+          placeholder="Ingrese el % de descuento"
           className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
         />
       </div>
@@ -1339,7 +1339,7 @@ const addToCartHandle = () => {
           className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
           onClick={() => setIsDiscountModalOpen(false)}
         >
-          Cancel
+          Cancelar
         </button>
         <button
           className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
@@ -1356,7 +1356,7 @@ const addToCartHandle = () => {
             }
           }}
         >
-          Apply
+          Aplicar
         </button>
       </div>
     </div>
@@ -1799,7 +1799,7 @@ transition-colors`}
               locationId={selectedLocation?.id}
               onSave={(sel: { id: number; name: string }[]) => {
                 setSelectedSalesPersons(sel);
-                toast.success(`Selected ${sel.length} sales person(s)`);
+                toast.success(`Se seleccionaron ${sel.length} vendedor(es)`);
                 setSalesPersonModalOpen(false);
               }}
             />

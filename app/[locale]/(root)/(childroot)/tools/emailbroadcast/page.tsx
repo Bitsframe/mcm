@@ -484,6 +484,241 @@ const EmailBroadcast: React.FC = () => {
 
   const filteredEmails = filterEmails();
 
+  const FilterContent = () => {
+    try {
+      return (
+        <>
+          {!filter && (
+            <>
+              {loading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Skeleton
+                      key={index}
+                      className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
+                    />
+                  ))}
+                </div>
+              ) : (
+                (Array.isArray(filteredEmails) ? filteredEmails : []).map((email: any, index: any) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                        id={`checkbox-${index}`}
+                        value={email?.email}
+                        checked={checkedItems.some(
+                          (item: any) => item.email === email?.email
+                        )}
+                        onChange={(e) => handleCheckboxChange(e, email)}
+                      />
+                      <div className="flex flex-col">
+                        <Label className="mb-1 font-bold text-foreground text-sm sm:text-base">
+                          {email?.firstname}
+                        </Label>
+                        <Label className="text-muted-foreground text-xs sm:text-sm">
+                          {email?.email}
+                        </Label>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-foreground text-sm sm:text-base">
+                        {email?.gender === "Male"
+                          ? "M"
+                          : email?.gender === "Female"
+                          ? "F"
+                          : "O"}
+                      </Label>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {filter && (
+            <div className="space-y-4">
+              <RadioGroup defaultValue="comfortable">
+                <div className="flex flex-wrap gap-2 sm:gap-4">
+                  <h1 className="font-bold text-foreground text-sm sm:text-base">
+                    {t("EmailB_k19")}
+                  </h1>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value="Male"
+                      onChange={handleGenderChange}
+                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      checked={selectedGender.includes("Male")}
+                    />
+                    <Label
+                      htmlFor="r2"
+                      className="text-foreground text-sm sm:text-base"
+                    >
+                      {t("EmailB_k20")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value="Female"
+                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      onChange={handleGenderChange}
+                      checked={selectedGender.includes("Female")}
+                    />
+                    <Label
+                      htmlFor="r3"
+                      className="text-foreground text-sm sm:text-base"
+                    >
+                      {t("EmailB_k21")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value="other"
+                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      onChange={handleGenderChange}
+                      checked={selectedGender.includes("other")}
+                    />
+                    <Label
+                      htmlFor="r3"
+                      className="text-foreground text-sm sm:text-base"
+                    >
+                      {t("EmailB_k22")}
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <div className="flex items-center gap-2">
+                <h1 className="font-bold text-foreground text-sm sm:text-base">
+                  {t("EmailB_k23")}
+                </h1>
+                <Select
+                  onValueChange={(value) => setTreatmentType(value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
+                    <SelectValue className="text-foreground text-sm sm:text-base">
+                      {treatmentType ? treatmentType : t("EmailB_k44")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
+                    <SelectGroup>
+                      {(Array.isArray(serviceList) ? serviceList : []).map((patient: any, index) => (
+                        <SelectItem
+                          value={patient?.title}
+                          key={index}
+                          className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
+                        >
+                          {patient?.title}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <RadioGroup defaultValue="comfortable">
+                <div className="flex flex-wrap gap-2 sm:gap-4">
+                  <h1 className="font-bold text-foreground text-sm sm:text-base">
+                    {t("EmailB_k24")}
+                  </h1>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      checked={onsite === true}
+                      onChange={() => handleVisitChange(true)}
+                    />
+                    <Label
+                      htmlFor="r2"
+                      className="text-foreground text-sm sm:text-base"
+                    >
+                      {t("EmailB_k27")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      checked={onsite === false}
+                      onChange={() => handleVisitChange(false)}
+                    />
+                    <Label
+                      htmlFor="r3"
+                      className="text-foreground text-sm sm:text-base"
+                    >
+                      {t("EmailB_k28")}
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <div className="flex items-center gap-2">
+                <h1 className="font-bold text-foreground text-sm sm:text-base">
+                  {t("EmailB_k25")}
+                </h1>
+                <Select onValueChange={(value) => setLocation(value)}>
+                  <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
+                    <SelectValue className="text-foreground text-sm sm:text-base">
+                      {location ? location : t("EmailB_k45")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
+                    <SelectGroup>
+                      {(Array.isArray(locationList) ? locationList : [])
+                        .filter(
+                          (location, index, self) =>
+                            index ===
+                            self.findIndex((loc) => loc.title === location.title)
+                        )
+                        .map((location, index) => (
+                          <SelectItem
+                            key={index}
+                            value={location?.title}
+                            className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
+                          >
+                            {location?.title}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleReset()}
+                  className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
+                >
+                  {t("EmailB_k26")}
+                </button>
+                <button
+                  onClick={() => applyFilters()}
+                  className=" bg-green-600 py-2 px-4 rounded-lg text-base text-white"
+                >
+                  {t("EmailB_k46")}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    } catch (err) {
+      console.error('FilterContent render error', err);
+      return (
+        <div className="p-4 text-center text-sm text-red-600">
+          {"Error loading filter options. Please try again."}
+        </div>
+      );
+    }
+  };
+
   useEffect(() => {
     const fetchEmailList = async () => {
       try {
@@ -842,227 +1077,7 @@ const EmailBroadcast: React.FC = () => {
                 </AlertDialogHeader>
 
                 <AlertDialogDescription className="flex-1 overflow-y-auto">
-                  {!filter && (
-                    <>
-                      {loading ? (
-                        <div className="space-y-2">
-                          {Array.from({ length: 5 }).map((_, index) => (
-                            <Skeleton
-                              key={index}
-                              className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        filteredEmails.map((email: any, index: any) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                                id={`checkbox-${index}`}
-                                value={email.email}
-                                checked={checkedItems.some(
-                                  (item: any) => item.email === email.email
-                                )}
-                                onChange={(e) => handleCheckboxChange(e, email)}
-                              />
-                              <div className="flex flex-col">
-                                <Label className="mb-1 font-bold text-foreground text-sm sm:text-base">
-                                  {email.firstname}
-                                </Label>
-                                <Label className="text-muted-foreground text-xs sm:text-sm">
-                                  {email.email}
-                                </Label>
-                              </div>
-                            </div>
-                            <div>
-                              <Label className="text-foreground text-sm sm:text-base">
-                                {email.gender === "Male"
-                                  ? "M"
-                                  : email.gender === "Female"
-                                  ? "F"
-                                  : "O"}
-                              </Label>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </>
-                  )}
-
-                  {filter && (
-                    <div className="space-y-4">
-                      <RadioGroup defaultValue="comfortable">
-                        <div className="flex flex-wrap gap-2 sm:gap-4">
-                          <h1 className="font-bold text-foreground text-sm sm:text-base">
-                          {t("EmailB_k19")}
-                          </h1>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              value="Male"
-                              onChange={handleGenderChange}
-                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                              checked={selectedGender.includes("Male")}
-                            />
-                            <Label
-                              htmlFor="r2"
-                              className="text-foreground text-sm sm:text-base"
-                            >
-                              {t("EmailB_k20")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              value="Female"
-                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                              onChange={handleGenderChange}
-                              checked={selectedGender.includes("Female")}
-                            />
-                            <Label
-                              htmlFor="r3"
-                              className="text-foreground text-sm sm:text-base"
-                            >
-                              {t("EmailB_k21")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              value="other"
-                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                              onChange={handleGenderChange}
-                              checked={selectedGender.includes("other")}
-                            />
-                            <Label
-                              htmlFor="r3"
-                              className="text-foreground text-sm sm:text-base"
-                            >
-                             {t("EmailB_k22")}
-                            </Label>
-                          </div>
-                        </div>
-                      </RadioGroup>
-
-                      <div className="flex items-center gap-2">
-                        <h1 className="font-bold text-foreground text-sm sm:text-base">
-                          {t("EmailB_k23")}
-                        </h1>
-                        <Select
-                          onValueChange={(value) => setTreatmentType(value)}
-                        >
-                          <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
-                            <SelectValue className="text-foreground text-sm sm:text-base">
-                              {treatmentType ? treatmentType : "All Treatments"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
-                            <SelectGroup>
-                              {serviceList.map((patient: any, index) => (
-                                <SelectItem
-                                  value={patient.title}
-                                  key={index}
-                                  className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
-                                >
-                                  {patient.title}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <RadioGroup defaultValue="comfortable">
-                        <div className="flex flex-wrap gap-2 sm:gap-4">
-                          <h1 className="font-bold text-foreground text-sm sm:text-base">
-                          {t("EmailB_k24")}
-                          </h1>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                              checked={onsite === true}
-                              onChange={() => handleVisitChange(true)}
-                            />
-                            <Label
-                              htmlFor="r2"
-                              className="text-foreground text-sm sm:text-base"
-                            >
-                              {t("EmailB_k27")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
-                              checked={onsite === false}
-                              onChange={() => handleVisitChange(false)}
-                            />
-                            <Label
-                              htmlFor="r3"
-                              className="text-foreground text-sm sm:text-base"
-                            >
-                              {t("EmailB_k28")}
-                            </Label>
-                          </div>
-                        </div>
-                      </RadioGroup>
-
-                      <div className="flex items-center gap-2">
-                        <h1 className="font-bold text-foreground text-sm sm:text-base">
-                        {t("EmailB_k25")}
-                        </h1>
-                        <Select onValueChange={(value) => setLocation(value)}>
-                          <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
-                            <SelectValue className="text-foreground text-sm sm:text-base">
-                              {location ? location : "Select Location"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
-                            <SelectGroup>
-                              {locationList
-                                ?.filter(
-                                  (location, index, self) =>
-                                    index ===
-                                    self.findIndex(
-                                      (loc) => loc.title === location.title
-                                    )
-                                )
-                                .map((location, index) => (
-                                  <SelectItem
-                                    key={index}
-                                    value={location.title}
-                                    className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
-                                  >
-                                    {location.title}
-                                  </SelectItem>
-                                ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleReset()}
-                          className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
-                        >
-                          {t("EmailB_k26")}
-                        </button>
-                        <button
-                          onClick={() => applyFilters()}
-                          className=" bg-green-600 py-2 px-4 rounded-lg text-base text-white"
-                        >
-                          {"Apply Filters"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <FilterContent />
                 </AlertDialogDescription>
                 <AlertDialogFooter className="flex-none sticky bottom-0 w-full flex justify-end bg-background dark:bg-[#080e16] pt-2">
                   {!filter && checkedItems.length > 0 && (
@@ -1127,10 +1142,10 @@ const EmailBroadcast: React.FC = () => {
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-sm"
-                title="Create new template"
+                title={t("EmailB_k30")}
               >
                 <Plus className="w-4 h-4" />
-                <span className="text-sm">Create</span>
+                <span className="text-sm">{t("EmailB_k30")}</span>
               </button>
             </div>
           </div>
@@ -1143,13 +1158,13 @@ const EmailBroadcast: React.FC = () => {
               {t("EmailB_k3")} {" "}
               <span className="text-destructive dark:text-red-500 ml-1">*</span>
             </label>
-            <input
+              <input
               type="text"
               id="subject"
               name="subject"
               value={subject || ""}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Please enter subject here"
+              placeholder={t("EmailB_k31")}
               className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
 
@@ -1157,7 +1172,7 @@ const EmailBroadcast: React.FC = () => {
             {editModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
                 <div className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl">
-                  <h2 className="text-lg font-semibold mb-3 text-foreground dark:text-white">Edit Template</h2>
+                  <h2 className="text-lg font-semibold mb-3 text-foreground dark:text-white">{t("EmailB_k32")}</h2>
                   <textarea
                     value={editBody}
                     onChange={(e) => setEditBody(e.target.value)}
@@ -1169,13 +1184,13 @@ const EmailBroadcast: React.FC = () => {
                       onClick={() => { setEditModalOpen(false); setIsEditingTemplate(false); }}
                       className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-foreground"
                     >
-                      Cancel
+                      {t("EmailB_k40")}
                     </button>
                     <button
                       onClick={() => submitTemplateUpdate()}
                       className="px-4 py-2 rounded bg-blue-600 text-white"
                     >
-                      Save
+                      {t("EmailB_k41")}
                     </button>
                   </div>
                 </div>
@@ -1203,12 +1218,12 @@ const EmailBroadcast: React.FC = () => {
                   }
                 `}</style>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold mb-1 text-foreground dark:text-white">Create Template</h2>
-                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="text-muted-foreground">Close</button>
+                  <h2 className="text-lg font-semibold mb-1 text-foreground dark:text-white">{t("EmailB_k33")}</h2>
+                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="text-muted-foreground">{t("EmailB_k39")}</button>
                 </div>
 
                 <div className="mb-3">
-                  <label className="text-sm text-foreground block mb-1">Template Name</label>
+                  <label className="text-sm text-foreground block mb-1">{t("EmailB_k34")}</label>
                   <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} className="w-full p-2 rounded border border-gray-300 bg-gray-100 dark:bg-[#0b1320] text-foreground dark:text-white" />
                 </div>
 
@@ -1231,11 +1246,11 @@ const EmailBroadcast: React.FC = () => {
                     onClick={async () => {
                       try {
                         if (!templateName.trim()) {
-                          toast.error('Please enter a template name');
+                          toast.error(t("EmailB_k35"));
                           return;
                         }
                         if (!templateContent.trim()) {
-                          toast.error('Please enter template content');
+                          toast.error(t("EmailB_k36"));
                           return;
                         }
 
@@ -1252,17 +1267,17 @@ const EmailBroadcast: React.FC = () => {
                           setTemplateContent('');
                           // reset editor content
                           editor?.commands.setContent('');
-                          toast.success('Template created');
+                          toast.success(t("EmailB_k37"));
                         } else {
-                          throw new Error('Failed to create template');
+                          throw new Error(t("EmailB_k38"));
                         }
                       } catch (err: any) {
-                        toast.error(err?.message || 'Failed to create template');
+                        toast.error(err?.message || t("EmailB_k38"));
                       }
                     }}
                     className="px-3 py-2 rounded bg-blue-600 text-white"
                   >
-                    Save
+                    {t("EmailB_k41")}
                   </button>
                 </div>
               </div>
@@ -1277,13 +1292,13 @@ const EmailBroadcast: React.FC = () => {
             >
               {t("EmailB_k4")}
             </label>
-            <input
+              <input
               type="text"
               id="name"
               name="name"
               value={name || ""}
               onChange={(e) => setName(e.target.value)}
-              placeholder="From it is"
+              placeholder={t("EmailB_k42")}
               className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
             />
           </div>
@@ -1300,7 +1315,7 @@ const EmailBroadcast: React.FC = () => {
                 type="text"
                 id="price"
                 name="price"
-                placeholder="Enter price"
+                placeholder={t("EmailB_k43")}
                 className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
                 value={price || ""}
                 onChange={(e) => setPrice(e.target.value)}
