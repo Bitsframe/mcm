@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 if [ ! -f yarn.lock ]; then
   echo "Error: yarn.lock is missing. Please use Yarn as the package manager."
   exit 1
