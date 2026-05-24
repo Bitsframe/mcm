@@ -337,6 +337,9 @@ export async function fetch_content_service({
         case 'in':
           query = query.in(filter.column, filter.value);
           break;
+        case 'is':
+          query = query.is(filter.column, filter.value);
+          break;
         case 'not':
           query = query.not(filter.column, 'is', filter.value);
           break;

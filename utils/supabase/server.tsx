@@ -51,10 +51,7 @@ export const createClient = () => {
   const cookieStore = cookies()
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
-  const anonOrPublishable = (
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-    ""
-  ).trim()
+  const anonOrPublishable = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim()
 
   if (!url || !anonOrPublishable) {
     throw new Error(
