@@ -1,5 +1,7 @@
  import React, { useMemo, useState } from 'react';
 import Product from './Product';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface ProductListModalProps {
   isOpen: boolean;
@@ -23,10 +25,11 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
   onQtyChange,
   onAddToCart,
   disabled,
-  title = 'Products',
+  title,
   formatPrice,
 }) => {
   // Hooks must be called unconditionally at the top of the component
+  const { t } = useTranslation(translationConstant.POSSALES);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredProducts = useMemo(() => {
@@ -58,8 +61,8 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
       >
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-baseline gap-3">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <span className="text-sm text-gray-600 dark:text-gray-300">{`Showing ${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}</span>
+            <h3 className="text-lg font-semibold">{title ?? t('POS-Sales_k5')}</h3>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{`${t('POS-Sales_k121')} ${filteredProducts.length} ${filteredProducts.length !== 1 ? t('POS-Sales_k123') : t('POS-Sales_k122')}`}</span>
           </div>
           <button
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -76,7 +79,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search product..."
+              placeholder={t('POS-Sales_k118')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
             />
             {searchTerm && (
@@ -85,7 +88,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
                 onClick={() => setSearchTerm('')}
                 className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded text-sm"
               >
-                Clear
+                {t('POS-Sales_k119')}
               </button>
             )}
           </div>
@@ -97,7 +100,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
               disabled={!hasAnyQty || disabled}
               className="px-3 py-2 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
             >
-              Add to Cart
+              {t('POS-Sales_k120')}
             </button>
           </div>
         </div>
@@ -105,19 +108,19 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
   <div className="p-4 flex-1 overflow-y-auto">
 
           {loading ? (
-            <div className="text-sm">Loading products...</div>
+            <div className="text-sm">{t('POS-Sales_k124')}</div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-sm">No products found for this search/location</div>
+            <div className="text-sm">{t('POS-Sales_k125')}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
                   <tr>
-                    <th className="border-b p-2 text-left">Product Name</th>
-                    <th className="border-b p-2 text-left">Quantity</th>
-                    <th className="border-b p-2 text-left">Availability</th>
-                    <th className="border-b p-2 text-left">Price/Unit</th>
-                    <th className="border-b p-2 text-left">Total Cost</th>
+                    <th className="border-b p-2 text-left">{t('POS-Sales_k126')}</th>
+                    <th className="border-b p-2 text-left">{t('POS-Sales_k7')}</th>
+                    <th className="border-b p-2 text-left">{t('POS-Sales_k127')}</th>
+                    <th className="border-b p-2 text-left">{t('POS-Sales_k128')}</th>
+                    <th className="border-b p-2 text-left">{t('POS-Sales_k129')}</th>
                   </tr>
                 </thead>
                 <tbody>

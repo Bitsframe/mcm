@@ -140,32 +140,34 @@ const modal_titles: any = {
   create: {
     modalLabel: "POS-Sales_k94",
     button: {
-      label: "Create",
+      label: "POS-Sales_k98",
       color: "blue",
     },
   },
   edit: {
     modalLabel: "POS-Sales_k39",
     button: {
-      label: "Update",
+      label: "POS-Sales_k97",
       color: "blue",
     },
   },
   delete: {
     modalLabel: "POS-Sales_k95",
     button: {
-      label: "Delete",
+      label: "POS-Sales_k96",
       color: "failure",
     },
   },
 };
 
 const Promo_Input = () => {
+  const { t } = useTranslation(translationConstant.PROCODE);
+
   return (
     <div className="w-52 flex rounded-md items-center bg-gray-200 dark:bg-gray-700 p-2 px-2">
       <input
         type="text"
-        placeholder="Enter Promo Code"
+        placeholder={t('Procode_k_placeholder', { defaultValue: 'Enter Promo Code' })}
         className="w-full px-1 py-1 text-sm border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
       />
       <IoCloseOutline className="text-gray-500 dark:text-gray-400" />
@@ -694,10 +696,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   onChange={(e) => setSearchType(e.target.value as "all" | "name" | "email" | "phone")}
                   className="w-[100px] bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="all">All</option>
-                  <option value="name">Name</option>
-                  <option value="email">Email</option>
-                  <option value="phone">Phone</option>
+                  <option value="all">{t("POS-Sales_k35")}</option>
+                  <option value="name">{t("POS-Sales_k41")}</option>
+                  <option value="email">{t("POS-Sales_k93")}</option>
+                  <option value="phone">{t("POS-Sales_k37")}</option>
                 </Select>
                 <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
                   =
@@ -745,10 +747,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
             ) : (
               currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
-              const formattedDateTime = moment
-                .utc(updated_at, "YYYY-MM-DD h:mm s")
-                .local()
-                .format("DD/MM/YYYY h:mm A");
+              const formattedDateTime = updated_at
+                ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
+                : t("POS-Sales_k104");
 
               return (
                 <div
@@ -771,19 +772,19 @@ const createNewDataHandle = async (): Promise<boolean> => {
 
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k37")}</p>
                       <p className="text-gray-700 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k93")}</p>
                       <p className="text-gray-700 dark:text-gray-300 truncate">
                         {email}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Gender</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k21")}</p>
                       <p className="text-gray-700 dark:text-gray-300">
                         {gender}
                       </p>
@@ -808,7 +809,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
-                      Edit
+                      {t("POS-Sales_k39")}
                     </button>
                     <button
                       type="button"
@@ -851,10 +852,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     : "bg-blue-600 text-white"
                     }`}
                 >
-                  Previous
+                  {t("POS-Sales_kPrev")}
                 </button>
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Page {currentPage} of {totalPages}
+                  {t("POS-Sales_kPage")} {currentPage} {t("POS-Sales_kOf")} {totalPages}
                 </span>
                 <button
                   onClick={() => paginate(currentPage + 1)}
@@ -864,7 +865,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     : "bg-blue-600 text-white"
                     }`}
                 >
-                  Next
+                  {t("POS-Sales_kNext")}
                 </button>
               </div>
             )}
@@ -891,10 +892,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   
                   {dataList.map((elem, ind) => {
                 const { id, firstname, lastname, phone, updated_at, email } = elem;
-                const formattedDateTime = moment
-                  .utc(updated_at, "YYYY-MM-DD h:mm s")
-                  .local()
-                  .format("DD/MM/YYYY h:mm A");
+                const formattedDateTime = updated_at
+                  ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
+                  : t("POS-Sales_k104");
 
                 const truncateEmail = (email: string) => {
                   if (!email) return "";
@@ -1094,7 +1094,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Dirección
+                    {t("POS-Sales_k113")}
                   </label>
                   <div className="relative">
                     <input
@@ -1110,7 +1110,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         // Delay hiding suggestions to allow for selection
                         setTimeout(() => setShowAddressSuggestions(false), 200);
                       }}
-                      placeholder="Ingrese la dirección"
+                      placeholder={t("POS-Sales_k115")}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                     {addressLoading && (
@@ -1145,9 +1145,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 <Input_Component
                   value={createActionData.dob}
                   onChange={(e: string) => addPatientFieldsChange(e, "dob")}
-                  label="Fecha de nacimiento"
+                  label={t("POS-Sales_k114")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Seleccione la fecha de nacimiento"
+                  placeholder={t("POS-Sales_k116")}
                   type="date"
                 />
               </div>
@@ -1204,7 +1204,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-                label={t("POS-Sales_k25")}
+                label={t("POS-Sales_k20")}
               />
             </div>
 
@@ -1235,7 +1235,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
             <div className="md:col-span-2">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dirección
+                  {t("POS-Sales_k113")}
                 </label>
                 <div className="relative">
                   <input
@@ -1251,7 +1251,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                       // Delay hiding suggestions to allow for selection
                       setTimeout(() => setShowEditAddressSuggestions(false), 200);
                     }}
-                    placeholder="Ingrese la dirección"
+                    placeholder={t("POS-Sales_k115")}
                     className="w-full px-3 py-2 border-2 border-gray-300 dark:border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                   {editAddressLoading && (
@@ -1289,7 +1289,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "dob")}
-                label="Fecha de nacimiento"
+                label={t("POS-Sales_k114")}
               />
             </div>
 

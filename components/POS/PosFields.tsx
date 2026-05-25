@@ -11,6 +11,9 @@ interface PosFieldsModalProps {
   locationId?: number | null;
 }
 
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
+
 const PosFields: React.FC<PosFieldsModalProps> = ({
   isOpen,
   onClose,
@@ -18,6 +21,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
   onSave,
   locationId,
 }) => {
+  const { t } = useTranslation(translationConstant.POSSALES);
   const { userProfile } = useContext(AuthContext);
   const [salesPeople, setSalesPeople] = useState<{ id: number; name: string }[]>([]);
   const [selected, setSelected] = useState<{ id: number; name: string }[]>(initialSelected || []);
@@ -295,12 +299,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Vendedor</h3>
-              <p className="text-xs text-gray-500">Seleccione uno o más empleados de esta ubicación.</p>
-            </div>
+              <div>
+                <h3 className="text-lg font-semibold">{t('POS-Sales_k109')}</h3>
+                <p className="text-xs text-gray-500">{t('POS-Sales_kSalesModalDesc')}</p>
+              </div>
             <div className="text-xs text-gray-600">
-              ID de autenticación: <span className="font-mono text-xs">{authUserId ?? "No ha iniciado sesión"}</span>
+              {t('POS-Sales_kAuthIdLabel')} <span className="font-mono text-xs">{authUserId ?? t('POS-Sales_kNotLoggedIn')}</span>
             </div>
           </div>
         </div>
@@ -308,13 +312,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
           {/* Left: search + list */}
           <div className="md:col-span-2 flex flex-col min-h-0">
-            <label className="block text-sm font-medium mb-2">Nombre del vendedor</label>
+            <label className="block text-sm font-medium mb-2">{t('POS-Sales_kSalesNameLabel')}</label>
             {/* Current active team for this location */}
-            {hasActiveTeam ? (
+                {hasActiveTeam ? (
               <div className="mb-3 p-2 bg-gray-50 border rounded">
-                <div className="text-sm font-medium mb-1">Equipo actual</div>
+                <div className="text-sm font-medium mb-1">{t('POS-Sales_kCurrentTeam')}</div>
                 <div className="text-sm">
-                  {currentTeam.length === 0 && <div className="py-1 text-gray-500 text-xs">No hay miembros asignados</div>}
+                  {currentTeam.length === 0 && <div className="py-1 text-gray-500 text-xs">{t('POS-Sales_kNoMembersAssigned')}</div>}
                   {currentTeam.map((m) => (
                     <div key={m.id} className="py-1">{m.name}</div>
                   ))}
@@ -323,13 +327,13 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
                   onClick={handleResetTeam}
                   className="mt-2 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition"
                 >
-                  Restablecer equipo
+                  {t('POS-Sales_kResetTeam')}
                 </button>
               </div>
             ) : (
               <div className="mb-3 p-2 bg-blue-50 border rounded">
-                <div className="text-sm font-medium mb-1">Usuario actual</div>
-                <div className="text-sm text-gray-700">{userProfile?.full_name || 'Cargando...'}</div>
+                <div className="text-sm font-medium mb-1">{t('POS-Sales_kUserCurrent')}</div>
+                <div className="text-sm text-gray-700">{userProfile?.full_name || t('POS-Sales_kLoading')}</div>
               </div>
             )}
 
@@ -337,12 +341,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar vendedor..."
+              placeholder={t('POS-Sales_kSearchSalesPersonPlaceholder')}
               className="w-full border rounded p-2 text-sm mb-2"
             />
 
             <div className="border rounded flex-1 overflow-auto p-2 bg-white min-h-0">
-              {salesPeople.length === 0 && <div className="p-2 text-xs text-gray-500">No se encontró personal para esta ubicación</div>}
+              {salesPeople.length === 0 && <div className="p-2 text-xs text-gray-500">{t('POS-Sales_kNoStaffFound')}</div>}
 
               {salesPeople
                 .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
@@ -352,8 +356,8 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
                       <input type="checkbox" checked={!!selected.find((s) => s.id === person.id)} onChange={() => handlePersonClick(person)} />
                       <span className="text-sm">{person.name}</span>
                     </div>
-                    <button className="text-xs text-gray-500" onClick={() => handlePersonClick(person)}>
-                      {selected.find((s) => s.id === person.id) ? "Quitar" : "Agregar"}
+                      <button className="text-xs text-gray-500" onClick={() => handlePersonClick(person)}>
+                      {selected.find((s) => s.id === person.id) ? t('POS-Sales_kRemove') : t('POS-Sales_kAdd')}
                     </button>
                   </div>
                 ))}
@@ -362,9 +366,9 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
 
           {/* Right: selected summary */}
           <div className="md:col-span-1 border rounded p-3 bg-gray-50 flex flex-col min-h-0">
-            <div className="mb-2 font-medium">Seleccionado</div>
+            <div className="mb-2 font-medium">{t('POS-Sales_kSelected')}</div>
             <div className="flex-1 overflow-auto min-h-0">
-              {selected.length === 0 && <div className="text-xs text-gray-500">Sin selección</div>}
+              {selected.length === 0 && <div className="text-xs text-gray-500">{t('POS-Sales_kNoSelection')}</div>}
               {selected.map((s) => (
                 <div key={s.id} className="flex items-center justify-between p-2">
                   <div className="text-sm">{s.name}</div>
@@ -376,23 +380,23 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
             </div>
 
             <div className="mt-3">
-              <div className="text-xs text-gray-500 mb-2">Consejos</div>
-              <div className="text-xs text-gray-600">Use la búsqueda para filtrar el personal y luego haga clic en Agregar/Quitar.</div>
+              <div className="text-xs text-gray-500 mb-2">{t('POS-Sales_kTips')}</div>
+              <div className="text-xs text-gray-600">{t('POS-Sales_kTipsText')}</div>
             </div>
           </div>
         </div>
 
         <div className="mt-4 sticky bottom-0 z-10 bg-white dark:bg-gray-800 border-t py-3 flex justify-end gap-2">
           <button className="px-3 py-1 bg-gray-300 rounded" onClick={onClose}>
-            Cancelar
+            {t('POS-Sales_k85')}
           </button>
           <button 
             className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed" 
             onClick={handleSave}
             disabled={hasActiveTeam && selected.length === 0}
-            title={hasActiveTeam && selected.length === 0 ? "Seleccione al menos una persona o mantenga el equipo actual" : "Guardar equipo"}
+            title={hasActiveTeam && selected.length === 0 ? t('POS-Sales_kSelectAtLeastOne') : t('POS-Sales_kSave')}
           >
-            Guardar
+            {t('POS-Sales_kSave')}
           </button>
         </div>
       </div>

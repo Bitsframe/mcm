@@ -164,18 +164,17 @@ const CollapsibleRoute = memo(
             const isCurrent = currentPath === item.route;
     
             return (
-              <Sidebar.Item
-                key={item.id}
-                href={item.route || "#"} // ✅ pass href directly
-                onClick={onNavigate}     // ✅ preserve click handler
-                className={`text-left text-sm hover:text-[#0066ff] pl-3 ${
-                  isCurrent
-                    ? "text-[#0066ff]"
-                    : "text-[#79808B] dark:text-gray-400"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="relative w-4 h-4">
+              <li key={item.id}>
+                <Link
+                  href={item.route || "#"}
+                  onClick={onNavigate}
+                  className={`flex items-start gap-2 text-sm pl-6 py-2 rounded-lg hover:text-[#0066ff] hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                    isCurrent
+                      ? "text-[#0066ff]"
+                      : "text-[#79808B] dark:text-gray-400"
+                  }`}
+                >
+                  <span className="relative w-4 h-4 shrink-0 mt-[2px]">
                     {isCurrent && (
                       <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
                     )}
@@ -187,11 +186,9 @@ const CollapsibleRoute = memo(
                       }`}
                     />
                   </span>
-                  <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
-                    {t(item.label)}
-                  </span>
-                </div>
-              </Sidebar.Item>
+                  <span>{t(item.label)}</span>
+                </Link>
+              </li>
             );
           })}
         </Sidebar.Collapse>

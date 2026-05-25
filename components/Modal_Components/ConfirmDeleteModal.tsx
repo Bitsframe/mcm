@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Button } from "flowbite-react";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 interface Props {
   is_open: boolean;
@@ -14,12 +16,21 @@ interface Props {
 
 const ConfirmDeleteModal: React.FC<Props> = ({
   is_open,
-  title = "Delete",
-  description = "Are you sure you want to delete this item? This action cannot be undone.",
+  title,
+  description,
   onClose,
   onConfirm,
   loading = false,
 }) => {
+  const { t } = useTranslation(translationConstant.POSHISTORY);
+
+  const resolvedTitle = title || t("POS-Historyk49", { defaultValue: "Delete" });
+  const resolvedDescription =
+    description ||
+    t("POS-HistoryDeleteDesc", {
+      defaultValue: "¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.",
+    });
+
   if (!is_open) return null;
 
   return (
@@ -27,20 +38,20 @@ const ConfirmDeleteModal: React.FC<Props> = ({
       <div className="bg-white dark:bg-[#0e1725] rounded-lg shadow-lg w-full max-w-[520px] mx-4">
         <div className="p-6">
           <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{resolvedTitle}</h3>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
           </div>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">{description}</div>
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">{resolvedDescription}</div>
 
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 rounded bg-gray-100 dark:bg-[#122136] text-gray-700 dark:text-white"
             >
-              Cancel
+              {t("POS-HistoryCancelBtn", { defaultValue: "Cancelar" })}
             </button>
             <Button color="failure" onClick={onConfirm} isProcessing={loading}>
-              Delete
+              {t("POS-Historyk49", { defaultValue: "Eliminar" })}
             </Button>
           </div>
         </div>

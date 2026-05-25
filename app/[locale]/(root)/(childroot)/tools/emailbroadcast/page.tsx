@@ -599,13 +599,9 @@ const EmailBroadcast: React.FC = () => {
                 <h1 className="font-bold text-foreground text-sm sm:text-base">
                   {t("EmailB_k23")}
                 </h1>
-                <Select
-                  onValueChange={(value) => setTreatmentType(value)}
-                >
+                <Select value={treatmentType ?? ""} onValueChange={(value) => setTreatmentType(value)}>
                   <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
-                    <SelectValue className="text-foreground text-sm sm:text-base">
-                      {treatmentType ? treatmentType : t("EmailB_k44")}
-                    </SelectValue>
+                    <SelectValue placeholder={t("EmailB_k44")} className="text-foreground text-sm sm:text-base" />
                   </SelectTrigger>
                   <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
                     <SelectGroup>
@@ -663,11 +659,9 @@ const EmailBroadcast: React.FC = () => {
                 <h1 className="font-bold text-foreground text-sm sm:text-base">
                   {t("EmailB_k25")}
                 </h1>
-                <Select onValueChange={(value) => setLocation(value)}>
+                <Select value={location ?? ""} onValueChange={(value) => setLocation(value)}>
                   <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
-                    <SelectValue className="text-foreground text-sm sm:text-base">
-                      {location ? location : t("EmailB_k45")}
-                    </SelectValue>
+                    <SelectValue placeholder={t("EmailB_k45")} className="text-foreground text-sm sm:text-base" />
                   </SelectTrigger>
                   <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
                     <SelectGroup>

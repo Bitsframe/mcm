@@ -344,7 +344,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                           className="px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 text-xs"
                           title="View Details"
                         >
-                          Details
+                          {t("POS-Historyk48", { ns: "POS-History", defaultValue: "Details" })}
                         </button>
                       </TableCell>
                     )}
@@ -366,7 +366,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                           className="px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors duration-150 text-xs"
                           title="Delete Order"
                         >
-                          Delete
+                          {t("POS-Historyk49", { ns: "POS-History", defaultValue: "Delete" })}
                         </button>
                       </TableCell>
                     )}

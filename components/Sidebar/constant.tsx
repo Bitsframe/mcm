@@ -232,13 +232,13 @@ export const routeList: Route[] = [
       {
         id: 'tools-pharmacy',
         name: "pharmacy",
-        label: "Pharmacy",
+        label: "Sidebar_k35",
         route: ROUTES.TOOLS.PHARMACY
       },
       {
         id: 'tools-medical-forms',
         name: "medical forms",
-        label: "Medical Forms",
+        label: "Sidebar_k36",
         route: ROUTES.TOOLS.MEDICAL_FORMS
       }
     ],
