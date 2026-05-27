@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { supabase } from "@/services/supabase";
 import { toast } from "react-toastify";
-import { validateFormData } from "@/utils/validationCheck";
 import { LocationContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { formatPhoneNumber } from "@/utils/getCountryName";
@@ -219,6 +218,7 @@ const Patients = () => {
   const cardsPerPage = 2;
   const [searchType, setSearchType] = useState<"all" | "name" | "email" | "phone">("all");
   const [emailError, setEmailError] = useState("");
+  const [createFieldErrors, setCreateFieldErrors] = useState<Record<string, string>>({});
   const [modalEmailError, setModalEmailError] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
@@ -234,6 +234,23 @@ const Patients = () => {
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const isValidPhoneNumber = (phone: string) => {
+    const digits = String(phone || "").replace(/\D/g, "");
+    return digits.length === 10 || digits.length === 11;
+  };
+
+  const clearCreateFieldError = (field: string) => {
+    setCreateFieldErrors((previous) => {
+      if (!previous[field]) {
+        return previous;
+      }
+
+      const nextErrors = { ...previous };
+      delete nextErrors[field];
+      return nextErrors;
+    });
   };
 
   // Simple debounce function
@@ -438,6 +455,7 @@ const Patients = () => {
       : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors";
 
   const modalInputChangeHandle = (e: any, id: string) => {
+    clearCreateFieldError(id);
     if (id === "email") {
       if (e && !isValidEmail(e)) {
         setModalEmailError("Please enter a valid email format");
@@ -449,6 +467,7 @@ const Patients = () => {
     setCanModalSubmit(true);
   };
   const addPatientFieldsChange = (e: any, id: string) => {
+    clearCreateFieldError(id);
     if (id === "email") {
       if (e && !isValidEmail(e)) {
         setEmailError("Please enter a valid email format");
@@ -570,6 +589,18 @@ const Patients = () => {
     }
   };
 const createNewDataHandle = async (): Promise<boolean> => {
+  const fieldLabels: Record<string, string> = {
+    locationid: "Location",
+    firstname: "First name",
+    lastname: "Last name",
+    email: "Email",
+    gender: "Gender",
+    phone: "Phone",
+    address: "Address",
+    dob: "Date of birth",
+    treatmenttype: "Treatment type",
+  };
+
   const requiredFields = [
     "locationid",
     "firstname",
@@ -582,21 +613,32 @@ const createNewDataHandle = async (): Promise<boolean> => {
     "treatmenttype",
   ];
 
-  console.log("Form Data Before Validation:", createActionData);
+  const nextErrors: Record<string, string> = {};
 
-  const validateData = validateFormData(createActionData);
-  console.log("Validation Result:", validateData);
-
-  if (!validateData) {
-    console.log("Validation Failed");
-    return false;
+  for (const field of requiredFields) {
+    const value = field === "locationid" ? selectedLocation?.id : createActionData[field];
+    if (value == null || String(value).trim() === "") {
+      nextErrors[field] = `${fieldLabels[field]} is required.`;
+    }
   }
 
   if (createActionData.email && !isValidEmail(createActionData.email)) {
-    console.log("Invalid Email Address:", createActionData.email);
-    toast.error("Please enter a valid email address.");
+    nextErrors.email = "Please enter a valid email address.";
+  }
+
+  if (createActionData.phone && !isValidPhoneNumber(createActionData.phone)) {
+    nextErrors.phone = "Please enter a valid phone number.";
+  }
+
+  if (Object.keys(nextErrors).length > 0) {
+    setCreateFieldErrors(nextErrors);
+    setEmailError(nextErrors.email || "");
+    toast.error("Please complete the highlighted fields.");
     return false;
   }
+
+  setEmailError("");
+  setCreateFieldErrors({});
 
   if (!services || services.length === 0) {
     toast.error(
@@ -638,6 +680,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
       toast.success("Patient successfully added!");
       setCreateActionData({});
       setEmailError("");
+      setCreateFieldErrors({});
       fetch_handle(selectedLocation?.id);
       return true;
     }
@@ -999,6 +1042,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
         setAddPatientModalOpen(open);
         if (!open) {
           setEmailError("");
+          setCreateFieldErrors({});
         }
       }}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
@@ -1007,6 +1051,17 @@ const createNewDataHandle = async (): Promise<boolean> => {
               {t("POS-Sales_k18")}
             </DialogTitle>
           </DialogHeader>
+
+          {Object.keys(createFieldErrors).length > 0 && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+              <p className="font-medium">Please fix the highlighted fields.</p>
+              <ul className="mt-2 space-y-1">
+                {Object.values(createFieldErrors).map((message, index) => (
+                  <li key={`${message}-${index}`}>{message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="w-full space-y-4">
             <div className="w-full space-y-4">
@@ -1019,6 +1074,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k19")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k86")}
+                  hasError={!!createFieldErrors.firstname}
+                  errorMessage={createFieldErrors.firstname}
                 />
               </div>
 
@@ -1031,6 +1088,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k20")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k87")}
+                  hasError={!!createFieldErrors.lastname}
+                  errorMessage={createFieldErrors.lastname}
                 />
               </div>
 
@@ -1049,6 +1108,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e.target.value, "gender")
                   }
                   label={t("POS-Sales_k21")}
+                  hasError={!!createFieldErrors.gender}
+                  errorMessage={createFieldErrors.gender}
                 />
               </div>
 
@@ -1066,6 +1127,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e.target.value, "treatmenttype")
                   }
                   label={t("POS-Sales_k24")}
+                  hasError={!!createFieldErrors.treatmenttype}
+                  errorMessage={createFieldErrors.treatmenttype}
                 />
               </div>
 
@@ -1076,8 +1139,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k22")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k88")}
-                  hasError={!!emailError}
-                  errorMessage={emailError}
+                  hasError={!!createFieldErrors.email || !!emailError}
+                  errorMessage={createFieldErrors.email || emailError}
                 />
               </div>
 
@@ -1088,6 +1151,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k23")}
                   placeholder=""
                   breakpoint={false}
+                  required={true}
+                  hasError={!!createFieldErrors.phone}
+                  errorMessage={createFieldErrors.phone}
                 />
               </div>
 
@@ -1111,7 +1177,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         setTimeout(() => setShowAddressSuggestions(false), 200);
                       }}
                       placeholder={t("POS-Sales_k115")}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white ${createFieldErrors.address ? "border border-red-500 focus:ring-red-500" : "border border-gray-300 dark:border-gray-600 focus:ring-blue-500"}`}
                     />
                     {addressLoading && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1137,6 +1203,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         ))}
                       </div>
                     )}
+                    {createFieldErrors.address && (
+                      <p className="mt-1 text-sm text-red-500">{createFieldErrors.address}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1149,6 +1218,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k116")}
                   type="date"
+                  hasError={!!createFieldErrors.dob}
+                  errorMessage={createFieldErrors.dob}
                 />
               </div>
             </div>

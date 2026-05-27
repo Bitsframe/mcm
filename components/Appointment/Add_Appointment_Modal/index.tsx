@@ -8,6 +8,7 @@ import moment from "moment";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import enAppoinments from "@/locales/en/Appoinments.json";
 import { CirclePlus, Loader2, MapPin } from "lucide-react";
 import { EmailBodyTempEnum } from "@/utils/emailService/templateDetails";
 import { sendEmail } from "@/utils/emailService";
@@ -478,6 +479,9 @@ export const Add_Appointment_Modal = ({
       }
 
       addressLine = addr;
+    } else if (selectedComingBackPatient) {
+      // For coming-back patients, use the address field if provided
+      addressLine = String(formData.patient_address || "").trim();
     }
 
     appointmentDetails.address = addressLine;
@@ -1047,8 +1051,8 @@ export const Add_Appointment_Modal = ({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1.5 text-sm">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-white">{t("Appoinments_k93")}</h3>
-                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k89")}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
-                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k90")}</span> — {selectedComingBackPatient.phone || "—"}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k89", { defaultValue: (enAppoinments as any)["Appoinments_k89"] ?? "Name" })}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
+                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k90", { defaultValue: (enAppoinments as any)["Appoinments_k90"] ?? "Phone" })}</span> — {selectedComingBackPatient.phone || "—"}</p>
                     <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k8")}</span> — {selectedComingBackPatient.sex || "—"}</p>
                   </div>
                   <button

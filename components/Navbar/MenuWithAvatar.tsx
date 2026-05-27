@@ -14,6 +14,8 @@ import LanguageChanger from "@/components/LanguageChanger";
 import LanguageChanger2 from "@/components/LanguageChanger2";
 import ThemeToggleButton from "@/components/Themetoggle";
 import { useTheme } from "next-themes";
+import { useTranslation } from "react-i18next";
+import { translationConstant } from "@/utils/translationConstants";
 
 export default function MenuWithAvatar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -21,6 +23,7 @@ export default function MenuWithAvatar() {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation(translationConstant.SIDEBAR);
 
   const open = Boolean(anchorEl);
 
@@ -53,6 +56,8 @@ export default function MenuWithAvatar() {
     router.push("/tools/settings");
     handleClose();
   };
+
+  const logoutLabel = i18n.language?.startsWith("es") ? "Cerrar sesión" : "Log Out";
 
   return (
     <div>
@@ -128,13 +133,13 @@ export default function MenuWithAvatar() {
               onClick={handleSettings}
               style={{ color: "#0066ff", gap: "12px" }}
             >
-              <Settings size={18} color="#0066ff" /> Settings
+              <Settings size={18} color="#0066ff" /> {t("Sidebar_k22")}
             </MenuItem>
             <MenuItem
               onClick={handleLogout}
               style={{ color: "red", gap: "12px" }}
             >
-              <LogOut size={18} color="red" /> Log Out
+              <LogOut size={18} color="red" /> {logoutLabel}
             </MenuItem>
             <div className="px-4 py-2 font-semibold text-gray-700 dark:text-white">
               Language
@@ -152,13 +157,13 @@ export default function MenuWithAvatar() {
               onClick={handleSettings}
               style={{ color: "#0066ff", gap: "12px" }}
             >
-              <Settings size={18} color="#0066ff" /> Settings
+              <Settings size={18} color="#0066ff" /> {t("Sidebar_k22")}
             </MenuItem>
             <MenuItem
               onClick={handleLogout}
               style={{ color: "red", gap: "12px" }}
             >
-              <LogOut size={18} color="red" /> Log Out
+              <LogOut size={18} color="red" /> {logoutLabel}
             </MenuItem>
           </>
         )}

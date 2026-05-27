@@ -10,15 +10,28 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
-const normalizeLoginError = (message: string, authCode?: string) => {
+const normalizeLoginError = (
+  message: string,
+  authCode?: string,
+  locale?: string
+) => {
   const lowerMessage = message.toLowerCase();
+  const isSpanish = locale === "es";
+
+  if (lowerMessage.includes("invalid login credentials")) {
+    return isSpanish
+      ? "Credenciales de acceso inválidas"
+      : "Invalid login credentials";
+  }
 
   if (
     lowerMessage.includes("request rate limit reached") ||
     lowerMessage.includes("too many requests") ||
     lowerMessage.includes("rate limit")
   ) {
-    return "Too many login attempts. Please wait a minute and try again.";
+    return isSpanish
+      ? "Demasiados intentos de acceso. Espere un minuto e intente de nuevo."
+      : "Too many login attempts. Please wait a minute and try again.";
   }
 
   // Supabase may still return captcha-protection errors until disabled in dashboard; no CAPTCHA widget in-app.
@@ -27,12 +40,16 @@ const normalizeLoginError = (message: string, authCode?: string) => {
     lowerMessage.includes("captcha protection") ||
     lowerMessage.includes("timeout-or-duplicate")
   ) {
-    return "Login temporarily unavailable. Please try again in a moment.";
+    return isSpanish
+      ? "El acceso no está disponible temporalmente. Intente de nuevo en un momento."
+      : "Login temporarily unavailable. Please try again in a moment.";
   }
 
   // Sometimes server action payload noise leaks into the UI.
   if (message.includes('0:["$@1"')) {
-    return "Temporary login issue. Please try again in a moment.";
+    return isSpanish
+      ? "Error temporal de acceso. Intente de nuevo en un momento."
+      : "Temporary login issue. Please try again in a moment.";
   }
 
   return message;
@@ -85,7 +102,11 @@ function Login() {
     
     if (loading) return; // Prevent double submission
     if (cooldownUntil && Date.now() < cooldownUntil) {
-      toast(`Please wait ${secondsLeft || 1}s before trying again.`);
+      toast(
+        params.locale === "es"
+          ? `Espere ${secondsLeft || 1}s antes de intentarlo de nuevo.`
+          : `Please wait ${secondsLeft || 1}s before trying again.`
+      );
       return;
     }
     
@@ -121,7 +142,8 @@ function Login() {
 
       if (authError) {
         const message = authError.message || "Login failed";
-        const errorMessage = normalizeLoginError(message, authError.code);
+        const locale = (params.locale as string) || "en";
+        const errorMessage = normalizeLoginError(message, authError.code, locale);
 
         // Structured safe log for debugging production auth failures.
         console.warn("Login auth failure", {
@@ -151,7 +173,11 @@ function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast("An unexpected error occurred. Please try again.");
+      toast(
+        params.locale === "es"
+          ? "Ocurrió un error inesperado. Intente de nuevo."
+          : "An unexpected error occurred. Please try again."
+      );
     } finally {
       setLoading(false);
     }

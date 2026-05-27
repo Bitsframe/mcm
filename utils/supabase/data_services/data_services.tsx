@@ -89,6 +89,11 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
           lastname,
           gender,
           email
+        ),
+        location:Locations!location_id (
+          id,
+          title,
+          address
         )
       `)
       .eq('location_id', locationId)
@@ -117,6 +122,11 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
           lastname,
           gender,
           email
+        ),
+        location:Locations!location_id (
+          id,
+          title,
+          address
         )
       `)
       .eq('location_id', locationId)

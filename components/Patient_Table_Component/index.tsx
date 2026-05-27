@@ -56,6 +56,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import enPatients from "@/locales/en/Patients.json";
 import {
   Eye,
   SquarePen,
@@ -1367,9 +1368,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="h-40 dark:border-gray-800"
                     >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
-                        <p className="text-lg font-medium">No hay pacientes disponibles</p>
+                        <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
                         <p className="text-sm">
-                          Pruebe ajustando la búsqueda o agregue un nuevo paciente
+                          {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
                         </p>
                       </div>
                     </TableCell>
@@ -1426,9 +1427,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </div>
           ) : (
             <div className="flex flex-col justify-center items-center h-40 text-gray-500 dark:text-gray-400">
-              <p className="text-lg font-medium">No hay pacientes disponibles</p>
+              <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
               <p className="text-sm text-center">
-                Pruebe ajustando la búsqueda o agregue un nuevo paciente
+                {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
               </p>
             </div>
           )}
@@ -1703,13 +1704,13 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         <Label className="text-sm text-gray-500 dark:text-gray-400">
           {t("Patients_k24")}
         </Label>
-        <Input
-          name="note"
-          value={formData.note || ""}
-          onChange={handleChange}
-          className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-          placeholder="Agregue alguna nota sobre el paciente"
-        />
+          <Input
+            name="note"
+            value={formData.note || ""}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+            placeholder={t("Patients_k49", { defaultValue: (enPatients as any)["Patients_k49"] ?? "Enter any note about the patient" })}
+          />
       </div>
 
       <div className="grid grid-1 gap-4">
@@ -1870,7 +1871,9 @@ const PatientDetails: FC<{
                   : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
               }`}
             >
-              {patient.onsite ? "Paciente en sitio" : "Paciente fuera de sitio"}
+              {patient.onsite
+                ? t("Patients_k100", { defaultValue: (enPatients as any)["Patients_k100"] ?? "On-site Patient" })
+                : t("Patients_k101", { defaultValue: (enPatients as any)["Patients_k101"] ?? "Off-site Patient" })}
             </span>
           </div>
         )}
@@ -1921,7 +1924,7 @@ const PatientDetails: FC<{
             {t("Patients_k24")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.note || "No hay nota disponible"}
+            {patient.note || t("Patients_k99", { defaultValue: (enPatients as any)["Patients_k99"] ?? "No note available" })}
           </p>
         </div>
 
@@ -2258,7 +2261,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 onChange={handleChange}
                 className="w-full p-2 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Seleccione género</option>
+                <option value="">{t("Patients_k102", { defaultValue: (enPatients as any)["Patients_k102"] ?? "Select gender" })}</option>
                 <option value="Male">{t("Patients_k40")}</option>
                 <option value="Female">{t("Patients_k41")}</option>
               </select>
@@ -2318,7 +2321,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               value={patientData.note}
               onChange={handleChange}
               className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-              placeholder="Agregue alguna nota sobre el paciente"
+              placeholder={t("Patients_k49", { defaultValue: (enPatients as any)["Patients_k49"] ?? "Enter any note about the patient" })}
             />
           </div>
 

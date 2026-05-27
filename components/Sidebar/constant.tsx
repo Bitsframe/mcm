@@ -220,7 +220,7 @@ export const routeList: Route[] = [
       {
         id: 'tools-specials',
         name: "specials",
-        label: "Specials",
+        label: "Sidebar_k37",
         route: ROUTES.TOOLS.SPECIALS
       },
       {

@@ -344,7 +344,7 @@ const TransactionsPage = () => {
                   ) : (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-300">
-                        No hay pacientes disponibles
+                        {t("Patients_k70", { defaultValue: "No patients available" })}
                       </TableCell>
                     </TableRow>
                   )}
@@ -423,7 +423,7 @@ const TransactionsPage = () => {
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-400 dark:text-gray-300">No hay pacientes disponibles</div>
+              <div className="text-center py-8 text-gray-400 dark:text-gray-300">{t("Patients_k70", { defaultValue: "No patients available" })}</div>
             )}
           </div>
 
