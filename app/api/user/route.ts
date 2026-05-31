@@ -8,17 +8,18 @@ export const GET = async (req: Request) => {
     const supabase = supabaseCreateClient();
 
     try {
-        // Get session and user in a single operation
-        const { data, error: sessionError } = await supabase.auth.getUser();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (sessionError || !data) {
+        if (sessionError || !session?.user) {
             return NextResponse.json({ message: 'User not authenticated.' }, { status: 401 });
         }
+
+        const userId = session.user.id;
 
         const profileResult = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', data.user.id)
+            .eq('id', userId)
             .single();
 
         if (!profileResult || profileResult.error) {
@@ -30,7 +31,7 @@ export const GET = async (req: Request) => {
             supabase
                 .from('user_locations')
                 .select('location_id')
-                .eq('profile_id', data.user.id),
+                .eq('profile_id', userId),
 
             supabase
                 .from('user_permissions')

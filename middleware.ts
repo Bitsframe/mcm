@@ -1,80 +1,102 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "./utils/supabase/server";
 import { i18nRouter } from "next-i18n-router";
 import i18nConfig from "./i18config";
+import {
+  applySupabaseCookies,
+  updateSession,
+} from "./utils/supabase/middleware";
+
+const LOCALES = i18nConfig.locales ?? ["en", "es"];
+const DEFAULT_LOCALE = i18nConfig.defaultLocale ?? "en";
+
+const PUBLIC_PATHS = new Set([
+  "/login",
+  "/404",
+  "/error",
+  "/after-place-order",
+]);
+
+for (const locale of LOCALES) {
+  PUBLIC_PATHS.add(`/${locale}/login`);
+  PUBLIC_PATHS.add(`/${locale}/404`);
+  PUBLIC_PATHS.add(`/${locale}/error`);
+  PUBLIC_PATHS.add(`/${locale}/after-place-order`);
+}
+
+function getLocale(pathname: string): string {
+  const match = pathname.match(/^\/(en|es)(\/|$)/);
+  return match ? match[1] : DEFAULT_LOCALE;
+}
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  return false;
+}
+
+function hasAuthCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
+}
 
 export async function middleware(request: NextRequest) {
   const { url, nextUrl } = request;
   const pathname = nextUrl.pathname;
 
-  // Bypass middleware for public assets (images, icons) so static files are served
-  // directly and not subject to auth redirects which can cause 400/401 for assets.
-  if (pathname.startsWith("/assets/") || pathname === "/favicon.ico") {
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/assets/") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt"
+  ) {
     return NextResponse.next();
   }
 
-  // Avoid auth/session work for API requests to prevent token-refresh bursts.
-  if (pathname.startsWith("/api/")) {
-    return NextResponse.next();
-  }
-
-  const localeMatch = pathname.match(/^\/(en|es)/);
-  const locale = localeMatch ? localeMatch[1] : i18nConfig.defaultLocale || "en";
-
-  const isLoginPage = pathname === "/login" || pathname.startsWith(`/${locale}/login`);
-  const isAPIRequest = pathname.startsWith("/api/");
-  const hasAuthCookie = request.cookies
-    .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-"));
+  const locale = getLocale(pathname);
+  const isLoginPage =
+    pathname === "/login" || pathname === `/${locale}/login`;
+  const isPublic = isPublicPath(pathname);
 
   const i18nResponse = await i18nRouter(request, i18nConfig);
-  const response = i18nResponse || NextResponse.next();
 
-  // Avoid unnecessary auth calls on login when no session cookies exist.
-  if (isLoginPage && !hasAuthCookie) {
+  // Public routes: only touch Supabase on login (redirect if already signed in).
+  if (isPublic && !isLoginPage) {
+    return i18nResponse ?? NextResponse.next();
+  }
+
+  if (isLoginPage && !hasAuthCookie(request)) {
+    return i18nResponse ?? NextResponse.next();
+  }
+
+  const { supabaseResponse, session, error } = await updateSession(request);
+
+  let response = i18nResponse ?? supabaseResponse;
+  response = applySupabaseCookies(supabaseResponse, response);
+
+  if (error) {
+    console.error("Error fetching session:", error.message);
+    if (!isLoginPage) {
+      const redirect = NextResponse.redirect(
+        new URL(`/${locale}/login`, url)
+      );
+      return applySupabaseCookies(supabaseResponse, redirect);
+    }
     return response;
   }
 
-  try {
-    const supabase = createClient();
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("Error fetching session:", error.message);
-      // If session is expired, redirect to login (don't block request)
-      if (!isLoginPage && !isAPIRequest) {
-        return NextResponse.redirect(new URL(`/${locale}/login`, url));
-      }
+  if (session) {
+    if (isLoginPage) {
+      const redirect = NextResponse.redirect(new URL(`/${locale}`, url));
+      return applySupabaseCookies(supabaseResponse, redirect);
     }
+    return response;
+  }
 
-    if (session) {
-      if (isLoginPage) {
-        return NextResponse.redirect(new URL(`/${locale}`, url));
-      }
-      if (isAPIRequest) {
-        return NextResponse.next();
-      }
-    } else {
-      if (isAPIRequest) {
-        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      if (!isLoginPage) {
-        return NextResponse.redirect(new URL(`/${locale}/login`, url));
-      }
-    }
-  } catch (err) {
-    console.error("Middleware error:", err);
-    // Don't block on auth errors - allow request to proceed
-    if (!isLoginPage && !isAPIRequest) {
-      return NextResponse.redirect(new URL(`/${locale}/login`, url));
-    }
+  if (!isLoginPage && !isPublic) {
+    const redirect = NextResponse.redirect(
+      new URL(`/${locale}/login`, url)
+    );
+    return applySupabaseCookies(supabaseResponse, redirect);
   }
 
   return response;
@@ -82,13 +104,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/login",
-    "/en/login",
-    "/es/login",
-    "/((?!_next/static|_next/image|favicon.ico|.\\.(?:svg|png|jpg|jpeg|gif|webp)$).)",
-    "/((?!api|_next|.\\..).*)",
+    "/((?!api|_next/static|_next/image|assets|favicon.ico|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|map|ico)$).*)",
   ],
 };
-
-
-
