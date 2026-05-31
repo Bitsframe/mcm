@@ -4,6 +4,8 @@ import { IoCloseOutline } from 'react-icons/io5';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { PromoCodeDataInterface } from '@/types/typesInterfaces';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface Props {
     closeModal: () => void;
@@ -15,6 +17,7 @@ interface Props {
 const PromoCodeModal: FC<Props> = ({ closeModal, checkPromoLoading = false, applyOnSuccess, patientId }) => {
     const [inputVal, setInputVal] = useState('');
     const [loading, setLoading] = useState(false); // State to handle loading
+    const { t } = useTranslation(translationConstant.PROCODE);
 
     const applyPromoHandle = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,20 +32,20 @@ const PromoCodeModal: FC<Props> = ({ closeModal, checkPromoLoading = false, appl
             if (response.status === 200) {
                 const { discount, promocodeId } = response.data.data;
                 applyOnSuccess({ code: inputVal, id: promocodeId }, discount); // Send the discount to parent
-                toast.success('Promo code applied successfully!');
+                toast.success(t('Procode_k_success', { defaultValue: 'Promo code applied successfully!' }));
                 closeModal(); // Close modal on success
             } else {
-                toast.error(response.data.message || 'Failed to apply promo code');
+                toast.error(response.data.message || t('Procode_k_failed', { defaultValue: 'Failed to apply promo code' }));
             }
         } catch (error: any) {
             // Check if error is from Axios and extract relevant info
-            if (axios.isAxiosError(error)) {
+                if (axios.isAxiosError(error)) {
                 // Error message from the server (e.g. 400 status)
                 const errorMessage = error.response?.data?.message || 'Failed to apply promo code';
-                toast.error(errorMessage);
+                toast.error(errorMessage || t('Procode_k_failed', { defaultValue: 'Failed to apply promo code' }));
             } else {
                 // Generic error fallback
-                toast.error('An error occurred while applying the promo code');
+                toast.error(t('Procode_k_failed', { defaultValue: 'An error occurred while applying the promo code' }));
             }
         } finally {
             setLoading(false); // Reset loading state
@@ -53,9 +56,9 @@ const PromoCodeModal: FC<Props> = ({ closeModal, checkPromoLoading = false, appl
         <div className='fixed bg-black/70 h-screen w-full left-0 top-0 z-20 flex justify-center items-center'>
             <div className='bg-white max-w-[450px] w-[100%] py-3 px-3 rounded-md'>
                 <div className='flex justify-between pt-2 py-5'>
-                    <h1 className='text-xl font-semibold'>
-                        Apply Promo code
-                    </h1>
+                        <h1 className='text-xl font-semibold'>
+                            {t('Procode_k_apply_title', { defaultValue: 'Apply Promo code' })}
+                        </h1>
                     <IoCloseOutline className='pointer-events-auto cursor-pointer' size={24} onClick={closeModal} />
                 </div>
                 <div>
@@ -67,7 +70,7 @@ const PromoCodeModal: FC<Props> = ({ closeModal, checkPromoLoading = false, appl
                                     required
                                     onChange={(e) => setInputVal(e.target.value)}
                                     className='w-full focus:outline-none placeholder-gray-400'
-                                    placeholder='Enter Promo code'
+                                        placeholder={t('Procode_k_placeholder', { defaultValue: 'Enter Promo code' })}
                                 />
                             </div>
                             <Button
@@ -76,7 +79,7 @@ const PromoCodeModal: FC<Props> = ({ closeModal, checkPromoLoading = false, appl
                                 className='disabled:opacity-60 w-32'
                                 color="info"
                             >
-                                {loading ? 'Checking...' : 'Apply'}
+                                    {loading ? t('Procode_k_checking', { defaultValue: 'Checking...' }) : t('Procode_k_apply', { defaultValue: 'Apply' })}
                             </Button>
                         </div>
                     </form>

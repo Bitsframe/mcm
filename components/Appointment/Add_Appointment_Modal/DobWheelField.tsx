@@ -5,6 +5,7 @@ import Picker from "react-mobile-picker";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, CalendarDays } from "lucide-react";
 import { translationConstant } from "@/utils/translationConstants";
+import enAppoinments from "@/locales/en/Appoinments.json";
 import {
   buildYearOptions,
   buildMonthOptionsForYear,
@@ -109,7 +110,7 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
               display ? "font-medium text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
             }`}
           >
-            {display || "Select date of birth"}
+            {display || t("Appoinments_k99", { defaultValue: (enAppoinments as any)["Appoinments_k99"] ?? "Select date of birth" })}
           </span>
         </span>
         <ChevronDown className="h-5 w-5 shrink-0 opacity-50 transition-opacity group-hover:opacity-80" aria-hidden />

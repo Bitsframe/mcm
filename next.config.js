@@ -5,7 +5,8 @@ nextConfig = {
         domains: [
             'vsvueqtgulraaczqnnvh.supabase.co', // Production domain
             'yktnfcrxtujyoabjtdff.supabase.co',  // Staging domain
-            'kxtbfmlatysaxjzppmti.supabase.co'   // Child database domain
+            'kxtbfmlatysaxjzppmti.supabase.co',   // Child database domain
+            'lmoyyrzgdezwywxeariq.supabase.co'    // Current project Supabase storage
         ],
     },
     async rewrites() {

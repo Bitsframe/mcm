@@ -19,6 +19,8 @@ interface Props {
   bg_color?: string;
   initialValue?: any;
   hideLabel?: boolean;
+  hasError?: boolean;
+  errorMessage?: string;
 }
 
 // @ts-ignore
@@ -34,14 +36,16 @@ export const Select_Dropdown = ({
   //@ts-ignore
   initialValue = "" || 0,
   hideLabel = false,
+  hasError = false,
+  errorMessage = "",
 }: Props) => {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2">
       {label && !hideLabel && (
         <Label
           htmlFor="section"
           value={label}
-          className="font-bold dark:text-gray-300"
+          className={`font-bold ${hasError ? "text-red-600 dark:text-red-400" : "dark:text-gray-300"}`}
         />
       )}
       <Select
@@ -50,7 +54,7 @@ export const Select_Dropdown = ({
         onChange={on_change_handle}
         id="section"
         required={required}
-        className="w-full h-auto disabled:opacity-70 text-black dark:text-gray-300 border-none outline-none"
+        className={`w-full h-auto disabled:opacity-70 text-black dark:text-gray-300 outline-none border ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"}`}
         style={{
           backgroundColor: document.documentElement.classList.contains("dark")
             ? "#122136"
@@ -82,6 +86,9 @@ export const Select_Dropdown = ({
           )
         )}
       </Select>
+      {hasError && errorMessage && (
+        <p className="text-sm text-red-500">{errorMessage}</p>
+      )}
     </div>
   );
 };

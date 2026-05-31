@@ -327,10 +327,10 @@ const Credits = () => {
                       <div className="flex flex-col items-center justify-center space-y-1 sm:space-y-2">
                         <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-gray-400" />
                         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-medium">
-                          No credits found
+                          {t("Credits_k19")}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
-                          There are no credit records available at the moment.
+                          {t("Credits_k20")}
                         </p>
                       </div>
                     </TableCell>

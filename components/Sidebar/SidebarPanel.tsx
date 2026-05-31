@@ -164,18 +164,17 @@ const CollapsibleRoute = memo(
             const isCurrent = currentPath === item.route;
     
             return (
-              <Sidebar.Item
-                key={item.id}
-                href={item.route || "#"} // ✅ pass href directly
-                onClick={onNavigate}     // ✅ preserve click handler
-                className={`text-left text-sm hover:text-[#0066ff] ${
-                  isCurrent
-                    ? "text-[#0066ff]"
-                    : "text-[#79808B] dark:text-gray-400"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="relative w-4 h-4">
+              <li key={item.id}>
+                <Link
+                  href={item.route || "#"}
+                  onClick={onNavigate}
+                  className={`flex items-start gap-2 text-sm pl-6 py-2 rounded-lg hover:text-[#0066ff] hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                    isCurrent
+                      ? "text-[#0066ff]"
+                      : "text-[#79808B] dark:text-gray-400"
+                  }`}
+                >
+                  <span className="relative w-4 h-4 shrink-0 mt-[2px]">
                     {isCurrent && (
                       <span className="absolute inset-0 rounded-full transition-colors bg-[#B3D4FF]" />
                     )}
@@ -187,11 +186,9 @@ const CollapsibleRoute = memo(
                       }`}
                     />
                   </span>
-                  <span className={`${isCurrent ? "text-[#0066ff]" : ""}`}>
-                    {t(item.label)}
-                  </span>
-                </div>
-              </Sidebar.Item>
+                  <span>{t(item.label)}</span>
+                </Link>
+              </li>
             );
           })}
         </Sidebar.Collapse>
@@ -277,8 +274,8 @@ export const SidebarPanel = memo(() => {
       theme={THEME}
       style={STYLE}
     >
-      <Sidebar.Items className="pl-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
-        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
+      <Sidebar.Items className="px-3 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16]">
+        <Sidebar.ItemGroup className="flex flex-col gap-5 w-[210px] bg-[#F1F4F9] dark:bg-[#080E16] px-1">
           {filteredRoutes.map((route) => {
             //@ts-ignore
             if (!route?.children) {

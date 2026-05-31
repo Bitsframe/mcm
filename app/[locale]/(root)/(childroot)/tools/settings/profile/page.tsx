@@ -127,14 +127,17 @@ const Profile = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await update_content_service({
-        table: "profiles",
-        post_data: {
-          id: userProfile?.id,
-          full_name: userData.fullName,
+      // Use server-side endpoint to perform profile updates so RLS and auth are respected
+      await fetch('/api/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: userData.fullName,
           email: userData.email,
-          profile_pictures: userData.profileImage
-        }
+          profileImage: userData.profileImage
+        })
       });
       
       toast.success('Profile updated successfully');

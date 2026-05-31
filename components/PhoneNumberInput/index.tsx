@@ -12,6 +12,8 @@ const PhoneNumberInput = ({
   value,
   type = "text",
   onChange,
+  hasError = false,
+  errorMessage = "",
 }: {
   required?: boolean;
   className?: string;
@@ -21,9 +23,12 @@ const PhoneNumberInput = ({
   value: string;
   type?: string;
   onChange: (value: string) => void;
+  hasError?: boolean;
+  errorMessage?: string;
 }) => {
   const [isTouched, setIsTouched] = useState(false);
-  const isValid = !required || (required && value.trim() !== "");
+  const showError = hasError || (required && isTouched && value.trim() === "");
+  const helperMessage = errorMessage || "This field is required";
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -175,7 +180,7 @@ const PhoneNumberInput = ({
       {label && (
         <label
           className={`text-[14px] text-customGray font-poppins font-bold mb-1 ${
-            !isValid && isTouched ? "text-red-500" : ""
+            showError ? "text-red-500" : ""
           }`}
         >
           {label} {required && <span className="text-red-500">*</span>}
@@ -192,24 +197,24 @@ const PhoneNumberInput = ({
           onBlur={handleBlur}
           placeholder={placeholder}
           inputClass={`!w-full !h-[36px] !text-[13px] !rounded-md dark:!bg-[#122136] dark:!text-white !bg-[#f1f4f9] !text-black !border ${
-            !isValid && isTouched
+            showError
               ? "!border-red-500"
               : "!border-gray-300 dark:!border-gray-600"
           }`}
           buttonClass={`!rounded-l-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
-            !isValid && isTouched
+            showError
               ? "!border-red-500"
               : "!border-gray-300 dark:!border-gray-600"
           } !h-[36px]`}
           containerClass={`!w-full !rounded-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
-            !isValid && isTouched
+            showError
               ? "!border-red-500"
               : "!border-gray-300 dark:!border-gray-600"
           }`}
           dropdownClass="dark:!bg-[#374151] !bg-white !text-black dark:!text-white"
         />
-        {!isValid && isTouched && (
-          <p className="mt-1 text-xs text-red-500">This field is required</p>
+        {showError && (
+          <p className="mt-1 text-xs text-red-500">{helperMessage}</p>
         )}
       </div>
     </div>

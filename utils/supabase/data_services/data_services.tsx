@@ -89,6 +89,11 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
           lastname,
           gender,
           email
+        ),
+        location:Locations!location_id (
+          id,
+          title,
+          address
         )
       `)
       .eq('location_id', locationId)
@@ -117,6 +122,11 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
           lastname,
           gender,
           email
+        ),
+        location:Locations!location_id (
+          id,
+          title,
+          address
         )
       `)
       .eq('location_id', locationId)
@@ -185,24 +195,6 @@ export async function fetch_content_service({
           });
         } else {
           query = query.eq(matchCase.key, matchCase.value);
-        }
-      }
-
-      // Add location filtering for tables that have location_id, unless caller requests skip
-      const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
-      // @ts-ignore
-      if (!((arguments[0] && arguments[0].skipLocationFilter) || false) && locationBasedTables.includes(table)) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: userLocations } = await supabase
-            .from('user_locations')
-            .select('location_id')
-            .eq('profile_id', user.id);
-          
-          if (userLocations && userLocations.length > 0) {
-            const locationIds = userLocations.map(loc => loc.location_id);
-            query = query.in('location_id', locationIds);
-          }
         }
       }
 
@@ -289,27 +281,6 @@ export async function fetch_content_service({
     }
   }
 
-  // Add location filtering for tables that have location_id, unless caller requests skip
-  // Note: `sales_history` rows reference `inventory_id` and may not have a `locationid` column
-  // so we exclude it here to avoid SQL errors when adding a location filter.
-  const locationBasedTables = ['allpatients', 'Appointments', 'pos', 'inventory'];
-  // @ts-ignore
-  if (!((arguments[0] && arguments[0].skipLocationFilter) || false) && locationBasedTables.includes(table)) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: userLocations } = await supabase
-        .from('user_locations')
-        .select('location_id')
-        .eq('profile_id', user.id);
-      
-      if (userLocations && userLocations.length > 0) {
-        const locationIds = userLocations.map(loc => loc.location_id);
-        // ensure we filter by the correct column name used across the DB
-        query = query.in('location_id', locationIds);
-      }
-    }
-  }
-
   if (filterOptions) {
     filterOptions.forEach((filter) => {
       switch (filter.operator) {
@@ -336,6 +307,9 @@ export async function fetch_content_service({
           break;
         case 'in':
           query = query.in(filter.column, filter.value);
+          break;
+        case 'is':
+          query = query.is(filter.column, filter.value);
           break;
         case 'not':
           query = query.not(filter.column, 'is', filter.value);

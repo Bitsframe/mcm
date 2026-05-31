@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { supabase } from "@/services/supabase";
 import { toast } from "react-toastify";
-import { validateFormData } from "@/utils/validationCheck";
 import { LocationContext } from "@/context";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { formatPhoneNumber } from "@/utils/getCountryName";
@@ -140,32 +139,34 @@ const modal_titles: any = {
   create: {
     modalLabel: "POS-Sales_k94",
     button: {
-      label: "Create",
+      label: "POS-Sales_k98",
       color: "blue",
     },
   },
   edit: {
     modalLabel: "POS-Sales_k39",
     button: {
-      label: "Update",
+      label: "POS-Sales_k97",
       color: "blue",
     },
   },
   delete: {
     modalLabel: "POS-Sales_k95",
     button: {
-      label: "Delete",
+      label: "POS-Sales_k96",
       color: "failure",
     },
   },
 };
 
 const Promo_Input = () => {
+  const { t } = useTranslation(translationConstant.PROCODE);
+
   return (
     <div className="w-52 flex rounded-md items-center bg-gray-200 dark:bg-gray-700 p-2 px-2">
       <input
         type="text"
-        placeholder="Enter Promo Code"
+        placeholder={t('Procode_k_placeholder', { defaultValue: 'Enter Promo Code' })}
         className="w-full px-1 py-1 text-sm border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
       />
       <IoCloseOutline className="text-gray-500 dark:text-gray-400" />
@@ -217,6 +218,7 @@ const Patients = () => {
   const cardsPerPage = 2;
   const [searchType, setSearchType] = useState<"all" | "name" | "email" | "phone">("all");
   const [emailError, setEmailError] = useState("");
+  const [createFieldErrors, setCreateFieldErrors] = useState<Record<string, string>>({});
   const [modalEmailError, setModalEmailError] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
@@ -232,6 +234,23 @@ const Patients = () => {
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const isValidPhoneNumber = (phone: string) => {
+    const digits = String(phone || "").replace(/\D/g, "");
+    return digits.length === 10 || digits.length === 11;
+  };
+
+  const clearCreateFieldError = (field: string) => {
+    setCreateFieldErrors((previous) => {
+      if (!previous[field]) {
+        return previous;
+      }
+
+      const nextErrors = { ...previous };
+      delete nextErrors[field];
+      return nextErrors;
+    });
   };
 
   // Simple debounce function
@@ -436,6 +455,7 @@ const Patients = () => {
       : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors";
 
   const modalInputChangeHandle = (e: any, id: string) => {
+    clearCreateFieldError(id);
     if (id === "email") {
       if (e && !isValidEmail(e)) {
         setModalEmailError("Please enter a valid email format");
@@ -447,6 +467,7 @@ const Patients = () => {
     setCanModalSubmit(true);
   };
   const addPatientFieldsChange = (e: any, id: string) => {
+    clearCreateFieldError(id);
     if (id === "email") {
       if (e && !isValidEmail(e)) {
         setEmailError("Please enter a valid email format");
@@ -500,7 +521,7 @@ const Patients = () => {
       setDataList((elem) => elem.filter((data: any) => data.id !== selectedId));
       setAllData((elem) => elem.filter((data: any) => data.id !== selectedId));
       setDetailsView(null);
-      toast.success("Deleled successfully");
+      toast.success("Eliminado correctamente");
       closeModalHandle();
     } else if (error) {
       toast.error(error.message);
@@ -526,7 +547,7 @@ const Patients = () => {
         post_data: updateData,
       });
       if (data?.length) {
-        toast.success("Updated successfully");
+        toast.success("Actualizado correctamente");
         closeModalHandle();
 
         const newData = data[0];
@@ -568,6 +589,18 @@ const Patients = () => {
     }
   };
 const createNewDataHandle = async (): Promise<boolean> => {
+  const fieldLabels: Record<string, string> = {
+    locationid: "Location",
+    firstname: "First name",
+    lastname: "Last name",
+    email: "Email",
+    gender: "Gender",
+    phone: "Phone",
+    address: "Address",
+    dob: "Date of birth",
+    treatmenttype: "Treatment type",
+  };
+
   const requiredFields = [
     "locationid",
     "firstname",
@@ -580,21 +613,32 @@ const createNewDataHandle = async (): Promise<boolean> => {
     "treatmenttype",
   ];
 
-  console.log("Form Data Before Validation:", createActionData);
+  const nextErrors: Record<string, string> = {};
 
-  const validateData = validateFormData(createActionData);
-  console.log("Validation Result:", validateData);
-
-  if (!validateData) {
-    console.log("Validation Failed");
-    return false;
+  for (const field of requiredFields) {
+    const value = field === "locationid" ? selectedLocation?.id : createActionData[field];
+    if (value == null || String(value).trim() === "") {
+      nextErrors[field] = `${fieldLabels[field]} is required.`;
+    }
   }
 
   if (createActionData.email && !isValidEmail(createActionData.email)) {
-    console.log("Invalid Email Address:", createActionData.email);
-    toast.error("Please enter a valid email address.");
+    nextErrors.email = "Please enter a valid email address.";
+  }
+
+  if (createActionData.phone && !isValidPhoneNumber(createActionData.phone)) {
+    nextErrors.phone = "Please enter a valid phone number.";
+  }
+
+  if (Object.keys(nextErrors).length > 0) {
+    setCreateFieldErrors(nextErrors);
+    setEmailError(nextErrors.email || "");
+    toast.error("Please complete the highlighted fields.");
     return false;
   }
+
+  setEmailError("");
+  setCreateFieldErrors({});
 
   if (!services || services.length === 0) {
     toast.error(
@@ -636,6 +680,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
       toast.success("Patient successfully added!");
       setCreateActionData({});
       setEmailError("");
+      setCreateFieldErrors({});
       fetch_handle(selectedLocation?.id);
       return true;
     }
@@ -694,10 +739,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   onChange={(e) => setSearchType(e.target.value as "all" | "name" | "email" | "phone")}
                   className="w-[100px] bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="all">All</option>
-                  <option value="name">Name</option>
-                  <option value="email">Email</option>
-                  <option value="phone">Phone</option>
+                  <option value="all">{t("POS-Sales_k35")}</option>
+                  <option value="name">{t("POS-Sales_k41")}</option>
+                  <option value="email">{t("POS-Sales_k93")}</option>
+                  <option value="phone">{t("POS-Sales_k37")}</option>
                 </Select>
                 <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
                   =
@@ -745,10 +790,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
             ) : (
               currentCards.map((elem: any, ind: any) => {
               const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
-              const formattedDateTime = moment
-                .utc(updated_at, "YYYY-MM-DD h:mm s")
-                .local()
-                .format("DD/MM/YYYY h:mm A");
+              const formattedDateTime = updated_at
+                ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
+                : t("POS-Sales_k104");
 
               return (
                 <div
@@ -771,19 +815,19 @@ const createNewDataHandle = async (): Promise<boolean> => {
 
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k37")}</p>
                       <p className="text-gray-700 dark:text-gray-300">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k93")}</p>
                       <p className="text-gray-700 dark:text-gray-300 truncate">
                         {email}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">Gender</p>
+                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k21")}</p>
                       <p className="text-gray-700 dark:text-gray-300">
                         {gender}
                       </p>
@@ -808,7 +852,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
-                      Edit
+                      {t("POS-Sales_k39")}
                     </button>
                     <button
                       type="button"
@@ -851,10 +895,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     : "bg-blue-600 text-white"
                     }`}
                 >
-                  Previous
+                  {t("POS-Sales_kPrev")}
                 </button>
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Page {currentPage} of {totalPages}
+                  {t("POS-Sales_kPage")} {currentPage} {t("POS-Sales_kOf")} {totalPages}
                 </span>
                 <button
                   onClick={() => paginate(currentPage + 1)}
@@ -864,7 +908,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     : "bg-blue-600 text-white"
                     }`}
                 >
-                  Next
+                  {t("POS-Sales_kNext")}
                 </button>
               </div>
             )}
@@ -891,10 +935,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   
                   {dataList.map((elem, ind) => {
                 const { id, firstname, lastname, phone, updated_at, email } = elem;
-                const formattedDateTime = moment
-                  .utc(updated_at, "YYYY-MM-DD h:mm s")
-                  .local()
-                  .format("DD/MM/YYYY h:mm A");
+                const formattedDateTime = updated_at
+                  ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
+                  : t("POS-Sales_k104");
 
                 const truncateEmail = (email: string) => {
                   if (!email) return "";
@@ -999,6 +1042,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
         setAddPatientModalOpen(open);
         if (!open) {
           setEmailError("");
+          setCreateFieldErrors({});
         }
       }}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
@@ -1007,6 +1051,17 @@ const createNewDataHandle = async (): Promise<boolean> => {
               {t("POS-Sales_k18")}
             </DialogTitle>
           </DialogHeader>
+
+          {Object.keys(createFieldErrors).length > 0 && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+              <p className="font-medium">Please fix the highlighted fields.</p>
+              <ul className="mt-2 space-y-1">
+                {Object.values(createFieldErrors).map((message, index) => (
+                  <li key={`${message}-${index}`}>{message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="w-full space-y-4">
             <div className="w-full space-y-4">
@@ -1019,6 +1074,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k19")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k86")}
+                  hasError={!!createFieldErrors.firstname}
+                  errorMessage={createFieldErrors.firstname}
                 />
               </div>
 
@@ -1031,6 +1088,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k20")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k87")}
+                  hasError={!!createFieldErrors.lastname}
+                  errorMessage={createFieldErrors.lastname}
                 />
               </div>
 
@@ -1049,6 +1108,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e.target.value, "gender")
                   }
                   label={t("POS-Sales_k21")}
+                  hasError={!!createFieldErrors.gender}
+                  errorMessage={createFieldErrors.gender}
                 />
               </div>
 
@@ -1066,6 +1127,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e.target.value, "treatmenttype")
                   }
                   label={t("POS-Sales_k24")}
+                  hasError={!!createFieldErrors.treatmenttype}
+                  errorMessage={createFieldErrors.treatmenttype}
                 />
               </div>
 
@@ -1076,8 +1139,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k22")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
                   placeholder={t("POS-Sales_k88")}
-                  hasError={!!emailError}
-                  errorMessage={emailError}
+                  hasError={!!createFieldErrors.email || !!emailError}
+                  errorMessage={createFieldErrors.email || emailError}
                 />
               </div>
 
@@ -1088,13 +1151,16 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   label={t("POS-Sales_k23")}
                   placeholder=""
                   breakpoint={false}
+                  required={true}
+                  hasError={!!createFieldErrors.phone}
+                  errorMessage={createFieldErrors.phone}
                 />
               </div>
 
               <div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Street Address
+                    {t("POS-Sales_k113")}
                   </label>
                   <div className="relative">
                     <input
@@ -1110,8 +1176,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         // Delay hiding suggestions to allow for selection
                         setTimeout(() => setShowAddressSuggestions(false), 200);
                       }}
-                      placeholder="Enter street address"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder={t("POS-Sales_k115")}
+                      className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white ${createFieldErrors.address ? "border border-red-500 focus:ring-red-500" : "border border-gray-300 dark:border-gray-600 focus:ring-blue-500"}`}
                     />
                     {addressLoading && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1137,6 +1203,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         ))}
                       </div>
                     )}
+                    {createFieldErrors.address && (
+                      <p className="mt-1 text-sm text-red-500">{createFieldErrors.address}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1145,10 +1214,12 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 <Input_Component
                   value={createActionData.dob}
                   onChange={(e: string) => addPatientFieldsChange(e, "dob")}
-                  label="Date of Birth"
+                  label={t("POS-Sales_k114")}
                   bg_color="bg-[#f1f4f9] dark:bg-gray-700"
-                  placeholder="Select date of birth"
+                  placeholder={t("POS-Sales_k116")}
                   type="date"
+                  hasError={!!createFieldErrors.dob}
+                  errorMessage={createFieldErrors.dob}
                 />
               </div>
             </div>
@@ -1182,7 +1253,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
       >
         {activeModalMode === "delete" ? (
           <div className="text-gray-800 dark:text-gray-200">
-            <h1>Are you sure you want to delete this POS?</h1>
+            <h1>¿Está seguro de que desea eliminar este POS?</h1>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
@@ -1204,7 +1275,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
-                label={t("POS-Sales_k25")}
+                label={t("POS-Sales_k20")}
               />
             </div>
 
@@ -1235,7 +1306,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
             <div className="md:col-span-2">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Street Address
+                  {t("POS-Sales_k113")}
                 </label>
                 <div className="relative">
                   <input
@@ -1251,7 +1322,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                       // Delay hiding suggestions to allow for selection
                       setTimeout(() => setShowEditAddressSuggestions(false), 200);
                     }}
-                    placeholder="Enter street address"
+                    placeholder={t("POS-Sales_k115")}
                     className="w-full px-3 py-2 border-2 border-gray-300 dark:border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                   {editAddressLoading && (
@@ -1289,7 +1360,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 border="border-2 border-gray-300 dark:border-none rounded-md"
                 bg_color="bg-white dark:bg-gray-700"
                 onChange={(e: string) => modalInputChangeHandle(e, "dob")}
-                label="Date of Birth"
+                label={t("POS-Sales_k114")}
               />
             </div>
 

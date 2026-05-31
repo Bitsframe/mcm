@@ -24,5 +24,6 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "actions/supabase_auth", "app/(root)/appoinments/page.js", "app/(root)/tools/websitecontent/Layout.tsx", "app/(root)/tools/cronitor-report/page.js", "components/Select_Dropdown/index.tsx", "utils/supabase/data_services/data_services.tsx", "hooks/useSingleRowDataHandle.jsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cypress", "cypress/**/*", "**/*.cy.ts", "**/*.cy.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
 }
+

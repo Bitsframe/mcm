@@ -76,27 +76,7 @@ interface CartArrayInterface {
   discount_percent: number; // discount applied
 }
 
-const render_details = [
-  {
-    key: "name",
-    label: "Name:",
-    render_value: (val: any) => `${val?.firstname} ${val?.lastname}`,
-  },
-  {
-    key: "phone",
-    label: "Phone Number:",
-    render_value: (val: any) => formatPhoneNumber(val?.phone),
-  },
-  {
-    key: "email",
-    label: "Email:",
-  },
-  {
-    key: "dob",
-    label: "Date of Birth:",
-    render_value: (val: any) => val?.dob ? new Date(val.dob).toLocaleDateString() : "N/A",
-  },
-];
+// patient detail labels are generated after translations are loaded (see below)
 
 const calcTotalAmount = (perItemAmount: number, qty: number) => {
   return currencyFormatHandle(perItemAmount * qty);
@@ -159,6 +139,7 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
   const handleRemoveDiscount = () => {
     setDiscountPct(0); // Reset discount for the product
     setPrice(original_price * quantity); // Recalculate the price to the original price
+    updateDiscountPercent(index, 0); // Notify parent so Product Total After Discount updates
   };
 
   // Handle when the discount modal is applied
@@ -169,6 +150,10 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     updateDiscountPercent(index, pct); // Update parent cartArray
     setIsDiscountModalOpen(false); // Close the modal after applying the discount
   };
+
+  const { t } = useTranslation(translationConstant.POSSALES);
+
+  
 
   return (
     <div
@@ -249,9 +234,9 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
       {/* Discount Section */}
       <div className="mt-2 flex items-center justify-between text-xs px-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-gray-600 dark:text-gray-300">Discount</span>
+          <span className="text-gray-600 dark:text-gray-300">{t('POS-Sales_kDiscountLabel')}</span>
           <span className="text-emerald-600 dark:text-emerald-400">
-            {discountPct > 0 ? `${discountPct}% off` : "0% "}
+            {discountPct > 0 ? `${discountPct}%` : t('POS-Sales_kNoDiscount')}
           </span>
         </div>
 
@@ -260,14 +245,14 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
             onClick={() => setIsDiscountModalOpen(true)}
             className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
           >
-            {discountPct > 0 ? "Change discount" : "Add discount"}
+            {discountPct > 0 ? t('POS-Sales_kChangeDiscount') : t('POS-Sales_kAddDiscount')}
           </button>
           {discountPct > 0 && (
             <button
               onClick={handleRemoveDiscount} // Removes the discount
               className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             >
-              Remove discount
+              {t('POS-Sales_kRemoveDiscount')}
             </button>
           )}
         </div>
@@ -979,9 +964,9 @@ const addToCartHandle = () => {
       setCreditAmount(newBalance);
       setAddAmount(0);
       setIsAddBalanceModalOpen(false);
-      toast.success("Balance updated successfully");
+      toast.success("Saldo actualizado correctamente");
     } catch (err: any) {
-      toast.error(err.message || "Failed to update balance");
+      toast.error(err.message || "No se pudo actualizar el saldo");
     } finally {
       setAddBalanceLoading(false);
     }
@@ -1007,6 +992,28 @@ const addToCartHandle = () => {
 
   const totalPaid =
     (payWithCash ? receivedAmount : 0) + (payWithCard ? cardAmount : 0) + (payWithZelle ? zelleAmount : 0);
+
+  const render_details = [
+    {
+      key: "name",
+      label: t("POS-Sales_kPatientNameLabel"),
+      render_value: (val: any) => `${val?.firstname} ${val?.lastname}`,
+    },
+    {
+      key: "phone",
+      label: t("POS-Sales_kPatientPhoneLabel"),
+      render_value: (val: any) => formatPhoneNumber(val?.phone),
+    },
+    {
+      key: "email",
+      label: t("POS-Sales_kPatientEmailLabel"),
+    },
+    {
+      key: "dob",
+      label: t("POS-Sales_kPatientDOBLabel"),
+      render_value: (val: any) => val?.dob ? new Intl.DateTimeFormat(t('POS-Sales_kPatientDOBFormatLocale') || 'en-US').format(new Date(val.dob)) : "N/D",
+    },
+  ];
 
 
 
@@ -1050,18 +1057,18 @@ const addToCartHandle = () => {
                     close_handle={() => setIsAddBalanceModalOpen(false)}
                     create_new_handle={handleAddBalance}
                     loading={addBalanceLoading}
-                    Title="Add Balance"
-                    buttonLabel="Add"
+                    Title={t('POS-Sales_k108')}
+                    buttonLabel={t('POS-Sales_k83')}
                     submit_button_color="blue"
                     disabled={addBalanceLoading || !addAmount || addAmount > creditAmount}
                   >
                     <div>
                       <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Current Balance</label>
+                        <label className="block text-sm font-medium mb-1">{t('POS-Sales_kCurrentBalanceLabel')}</label>
                         <div className="p-2 rounded font-bold">{creditAmount}</div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Add Amount</label>
+                        <label className="block text-sm font-medium mb-1">{t('POS-Sales_kAddAmountLabel')}</label>
                         <Input
                           type="number"
                           min={1}
@@ -1071,7 +1078,7 @@ const addToCartHandle = () => {
                         />
                       </div>
                       <div className="mb-2">
-                        <label className="block text-sm font-medium mb-1">New Balance</label>
+                        <label className="block text-sm font-medium mb-1">{t('POS-Sales_kNewBalanceLabel')}</label>
                         <div
                           className={`
                           p-3 rounded font-bold text-lg 
@@ -1131,7 +1138,7 @@ const addToCartHandle = () => {
                     className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     style={{ minWidth: 0 }}
                   >
-                    Add Product
+                    {t("POS-Sales_k117")}
                   </button>
                 </div>
               </div>
@@ -1275,14 +1282,14 @@ const addToCartHandle = () => {
         ? `${Math.abs(
             grandTotalHandle(cartArray, appliedDiscount).discountAmount
           ).toFixed(2)} (${appliedDiscount}%)`
-        : "NILL"}
+        : t('POS-Sales_kNoDiscount')}
     </p>
     {appliedDiscount > 0 && (
       <button
         onClick={() => {
           setAppliedDiscount(0);  // Reset the discount
           setDiscountInput("");    // Clear discount input field
-          toast.success("Discount removed");  // Show success message
+                toast.success(t('POS-Sales_kDiscountRemoved'));
         }}
         className="text-xs text-red-500"
       >
@@ -1301,7 +1308,7 @@ const addToCartHandle = () => {
         setIsDiscountModalOpen(true);
       }}
     >
-      Add
+      {t('POS-Sales_kAddDiscount')}
     </button>
   </div>
 </div>
@@ -1312,7 +1319,7 @@ const addToCartHandle = () => {
     <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
       <div>
         <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
-          Enter Discount % (0 - 100)
+          {t('POS-Sales_kDiscountModalTitle')}
         </h2>
         <input
           type="text"
@@ -1330,7 +1337,7 @@ const addToCartHandle = () => {
               }
             }
           }}
-          placeholder="Enter % of discount"
+          placeholder={t('POS-Sales_kDiscountModalPlaceholder')}
           className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
         />
       </div>
@@ -1339,7 +1346,7 @@ const addToCartHandle = () => {
           className="px-3 py-1 text-sm rounded bg-gray-400 text-white"
           onClick={() => setIsDiscountModalOpen(false)}
         >
-          Cancel
+          {t('POS-Sales_k85')}
         </button>
         <button
           className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
@@ -1352,11 +1359,11 @@ const addToCartHandle = () => {
               setAppliedDiscount(numValue);  // Apply the discount
               setIsDiscountModalOpen(false);
             } else {
-              toast.error("Discount must be between 0 and 100%");
+              toast.error(t('POS-Sales_kDiscountRangeError'));
             }
           }}
         >
-          Apply
+          {t('POS-Sales_k31')}
         </button>
       </div>
     </div>
@@ -1639,9 +1646,12 @@ transition-colors`}
         onClose={() => setShowOtherLocationModal(false)}
       >
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4">
+          <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+            {t("POS-Sales_k107")}
+          </h2>
           <div className="mb-2">
             <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-              Select Location
+              {t("POS-Sales_k84")}
             </label>
             <select
               className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1650,7 +1660,7 @@ transition-colors`}
                 handleOtherLocationChange(Number(e.target.value))
               }
             >
-              <option value="">Select Location</option>
+              <option value="">{t("POS-Sales_k84")}</option>
               {locations.map((loc: any) => (
                 <option
                   key={String(loc.id)}
@@ -1658,7 +1668,7 @@ transition-colors`}
                   disabled={loc.id === selectedLocation?.id}
                 >
                   {loc.title || loc.name}
-                  {loc.id === selectedLocation?.id ? " (Current Location)" : ""}
+                  {loc.id === selectedLocation?.id ? ` (${t("POS-Sales_k112")})` : ""}
                 </option>
               ))}
             </select>
@@ -1667,7 +1677,7 @@ transition-colors`}
           {otherLocationId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Category
+                {t("POS-Sales_kSelectCategory")}
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1676,7 +1686,7 @@ transition-colors`}
                   handleOtherLocationCategoryChange(Number(e.target.value))
                 }
               >
-                <option value="">Select Category</option>
+                <option value="">{t("POS-Sales_kSelectCategory")}</option>
                 {otherLocationCategories.map((cat: any) => (
                   <option
                     key={String(cat.category_id)}
@@ -1692,7 +1702,7 @@ transition-colors`}
           {otherLocationCategoryId && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Select Product
+                {t("POS-Sales_k6")}
               </label>
               <select
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
@@ -1701,7 +1711,7 @@ transition-colors`}
                   setOtherLocationProductId(Number(e.target.value))
                 }
               >
-                <option value="">Select Product</option>
+                <option value="">{t("POS-Sales_k6")}</option>
                 {otherLocationProducts.map((prod: any) => (
                   <option
                     key={String(prod.product_id)}
@@ -1717,7 +1727,7 @@ transition-colors`}
           {otherLocationProductId !== null && (
             <div className="mb-2">
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
-                Quantity
+                {t("POS-Sales_k7")}
               </label>
               <div className="flex items-center gap-2">
                 <button
@@ -1744,7 +1754,7 @@ transition-colors`}
                 </button>
               </div>
               <div className="text-xs mt-1 text-gray-500 dark:text-gray-400">
-                Available:{" "}
+                {t("POS-Sales_k131")}:{" "}
                 {otherLocationProducts.find(
                   (p: any) => p.product_id === otherLocationProductId
                 )?.quantity_available ?? 0}
@@ -1770,7 +1780,7 @@ transition-colors`}
               onClick={() => setShowOtherLocationModal(false)}
               type="button"
             >
-              Cancel
+              {t("POS-Sales_k85")}
             </button>
           </div>
         </div>
@@ -1799,7 +1809,7 @@ transition-colors`}
               locationId={selectedLocation?.id}
               onSave={(sel: { id: number; name: string }[]) => {
                 setSelectedSalesPersons(sel);
-                toast.success(`Selected ${sel.length} sales person(s)`);
+                toast.success(`Se seleccionaron ${sel.length} vendedor(es)`);
                 setSalesPersonModalOpen(false);
               }}
             />

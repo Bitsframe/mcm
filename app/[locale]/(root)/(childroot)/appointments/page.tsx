@@ -401,10 +401,10 @@ const Appointments = () => {
                 }}
                 className="min-w-[100px] border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               >
-                <option value="all">All</option>
-                <option value="name">Name</option>
-                <option value="phone">Phone</option>
-                <option value="email">Email</option>
+                <option value="all">{t("Appoinments_k88")}</option>
+                <option value="name">{t("Appoinments_k89")}</option>
+                <option value="phone">{t("Appoinments_k90")}</option>
+                <option value="email">{t("Appoinments_k91")}</option>
               </select>
               <span className="text-gray-500">=</span>
               <input

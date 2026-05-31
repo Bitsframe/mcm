@@ -878,7 +878,7 @@ External service integrations.
 #### `services/supabase.tsx`
 **Purpose:** Supabase service client  
 **Functionality:** Main Supabase client instance  
-**Uses:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+**Uses:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
 ---
 
@@ -1231,7 +1231,7 @@ Protected Routes
 
 #### Supabase
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public anonymous key
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - Public publishable key
 - `SUPABASE_URL` - Server-side Supabase URL
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key (server-only)
 - `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` - Public service key (if needed)
@@ -1559,7 +1559,7 @@ Based on code usage, key tables include:
 
 - `NEXT_PUBLIC_EMAIL_SENDER_URL` - Email service endpoint
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - Supabase publishable key
 
 ### Important Notes
 

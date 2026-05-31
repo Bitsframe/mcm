@@ -10,6 +10,7 @@ import { sendEmail } from '@/utils/emailService'
 import { EmailBodyTempEnum } from '@/utils/emailService/templateDetails'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
+import enAppoinments from '@/locales/en/Appoinments.json'
 
 interface AppointmentEditModalProps {
   locationData: LocationInterface;
@@ -111,7 +112,7 @@ export const AppointmentEditModal: FC<AppointmentEditModalProps> = ({
       is_open={isOpen}
       close_handle={onClose}
       Title={t("Appoinments_k49")}
-      buttonLabel="Update"
+      buttonLabel={t("Appoinments_k98", { defaultValue: (enAppoinments as any)["Appoinments_k98"] ?? "Update" })}
       loading={loadingUpdate}
     >
       <div className="grid grid-cols-1 gap-2 sm:gap-4">

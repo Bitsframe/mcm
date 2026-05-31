@@ -36,7 +36,7 @@ export const tableHeader = [
     },
     {
         id: 'product_discount',
-        label: 'Product Discount %',
+        label: 'POS-Historyk68',
         align: 'text-center',
         flex: 'flex-1',
         render_value: (val: any, elem?: any) => {
@@ -46,7 +46,7 @@ export const tableHeader = [
     },
     {
         id: 'amount_after_discount',
-        label: 'Amount After Discount',
+        label: 'POS-Historyk69',
         align: 'text-center',
         flex: 'flex-1',
         render_value: (val: any, elem?: any) => {
