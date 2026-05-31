@@ -11,7 +11,7 @@ export const SidebarSection = () => {
   const { theme } = useTheme();
 
   return (
-    <div className="w-full h-full flex flex-col gap-5 items-center py-5 pr-5 bg-[#F1F4F9] dark:bg-[#080E16]">
+    <div className="w-full h-full flex flex-col gap-5 items-start py-5 pr-5 bg-[#F1F4F9] dark:bg-[#080E16]">
       <div className="flex justify-center w-full">
         <Image
           src={theme === "dark" ? Lightlogo : Darklogo }

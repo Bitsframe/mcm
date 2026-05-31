@@ -4,6 +4,7 @@ import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import enAppoinments from "@/locales/en/Appoinments.json";
 
 // Custom styles for ReactDatePicker dark mode
 const customDatePickerStyles = `
@@ -266,7 +267,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
           ) : availableTimes.length > 0 ? (
             <>
               <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
-                Select Slot
+                {t("Appoinments_k95", { defaultValue: (enAppoinments as any)["Appoinments_k95"] ?? "Select Slot" })}
               </option>
               {availableTimes.map((time, index) => (
                 <option
@@ -280,7 +281,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
             </>
           ) : (
             <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
-              No available times
+              {t("Appoinments_k97", { defaultValue: (enAppoinments as any)["Appoinments_k97"] ?? "No available times" })}
             </option>
           )}
         </select>

@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface DiscountModalProps {
   isOpen: boolean;
@@ -12,10 +14,12 @@ interface DiscountModalProps {
 export default function DiscountModal({
   isOpen,
   initialValue,
-  title = "Set product discount",
+  title,
   onApply,
   onClose,
 }: DiscountModalProps) {
+  const { t } = useTranslation(translationConstant.POSSALES);
+
   // Use string state for input to allow floats and empty
   const [inputValue, setInputValue] = useState<string>(
     initialValue !== undefined && initialValue !== null ? initialValue.toString() : ""
@@ -67,6 +71,8 @@ export default function DiscountModal({
     onApply(num);
   };
 
+  const displayTitle = title || t('POS-Sales_kDiscountModalTitle');
+
   if (!isOpen) return null;
 
   return (
@@ -81,10 +87,10 @@ export default function DiscountModal({
         className="bg-white dark:bg-[#0e1725] rounded-lg shadow-xl w-full max-w-sm p-4"
       >
         <h3 id="discount-modal-title" className="text-lg font-semibold mb-2">
-          {title}
+          {displayTitle}
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-          Enter percentage (0–100) for this product only.
+          {t('POS-Sales_kDiscountModalExplanation')}
         </p>
 
         {/* Discount Input */}
@@ -116,7 +122,7 @@ export default function DiscountModal({
             }
             setInputValue(rawValue);
           }}
-          placeholder="Enter % of discount"
+          placeholder={t('POS-Sales_kDiscountModalPlaceholder')}
           className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
           min={0}
           max={100}
@@ -128,13 +134,13 @@ export default function DiscountModal({
             onClick={onClose}
             className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700"
           >
-            Cancel
+            {t('POS-Sales_k85')}
           </button>
           <button
             onClick={handleApply}
             className="px-3 py-2 rounded-md bg-[#0066FF] text-white hover:opacity-90"
           >
-            Apply
+            {t('POS-Sales_k31')}
           </button>
         </div>
       </div>

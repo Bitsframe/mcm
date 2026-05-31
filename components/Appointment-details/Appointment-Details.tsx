@@ -5,6 +5,7 @@ import moment from "moment";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import enAppoinments from "@/locales/en/Appoinments.json";
 import { renderFormattedDate } from "@/helper/common_functions";
 
 const render_detail_keys: RenderDetailFields[] = [
@@ -73,7 +74,7 @@ const AppointmentDetails = memo(
               className="border-b border-gray-100 dark:border-gray-700 pb-2 sm:border-none sm:pb-0"
             >
               <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">
-                {t(elem.label)}
+                {t(elem.label, { defaultValue: (enAppoinments as any)[elem.label] ?? elem.label })}
               </p>
               <p className="font-medium dark:text-gray-200 text-xs sm:text-base break-words">
                 {elem.date_format

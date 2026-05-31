@@ -141,7 +141,7 @@ const TransactionsPage = () => {
                 cash: 0,
                 card: 0,
                 zelle: 0,
-                payment_method: 'No Order Data'
+                payment_method: 'Sin datos de orden'
               }
             }
           } else {
@@ -155,7 +155,7 @@ const TransactionsPage = () => {
               cash: 0,
               card: 0,
               zelle: 0,
-              payment_method: 'No Order Data'
+              payment_method: 'Sin datos de orden'
             }
           }
         })
@@ -178,11 +178,11 @@ const TransactionsPage = () => {
   // Helper function to determine payment method from amounts
   const getPaymentMethodFromAmounts = (cash: number, card: number, zelle: number) => {
     const methods = []
-    if (cash > 0) methods.push('Cash')
-    if (card > 0) methods.push('Card')
+    if (cash > 0) methods.push('Efectivo')
+    if (card > 0) methods.push('Tarjeta')
     if (zelle > 0) methods.push('Zelle')
-    
-    if (methods.length === 0) return 'No Order Data'
+
+    if (methods.length === 0) return 'Sin datos de orden'
     if (methods.length === 1) return methods[0]
     return methods.join(' + ')
   }
@@ -234,7 +234,7 @@ const TransactionsPage = () => {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{t("Transaction_k1")}</h1>
-          <div className="text-sm text-gray-500 dark:text-gray-400">Patients / Transactions</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Pacientes / Transacciones</div>
         </div>
       </div>
 
@@ -258,7 +258,7 @@ const TransactionsPage = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search patients..."
+            placeholder="Buscar pacientes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-[#F1F4F9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -268,7 +268,7 @@ const TransactionsPage = () => {
 
       {loadingPatients ? (
         <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500 dark:text-gray-300">Loading patients...</div>
+          <div className="text-gray-500 dark:text-gray-300">Cargando pacientes...</div>
         </div>
       ) : (
         <>
@@ -343,8 +343,8 @@ const TransactionsPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-300">
-                        No patients found
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-300">
+                        {t("Patients_k70", { defaultValue: "No patients available" })}
                       </TableCell>
                     </TableRow>
                   )}
@@ -378,21 +378,21 @@ const TransactionsPage = () => {
                       <div className="grid grid-cols-1 gap-3 text-sm mb-4">
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-500 dark:text-gray-400">Email:</span>
+                          <span className="text-gray-500 dark:text-gray-400">Correo electrónico:</span>
                           <span className="dark:text-white">{patient.email || "-"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-500 dark:text-gray-400">Phone:</span>
+                          <span className="text-gray-500 dark:text-gray-400">Teléfono:</span>
                           <span className="dark:text-white">{patient.phone || "-"}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Treatment Type:</span>
+                          <span className="text-gray-500 dark:text-gray-400">Tipo de tratamiento:</span>
                           <span className="ml-2 dark:text-white">{patient.treatmenttype || "-"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-500 dark:text-gray-400">Current Balance:</span>
+                          <span className="text-gray-500 dark:text-gray-400">Saldo actual:</span>
                           <span
                             className={`font-semibold ${
                               balance < 0
@@ -415,7 +415,7 @@ const TransactionsPage = () => {
                              }}
                            >
                              <Eye className="w-4 h-4 mr-1 text-white" />
-                             <span className="text-white">View Transactions</span>
+                             <span className="text-white">Ver transacción</span>
                            </Button>
                          </div>
                     </CardContent>
@@ -423,7 +423,7 @@ const TransactionsPage = () => {
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-400 dark:text-gray-300">No patients found</div>
+              <div className="text-center py-8 text-gray-400 dark:text-gray-300">{t("Patients_k70", { defaultValue: "No patients available" })}</div>
             )}
           </div>
 
@@ -431,7 +431,7 @@ const TransactionsPage = () => {
           {filteredPatients.length > 0 && (
             <div className="mt-3 flex justify-between items-center">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {indexOfFirstPatient + 1} to {Math.min(indexOfLastPatient, filteredPatients.length)} of {filteredPatients.length} patients
+                Mostrando {indexOfFirstPatient + 1} a {Math.min(indexOfLastPatient, filteredPatients.length)} de {filteredPatients.length} pacientes
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -442,7 +442,7 @@ const TransactionsPage = () => {
                   onClick={() => handlePageChange(currentPage - 1)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
-                  Previous
+                  Anterior
                 </Button>
                 
                 
@@ -454,7 +454,7 @@ const TransactionsPage = () => {
                   className="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   onClick={() => handlePageChange(currentPage + 1)}
                 >
-                  Next
+                  Siguiente
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -468,7 +468,7 @@ const TransactionsPage = () => {
         <SheetContent className="overflow-y-auto dark:bg-[#0e1725] dark:border-gray-700">
           <SheetHeader>
             <SheetTitle className="text-xl font-bold dark:text-white">
-              {selectedPatient ? `${selectedPatient.firstname} ${selectedPatient.lastname} - Transactions` : "Transaction Details"}
+              {selectedPatient ? `${selectedPatient.firstname} ${selectedPatient.lastname} - Transacciones` : "Detalles de transacciones"}
             </SheetTitle>
           </SheetHeader>
           
@@ -478,7 +478,7 @@ const TransactionsPage = () => {
               <div className="space-y-4">
                 {loading ? (
                   <div className="text-center py-8">
-                    <div className="text-gray-500 dark:text-gray-300">Loading transactions...</div>
+                    <div className="text-gray-500 dark:text-gray-300">Cargando transacciones...</div>
                   </div>
                 ) : transactions.length > 0 ? (
                   transactions.map((tx: any, index: number) => {
@@ -486,7 +486,7 @@ const TransactionsPage = () => {
                       <div key={tx.transaction_id || index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <div className="grid grid-cols-1 gap-3">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Transaction ID:</span>
+                              <span className="font-medium text-gray-600 dark:text-gray-400">ID de transacción:</span>
                             <span className="font-semibold dark:text-white">{generateTransactionId(tx.transaction_id)}</span>
                           </div>
                           <div className="flex justify-between items-center">
@@ -502,11 +502,11 @@ const TransactionsPage = () => {
                             <span className="dark:text-white">${tx.balance?.toFixed(2) || "0.00"}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Payment Method:</span>
-                            <span className="dark:text-white">{tx.payment_method || "No Order Data"}</span>
+                            <span className="font-medium text-gray-600 dark:text-gray-400">Método de pago:</span>
+                            <span className="dark:text-white">{tx.payment_method || "Sin datos de orden"}</span>
                           </div>
                           <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Actions:</span>
+                            <span className="font-medium text-gray-600 dark:text-gray-400">Acciones:</span>
                             <div className="flex items-center gap-2">
                               <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                                 <Trash2 className="w-4 h-4" />

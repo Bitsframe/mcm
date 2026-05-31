@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
+import { translationConstant } from '@/utils/translationConstants';
 
 interface ProductProps {
   productName: string;
@@ -50,6 +52,7 @@ const Product: React.FC<ProductProps> = ({
 }) => {
   const [internalQty, setInternalQty] = useState<number>(0);
   const qty = controlledQty !== undefined ? controlledQty : internalQty;
+  const { t } = useTranslation(translationConstant.POSSALES);
 
   // No per-row console logging to avoid noisy output in UI
   const canIncrease = useMemo(() => {
@@ -76,11 +79,23 @@ const Product: React.FC<ProductProps> = ({
 
   const totalCost = qty * pricePerUnit;
   const fmt = (n: number) => (formatPrice ? formatPrice(n) : `$${n}`);
+  const buildDisplayName = (name: string) => {
+    if (!name) return '';
+    const tokens = [
+      'UNIT', 'UNITS', 'MAMOGRAPHY', 'ORDER', 'EXAM', 'X-RAY', 'KIT', 'PACK', 'TABLET', 'CAPSULE', 'ML', 'MG', 'VIAL', 'SYRINGE', 'BOTTLE', 'SOLUTION', 'CREAM', 'OINTMENT', 'INJECTION', 'TEST', 'SAMPLE', 'BOX', 'SET'
+    ];
+    return name.replace(/\b([A-Za-z0-9-]+)\b/g, (m) => {
+      const key = `POS-Sales_word_${m.toUpperCase().replace(/[^A-Z0-9-]/g, '-')}`;
+      const translated = t(key, { defaultValue: m });
+      return translated;
+    });
+  };
+  const displayName = buildDisplayName(productName || '');
 
   const handleAddToCart = () => {
     if (disabled) return;
     if (onAddToCart) onAddToCart();
-    else alert(`Added ${qty} ${productName} to the cart. Total: ${fmt(totalCost)}`);
+    else alert(`Added ${qty} ${displayName} to the cart. Total: ${fmt(totalCost)}`);
   };
 
   const row = (
@@ -92,10 +107,10 @@ const Product: React.FC<ProductProps> = ({
         {bonusEligible ? (
           <div className="flex items-center gap-2">
             <Image src="/assets/bonusicon.png" alt="bonus" width={16} height={16} className="object-contain inline-block" />
-            <span className="truncate">{productName || '-'}</span>
+            <span className="truncate">{displayName || '-'}</span>
           </div>
         ) : (
-          productName || '-'
+          displayName || '-'
         )}
       </td>
       <td className="border-b p-2">
@@ -119,14 +134,14 @@ const Product: React.FC<ProductProps> = ({
       </td>
       <td className="border-b p-2">
         {unlimited ? (
-          <span className="text-amber-600 dark:text-amber-400">Unlimited</span>
+          <span className="text-amber-600 dark:text-amber-400">{t('POS-Sales_k130')}</span>
         ) : Number.isFinite(quantityLeft) ? (
-          <span>{Math.max(0, quantityLeft - qty)} left</span>
+          <span>{Math.max(0, quantityLeft - qty)} {t('POS-Sales_k131')}</span>
         ) : (
-          <span>{Math.max(0, quantityLeft - qty)} left</span>
+          <span>{Math.max(0, quantityLeft - qty)} {t('POS-Sales_k131')}</span>
         )}
       </td>
-      <td className="border-b p-2">{fmt(pricePerUnit)} /unit</td>
+      <td className="border-b p-2">{fmt(pricePerUnit)}</td>
       <td className="border-b p-2">{fmt(totalCost)}</td>
       {/* Actions removed; single Add to Cart button exists at the top of ProductListModal */}
     </tr>
@@ -139,11 +154,11 @@ const Product: React.FC<ProductProps> = ({
       <table className="w-full table-auto">
         <thead>
           <tr>
-            <th className="border-b p-2 text-left">Product Name</th>
-            <th className="border-b p-2 text-left">Quantity</th>
-            <th className="border-b p-2 text-left">Availability</th>
-            <th className="border-b p-2 text-left">Price/Unit</th>
-            <th className="border-b p-2 text-left">Total Cost</th>
+            <th className="border-b p-2 text-left">{t('POS-Sales_k126')}</th>
+            <th className="border-b p-2 text-left">{t('POS-Sales_k7')}</th>
+            <th className="border-b p-2 text-left">{t('POS-Sales_k127')}</th>
+            <th className="border-b p-2 text-left">{t('POS-Sales_k128')}</th>
+            <th className="border-b p-2 text-left">{t('POS-Sales_k129')}</th>
           </tr>
         </thead>
         <tbody>{row}</tbody>
@@ -168,7 +183,7 @@ const Product: React.FC<ProductProps> = ({
       />
       <div className="relative w-full max-w-4xl mx-4 bg-white dark:bg-[#0E1725] rounded-lg shadow-lg overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold">{modalTitle ?? 'Product'}</h3>
+          <h3 className="text-lg font-semibold">{modalTitle ?? t('POS-Sales_k5')}</h3>
           <button
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             onClick={() => {

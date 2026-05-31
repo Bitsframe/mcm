@@ -26,54 +26,6 @@ function extractAppointmentId(result: Record<string, unknown>): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/**
- * The create-appointment edge function often inserts minimal columns. This
- * mirrors patient info onto Appoinments and sets patient_id for returning
- * patients so the list and allpatients join show name, gender, and email.
- */
-async function syncCreatedAppointmentRow(
-  appointmentId: number,
-  body: Record<string, unknown>
-) {
-  const {
-    first_name,
-    last_name,
-    email_address,
-    phone,
-    sex,
-  } = body;
-
-  const rawPid = body.patient_id ?? body.patientId;
-  let patientId: number | null = null;
-  if (rawPid !== undefined && rawPid !== null && rawPid !== "") {
-    const n = Number(rawPid);
-    if (Number.isFinite(n) && n > 0) patientId = n;
-  }
-
-  const patch: Record<string, unknown> = {
-    first_name: emptyToNull(first_name),
-    last_name: emptyToNull(last_name),
-    email_address: emptyToNull(email_address),
-    sex: emptyToNull(sex),
-    phone: emptyToNull(phone),
-    dob: normalizeDobInput(body.dob),
-  };
-
-  if (patientId != null) {
-    patch.patient_id = patientId;
-  }
-
-  const admin = getServiceRoleSupabase();
-  const { error } = await admin
-    .from("Appoinments")
-    .update(patch)
-    .eq("id", appointmentId);
-
-  if (error) {
-    throw error;
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -88,10 +40,7 @@ export async function POST(req: NextRequest) {
       service,
       date_and_time,
       dob,
-      address,
-      onsite,
-      text_opt,
-      email_opt,
+        address,
     } = body;
 
     const parsedLocationId = (() => {
@@ -106,25 +55,6 @@ export async function POST(req: NextRequest) {
       return Number.isFinite(n) && n > 0 ? n : null;
     })();
 
-    // Edge functions in this project vary: some read `locationid`, others `location_id`.
-    // Send both so the deployed function always receives a location for Appoinments.location_id.
-    const edgePayload = {
-      firstname: first_name,
-      lastname: last_name,
-      email: email_address,
-      phone,
-      gender: sex,
-      dob: dob ?? null,
-      locationid: parsedLocationId,
-      location_id: parsedLocationId,
-      onsite: onsite ?? true,
-      text_opt: text_opt ?? false,
-      email_opt: email_opt ?? false,
-      address: address ?? null,
-      service,
-      date_and_time,
-    };
-
     if (parsedLocationId === null) {
       return NextResponse.json(
         { error: "location_id is required" },
@@ -132,79 +62,57 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = getServiceRoleSupabase();
 
-    if (!supabaseServiceRoleKey) {
-      return NextResponse.json(
-        { error: 'Missing Supabase service role key' },
-        { status: 500 }
-      );
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
-    if (!supabaseUrl) {
-      return NextResponse.json(
-        { error: "Missing NEXT_PUBLIC_SUPABASE_URL" },
-        { status: 500 }
-      );
-    }
-
-    // Default slug must match a deployed function on this project (not "create-appointment").
-    // Override with CREATE_APPOINTMENT_EDGE_URL e.g. .../appointment-insert-with-dob-check
-    const createAppointmentUrl =
-      process.env.CREATE_APPOINTMENT_EDGE_URL?.trim() ||
-      `${supabaseUrl}/functions/v1/create-appointment-mcm`;
-
-    const response = await fetch(createAppointmentUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseServiceRoleKey}`,
-      },
-      body: JSON.stringify(edgePayload),
-    });
-
-    let result: Record<string, unknown>;
-    try {
-      result = (await response.json()) as Record<string, unknown>;
-    } catch {
-      console.error("Edge function returned non-JSON body");
-      return NextResponse.json(
-        { error: "Failed to create appointment (invalid response from server)" },
-        { status: response.status || 502 }
-      );
-    }
-
-    if (!response.ok) {
-      console.error("Edge function error:", result);
-      const msg =
-        (typeof result.error === "string" && result.error) ||
-        (typeof result.message === "string" && result.message) ||
-        "Failed to create appointment";
-      return NextResponse.json({ error: msg }, { status: response.status });
-    }
-
-    const appointmentId = extractAppointmentId(result);
-    if (appointmentId != null) {
-      try {
-        await syncCreatedAppointmentRow(appointmentId, body);
-      } catch (e) {
-        console.error("syncCreatedAppointmentRow failed:", e);
+    const rawPatientId = body.patient_id ?? body.patientId;
+    const patientId = (() => {
+      if (rawPatientId === undefined || rawPatientId === null || rawPatientId === "") {
+        return null;
       }
+      const n = Number(rawPatientId);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    })();
+
+    const appointmentPayload: Record<string, unknown> = {
+      location_id: parsedLocationId,
+      first_name: emptyToNull(first_name),
+      last_name: emptyToNull(last_name),
+      email_address: emptyToNull(email_address),
+      phone: emptyToNull(phone),
+      sex: emptyToNull(sex),
+      service: emptyToNull(service),
+      date_and_time: emptyToNull(date_and_time),
+      dob: normalizeDobInput(dob),
+      address: emptyToNull(address),
+      in_office_patient: true,
+      new_patient: false,
+      text_opt: false,
+      email_opt: false,
+      isApproved: true,
+    };
+
+    if (patientId != null) {
+      appointmentPayload.patient_id = patientId;
     }
 
-    // Edge functions often return { status, appointment_id, patient_id }; UI expects success + appointment.id
-    if (result.status === "success" && result.appointment_id != null) {
-      return NextResponse.json({
-        success: true,
-        appointment: {
-          id: result.appointment_id,
-          patient_id: result.patient_id,
-        },
-      });
+    const { data: createdAppointment, error: insertError } = await supabase
+      .from("Appoinments")
+      .insert([appointmentPayload])
+      .select("*")
+      .single();
+
+    if (insertError) {
+      console.error("Error creating appointment row:", insertError);
+      return NextResponse.json(
+        { error: insertError.message },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      success: true,
+      appointment: createdAppointment,
+    });
 
   } catch (error: any) {
     console.error('Error in create appointment API:', error);

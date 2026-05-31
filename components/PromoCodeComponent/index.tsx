@@ -17,7 +17,7 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
     const [inputVal, setInputVal] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { t } = useTranslation(translationConstant.POSSALES);
+    const { t } = useTranslation(translationConstant.PROCODE);
 
     const applyPromoHandle = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -37,16 +37,16 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                 const codeData = { code: inputVal, id: promocodeId };
                 setPromoCode(inputVal);
                 applyDiscountHandle(codeData, discount);
-                toast.success('Promo code applied successfully!');
+                toast.success(t('Procode_k_success', { defaultValue: 'Promo code applied successfully!' }));
                 setInputVal('');
             } else {
                 console.log('Non-200 response, showing expired toast');
-                toast.error('promocode expired');
+                toast.error(t('Procode_k_failed', { defaultValue: 'promocode expired' }));
                 setInputVal(''); // Clear input field on failure
             }
         } catch (error: any) {
             console.log('Caught error:', error.response?.status, error.response?.data);
-            toast.error('promocode expired');
+            toast.error(t('Procode_k_failed', { defaultValue: 'promocode expired' }));
             setInputVal(''); // Clear input field on error
         } finally {
             setLoading(false);
@@ -60,7 +60,7 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
 
     return (
         <div className='flex items-center justify-between gap-3 py-2'>
-            <h1 className='text-sm font-medium'>{t("POS-Sales_k11")}</h1>
+            <h1 className='text-sm font-medium'>{t('Procode_k1')}</h1>
 
             {promoCode ? (
                 <div className='flex items-center bg-gray-100 dark:bg-gray-700 text-sm rounded-md px-2 py-1'>
@@ -76,7 +76,7 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                     <input
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
-                        placeholder='Promo Code'
+                        placeholder={t('Procode_k_placeholder', { defaultValue: 'Promo Code' })}
                         className='text-sm px-2 py-1 w-36 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none'
                         disabled={!patientId}
                         required
@@ -87,7 +87,7 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                         className='disabled:opacity-60 px-3 py-[2px] text-sm bg-[#0066ff] text-white rounded-lg'
                         color="info"
                     >
-                        {loading ? '...' : t("POS-Sales_k31")}
+                        {loading ? t('Procode_k_checking', { defaultValue: '...' }) : t('Procode_k_apply', { defaultValue: 'Apply' })}
                     </button>
                 </form>
             )}

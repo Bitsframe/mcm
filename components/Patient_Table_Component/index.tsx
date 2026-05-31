@@ -56,6 +56,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import enPatients from "@/locales/en/Patients.json";
 import {
   Eye,
   SquarePen,
@@ -469,13 +470,22 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   }, [searchTerm]);
 
   const formatDate = useCallback((date: string) => {
-    return moment(date, "YYYY-MM-DD h:mm s").format("MMM DD, YYYY");
+    if (!date) return "-";
+
+    const parsedDate = moment(date);
+    if (!parsedDate.isValid()) return "-";
+
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(parsedDate.toDate());
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isFormValid) {
-      toast.error("Please fill in all required fields.");
+      toast.error("Complete todos los campos obligatorios.");
       return;
     }
 
@@ -502,7 +512,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         toast.success("New patient added successfully");
       }
     } catch (error) {
-      toast.error("Failed to add patient. Please try again.");
+      toast.error("No se pudo agregar el paciente. Inténtelo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -575,7 +585,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
               }`}
             >
-              {patient.onsite ? "On-site" : "Off-site"}
+              {patient.onsite ? "Paciente en sitio" : "Paciente fuera de sitio"}
             </span>
           )}
         </div>
@@ -629,7 +639,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             className="h-8 w-8 flex items-center justify-center p-0 text-gray-500 dark:text-gray-400"
           >
             <Eye className="h-5 w-5" color="gray" />
-            <span className="sr-only">View</span>
+            <span className="sr-only">Ver</span>
           </Button>
           <EditPatientModal
             callAfterUpdate={updateOnEdit}
@@ -744,25 +754,25 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 value="all"
                 className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                All
+                {t("Patients_k65")}
               </SelectItem>
               <SelectItem
                 value="name"
                 className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Name
+                {t("Patients_k66")}
               </SelectItem>
               <SelectItem
                 value="email"
                 className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Email
+                {t("Patients_k67")}
               </SelectItem>
               <SelectItem
                 value="phone"
                 className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Phone
+                {t("Patients_k68")}
               </SelectItem>
               <SelectItem
                 value="id"
@@ -779,10 +789,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
               onValueChange={(v: string) => setLocationFilter(v === "ALL" || v === "" ? null : Number(v))}
             >
               <SelectTrigger className="w-48 bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white [&>span]:text-gray-900 dark:[&>span]:text-white focus:ring-blue-500 dark:focus:ring-blue-400">
-                <SelectValue placeholder="All locations" />
+                <SelectValue placeholder={t("Patients_k69")} />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-[#122136] border border-gray-200 dark:border-gray-700">
-                <SelectItem value="ALL">All locations</SelectItem>
+                <SelectItem value="ALL">{t("Patients_k69")}</SelectItem>
                 {locations.map((loc) => (
                   <SelectItem key={loc.id} value={String(loc.id)}>
                     {loc.title || loc.name}
@@ -964,12 +974,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     htmlFor="streetAddress"
                     className="text-sm text-gray-500 dark:text-gray-400"
                   >
-                    Street Address
+                    {t("Patients_k59")}
                   </Label>
                   <div className="relative">
                     <Input
                       id="streetAddress"
-                      placeholder="Enter street address"
+                      placeholder={t("Patients_k61")}
                       value={patientData.streetAddress}
                       onChange={handleAddressChange}
                       onFocus={() => {
@@ -1016,7 +1026,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       htmlFor="dateOfBirth"
                       className="text-sm text-gray-500 dark:text-gray-400"
                     >
-                      Date of Birth
+                      {t("Patients_k60")}
                     </Label>
                     <Input
                       id="dateOfBirth"
@@ -1151,7 +1161,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                     disabled={isSubmitting || !isFormValid}
                     className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                   >
-                    {isSubmitting ? "Saving..." : t("Patients_k39")}
+                    {isSubmitting ? "Guardando..." : t("Patients_k39")}
                   </Button>
                 </AlertDialogAction>
               </div>
@@ -1298,7 +1308,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                             className="h-10 w-10 sm:h-8 sm:w-8 text-gray-500 dark:text-gray-400"
                           >
                             <Eye className="h-4 w-4" color="gray" />
-                            <span className="sr-only">View</span>
+                            <span className="sr-only">Ver</span>
                           </Button>
                           <EditPatientModal
                             callAfterUpdate={updateOnEdit}
@@ -1358,9 +1368,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="h-40 dark:border-gray-800"
                     >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
-                        <p className="text-lg font-medium">No patients found</p>
+                        <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
                         <p className="text-sm">
-                          Try adjusting your search or add a new patient
+                          {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
                         </p>
                       </div>
                     </TableCell>
@@ -1417,9 +1427,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </div>
           ) : (
             <div className="flex flex-col justify-center items-center h-40 text-gray-500 dark:text-gray-400">
-              <p className="text-lg font-medium">No patients found</p>
+              <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
               <p className="text-sm text-center">
-                Try adjusting your search or add a new patient
+                {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
               </p>
             </div>
           )}
@@ -1441,7 +1451,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   disabled={currentPage === 1}
                   className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
                 >
-                  Previous
+                  Anterior
                 </Button>
                 <Button
                   variant="outline"
@@ -1450,7 +1460,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   disabled={currentPage === totalPages}
                   className="dark:border-gray-600 dark:bg-[#0E1725] dark:text-gray-300 dark:hover:bg-gray-700"
                 >
-                  Next
+                  Siguiente
                 </Button>
               </div>
             </div>
@@ -1618,11 +1628,11 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
       if (response.data.success) {
         setEditPatientData(formData);
-        toast.success("Patient updated successfully");
+        toast.success("Paciente actualizado correctamente");
         onSave();
       }
     } catch (error) {
-      toast.error("Failed to update patient");
+      toast.error("No se pudo actualizar el paciente");
       console.error("Error updating patient:", error);
     }
   };
@@ -1694,13 +1704,13 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
         <Label className="text-sm text-gray-500 dark:text-gray-400">
           {t("Patients_k24")}
         </Label>
-        <Input
-          name="note"
-          value={formData.note || ""}
-          onChange={handleChange}
-          className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-          placeholder="Add any note about the patient"
-        />
+          <Input
+            name="note"
+            value={formData.note || ""}
+            onChange={handleChange}
+            className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
+            placeholder={t("Patients_k49", { defaultValue: (enPatients as any)["Patients_k49"] ?? "Enter any note about the patient" })}
+          />
       </div>
 
       <div className="grid grid-1 gap-4">
@@ -1784,20 +1794,20 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
 
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Street Address
+            {t("Patients_k59")}
           </Label>
           <Input
             name="address"
             value={formData.address || ""}
             onChange={handleChange}
-            placeholder="Enter street address"
+            placeholder={t("Patients_k61")}
             className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
           />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm text-gray-500 dark:text-gray-400">
-            Date of Birth
+            {t("Patients_k60")}
           </Label>
           <Input
             name="dob"
@@ -1861,7 +1871,9 @@ const PatientDetails: FC<{
                   : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
               }`}
             >
-              {patient.onsite ? "On-site" : "Off-site"} Patient
+              {patient.onsite
+                ? t("Patients_k100", { defaultValue: (enPatients as any)["Patients_k100"] ?? "On-site Patient" })
+                : t("Patients_k101", { defaultValue: (enPatients as any)["Patients_k101"] ?? "Off-site Patient" })}
             </span>
           </div>
         )}
@@ -1903,7 +1915,7 @@ const PatientDetails: FC<{
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t("Patients_k36")}</p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patientLocation ? (patientLocation.title || patientLocation.name) : "Unknown"}
+            {patientLocation ? (patientLocation.title || patientLocation.name) : "Desconocido"}
           </p>
         </div>
 
@@ -1912,25 +1924,25 @@ const PatientDetails: FC<{
             {t("Patients_k24")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.note || "No note available"}
+            {patient.note || t("Patients_k99", { defaultValue: (enPatients as any)["Patients_k99"] ?? "No note available" })}
           </p>
         </div>
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Street Address
+            {t("Patients_k59")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.address || "No address provided"}
+            {patient.address || t("Patients_k62")}
           </p>
         </div>
 
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Date of Birth
+            {t("Patients_k60")}
           </p>
           <p className="text-base font-medium dark:text-gray-300">
-            {patient.dob ? new Date(patient.dob).toLocaleDateString() : "No date provided"}
+            {patient.dob ? new Intl.DateTimeFormat("es-ES").format(new Date(patient.dob)) : t("Patients_k63")}
           </p>
         </div>
 
@@ -2176,10 +2188,10 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
       if (data?.data?.success === true) {
         callAfterUpdate(data?.data?.data?.[0]);
-        toast.success("Patient details updated successfully");
+        toast.success("Detalles del paciente actualizados correctamente");
       }
     } catch (error: any) {
-      toast.error("Failed to update patient details");
+      toast.error("No se pudieron actualizar los detalles del paciente");
       console.log("Error updating patient details:", error.message);
     } finally {
       setLoading(false);
@@ -2249,7 +2261,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 onChange={handleChange}
                 className="w-full p-2 bg-[#F1F4F9] dark:bg-[#122136] dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select Gender</option>
+                <option value="">{t("Patients_k102", { defaultValue: (enPatients as any)["Patients_k102"] ?? "Select gender" })}</option>
                 <option value="Male">{t("Patients_k40")}</option>
                 <option value="Female">{t("Patients_k41")}</option>
               </select>
@@ -2309,13 +2321,13 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
               value={patientData.note}
               onChange={handleChange}
               className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-              placeholder="Add any note about the patient"
+              placeholder={t("Patients_k49", { defaultValue: (enPatients as any)["Patients_k49"] ?? "Enter any note about the patient" })}
             />
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-medium dark:text-gray-300">
-              Street Address
+              {t("Patients_k59")}
             </Label>
             <div className="relative">
               <Input
@@ -2333,7 +2345,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
                   setTimeout(() => setShowAddressSuggestions(false), 200);
                 }}
                 className="w-full bg-[#F1F4F9] dark:bg-[#122136] dark:text-white"
-                placeholder="Enter street address"
+                placeholder={t("Patients_k61")}
               />
               {addressLoading && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -2364,7 +2376,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium dark:text-gray-300">
-              Date of Birth
+              {t("Patients_k60")}
             </Label>
             <Input
               type="date"
@@ -2385,7 +2397,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
             disabled={loading}
           >
-            {loading ? "Saving..." : t("Patients_k30")}
+            {loading ? t("Patients_k64") : t("Patients_k30")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

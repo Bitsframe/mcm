@@ -138,12 +138,12 @@ export const routeList: Route[] = [
   {
     id: 'bonus',
     name: "bonus",
-    label: "Bonus",
+    label: "Sidebar_k32",
     icon: Calculator,
     route: ROUTES.BONUS,
     children: [
-      { id: 'bonus-location', name: 'bonus-location', label: 'Location Bonus', route: '/bonus/location' },
-      { id: 'bonus-individual', name: 'bonus-individual', label: 'Individual Bonus', route: '/bonus/individual' },
+      { id: 'bonus-location', name: 'bonus-location', label: 'Sidebar_k33', route: '/bonus/location' },
+      { id: 'bonus-individual', name: 'bonus-individual', label: 'Sidebar_k34', route: '/bonus/individual' },
     ],
   },
   {
@@ -220,7 +220,7 @@ export const routeList: Route[] = [
       {
         id: 'tools-specials',
         name: "specials",
-        label: "Specials",
+        label: "Sidebar_k37",
         route: ROUTES.TOOLS.SPECIALS
       },
       {
@@ -232,13 +232,13 @@ export const routeList: Route[] = [
       {
         id: 'tools-pharmacy',
         name: "pharmacy",
-        label: "Pharmacy",
+        label: "Sidebar_k35",
         route: ROUTES.TOOLS.PHARMACY
       },
       {
         id: 'tools-medical-forms',
         name: "medical forms",
-        label: "Medical Forms",
+        label: "Sidebar_k36",
         route: ROUTES.TOOLS.MEDICAL_FORMS
       }
     ],

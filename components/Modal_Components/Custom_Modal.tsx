@@ -70,7 +70,10 @@ export const Custom_Modal: FC<PropsInterface> = ({
               {t(buttonLabel, {
                 ns: translationConstant.PROCODE,
                 defaultValue: t(buttonLabel, {
-                  ns: translationConstant.POSHISTORY,
+                  ns: translationConstant.POSSALES,
+                  defaultValue: t(buttonLabel, {
+                    ns: translationConstant.POSHISTORY,
+                  }),
                 }),
               })}
             </Button>

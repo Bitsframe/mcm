@@ -16,7 +16,6 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { spawnSync } = require("child_process");
-const dotenv = require("dotenv");
 const { getInfisicalBinPath } = require("./resolve-infisical-bin.cjs");
 
 const root = path.join(__dirname, "..");
@@ -36,13 +35,49 @@ function mapEnvAlias(name) {
   return map[n] || n;
 }
 
+function parseDotenv(input) {
+  const text = Buffer.isBuffer(input) ? input.toString("utf8") : String(input);
+  const parsed = {};
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const equalsIndex = line.indexOf("=");
+    if (equalsIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, equalsIndex).trim();
+    let value = line.slice(equalsIndex + 1).trim();
+    if (!key) {
+      continue;
+    }
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    value = value.replace(/\\n/g, "\n").replace(/\\r/g, "\r").replace(/\\t/g, "\t");
+    parsed[key] = value;
+  }
+
+  return parsed;
+}
+
 /**
  * Infisical's --file importer does not match Node/dotenv (e.g. single-quoted values
  * can be read as empty). Parse with dotenv and write a temp file using double-quoted values.
  */
 function buildInfisicalSafeEnvFile(sourcePath) {
   const raw = fs.readFileSync(sourcePath);
-  const parsed = dotenv.parse(raw);
+  const parsed = parseDotenv(raw);
   const lines = [];
   for (const [key, val] of Object.entries(parsed)) {
     if (val == null) {
@@ -196,11 +231,36 @@ Default --file is .env.local (project root).
   return result;
 }
 
+function runDirectSubcommand(argv) {
+  const separatorIndex = argv.indexOf("--");
+  const commandArgs = separatorIndex === -1 ? argv.slice(1) : argv.slice(separatorIndex + 1);
+
+  if (commandArgs.length === 0) {
+    console.error("Usage: node scripts/infisical-run.cjs run -- <command> [...args]");
+    process.exit(1);
+  }
+
+  const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
+    stdio: "inherit",
+    cwd: root,
+    env: process.env,
+    shell: process.platform === "win32",
+  });
+  process.exit(result.status === null ? 1 : result.status);
+}
+
 const args = process.argv.slice(2);
 
 if (args[0] === "pull") {
   const result = runPullSubcommand(args);
   process.exit(result.status === null ? 1 : result.status);
+}
+
+if (args[0] === "run") {
+  const bin = getInfisicalBinPath();
+  if (!bin) {
+    runDirectSubcommand(args);
+  }
 }
 
 const bin = getInfisicalBinPath();
