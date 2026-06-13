@@ -20,14 +20,16 @@ const PhoneNumberInput = ({
   label?: string;
   placeholder?: string;
   breakpoint: boolean;
-  value: string;
+  value?: string | null;
   type?: string;
   onChange: (value: string) => void;
   hasError?: boolean;
   errorMessage?: string;
 }) => {
   const [isTouched, setIsTouched] = useState(false);
-  const showError = hasError || (required && isTouched && value.trim() === "");
+  const normalizedValue = value ?? "";
+  const showError =
+    hasError || (required && isTouched && normalizedValue.trim() === "");
   const helperMessage = errorMessage || "This field is required";
 
   useEffect(() => {
@@ -192,7 +194,7 @@ const PhoneNumberInput = ({
           onlyCountries={["us"]}
           disableDropdown={true}
           countryCodeEditable={false}
-          value={value}
+          value={normalizedValue}
           onChange={handlePhoneChange}
           onBlur={handleBlur}
           placeholder={placeholder}
