@@ -739,7 +739,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   onChange={(e) => setSearchType(e.target.value as "all" | "name" | "email" | "phone")}
                   className="w-[100px] bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="all">{t("POS-Sales_k35")}</option>
+                  <option value="all">All</option>
                   <option value="name">{t("POS-Sales_k41")}</option>
                   <option value="email">{t("POS-Sales_k93")}</option>
                   <option value="phone">{t("POS-Sales_k37")}</option>
@@ -789,10 +789,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
               </div>
             ) : (
               currentCards.map((elem: any, ind: any) => {
-              const { firstname, lastname, phone, updated_at, email, gender, treatmenttype } = elem;
-              const formattedDateTime = updated_at
-                ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
-                : t("POS-Sales_k104");
+              const { firstname, lastname, phone, updated_at, created_at, email, gender, treatmenttype } = elem;
+              const formattedDateTime = updated_at || created_at
+                ? moment.utc(updated_at || created_at).local().format("DD/MM/YYYY h:mm A")
+                : "-";
 
               return (
                 <div
@@ -934,10 +934,10 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   </div>
                   
                   {dataList.map((elem, ind) => {
-                const { id, firstname, lastname, phone, updated_at, email } = elem;
-                const formattedDateTime = updated_at
-                  ? moment.utc(updated_at).local().format("DD/MM/YYYY h:mm A")
-                  : t("POS-Sales_k104");
+                const { id, firstname, lastname, phone, updated_at, created_at, email } = elem;
+                const formattedDateTime = updated_at || created_at
+                  ? moment.utc(updated_at || created_at).local().format("DD/MM/YYYY h:mm A")
+                  : "-";
 
                 const truncateEmail = (email: string) => {
                   if (!email) return "";

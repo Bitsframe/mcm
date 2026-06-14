@@ -22,14 +22,34 @@ const ConfirmDeleteModal: React.FC<Props> = ({
   onConfirm,
   loading = false,
 }) => {
-  const { t } = useTranslation(translationConstant.POSHISTORY);
+  const { t, i18n } = useTranslation(translationConstant.POSHISTORY);
+  const isSpanishLocale = (i18n.resolvedLanguage || i18n.language || "")
+    .toLowerCase()
+    .startsWith("es");
 
-  const resolvedTitle = title || t("POS-Historyk49", { defaultValue: "Delete" });
+  const resolvedTitle = (() => {
+    if (title) {
+      if (isSpanishLocale) {
+        if (title === "Delete Order" || title === "Delete") return "Eliminar pedido";
+        if (title === "Delete Confirmation") return "Confirmación de eliminación";
+      }
+      return title;
+    }
+
+    return isSpanishLocale
+      ? t("POS-Historyk49", { defaultValue: "Eliminar" })
+      : t("POS-Historyk49", { defaultValue: "Delete" });
+  })();
+
   const resolvedDescription =
     description ||
-    t("POS-HistoryDeleteDesc", {
-      defaultValue: "¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.",
-    });
+    (isSpanishLocale
+      ? t("POS-HistoryDeleteDesc", {
+          defaultValue: "¿Está seguro de que desea eliminar este pedido? Esta acción no se puede deshacer.",
+        })
+      : t("POS-HistoryDeleteDesc", {
+          defaultValue: "Are you sure you want to delete this order? This action cannot be undone.",
+        }));
 
   if (!is_open) return null;
 
@@ -48,10 +68,14 @@ const ConfirmDeleteModal: React.FC<Props> = ({
               onClick={onClose}
               className="px-4 py-2 rounded bg-gray-100 dark:bg-[#122136] text-gray-700 dark:text-white"
             >
-              {t("POS-HistoryCancelBtn", { defaultValue: "Cancelar" })}
+              {isSpanishLocale
+                ? t("POS-HistoryCancelBtn", { defaultValue: "Cancelar" })
+                : t("POS-HistoryCancelBtn", { defaultValue: "Cancel" })}
             </button>
             <Button color="failure" onClick={onConfirm} isProcessing={loading}>
-              {t("POS-Historyk49", { defaultValue: "Eliminar" })}
+              {isSpanishLocale
+                ? t("POS-Historyk49", { defaultValue: "Eliminar" })
+                : t("POS-Historyk49", { defaultValue: "Delete" })}
             </Button>
           </div>
         </div>

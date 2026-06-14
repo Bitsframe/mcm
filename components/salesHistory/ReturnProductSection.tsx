@@ -9,7 +9,28 @@ import { translationConstant } from '@/utils/translationConstants';
 
 
 export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyReturned, preDefinedReasonList }: any) => {
-    const { t } = useTranslation(translationConstant.POSSALES);
+    const { t, i18n } = useTranslation(translationConstant.POSSALES);
+    const isSpanishLocale = (i18n.resolvedLanguage || i18n.language || "")
+        .toLowerCase()
+        .startsWith("es");
+
+    const getLocalizedReturnReason = (reason: string) => {
+        if (!isSpanishLocale) {
+            return reason;
+        }
+
+        const normalizedReason = reason.trim().toLowerCase();
+
+        const localizedReasons: Record<string, string> = {
+            "incorrect item": "Artículo incorrecto",
+            "expired product": "Producto vencido",
+            "not needed anymore": "Ya no se necesita",
+            "damaged or defective": "Dañado o defectuoso",
+            other: "Otro",
+        };
+
+        return localizedReasons[normalizedReason] ?? reason;
+    };
 
 
     const [returnedQty, setReturnedQty] = useState(0)
@@ -119,7 +140,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
                                 <select onChange={changeReasonHandle} className='border-2 text-sm rounded-md px-2 py-2 flex items-center space-x-2 '>
                                     <option value={''} disabled selected >{t('POS-Sales_kSelectReturnReason')}</option>
                                 {/* @ts-ignore */}
-                                {preDefinedReasonList.map((opt, ind) => <option key={ind} value={opt?.reason} >{opt?.reason}
+                                {preDefinedReasonList.map((opt, ind) => <option key={ind} value={opt?.reason} >{getLocalizedReturnReason(opt?.reason)}
 
                                 </option>)}
                             </select>

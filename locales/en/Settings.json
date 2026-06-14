@@ -17,5 +17,7 @@
   "Settings_k18": "Cancel",
   "Settings_k19": "Password must contain capital letter",
   "Settings_k20": "Password must contain number",
-  "Settings_k21": "Password must contain special character"
+  "Settings_k21": "Password must contain special character",
+  "Settings_k22": "Image uploaded successfully!",
+  "Settings_k23": "Profile saved successfully!"
 }

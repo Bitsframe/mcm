@@ -238,10 +238,10 @@ const Profile = () => {
                 <p className="text-red-500 text-xs mt-1">{uploadError}</p>
               )}
               {uploadSuccess && (
-                <p className="text-green-500 text-xs mt-1">Image uploaded successfully!</p>
+                <p className="text-green-500 text-xs mt-1">{t("Settings_k22")}</p>
               )}
               {saveSuccess && (
-                <p className="text-green-500 text-xs mt-1">Profile saved successfully!</p>
+                <p className="text-green-500 text-xs mt-1">{t("Settings_k23")}</p>
               )}
             </div>
             <button

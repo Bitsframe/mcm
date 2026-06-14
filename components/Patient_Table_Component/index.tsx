@@ -535,7 +535,18 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     fetchServiceList();
   }, []);
 
-  const { t } = useTranslation(translationConstant.PATIENTS);
+  const { t, i18n } = useTranslation(translationConstant.PATIENTS);
+  const isEnglishLocale = (i18n.resolvedLanguage || i18n.language || "")
+    .toLowerCase()
+    .startsWith("en");
+  const emptyStateTitle = isEnglishLocale
+    ? "No patients available"
+    : t("Patients_k70", { defaultValue: "No patients available" });
+  const emptyStateDescription = isEnglishLocale
+    ? "Try adjusting the search or add a new patient"
+    : t("Patients_k71", {
+        defaultValue: "Try adjusting the search or add a new patient",
+      });
 
   const isFormValid = useMemo(() => {
     return (
@@ -1368,9 +1379,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                       className="h-40 dark:border-gray-800"
                     >
                       <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
-                        <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
+                        <p className="text-lg font-medium">{emptyStateTitle}</p>
                         <p className="text-sm">
-                          {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
+                          {emptyStateDescription}
                         </p>
                       </div>
                     </TableCell>
@@ -1427,9 +1438,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             </div>
           ) : (
             <div className="flex flex-col justify-center items-center h-40 text-gray-500 dark:text-gray-400">
-              <p className="text-lg font-medium">{t("Patients_k70", { defaultValue: (enPatients as any)["Patients_k70"] ?? "No patients available" })}</p>
+              <p className="text-lg font-medium">{emptyStateTitle}</p>
               <p className="text-sm text-center">
-                {t("Patients_k71", { defaultValue: (enPatients as any)["Patients_k71"] ?? "Try adjusting the search or add a new patient" })}
+                {emptyStateDescription}
               </p>
             </div>
           )}

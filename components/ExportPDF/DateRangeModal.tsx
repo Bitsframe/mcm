@@ -7,6 +7,8 @@ import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 import { FileClock } from 'lucide-react';
+import { createStaticRanges, defaultInputRanges } from 'react-date-range';
+import { enUS, es } from 'date-fns/locale';
 
 interface DateRange extends Range {
     key: string;
@@ -56,7 +58,82 @@ export default function DateRangeModal({
         generatePdfHandle(formattedStartDate, formattedEndDate);
     };
 
-    const { t } = useTranslation(translationConstant.POSHISTORY);
+    const { t, i18n } = useTranslation(translationConstant.POSHISTORY);
+    const isSpanishLocale = (i18n.resolvedLanguage || i18n.language || "")
+        .toLowerCase()
+        .startsWith("es");
+    const calendarLocale = isSpanishLocale ? es : enUS;
+
+    const staticRanges = createStaticRanges([
+        {
+            label: isSpanishLocale ? "Hoy" : "Today",
+            range: () => {
+                const endDate = new Date();
+                endDate.setHours(23, 59, 59, 999);
+                const startDate = new Date();
+                startDate.setHours(0, 0, 0, 0);
+                return { startDate, endDate };
+            },
+        },
+        {
+            label: isSpanishLocale ? "Ayer" : "Yesterday",
+            range: () => {
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 1);
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1);
+                endDate.setHours(23, 59, 59, 999);
+                return { startDate, endDate };
+            },
+        },
+        {
+            label: isSpanishLocale ? "Esta semana" : "This Week",
+            range: () => ({
+                startDate: moment().startOf("week").toDate(),
+                endDate: moment().endOf("week").toDate(),
+            }),
+        },
+        {
+            label: isSpanishLocale ? "La semana pasada" : "Last Week",
+            range: () => ({
+                startDate: moment().subtract(1, "week").startOf("week").toDate(),
+                endDate: moment().subtract(1, "week").endOf("week").toDate(),
+            }),
+        },
+        {
+            label: isSpanishLocale ? "Este mes" : "This Month",
+            range: () => ({
+                startDate: moment().startOf("month").toDate(),
+                endDate: moment().endOf("month").toDate(),
+            }),
+        },
+        {
+            label: isSpanishLocale ? "El mes pasado" : "Last Month",
+            range: () => ({
+                startDate: moment().subtract(1, "month").startOf("month").toDate(),
+                endDate: moment().subtract(1, "month").endOf("month").toDate(),
+            }),
+        },
+    ]);
+
+    const inputRanges = defaultInputRanges.map((range) => {
+        if (range.label === "days up to today") {
+            return {
+                ...range,
+                label: isSpanishLocale ? "días hasta hoy" : range.label,
+            };
+        }
+
+        if (range.label === "days starting today") {
+            return {
+                ...range,
+                label: isSpanishLocale ? "días desde hoy" : range.label,
+            };
+        }
+
+        return range;
+    });
 
     return (
         <div>
@@ -83,7 +160,7 @@ export default function DateRangeModal({
                                 id="date-range-modal-title" 
                                 className="text-lg font-semibold text-gray-900 dark:text-white"
                             >
-                                Select a Date Range
+                                {isSpanishLocale ? "Selecciona un rango de fechas" : "Select a Date Range"}
                             </h2>
                         </div>
 
@@ -362,6 +439,9 @@ export default function DateRangeModal({
                                     moveRangeOnFirstSelection={false}
                                     months={1}
                                     direction="vertical"
+                                    locale={calendarLocale}
+                                    staticRanges={staticRanges as any}
+                                    inputRanges={inputRanges as any}
                                     //@ts-ignore
                                     showSelectionPreview={true}
                                     showDateDisplay={false}
@@ -378,7 +458,7 @@ export default function DateRangeModal({
                                 onClick={handleClose}
                                 className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
                             >
-                                Close
+                                {isSpanishLocale ? "Cerrar" : "Close"}
                             </button>
                             <button
                                 onClick={applyHandle}
@@ -391,7 +471,7 @@ export default function DateRangeModal({
                                         Loading...
                                     </div>
                                 ) : (
-                                    'Apply'
+                                    isSpanishLocale ? "Aplicar" : "Apply"
                                 )}
                             </button>
                         </div>
