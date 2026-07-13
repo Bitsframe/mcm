@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import WebsiteContentLayout from "../Layout";
 import { useSingleRowDataHandle } from "@/hooks/useSingleRowDataHandle";
 import { Select_Dropdown } from "@/components/Select_Dropdown";
@@ -8,28 +8,25 @@ import { langage_list_options } from "@/utils/list_options/dropdown_list_options
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
-import { supabase } from "@/services/supabase";
 
-const only_fields_to_render = {
-  services: ["title", "description", "image", "icon"],
-};
+const service_fields = ["title", "description", "image", "icon"];
 
 const Services = () => {
-  const [servicesList, setServicesList] = useState<{ label: string; value: string }[]>([]);
-  const [selectedService, setSelectedService] = useState<string>("");
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
-
   const {
-    default_data,
     data,
+    data_list,
     is_edited,
     update_loading,
+    selected_language,
+    select_language_handle,
     on_change_handle,
     handle_update,
     reset_fields,
+    selected_list_id,
+    change_selected_list_id,
   } = useSingleRowDataHandle({
-    default_selected_section: "services",
-    table: selectedLanguage === "en" ? "services" : "services_es",
+    table: "services",
+    list_data: true,
     required_fields: [],
   });
 
@@ -40,83 +37,26 @@ const Services = () => {
     setActiveTitle("Services");
   }, [setActiveTitle]);
 
-  // Fetch services based on selected language
-  const fetchServices = async (language: string) => {
-    const tableName = language === "en" ? "services" : "services_es";
-    const { data, error } = await supabase
-      .from(tableName)
-      .select("id, title, description, image, icon")
-      .order("created_at", { ascending: false });
-
-    if (data) {
-      const formattedServices = data.map((service) => ({
-        label: service.title,
-        value: service.id.toString(),
-      }));
-      setServicesList(formattedServices);
-      if (formattedServices.length > 0) {
-        setSelectedService(formattedServices[0].value);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchServices(selectedLanguage);
-  }, [selectedLanguage]);
-
-  const handleServiceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    setSelectedService(selectedId);
-
-    // Fetch the complete service data
-    const tableName = selectedLanguage === "en" ? "services" : "services_es";
-    
-    // Convert selectedId to number for database query
-    const numericId = parseInt(selectedId, 10);
-    
-    const { data: serviceData, error } = await supabase
-      .from(tableName)
-      .select("*")
-      .eq("id", numericId)
-      .single();
-
-    if (serviceData) {
-      // CRITICAL: Make sure to include the ID in the form data
-      // Convert numeric ID to string for the form handler
-      on_change_handle("id", serviceData.id.toString());
-      on_change_handle("title", serviceData.title);
-      on_change_handle("description", serviceData.description);
-      on_change_handle("image", serviceData.image);
-      on_change_handle("icon", serviceData.icon || "");
-    } else if (error) {
-      console.error("Error fetching service data:", error);
-    }
-  };
-
-  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLanguage = e.target.value;
-    setSelectedLanguage(newLanguage);
-    setSelectedService(""); // Reset selected service
-    await fetchServices(newLanguage); // Fetch services for new language
-  };
-
   return (
     <WebsiteContentLayout>
       <div className="px-2 sm:px-4 py-4 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white rounded-xl shadow-sm border border-gray-200 transition-colors duration-300">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-4 mb-6">
           <Select_Dropdown
-            value={selectedService}
+            value={selected_list_id}
             label="Select Service"
-            options_arr={servicesList}
-            on_change_handle={handleServiceChange}
+            options_arr={data_list.map(({ id, title }) => ({
+              value: id,
+              label: title,
+            }))}
+            on_change_handle={change_selected_list_id}
             required={true}
             bg_color="bg-[#F1F4F7] dark:bg-[#122139]"
           />
           <Select_Dropdown
-            value={selectedLanguage}
+            value={selected_language}
             label={t("WebCont_k8")}
             options_arr={langage_list_options}
-            on_change_handle={handleLanguageChange}
+            on_change_handle={select_language_handle}
             required={true}
             bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
           />
@@ -132,7 +72,7 @@ const Services = () => {
               is_edited={is_edited}
               update_loading={update_loading}
               data={data}
-              render_list_fields={only_fields_to_render.services}
+              render_list_fields={service_fields}
               on_change_handle={on_change_handle}
             />
           )}
