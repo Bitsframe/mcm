@@ -70,6 +70,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (!data?.length) {
+        console.error('Update matched 0 rows', { tableName, id: serviceData.id });
+        return NextResponse.json(
+          {
+            error: `Failed to update service: no row updated in ${tableName} for id ${serviceData.id}`,
+          },
+          { status: 404 }
+        );
+      }
+
       result = data;
 
     } else {

@@ -225,6 +225,9 @@ export async function fetch_content_service({
             case 'in':
               query = query.in(filter.column, filter.value);
               break;
+            case 'is':
+              query = query.is(filter.column, filter.value);
+              break;
             case 'not':
               query = query.not(filter.column, 'is', filter.value);
               break;
@@ -362,6 +365,13 @@ export async function update_content_service({ table, language = '', post_data, 
   
   if (error) {
     throw new Error(`Update failed: ${error.message} (Code: ${error.code})`);
+  }
+
+  // RLS often returns [] with no error when the write was blocked
+  if (!data?.length) {
+    throw new Error(
+      `Update matched 0 rows on ${table}${language} (id=${id}). This is usually blocked by RLS.`
+    );
   }
 
   return data;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { capitalize_word_letter } from "@/helper/common_functions";
+import { capitalize_word_letter, formatCount } from "@/helper/common_functions";
 import {
   fields_list_components,
   find_fields,
@@ -46,7 +46,7 @@ export const Form_Component = (props: any) => {
 
       {/* Added scroll bar and overflow auto for container */}
       <div
-        className={`${className || "space-y-4 w-full"} max-h-72 overflow-auto`} // Scroll will appear if content exceeds max-height
+        className={`${className || "space-y-4 w-full"} max-h-[32rem] overflow-auto`} // Scroll will appear if content exceeds max-height
       >
         {Object.keys(data).map((field, index) => {
           const splited_str = field.split("_")[0].toLocaleLowerCase();

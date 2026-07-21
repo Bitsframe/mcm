@@ -1,6 +1,6 @@
 import { Rating } from "@mui/material"
 import { Checkbox, TimePicker } from "antd"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Moment from 'moment';
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "../translationConstants";
@@ -71,6 +71,46 @@ export const fields_list_components: fieldsListComponentsInterface = {
 
                 />
             </div>
+        }
+    },
+    image: {
+        Component_Render: ({ on_change_handle, label, key_id, data }) => {
+            const value = String(data[key_id] || '')
+            const [broken, setBroken] = useState(false)
+
+            // Reset broken state when the URL changes
+            useEffect(() => {
+                setBroken(false)
+            }, [value])
+
+            return (
+                <div className="space-y-3">
+                    <div>
+                        <p className='font-bold dark:text-white text-primary_color'>{label} :</p>
+                        <input
+                            value={value}
+                            type="text"
+                            className='w-full p-3 rounded-lg dark:bg-[#122136] dark:text-white bg-[#F1F4F9]'
+                            onChange={(e) => on_change_handle(key_id, e.target.value)}
+                        />
+                    </div>
+                    {value ? (
+                        <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-[#F1F4F9] dark:bg-[#122136] p-3 flex items-center justify-center min-h-[120px]">
+                            {!broken ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={value}
+                                    alt={`${label} preview`}
+                                    className="max-h-40 max-w-full object-contain"
+                                    onError={() => setBroken(true)}
+                                />
+                            ) : (
+                                <p className="text-sm text-red-500">Preview unavailable — check the image URL</p>
+                            )}
+                        </div>
+                    ) : null}
+                </div>
+            )
         }
     },
     timer: {
@@ -165,7 +205,9 @@ export const find_fields = {
     saturday: 'timer',
     review: 'textarea',
     answer: "textarea",
-    phone: 'input'
+    phone: 'input',
+    image: 'image',
+    icon: 'image',
 }
 
 

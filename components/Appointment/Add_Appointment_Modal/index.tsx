@@ -157,6 +157,7 @@ export const Add_Appointment_Modal = ({
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<string[] | null | undefined>([]);
   const [comingBackData, setComingBackData] = useState<any[]>([]);
+  const [comingBackLoading, setComingBackLoading] = useState(false);
   const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
@@ -245,32 +246,30 @@ export const Add_Appointment_Modal = ({
     if (key === "new_patient" && val === "false") {
       (async () => {
         try {
-          // For 'Coming Back' select existing patients from the `allpatients` table
-          // filtered by the selected location id. Only fetch the fields we need.
           if (!selectedLocation || !selectedLocation.id) {
             console.warn('[Add_Appointment_Modal] selectedLocation is not set, cannot fetch coming back patients by location');
             setComingBackData([]);
             return;
           }
 
-          const { data, error } = await supabase
-            .from('allpatients')
-            .select('id, firstname, lastname, email, phone, gender, dob')
-            .eq('locationid', selectedLocation.id);
-            
+          setComingBackLoading(true);
+          const response = await fetch(
+            `/api/appointments/coming-back-patients?locationId=${selectedLocation.id}`
+          );
+          const result = await response.json();
 
-          // raw response available in `data`/`error`
-          if (error) {
-            console.error('Error fetching returning patients from allpatients:', error);
+          if (!response.ok) {
+            console.error('Error fetching returning patients:', result?.error);
             setComingBackData([]);
             return;
           }
 
-          // Use the fetched allpatients rows directly
-          setComingBackData(data || []);
+          setComingBackData(result.data ?? []);
         } catch (err) {
           console.error('Failed to fetch returning patients from allpatients', err);
           setComingBackData([]);
+        } finally {
+          setComingBackLoading(false);
         }
       })();
 
@@ -449,6 +448,12 @@ export const Add_Appointment_Modal = ({
     if (requireScheduling) {
       if (!requiredFields.includes("service")) requiredFields.push("service");
       if (!requiredFields.includes("date_and_time")) requiredFields.push("date_and_time");
+    }
+
+    if (selectedComingBackPatient && !String(dob ?? "").trim()) {
+      toast.warning(t("Appoinments_k95", { defaultValue: "Please enter date of birth for this patient" }));
+      setLoading(false);
+      return;
     }
 
     for (const field of requiredFields) {
@@ -965,22 +970,28 @@ export const Add_Appointment_Modal = ({
               </FormSection>
             )}
 
+            {comingBackLoading && formData.new_patient === "false" && (
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/90 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-[#071226] dark:text-gray-300">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                {t("Appoinments_k96", { defaultValue: "Loading patients…" })}
+              </div>
+            )}
+
             {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <FormSection title={t("Appoinments_k14")}>
                 <ComingBackTable
-                  data={comingBackData.map((p: any) => ({
-                    id: p.id ?? p.patientid ?? p.patient_id,
-                    first_name: p.firstname ?? p.first_name ?? p.firstName ?? '',
-                    last_name: p.lastname ?? p.last_name ?? p.lastName ?? '',
-                    email_address: p.email ?? p.email_address ?? p.emailAddress ?? '',
-                    phone: p.phone ?? p.mobile ?? p.phone_number ?? '',
-                    date_and_time: p.date_and_time ?? '',
-                    sex: p.sex ?? p.gender ?? '',
-                    dob: p.dob ?? '',
-                  }))}
+                  data={comingBackData}
                   onSelect={(patient) => {
                     setSelectedComingBackPatient(patient);
                     if (patient) {
+                      const nextDob = patient.dob || "";
+                      if (nextDob && /^\d{4}-\d{2}-\d{2}$/.test(nextDob)) {
+                        const [y, m, d] = nextDob.split("-");
+                        const n = normalizeDobParts(y, m, d);
+                        setDobParts({ y: n.y, m: n.m, d: n.d });
+                      } else {
+                        setDobParts({ y: "", m: "", d: "" });
+                      }
                       setFormData((pre: any) => ({
                         ...pre,
                         location_id:
@@ -989,7 +1000,7 @@ export const Add_Appointment_Modal = ({
                         last_name: patient.last_name,
                         email_address: patient.email_address,
                         phone: patient.phone,
-                        dob: patient.dob || "",
+                        dob: nextDob,
                         date_and_time: "",
                         sex: patient.sex,
                         new_patient: "false",
@@ -1040,7 +1051,7 @@ export const Add_Appointment_Modal = ({
               </FormSection>
             )}
 
-            {comingBackData && comingBackData.length === 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
+            {comingBackData && comingBackData.length === 0 && !comingBackLoading && !selectedComingBackPatient && formData.new_patient === "false" && (
               <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-100">
                 <p className="text-sm font-medium">{t("Appoinments_k92")}</p>
               </div>
@@ -1054,12 +1065,25 @@ export const Add_Appointment_Modal = ({
                     <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k89", { defaultValue: (enAppoinments as any)["Appoinments_k89"] ?? "Name" })}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
                     <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k90", { defaultValue: (enAppoinments as any)["Appoinments_k90"] ?? "Phone" })}</span> — {selectedComingBackPatient.phone || "—"}</p>
                     <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k8")}</span> — {selectedComingBackPatient.sex || "—"}</p>
+                    {!selectedComingBackPatient.dob && (
+                      <div className="pt-2 space-y-2">
+                        <p className="text-amber-700 dark:text-amber-300">
+                          {t("Appoinments_k97", { defaultValue: "Date of birth is missing on file. Please add it before scheduling." })}
+                        </p>
+                        <DobWheelField
+                          dobParts={dobParts}
+                          formDob={formData.dob || ""}
+                          onCommit={handleDobWheelCommit}
+                        />
+                      </div>
+                    )}
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedComingBackPatient(null);
-                      setFormData((pre: any) => ({ ...pre, new_patient: "false" }));
+                      setDobParts({ y: "", m: "", d: "" });
+                      setFormData((pre: any) => ({ ...pre, new_patient: "false", dob: "" }));
                     }}
                     className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
                   >

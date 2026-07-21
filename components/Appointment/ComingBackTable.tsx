@@ -41,6 +41,8 @@ const filterTriggerClass =
 
 function patientToYmd(dob: string | null | undefined): string | null {
   if (!dob) return null;
+  const trimmed = dob.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
   const d = new Date(dob);
   if (Number.isNaN(d.getTime())) return null;
   return format(d, "yyyy-MM-dd");
@@ -48,9 +50,16 @@ function patientToYmd(dob: string | null | undefined): string | null {
 
 function formatDobDisplay(dob: string | null | undefined): string {
   if (!dob) return "—";
-  const d = new Date(dob);
-  if (Number.isNaN(d.getTime())) return "—";
-  return format(d, "MMM d, yyyy");
+  const trimmed = dob.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [y, m, d] = trimmed.split("-").map(Number);
+    const local = new Date(y, m - 1, d);
+    if (Number.isNaN(local.getTime())) return "—";
+    return format(local, "MMM d, yyyy");
+  }
+  const parsed = new Date(dob);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return format(parsed, "MMM d, yyyy");
 }
 
 const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {

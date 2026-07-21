@@ -14,6 +14,7 @@ import moment from "moment";
 import { fetch_content_service, fetchLocations } from "@/utils/supabase/data_services/data_services";
 import { PiCaretUpDownBold } from "react-icons/pi";
 import { formatPhoneNumber } from "@/utils/getCountryName";
+import { formatCount } from "@/helper/common_functions";
 import { LocationContext } from "@/context";
 import {
   Table,
@@ -117,9 +118,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const { selectedLocation } = useContext(LocationContext);
   const selectedLocationId = (selectedLocation as any)?.id ?? null;
   const [locations, setLocations] = useState<any[]>([]);
-  const [locationFilter, setLocationFilter] = useState<number | null>(
-    (selectedLocation as any)?.id ?? null
-  );
+  const [locationFilter, setLocationFilter] = useState<number | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -135,6 +134,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   const itemsPerPage = 7;
   const [isMobile, setIsMobile] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const { t } = useTranslation(translationConstant.PATIENTS);
 
   const [patientData, setPatientData] = useState({
     firstname: "",
@@ -309,10 +309,13 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       // Build matchCase: always include renderType (onsite/offsite) if present.
       const baseMatch = QUERIES[renderType] as any;
 
-      // Prefer an explicit location filter selected by the user (locationFilter).
-      // If not set, fallback to app-level selectedLocation; otherwise return across all locations.
+      // For the "all" tab we load every patient once and filter by location in the UI
+      // so per-location counts stay accurate in the header badge.
       let matchCase: any = null;
-      const chosenLocationId = locationFilter ?? selectedLocationId ?? null;
+      const chosenLocationId =
+        renderType === "all"
+          ? null
+          : locationFilter ?? selectedLocationId ?? null;
       if (chosenLocationId) {
         if (baseMatch) {
           matchCase = [baseMatch, { key: "locationid", value: chosenLocationId }];
@@ -329,13 +332,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         selectParam: ",note",
         matchCase,
         filterOptions: [{ column: "deleted_at", operator: "is", value: null }],
-        // skip implicit user-location scoping so we return patients across all locations
-        // when no specific location is selected. If a location is selected we still skip
-        // the implicit user scoping because we explicitly pass the desired location.
+        fetchAll: true,
         skipLocationFilter: true,
       });
-      console.log("Raw Supabase Data:", fetchedData);
-      setPatients(fetchedData);
+      setPatients(fetchedData || []);
     } catch (error) {
       console.error("Error fetching patients:", error);
     } finally {
@@ -376,8 +376,33 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }));
   }, []);
 
+  const patientsByLocation = useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (const patient of patients) {
+      const locId = Number(patient.locationid);
+      if (!Number.isNaN(locId)) {
+        counts[locId] = (counts[locId] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [patients]);
+
+  const effectiveLocationId = useMemo(() => {
+    if (locationFilter != null) return locationFilter;
+    if (renderType !== "all" && selectedLocationId != null) {
+      return Number(selectedLocationId);
+    }
+    return null;
+  }, [locationFilter, renderType, selectedLocationId]);
+
   const filteredAndSortedPatients = useMemo(() => {
     let result = [...patients];
+
+    if (effectiveLocationId != null) {
+      result = result.filter(
+        (patient) => Number(patient.locationid) === effectiveLocationId
+      );
+    }
 
     if (searchTerm) {
       const searchLower = searchTerm.trim().toLowerCase();
@@ -406,10 +431,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           case "all":
           default:
             return (
-              // check name tokens against fullName
               nameTokens.every((token) => fullName.includes(token)) ||
               safe(patient.email).includes(searchLower) ||
-              safe(patient.phone).includes(searchLower)
+              safe(patient.phone).includes(searchLower) ||
+              safe(patient.id).includes(searchLower)
             );
         }
       });
@@ -437,7 +462,31 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     }
 
     return result;
-  }, [patients, searchTerm, sortConfig, searchType]);
+  }, [patients, effectiveLocationId, searchTerm, sortConfig, searchType]);
+
+  const activeLocationLabel = useMemo(() => {
+    if (effectiveLocationId == null) return t("Patients_k69");
+    const loc = locations.find((l) => Number(l.id) === effectiveLocationId);
+    return loc?.title || loc?.name || `Location ${effectiveLocationId}`;
+  }, [effectiveLocationId, locations, t]);
+
+  const sidebarLocationLabel = useMemo(() => {
+    if (!selectedLocationId) return null;
+    const loc = locations.find((l) => Number(l.id) === Number(selectedLocationId));
+    return loc?.title || loc?.name || (selectedLocation as any)?.title || null;
+  }, [selectedLocationId, locations, selectedLocation]);
+
+  const sidebarLocationCount = useMemo(() => {
+    if (!selectedLocationId) return 0;
+    return patientsByLocation[Number(selectedLocationId)] || 0;
+  }, [selectedLocationId, patientsByLocation]);
+
+  const filteredPatientCount = filteredAndSortedPatients.length;
+  const loadedPatientCount = patients.length;
+  const locationScopedCount =
+    effectiveLocationId != null
+      ? patientsByLocation[effectiveLocationId] ?? filteredPatientCount
+      : loadedPatientCount;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -467,7 +516,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, locationFilter]);
 
   const formatDate = useCallback((date: string) => {
     if (!date) return "-";
@@ -534,8 +583,6 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
   useEffect(() => {
     fetchServiceList();
   }, []);
-
-  const { t } = useTranslation(translationConstant.PATIENTS);
 
   const isFormValid = useMemo(() => {
     return (
@@ -718,21 +765,54 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
 
   return (
     <main className="w-full dark:bg-[#0E1725]">
-      <div className="px-6 pt-5">
-        <h1 className="text-2xl font-bold dark:text-white">
-          {renderType === "all"
-            ? t("Patients_k1")
-            : renderType === "onsite"
-            ? t("Patients_k31")
-            : t("Patients_k32")}
-        </h1>
-        <h1 className="mt-1 text-gray-500 dark:text-gray-400">
-          {renderType === "all"
-            ? t("Patients_k22")
-            : renderType === "onsite"
-            ? t("Patients_k33")
-            : t("Patients_k34")}
-        </h1>
+      <div className="px-6 pt-5 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold dark:text-white">
+            {renderType === "all"
+              ? t("Patients_k1")
+              : renderType === "onsite"
+              ? t("Patients_k31")
+              : t("Patients_k32")}
+          </h1>
+          <h1 className="mt-1 text-gray-500 dark:text-gray-400">
+            {renderType === "all"
+              ? t("Patients_k22")
+              : renderType === "onsite"
+              ? t("Patients_k33")
+              : t("Patients_k34")}
+          </h1>
+        </div>
+        <p className="shrink-0 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+          {loading
+            ? t("Patients_k105")
+            : effectiveLocationId != null
+            ? searchTerm && filteredPatientCount !== locationScopedCount
+              ? t("Patients_k104", {
+                  filtered: formatCount(filteredPatientCount),
+                  total: formatCount(locationScopedCount),
+                  location: activeLocationLabel,
+                })
+              : t("Patients_k107", {
+                  count: formatCount(locationScopedCount),
+                  location: activeLocationLabel,
+                })
+            : searchTerm && filteredPatientCount !== loadedPatientCount
+            ? t("Patients_k104", {
+                filtered: formatCount(filteredPatientCount),
+                total: formatCount(loadedPatientCount),
+                location: activeLocationLabel,
+              })
+            : sidebarLocationLabel && sidebarLocationCount > 0
+            ? t("Patients_k106", {
+                total: formatCount(loadedPatientCount),
+                location: sidebarLocationLabel,
+                locationCount: formatCount(sidebarLocationCount),
+              })
+            : t("Patients_k103", {
+                count: formatCount(loadedPatientCount),
+                location: activeLocationLabel,
+              })}
+        </p>
       </div>
 
       <div className="flex flex-row items-center justify-between px-6 py-4 gap-3">
@@ -785,8 +865,10 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           {/* Location filter dropdown */}
           <div className="ml-2">
             <Select
-              value={locationFilter ? String(locationFilter) : ""}
-              onValueChange={(v: string) => setLocationFilter(v === "ALL" || v === "" ? null : Number(v))}
+              value={locationFilter ? String(locationFilter) : "ALL"}
+              onValueChange={(v: string) =>
+                setLocationFilter(v === "ALL" ? null : Number(v))
+              }
             >
               <SelectTrigger className="w-48 bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white [&>span]:text-gray-900 dark:[&>span]:text-white focus:ring-blue-500 dark:focus:ring-blue-400">
                 <SelectValue placeholder={t("Patients_k69")} />
@@ -1386,9 +1468,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
           <div className="hidden md:flex flex-row items-center justify-between mt-2 bg-white dark:bg-[#0E1725]">
             <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
               <p className="text-gray-700 dark:text-gray-300">
-                {t("Patients_k27")} {startIndex + 1} {t("Patients_k28")}{" "}
-                {Math.min(endIndex, filteredAndSortedPatients.length)}{" "}
-                {t("Patients_k29")} {filteredAndSortedPatients.length}
+                {t("Patients_k27")} {formatCount(startIndex + 1)} {t("Patients_k28")}{" "}
+                {formatCount(Math.min(endIndex, filteredAndSortedPatients.length))}{" "}
+                {t("Patients_k29")} {formatCount(filteredAndSortedPatients.length)}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -1438,9 +1520,9 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
             <div className="md:hidden flex sm:flex-row items-center justify-between py-3 gap-3 mt-4">
               <div className="text-sm text-center">
                 <p className="text-gray-700 dark:text-gray-300">
-                  Showing {startIndex + 1} to{" "}
-                  {Math.min(endIndex, filteredAndSortedPatients.length)} of{" "}
-                  {filteredAndSortedPatients.length}
+                  Showing {formatCount(startIndex + 1)} to{" "}
+                  {formatCount(Math.min(endIndex, filteredAndSortedPatients.length))} of{" "}
+                  {formatCount(filteredAndSortedPatients.length)}
                 </p>
               </div>
               <div className="flex items-center gap-2">

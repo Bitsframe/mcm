@@ -219,16 +219,9 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     set_default_data(res_data[0]);
                     set_data(res_data[0]);
                 } else {
-                    // Update succeeded but response is empty (likely RLS issue)
-                    // Update the local state with the data we sent
-                    setData_list(prevList => 
-                        prevList.map(item => 
-                            item.id === data.id ? data : item
-                        )
-                    );
-                    toast.success('Updated successfully');
-                    set_default_data(data);
-                    set_data(data);
+                    // Empty response usually means RLS blocked the write
+                    toast.error('Update did not persist. Check permissions (RLS) for this table.');
+                    throw new Error('Update returned no rows — likely blocked by RLS');
                 }
             } catch (error: any) {
                 console.error('Error in handle_update:', error);

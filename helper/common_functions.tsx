@@ -16,6 +16,9 @@ export const currencyFormatHandle = (amount: number) => {
     }).format(amount)
 };
 
+export const formatCount = (value: number) =>
+    new Intl.NumberFormat('en-US').format(value);
+
 
 export const renderFormattedDate = (date: any, currentFormat  : string = "DD-MM-YYYY") => {
   let formattedDate = '-'

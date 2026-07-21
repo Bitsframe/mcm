@@ -62,6 +62,7 @@ export async function updateService(language: 'en' | 'es', serviceData: ServiceD
       headers: {
         'Content-Type': 'application/json',
       },
+      cache: 'no-store',
       body: JSON.stringify({
         action: 'update',
         language,
@@ -75,7 +76,12 @@ export async function updateService(language: 'en' | 'es', serviceData: ServiceD
       throw new Error(result.error || 'Failed to update service');
     }
 
-    return result;
+    const updatedRow = Array.isArray(result.data) ? result.data[0] : result.data;
+    if (!updatedRow?.id) {
+      throw new Error('Update did not persist — no row returned from database');
+    }
+
+    return { ...result, data: updatedRow };
   } catch (error: any) {
     console.error('Update service error:', error);
     return {
@@ -90,7 +96,10 @@ export async function updateService(language: 'en' | 'es', serviceData: ServiceD
  */
 export async function fetchServices(language: 'en' | 'es'): Promise<ApiResponse> {
   try {
-    const response = await fetch(`/api/services?language=${language}`);
+    const response = await fetch(
+      `/api/services?language=${language}&_ts=${Date.now()}`,
+      { cache: 'no-store' }
+    );
     const result = await response.json();
     
     if (!response.ok) {
@@ -112,7 +121,10 @@ export async function fetchServices(language: 'en' | 'es'): Promise<ApiResponse>
  */
 export async function fetchServiceById(language: 'en' | 'es', id: number): Promise<ApiResponse> {
   try {
-    const response = await fetch(`/api/services?language=${language}&id=${id}`);
+    const response = await fetch(
+      `/api/services?language=${language}&id=${id}&_ts=${Date.now()}`,
+      { cache: 'no-store' }
+    );
     const result = await response.json();
     
     if (!response.ok) {

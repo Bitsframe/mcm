@@ -67,6 +67,11 @@
   "Patients_k66": "Nombre",
   "Patients_k67": "Correo electrónico",
   "Patients_k68": "Teléfono",
-  "Patients_k69": "Todas las ubicaciones"
-  ,"Patients_k99":"No hay nota disponible","Patients_k100":"Paciente en sitio","Patients_k101":"Paciente fuera de sitio","Patients_k102":"Seleccione género","Patients_k70":"No hay pacientes disponibles","Patients_k71":"Pruebe ajustando la búsqueda o agregue un nuevo paciente"
+  "Patients_k69": "Todas las ubicaciones",
+  "Patients_k103": "{{count}} pacientes · Todas las ubicaciones",
+  "Patients_k104": "{{filtered}} de {{total}} pacientes · {{location}}",
+  "Patients_k105": "Cargando pacientes...",
+  "Patients_k106": "{{total}} pacientes · Todas las ubicaciones · {{location}}: {{locationCount}}",
+  "Patients_k107": "{{count}} pacientes · {{location}}",
+  "Patients_k99":"No hay nota disponible","Patients_k100":"Paciente en sitio","Patients_k101":"Paciente fuera de sitio","Patients_k102":"Seleccione género","Patients_k70":"No hay pacientes disponibles","Patients_k71":"Pruebe ajustando la búsqueda o agregue un nuevo paciente"
 }

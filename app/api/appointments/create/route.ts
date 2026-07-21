@@ -109,6 +109,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedDob = normalizeDobInput(dob);
+    if (patientId != null && normalizedDob) {
+      const { error: patientUpdateError } = await supabase
+        .from("allpatients")
+        .update({ dob: normalizedDob })
+        .eq("id", patientId)
+        .is("dob", null);
+
+      if (patientUpdateError) {
+        console.warn("Could not backfill patient DOB:", patientUpdateError.message);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       appointment: createdAppointment,
