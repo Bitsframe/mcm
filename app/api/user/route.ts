@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { bridgePost, bridgePatch, BridgeError, type PatientCreateResult } from '@/lib/bridge/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,88 +89,58 @@ export const POST = async (req: Request) => {
 
         console.log('patientData from api:', patientData);
 
-        const { data: existingPatients, error: findError } = await supabase
-            .from("allpatients")
-            .select("*")
-            .or(`email.eq.${patientData.email},phone.eq.${patientData.phone}`)
-            .eq("locationid", patientData.locationid);
-
-        if (findError) {
-            console.log("ERROR ->", findError);
-            return NextResponse.json(
-                { success: false, message: findError.message },
-                { status: 400 }
-            );
-        }
-
         const resolvedAddress =
             patientData.address ?? patientData.streetAddress ?? null;
         const resolvedDob =
             patientData.dob ?? patientData.dateOfBirth ?? null;
 
-        if (existingPatients && existingPatients.length > 0) {
-            // Update the first matching patient
-            const patient = existingPatients[0];
-            const { data: updated, error: updateError } = await supabase
-                .from("allpatients")
-                .update({
-                    lastvisit: new Date().toISOString(),
-                    email: patientData.email,
-                    phone: patientData.phone,
-                    note: patientData?.note,
-                    address: resolvedAddress,
-                    dob: resolvedDob,
-                    gender: patientData?.gender,
-                    ...(patientData.treatmenttype != null &&
-                    patientData.treatmenttype !== ""
-                        ? { treatmenttype: patientData.treatmenttype }
-                        : {}),
-                })
-                .eq("id", patient.id)
-                .select();
-
-            if (updateError) {
-                return NextResponse.json(
-                    { success: false, message: updateError.message },
-                    { status: 400 }
-                );
-            }
-
+        // mcm-bridge owns both Supabase projects and the rule for where a patient is
+        // stored. `Portal` selects the walk-in / POS rule, which writes this app's
+        // patient list only. Matching an existing patient (email or phone within the
+        // same location) and updating them happens there too.
+        let created: PatientCreateResult;
+        try {
+            created = await bridgePost<PatientCreateResult>('/patients', {
+                source: 'Portal',
+                first_name: patientData.firstname,
+                last_name: patientData.lastname,
+                email: patientData.email ?? null,
+                phone: patientData.phone ?? null,
+                gender: patientData.gender ?? null,
+                date_of_birth: resolvedDob,
+                street_address: resolvedAddress,
+                location_id: Number(patientData.locationid),
+                note: patientData?.note ?? null,
+                onsite: patientData.onsite ?? false,
+                treatmenttype: patientData.treatmenttype ?? null,
+            });
+        } catch (err) {
+            const message =
+                err instanceof BridgeError ? err.message : 'Failed to save patient';
             return NextResponse.json(
-                { success: true, message: "User updated successfully.", data: updated },
+                { success: false, message },
+                { status: err instanceof BridgeError ? err.status : 500 }
+            );
+        }
+
+        const stored = created.stores.find((store) => store.store === 'portal.allpatients');
+        if (!stored?.ok) {
+            return NextResponse.json(
+                { success: false, message: stored?.reason ?? 'Failed to save patient' },
+                { status: 400 }
+            );
+        }
+
+        if (stored.action === 'updated') {
+            return NextResponse.json(
+                { success: true, message: "User updated successfully.", data: [{ id: stored.id }] },
                 { status: 200 }
             );
-        } else {
-            // Insert new patient
-            const { data: inserted, error: insertError } = await supabase
-                .from("allpatients")
-                .insert([
-                    {
-                        locationid: patientData.locationid,
-                        lastvisit: new Date().toISOString(),
-                        onsite: patientData.onsite,
-                        firstname: patientData.firstname,
-                        lastname: patientData.lastname,
-                        gender: patientData.gender,
-                        email: patientData.email,
-                        phone: patientData.phone,
-                        note: patientData?.note,
-                        address: resolvedAddress,
-                        dob: resolvedDob,
-                        treatmenttype: patientData.treatmenttype ?? null,
-                    },
-                ])
-                .select();
+        }
 
-            if (insertError) {
-                return NextResponse.json(
-                    { success: false, message: insertError.message },
-                    { status: 400 }
-                );
-            }
+        {
+            const patientId = stored.id;
 
-            const newRow = inserted?.[0];
-            const patientId = newRow?.id;
 
             if (
                 patientId != null &&
@@ -201,7 +172,13 @@ export const POST = async (req: Request) => {
                     .insert([appointmentPayload]);
 
                 if (apptError) {
-                    await admin.from("allpatients").delete().eq("id", patientId);
+                    // The bridge created the patient, so it undoes it too.
+                    await bridgePost('/patients/rollback', {
+                        store: 'portal.allpatients',
+                        id: patientId,
+                    }).catch((rollbackErr) =>
+                        console.error('[user] patient rollback failed:', rollbackErr)
+                    );
                     return NextResponse.json(
                         {
                             success: false,
@@ -214,7 +191,7 @@ export const POST = async (req: Request) => {
             }
 
             return NextResponse.json(
-                { success: true, message: "User added successfully.", data: inserted },
+                { success: true, message: "User added successfully.", data: [{ id: patientId }] },
                 { status: 200 }
             );
         }
@@ -234,25 +211,26 @@ export const PUT = async (req: Request) => {
 
         console.log('patientData:', patientData);
 
-        const { data, error } = await supabase
-            .from("allpatients")
-            .update({
-                firstname: patientData.firstname,
-                lastname: patientData.lastname,
+        // Updates go through the bridge too — this app does not write the table.
+        let data: unknown;
+        try {
+            data = await bridgePatch(`/patients/${Number(patientData.id)}`, {
+                store: 'portal.allpatients',
+                first_name: patientData.firstname,
+                last_name: patientData.lastname,
                 email: patientData.email,
                 phone: patientData.phone,
                 note: patientData?.note,
-                address: patientData?.streetAddress,
-                dob: patientData?.dateOfBirth,
+                street_address: patientData?.streetAddress,
+                date_of_birth: patientData?.dateOfBirth,
                 gender: patientData?.gender,
-            })
-            .eq("id", Number(patientData.id))
-            .select();
-
-        if (error) {
+            });
+        } catch (err) {
+            const message =
+                err instanceof BridgeError ? err.message : 'Failed to update patient';
             return NextResponse.json(
-                { success: false, message: error.message },
-                { status: 400 }
+                { success: false, message },
+                { status: err instanceof BridgeError ? err.status : 500 }
             );
         }
 
