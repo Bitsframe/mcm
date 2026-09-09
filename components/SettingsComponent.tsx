@@ -139,12 +139,20 @@ const SettingsComponent: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      const { error } = await getSettingsSupabase()
-        .from("Locations")
-        .update({ report_time: selectedTime })
-        .eq("id", selectedLocation.id);
+      // Writes go through mcm-bridge; the browser no longer touches the database.
+      const response = await fetch("/api/locations/report-time", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          locationId: selectedLocation.id,
+          reportTime: selectedTime,
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.message || "Failed to update report time");
+      }
 
       setLocations((prev) =>
         prev.map((loc) =>

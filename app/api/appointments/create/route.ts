@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { bridgePatch } from "@/lib/bridge/client";
 import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
 function emptyToNull(v: unknown): string | null {
@@ -111,15 +112,15 @@ export async function POST(req: NextRequest) {
 
     const normalizedDob = normalizeDobInput(dob);
     if (patientId != null && normalizedDob) {
-      const { error: patientUpdateError } = await supabase
-        .from("allpatients")
-        .update({ dob: normalizedDob })
-        .eq("id", patientId)
-        .is("dob", null);
-
-      if (patientUpdateError) {
-        console.warn("Could not backfill patient DOB:", patientUpdateError.message);
-      }
+      // only_if_null keeps this a backfill: an existing DOB is never overwritten.
+      // Non-fatal, as before — the appointment is already created.
+      await bridgePatch(`/patients/${patientId}`, {
+        store: 'portal.allpatients',
+        date_of_birth: normalizedDob,
+        only_if_null: ['date_of_birth'],
+      }).catch((err) =>
+        console.warn("Could not backfill patient DOB:", err instanceof Error ? err.message : err)
+      );
     }
 
     return NextResponse.json({
