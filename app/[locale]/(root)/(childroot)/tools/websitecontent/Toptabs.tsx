@@ -68,11 +68,6 @@ const TopTabs = () => {
       title: "WebCont_k6",
       url: "faqs",
       icon: <CircleHelp />
-    },
-    {
-      title: "Services",
-      url: "services",
-      icon: <BriefcaseBusiness />
     }
   ];
 
