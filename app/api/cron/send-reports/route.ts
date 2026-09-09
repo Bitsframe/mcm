@@ -4,14 +4,14 @@ import { createClient } from "@supabase/supabase-js";
 export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SECRET_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Missing Supabase configuration. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+            "Missing Supabase configuration. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY.",
         },
         { status: 500 }
       );

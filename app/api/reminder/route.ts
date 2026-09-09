@@ -9,7 +9,7 @@ const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL!;
 /** Same Lambda/base URL as other email paths; use NEXT_PUBLIC_* only to avoid duplicating EMAIL_SENDER_URL. */
 const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY!;
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY!;
 
 // ===== Main Handler (server-to-server, no user auth) =====
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   // Environment variables are available (not logged to avoid leaking secrets)
 
   // ✅ Create privileged Supabase client
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
   try {
   // fetching upcoming appointments
