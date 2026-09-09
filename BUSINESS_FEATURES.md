@@ -255,7 +255,7 @@ Manages the public marketing website in English and Spanish:
 | **AWS SNS** | SMS / text message delivery |
 | **Email (Lambda + Nodemailer)** | Appointment, reminder, fulfillment, broadcast, and transactional emails |
 | **OpenAI** | AI Stock Panel inventory analysis |
-| **Smarty (address validation)** | US address verification for appointments and patients |
+| **Mapbox (address validation)** | US address verification for appointments and patients |
 | **Cloudflare Turnstile** | Login and form bot protection |
 | **Cronitor** | Scheduled job and uptime monitoring |
 | **Parent → Child DB Sync** | Keeps medical forms in sync between this admin app and the patient-facing website |

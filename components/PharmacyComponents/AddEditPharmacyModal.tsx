@@ -33,28 +33,28 @@ export default function AddEditPharmacyModal({
         opening_hours: "{}",
     });
 
-    const [smartyEnabled, setSmartyEnabled] = useState<boolean | null>(null);
+    const [addressLookupEnabled, setAddressLookupEnabled] = useState<boolean | null>(null);
     const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const lastSelectedAddressRef = useRef<string>('');
     const [apiCheckResult, setApiCheckResult] = useState<any>(null);
     const [isCheckingApi, setIsCheckingApi] = useState(false);
-    const smartyCheckInitiatedRef = useRef(false);
+    const addressLookupCheckInitiatedRef = useRef(false);
 
     const { t } = useTranslation(translationConstant.PHARMACY);
 
-    // Check Smarty API status only when needed
-    const checkSmartyStatus = async () => {
-        if (smartyCheckInitiatedRef.current) return;
-        smartyCheckInitiatedRef.current = true;
+    // Check address lookup status only when needed
+    const checkAddressLookupStatus = async () => {
+        if (addressLookupCheckInitiatedRef.current) return;
+        addressLookupCheckInitiatedRef.current = true;
         
         try {
             const res = await fetch('/api/address/status');
             const data = await res.json();
-            setSmartyEnabled(data.enabled);
+            setAddressLookupEnabled(data.enabled);
         } catch (err) {
-            console.error('Failed to check Smarty status:', err);
-            setSmartyEnabled(false);
+            console.error("Failed to check address lookup status:", err);
+            setAddressLookupEnabled(false);
         }
     };
 
@@ -96,10 +96,10 @@ export default function AddEditPharmacyModal({
         }));
     };
 
-    // Handle address field focus - check Smarty status only when user focuses on address
+    // Handle address field focus - check address lookup status only when user focuses on address
     const handleAddressFocus = () => {
-        if (smartyEnabled === null) {
-            checkSmartyStatus();
+        if (addressLookupEnabled === null) {
+            checkAddressLookupStatus();
         }
     };
 
@@ -117,8 +117,8 @@ export default function AddEditPharmacyModal({
             lastSelectedAddressRef.current = '';
         }
         
-        // Only fetch suggestions if Smarty is enabled and input is long enough
-        if (!smartyEnabled || value.length < 4) {
+        // Only fetch suggestions if address lookup is enabled and input is long enough
+        if (!addressLookupEnabled || value.length < 4) {
             setAddressSuggestions([]);
             return;
         }

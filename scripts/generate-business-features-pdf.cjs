@@ -176,7 +176,7 @@ const rightSections = [
     title: 'Integrations',
     items: [
       'Supabase (data & auth), AWS SNS (SMS), Email (transactional & broadcast)',
-      'OpenAI (Stock Panel), Smarty (address validation), Cronitor (monitoring)',
+      'OpenAI (Stock Panel), Mapbox (address validation), Cronitor (monitoring)',
       'Parent -> Child DB sync for medical forms',
     ],
   },

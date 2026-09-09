@@ -27,13 +27,13 @@ export function extractStateAndZipcode(address: string): { city: string; state: 
     let zipcode = '';
     let cleanAddress = normalizedAddress;
 
-    // Pattern 1: Smarty format - "Street, City, STATE ZIPCODE"
+    // Pattern 1: "Street, City, STATE ZIPCODE"
     // Example: "123 Main St, Springfield, KY 40069"
-    const smartyPattern = /^(.+?),\s*(.+?),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/;
-    const smartyMatch = normalizedAddress.match(smartyPattern);
+    const streetCityStateZipPattern = /^(.+?),\s*(.+?),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/;
+    const streetCityStateZipMatch = normalizedAddress.match(streetCityStateZipPattern);
     
-    if (smartyMatch) {
-        const [, streetPart, cityPart, stateMatch, zipcodeMatch] = smartyMatch;
+    if (streetCityStateZipMatch) {
+        const [, streetPart, cityPart, stateMatch, zipcodeMatch] = streetCityStateZipMatch;
         if (stateAbbreviations.includes(stateMatch)) {
             cleanAddress = streetPart.trim();
             city = cityPart.trim();

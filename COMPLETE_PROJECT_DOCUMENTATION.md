@@ -1231,10 +1231,8 @@ Protected Routes
 
 #### Supabase
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - Public publishable key
-- `SUPABASE_URL` - Server-side Supabase URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Service role key (server-only)
-- `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` - Public service key (if needed)
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - Publishable key (`sb_publishable_…`), safe for the browser
+- `SUPABASE_SECRET_KEY` - Secret key (`sb_secret_…`), server-only — bypasses RLS, never expose via `NEXT_PUBLIC_*`
 
 #### Email
 - `SENDER_BROADCAST_EMAIL` - Sender email address
