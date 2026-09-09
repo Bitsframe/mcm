@@ -793,7 +793,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                   location: activeLocationLabel,
                 })
               : t("Patients_k107", {
-                  count: formatCount(locationScopedCount),
+                  total: formatCount(locationScopedCount),
                   location: activeLocationLabel,
                 })
             : searchTerm && filteredPatientCount !== loadedPatientCount
@@ -809,7 +809,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
                 locationCount: formatCount(sidebarLocationCount),
               })
             : t("Patients_k103", {
-                count: formatCount(loadedPatientCount),
+                total: formatCount(loadedPatientCount),
                 location: activeLocationLabel,
               })}
         </p>
