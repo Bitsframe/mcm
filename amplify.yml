@@ -1,0 +1,23 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - yarn install
+    build:
+      commands:
+        # Amplify only exposes environment variables to Next.js server routes
+        # through .env.production; anything not written here is undefined at
+        # runtime. The console spec listed the pre-bridge names only, so the
+        # bridge vars never reached the SSR Lambda. AWS_* is left out on purpose:
+        # those are the build role's credentials.
+        - env | grep -e BRIDGE_URL -e BRIDGE_API_KEY -e MAPBOX_ACCESS_TOKEN -e SUPABASE_SECRET_KEY -e INTERNAL_API_KEY -e OPENAI_API_KEY -e REPLY_TO_EMAIL -e SENDER_BROADCAST_EMAIL -e NEXT_PUBLIC_ -e SNS_ACCESS_KEY_ID -e SNS_SECRET_ACCESS_KEY -e CHILD_SUPABASE_ >> .env.production
+        - yarn run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
