@@ -67,7 +67,6 @@ const ROUTES = {
     PROMO_CODES: '/tools/promo-codes',
     ROLES: '/tools/roles',
     USER_MANAGEMENT: '/tools/user-management',
-    // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
     PHARMACY: '/tools/pharmacy',
     SPECIALS: '/tools/specials',
