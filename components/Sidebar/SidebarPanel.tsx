@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { FaChevronRight } from "react-icons/fa";
-import { AuthContext, TabContext } from "@/context";
+import { AuthContext, SidebarCollapseContext, TabContext } from "@/context";
 import { routeList, Route } from "./constant";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
@@ -200,10 +200,45 @@ const CollapsibleRoute = memo(
 
 CollapsibleRoute.displayName = "CollapsibleRoute";
 
+/**
+ * One row of the collapsed rail.
+ *
+ * A parent route has no page of its own, so its icon goes to the first child the
+ * user is allowed — the same place expanding and clicking would land.
+ */
+const RailItem = memo(
+  ({ route, isActive, onNavigate }: { route: Route; isActive: boolean; onNavigate: () => void }) => {
+    const { t } = useTranslation(translationConstant.SIDEBAR);
+    const href = route.route || route.children?.[0]?.route || "#";
+    const label = t(route.label);
+
+    return (
+      <li>
+        <Link
+          href={href}
+          onClick={onNavigate}
+          title={label}
+          aria-label={label}
+          className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+            isActive
+              ? "bg-[#E8F1FF] text-[#0066ff]"
+              : "text-[#79808B] hover:bg-gray-100 hover:text-[#0066ff] dark:text-gray-400 dark:hover:bg-gray-700"
+          }`}
+        >
+          <RouteIcon icon={route.icon} isActive={isActive} />
+        </Link>
+      </li>
+    );
+  }
+);
+
+RailItem.displayName = "RailItem";
+
 export const SidebarPanel = memo(() => {
   const pathname = usePathname();
   const router = useRouter();
   const { userRole, permissions } = useContext(AuthContext);
+  const collapsed = useContext(SidebarCollapseContext);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNavigate = () => {
@@ -266,6 +301,32 @@ export const SidebarPanel = memo(() => {
       })
       .filter(Boolean); // Remove nulls
   }, [permissions, userRole]);
+
+  // Collapsed, flowbite's Sidebar is the wrong tool: Sidebar.Collapse exists to
+  // open a labelled submenu, which a 76px rail has no room for. Render the icons
+  // directly instead.
+  if (collapsed) {
+    return (
+      <nav aria-label="Sidebar" className="w-full">
+        <ul className="flex flex-col items-center gap-2">
+          {filteredRoutes.map((route) => {
+            const isActive = route?.children
+              ? route.children.some((item) => pathname === item.route)
+              : route?.route === pathname;
+
+            return (
+              <RailItem
+                key={route?.id}
+                route={route!}
+                isActive={Boolean(isActive)}
+                onNavigate={handleNavigate}
+              />
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
 
   return (
     <Sidebar

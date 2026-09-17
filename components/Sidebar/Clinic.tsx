@@ -1,10 +1,30 @@
 import { clinca_logo } from "@/assets/images";
 import Image from "next/image";
+import { useContext } from "react";
 import ChangeLocationModal from "./ChangeLocationModal";
 import { ChevronUp } from "lucide-react";
+import { SidebarCollapseContext } from "@/context";
 // import ChangeLocationModal from "./ChangeLocationModal";
 
 export const Clinic = () => {
+  const collapsed = useContext(SidebarCollapseContext);
+
+  // The location name and its picker do not fit a 76px rail; the badge alone
+  // keeps the footer from looking broken, and expanding brings the picker back.
+  if (collapsed) {
+    return (
+      <article className="flex w-full justify-center">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0066FF]">
+          <Image
+            src={clinca_logo}
+            alt="Clinic"
+            className="h-[26px] w-[26px] rounded-[5px] object-contain"
+          />
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="w-[233px] flex justify-center">
       {/* <ChangeLocationModal /> */}

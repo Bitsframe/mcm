@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { CircularProgress } from "@mui/material";
-import { AuthContext, TabContext } from "@/context";
+import { AuthContext, SidebarCollapseContext, TabContext } from "@/context";
 import { SidebarSection } from "../Sidebar";
 import { Navbar } from "../Navbar";
 import { useLocale } from "next-intl";
@@ -21,7 +21,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const LAYOUT_CONFIG = {
   sidebarWidth: "233px",
-  sidebarCollapsedWidth: "0px",
+  sidebarCollapsedWidth: "76px",
   contentPadding: "1rem",
   backgroundColor: "white",
   backgroundColorDark: "#080E16",
@@ -71,7 +71,7 @@ const CollapseToggle = memo(
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="hidden md:flex fixed top-[26px] z-[60] h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 ease-out hover:text-[#0066ff] hover:shadow"
-      style={{ left: collapsed ? "12px" : "213px" }}
+      style={{ left: collapsed ? "60px" : "213px" }}
     >
       {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
     </button>
@@ -168,11 +168,13 @@ const RootLayoutComponent = memo(({ children }: RootLayoutProps) => {
   }
 
   return (
-    <div className="relative flex bg-[#F1F4F9] dark:bg-[#080E16]">
-      <FixedSidebar collapsed={collapsed} />
-      <CollapseToggle collapsed={collapsed} onToggle={toggleSidebar} />
-      <MainContent collapsed={collapsed}>{children}</MainContent>
-    </div>
+    <SidebarCollapseContext.Provider value={collapsed}>
+      <div className="relative flex bg-[#F1F4F9] dark:bg-[#080E16]">
+        <FixedSidebar collapsed={collapsed} />
+        <CollapseToggle collapsed={collapsed} onToggle={toggleSidebar} />
+        <MainContent collapsed={collapsed}>{children}</MainContent>
+      </div>
+    </SidebarCollapseContext.Provider>
   );
 });
 
