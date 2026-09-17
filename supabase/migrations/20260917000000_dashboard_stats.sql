@@ -1,13 +1,17 @@
--- Dashboard KPIs in one round trip.
+-- Dashboard KPIs across a set of locations.
+--
+-- Takes an array rather than a single id because the dashboard's default view is
+-- "every location this user may see", which is whatever user_locations grants
+-- them. The API resolves that list from the signed-in user; this function only
+-- aggregates, and is never handed ids straight from a query string.
 --
 -- Aggregating in the client is not an option: PostgREST caps a select at 1000
 -- rows, so summing sales_history or inventory over the wire silently truncates
--- (a client-side version read 49M of 249M stock units before this existed).
+-- (an earlier client-side version read 49M of 249M stock units).
 --
--- p_location_id null means every location the caller can see. sales_history has
--- no location column of its own, so it reaches one through the inventory row it
--- sold.
-create or replace function public.dashboard_stats(p_location_id bigint default null)
+-- sales_history has no location column of its own, so it reaches one through the
+-- inventory row it sold.
+create or replace function public.dashboard_stats(p_location_ids bigint[])
 returns jsonb
 language sql
 stable
@@ -23,8 +27,9 @@ as $$
       coalesce(sum(sh.total_price) filter (where sh.created_at >= (select ts from month_start)), 0) as revenue_month,
       count(*) filter (where sh.created_at >= (select ts from month_start)) as orders_month
     from sales_history sh
-    where p_location_id is null
-       or sh.inventory_id in (select inventory_id from inventory where location_id = p_location_id)
+    where sh.inventory_id in (
+      select inventory_id from inventory where location_id = any(p_location_ids)
+    )
   ),
   appts as (
     select
@@ -32,14 +37,14 @@ as $$
       count(*) filter (where created_at >= (select ts from month_start)) as month,
       count(*) filter (where date_and_time >= to_char(now(), 'YYYY-MM-DD')) as upcoming
     from "Appoinments"
-    where p_location_id is null or location_id = p_location_id
+    where location_id = any(p_location_ids)
   ),
   pats as (
     select
       count(*) as total,
       count(*) filter (where created_at >= (select ts from month_start)) as month
     from allpatients
-    where p_location_id is null or locationid = p_location_id
+    where locationid = any(p_location_ids)
   ),
   wh as (
     select
@@ -47,7 +52,7 @@ as $$
       count(*) as stocked_items,
       count(*) filter (where coalesce(quantity, 0) <= 0) as out_of_stock
     from inventory
-    where (p_location_id is null or location_id = p_location_id)
+    where location_id = any(p_location_ids)
       and coalesce(archived, false) = false
   )
   select jsonb_build_object(
@@ -69,8 +74,9 @@ as $$
       'products', (select products from wh),
       'stocked_items', (select stocked_items from wh),
       'out_of_stock', (select out_of_stock from wh)
-    )
+    ),
+    'locations_counted', coalesce(array_length(p_location_ids, 1), 0)
   );
 $$;
 
-grant execute on function public.dashboard_stats(bigint) to authenticated, service_role;
+grant execute on function public.dashboard_stats(bigint[]) to authenticated, service_role;

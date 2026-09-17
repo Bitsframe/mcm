@@ -1,7 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { LocationContext } from "@/context";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   CalendarCheck2,
@@ -15,6 +14,7 @@ type Stats = {
   appointments: { total: number; month: number; upcoming: number };
   patients: { total: number; month: number };
   warehouse: { products: number; stocked_items: number; out_of_stock: number };
+  locations_counted: number;
 };
 
 const money = (n: number) =>
@@ -64,31 +64,29 @@ function Skeleton() {
 
 /**
  * The four figures the clinic opens this page for: sales, appointments, patients
- * and warehouse. Scoped to the location chosen in the sidebar so the numbers
- * agree with the rest of the app.
+ * and warehouse.
+ *
+ * Deliberately not tied to the location picked in the sidebar: the dashboard is
+ * the company-wide view, covering every location the signed-in user is granted
+ * in user_locations. The per-location numbers live on the pages themselves.
  */
 export default function KpiCards() {
-  const { selectedLocation } = useContext(LocationContext) ?? {};
-  const locationId = selectedLocation?.id ?? null;
-  const locationTitle = selectedLocation?.title ?? null;
-
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setStats(null);
     setError(null);
+    setDenied(false);
 
-    const url = locationId
-      ? `/api/dashboard/stats?location_id=${locationId}`
-      : "/api/dashboard/stats";
-
-    fetch(url, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((json) => {
+    fetch("/api/dashboard/stats", { cache: "no-store" })
+      .then(async (r) => ({ status: r.status, json: await r.json() }))
+      .then(({ status, json }) => {
         if (cancelled) return;
-        if (json?.error) setError(json.error);
+        if (status === 403) setDenied(true);
+        else if (json?.error) setError(json.error);
         else setStats(json.data as Stats);
       })
       .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)));
@@ -96,7 +94,16 @@ export default function KpiCards() {
     return () => {
       cancelled = true;
     };
-  }, [locationId]);
+  }, []);
+
+  if (denied || (stats && stats.locations_counted === 0)) {
+    return (
+      <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        No locations are assigned to your account yet, so there are no figures to show. Ask an
+        administrator to grant you access.
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -111,7 +118,7 @@ export default function KpiCards() {
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className="text-base font-bold text-slate-900">Overview</h2>
         <span className="truncate text-xs text-slate-500">
-          {locationTitle ?? "All locations"}
+          {stats ? `All locations (${stats.locations_counted})` : "All locations"}
         </span>
       </div>
 
