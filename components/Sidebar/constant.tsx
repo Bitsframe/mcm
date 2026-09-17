@@ -31,9 +31,11 @@ interface Route {
 
 // Route path constants
 //
-// Credits, Transactions, Bonus, Stock Panel and Promo Codes were taken out of the
-// out of the sidebar but their pages, APIs and data are untouched. The paths stay
-// here so putting an entry back is a one-liner; see git history for the blocks.
+// Hidden from the UI but otherwise intact: Credits, Transactions, Bonus, Stock Panel,
+// Promo Codes, Reputation, Pharmacy and Medical Forms came out of the sidebar, and
+// Location Limits and Staff out of the Controls tabs. Their pages, API routes and data
+// are untouched, and the paths below are deliberately kept, so restoring an entry is a
+// one-liner — see git history for the exact blocks.
 
 const ROUTES = {
   HOME: "/",
@@ -176,18 +178,6 @@ export const routeList: Route[] = [
         name: "settings",
         label: "Sidebar_k22",
         route: ROUTES.TOOLS.SETTINGS
-      },
-      {
-        id: 'tools-pharmacy',
-        name: "pharmacy",
-        label: "Sidebar_k35",
-        route: ROUTES.TOOLS.PHARMACY
-      },
-      {
-        id: 'tools-medical-forms',
-        name: "medical forms",
-        label: "Sidebar_k36",
-        route: ROUTES.TOOLS.MEDICAL_FORMS
       }
     ],
   }

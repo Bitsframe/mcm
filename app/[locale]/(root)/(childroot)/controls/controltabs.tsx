@@ -36,10 +36,6 @@ const TopTabs = () => {
       title: "CT_k8",
       url: "emailtemplates",
     },
-    {
-      title: "CT_k34",
-      url: "staff",
-    },
     // {
     //   title: "Inventory Settings",
     //   url: "inventorysettings",
