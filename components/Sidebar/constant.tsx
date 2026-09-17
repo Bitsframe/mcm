@@ -4,15 +4,12 @@ import {
   CalendarCheck2,
   Warehouse,
   Grid,
-  Layers,
   Hammer,
   IdCard,
   Calculator,
   Settings,
-  CreditCard
 } from "lucide-react";
 import { ComponentType } from "react";
-import { FaReceipt } from "react-icons/fa";
 
 
 
@@ -34,6 +31,11 @@ interface Route {
 }
 
 // Route path constants
+//
+// Credits, Transactions, Bonus, Stock Panel and Promo Codes were taken out of the
+// sidebar but their pages, APIs and data are untouched. The paths stay here so
+// putting an entry back is a one-liner; see git history for the removed blocks.
+
 const ROUTES = {
   HOME: "/",
   PATIENTS: {
@@ -128,24 +130,6 @@ export const routeList: Route[] = [
     ],
   },
   {
-    id: 'transactions',
-    name: "transactions",
-    label: "Sidebar_k27",
-    icon: FaReceipt,
-    route: ROUTES.TRANSACTIONS,
-  },
-  {
-    id: 'bonus',
-    name: "bonus",
-    label: "Sidebar_k32",
-    icon: Calculator,
-    route: ROUTES.BONUS,
-    children: [
-      { id: 'bonus-location', name: 'bonus-location', label: 'Sidebar_k33', route: '/bonus/location' },
-      { id: 'bonus-individual', name: 'bonus-individual', label: 'Sidebar_k34', route: '/bonus/individual' },
-    ],
-  },
-  {
     id: 'inventory',
     name: "inventory",
     label: "Sidebar_k11",
@@ -153,25 +137,11 @@ export const routeList: Route[] = [
     route: ROUTES.INVENTORY.MANAGE,
   },
   {
-    id: 'credits',
-    name: "credits",
-    label: "Sidebar_k24",
-    icon: CreditCard,
-    route: ROUTES.CREDITS,
-  },
-  {
     id: 'warehouse',
     name: "warehouse",
     label: "Sidebar_k25",
     icon: Warehouse,
     route: ROUTES.WAREHOUSE.MANAGE,
-  },
-  {
-    id: 'inventory-stock',
-    name: "Stock Panel",
-    label: "Sidebar_k12",
-    icon: Layers,
-    route: ROUTES.INVENTORY.STOCK_PANEL,
   },
   {
     id: 'controls',
@@ -197,12 +167,6 @@ export const routeList: Route[] = [
         name: "website content",
         label: "Sidebar_k15",
         route: ROUTES.TOOLS.WEBSITE_CONTENT
-      },
-      {
-        id: 'tools-promo',
-        name: "promo codes",
-        label: "Sidebar_k16",
-        route: ROUTES.TOOLS.PROMO_CODES
       },
       {
         id: 'tools-roles',
