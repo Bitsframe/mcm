@@ -12,7 +12,6 @@ import { AuthContext } from "@/context";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import LanguageChanger from "@/components/LanguageChanger";
 import LanguageChanger2 from "@/components/LanguageChanger2";
-import ThemeToggleButton from "@/components/Themetoggle";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
@@ -148,7 +147,6 @@ export default function MenuWithAvatar() {
               <LanguageChanger2 locale={userProfile?.locale || "en"} />
             </div>
             <div className="px-4 pt-2 pb-2 flex justify-center">
-              <ThemeToggleButton />
             </div>
           </>
         ) : (

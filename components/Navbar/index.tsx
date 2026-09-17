@@ -9,7 +9,6 @@ import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { translationConstant } from "@/utils/translationConstants";
-import ThemeToggleButton from "../Themetoggle";
 import { Menu } from "lucide-react";
 import { SidebarSection } from "@/components/Sidebar";
 import { Modal, Button } from "flowbite-react";
@@ -73,7 +72,6 @@ export const Navbar = ({ width }: { width: string }) => {
       </div>
       <div className={`flex gap-4 items-center${isMobile ? ' flex-1 justify-end pr-0' : ' pr-4'}`}>
         {!isMobile && <LanguageChanger  locale={locale} />}
-        {!isMobile && <ThemeToggleButton />}
         {/* <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#1A1F27] p-4 rounded-full border border-[#E0E0E0] dark:border-[#2F3640] cursor-not-allowed">
           <HiOutlineBell size={25} />
         </div> */}

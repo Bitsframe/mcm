@@ -1,5 +1,6 @@
 "use client";
 import { memo, useEffect } from "react";
+import KpiCards from "@/components/Dashboard/KpiCards";
 import Image from "next/image";
 import { Group48 } from "@/assets/images/index";
 import moment from "moment";
@@ -409,7 +410,8 @@ const Page = () => {
     );
   }
   return (
-    <div className="w-full h-full lg:overflow-hidden">
+    <div className="w-full h-full lg:overflow-y-auto">
+      <KpiCards />
       <RenderData data={cronitorSampleData.monitors[0]} />
     </div>
   );
