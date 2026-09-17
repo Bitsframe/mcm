@@ -5,7 +5,6 @@ import {
   Warehouse,
   Grid,
   Hammer,
-  IdCard,
   Calculator,
   Settings,
 } from "lucide-react";
@@ -33,8 +32,8 @@ interface Route {
 // Route path constants
 //
 // Credits, Transactions, Bonus, Stock Panel and Promo Codes were taken out of the
-// sidebar but their pages, APIs and data are untouched. The paths stay here so
-// putting an entry back is a one-liner; see git history for the removed blocks.
+// out of the sidebar but their pages, APIs and data are untouched. The paths stay
+// here so putting an entry back is a one-liner; see git history for the blocks.
 
 const ROUTES = {
   HOME: "/",
@@ -103,20 +102,6 @@ export const routeList: Route[] = [
     label: "Sidebar_k7",
     icon: CalendarCheck2,
     route: ROUTES.APPOINTMENTS,
-  },
-  {
-    id: 'reputation',
-    name: "reputation",
-    label: "Sidebar_k8",
-    icon: IdCard,
-    children: [
-      {
-        id: 'reputation-private-feedback',
-        name: "reputation",
-        label: "Sidebar_k9",
-        route: ROUTES.REPUTATION.PRIVATE_FEEDBACK
-      },
-    ],
   },
   {
     id: 'pos',
