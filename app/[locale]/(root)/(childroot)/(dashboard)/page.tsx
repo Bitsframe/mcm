@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import KpiCards from "@/components/Dashboard/KpiCards";
+import DashboardPanels from "@/components/Dashboard/DashboardPanels";
 
 /**
  * Dashboard.
@@ -26,6 +27,7 @@ const Page = () => {
   return (
     <div className="h-full w-full overflow-y-auto p-1">
       <KpiCards />
+      <DashboardPanels />
     </div>
   );
 };

@@ -35,7 +35,7 @@ as $$
     select
       count(*) as total,
       count(*) filter (where created_at >= (select ts from month_start)) as month,
-      count(*) filter (where date_and_time >= to_char(now(), 'YYYY-MM-DD')) as upcoming
+      count(*) filter (where appointment_date(date_and_time) >= current_date) as upcoming
     from "Appoinments"
     where location_id = any(p_location_ids)
   ),

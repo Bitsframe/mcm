@@ -16,7 +16,6 @@ set search_path = public, pg_temp
 as $$
 declare
   month_start timestamptz := date_trunc('month', now());
-  today_str text := to_char(now(), 'YYYY-MM-DD');
   result jsonb;
 begin
   if p_page = 'patients' then
@@ -32,10 +31,10 @@ begin
 
   elsif p_page = 'appointments' then
     select jsonb_build_object(
-      'today', count(*) filter (where left(date_and_time, 10) = today_str),
-      'upcoming', count(*) filter (where left(date_and_time, 10) >= today_str),
+      'today', count(*) filter (where appointment_date(date_and_time) = current_date),
+      'upcoming', count(*) filter (where appointment_date(date_and_time) >= current_date),
       'month', count(*) filter (where created_at >= month_start),
-      'pending', count(*) filter (where "isApproved" is not true and left(date_and_time, 10) >= today_str),
+      'pending', count(*) filter (where "isApproved" is not true and appointment_date(date_and_time) >= current_date),
       'new_patients_month', count(*) filter (where created_at >= month_start and new_patient is true)
     ) into result
     from "Appoinments"
