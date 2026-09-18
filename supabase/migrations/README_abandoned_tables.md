@@ -57,11 +57,37 @@ repository alone. The data in tiers 2 and 3 is not — export it first.
 
 ## Status
 
-Applied to csm-staging (`reiogvwjunkdrbhwewvv`) on 2026-09-18, as a single
-statement set rather than four; its migration ledger records one entry named
-`drop_abandoned_tables`. The four files here produce the same end state on a
-fresh database and are the intended path for production, which is untouched.
+| environment | tier 1 | tier 2 | tier 3 | tier 4 |
+|-------------|--------|--------|--------|--------|
+| csm-staging (`reiogvwjunkdrbhwewvv`) | done | done | done | done |
+| production (`vsvueqtgulraaczqnnvh`) | done | done | **not run** | **not run** |
 
-After the staging run: 97 tables to 70, the public site's home, contact, about
-and location pages returned 200, a booking still wrote through to
-`Appoinments`, and the security advisors reported nothing new.
+Staging ran all four on 2026-09-18 as a single statement set rather than as
+four files, so its migration ledger records one entry named
+`drop_abandoned_tables`. 97 tables to 70. Afterwards the public site's home,
+contact, about and location pages returned 200, a booking still wrote through
+to `Appoinments`, and the security advisors reported nothing new.
+
+Production ran tiers 1 and 2 on 2026-09-18, 97 tables to 81. The pre-flight
+re-confirmed all eleven tier 1 tables were still empty, that no function or
+trigger referenced any of the sixteen, and that the only foreign key pointing
+at a table named `doctors` was `test_mcm.patient_appointments` pointing at
+`test_mcm.doctors` — a different schema these migrations do not touch.
+Afterwards all sixteen were gone, the seventeen tables that were meant to stay
+were all present, `allpatients` (15,807), `Appoinments` (4,703) and `orders`
+(21,873) were unchanged, PostgREST still served every kept table, and
+clinicsanmiguel.com, portal.myclinicmd.com and csa.myclinicmd.com all
+returned 200.
+
+### What tier 2 held, for the record
+
+Nothing of business value, which the export confirmed:
+
+- `doctors` — one test row: "Raheel", Cardiologist, mcm@mail.com, location 2.
+- `migration_logs` — one row, a DDL script for tables this set is dropping.
+- `loginid` — two test accounts, Mack890 and Raheeltest, each with a short
+  password stored in plain text. The values are not reproduced here; if either
+  was ever reused elsewhere, rotate it.
+- `email_log` — six rows, all `last_sent_at` 2025-06-28.
+- `pk_translation` — 115 UI strings for the kiosk's medication reminders, all
+  English and Spanish pairs like "Refill Alerts" / "Alertas de recarga".
