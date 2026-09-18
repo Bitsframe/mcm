@@ -1,5 +1,6 @@
 "use client";
 
+import StatStrip from "@/components/Dashboard/StatStrip";
 import React, {
   useCallback,
   useContext,
@@ -277,6 +278,7 @@ const Categories = () => {
   return (
     <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
       <div className="w-full h-full overflow-auto">
+        <StatStrip page="warehouse" />
         <div className="h-full rounded-md pt-2">
           <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
             <div className="space-y-1 w-full sm:w-auto">

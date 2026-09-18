@@ -1,4 +1,5 @@
 "use client";
+import StatStrip from "@/components/Dashboard/StatStrip";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Spinner } from "flowbite-react";
 import { Action_Button } from "@/components/Action_Button";
@@ -500,6 +501,7 @@ const Inventory = () => {
   return (
     <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
       <div className="w-full overflow-auto py-2 px-2">
+        <StatStrip page="inventory" />
         <div className="h-[100%] col-span-2 rounded-md py-2">
           <div className=" pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
             <div className="flex items-center gap-x-2 w-full sm:w-auto">

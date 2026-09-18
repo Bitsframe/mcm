@@ -1,5 +1,6 @@
 "use client"
 
+import StatStrip from "@/components/Dashboard/StatStrip";
 import { useContext, useEffect, useState, useCallback, memo, useRef } from "react"
 import {
   delete_appointment_service,
@@ -332,6 +333,9 @@ const Appointments = () => {
 
   return (
     <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 dark:bg-[#0E1725] dark:text-gray-300 overflow-x-hidden">
+      <div className="px-2 pt-2 sm:px-4 sm:pt-4">
+        <StatStrip page="appointments" />
+      </div>
       <h1 className="text-xl sm:text-2xl font-bold text-black px-2 sm:px-4 pt-2 sm:pt-4 dark:text-white">
         {t("Appoinments_k48")}
       </h1>

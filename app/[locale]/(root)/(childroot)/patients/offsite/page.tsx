@@ -1,9 +1,13 @@
+import StatStrip from '@/components/Dashboard/StatStrip'
 import Patient_Table_Component from '@/components/Patient_Table_Component'
 import React from 'react'
 
 const Patients = () => {
   return (
-    <Patient_Table_Component renderType='offsite' /> 
+    <>
+      <StatStrip page="patients" />
+      <Patient_Table_Component renderType='offsite' />
+    </>
   )
 }
 
