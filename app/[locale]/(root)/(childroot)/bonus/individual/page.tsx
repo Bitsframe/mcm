@@ -1,5 +1,7 @@
 "use client"
 
+
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { translationConstant } from '@/utils/translationConstants'
@@ -76,37 +78,15 @@ export default function IndividualBonusPage() {
     try {
       setLoading(true)
 
-      // Try the expected table name first, fall back to a generic 'individual' table
-      let bonusRows: any[] = []
-      try {
-        // Determine which date range to use: explicit override (preferred) or current selectedRange state
-        const activeRange = rangeOverride ?? selectedRangeRef.current
-        // if user selected a date range (week/month), pass filterOptions
-        if (activeRange) {
-          bonusRows = await fetch_content_service({ table: 'individual_bonus', filterOptions: [
+      // Determine which date range to use: explicit override (preferred) or current selectedRange state
+      const activeRange = rangeOverride ?? selectedRangeRef.current
+      // if user selected a date range (week/month), pass filterOptions
+      const bonusRows: any[] = activeRange
+        ? await fetch_content_service({ table: 'individual_bonus', filterOptions: [
             { column: 'bonus_date', operator: 'gte', value: activeRange.start },
             { column: 'bonus_date', operator: 'lt', value: activeRange.end },
           ] })
-        } else {
-          bonusRows = await fetch_content_service({ table: 'individual_bonus' })
-        }
-      } catch (e) {
-        // fallback — use the ref to avoid recreating fetchRows when selectedRange changes
-        try {
-          const activeFallbackRange = selectedRangeRef.current
-          if (activeFallbackRange) {
-            bonusRows = await fetch_content_service({ table: 'individual', filterOptions: [
-              { column: 'bonus_date', operator: 'gte', value: activeFallbackRange.start },
-              { column: 'bonus_date', operator: 'lt', value: activeFallbackRange.end },
-            ] })
-          } else {
-            bonusRows = await fetch_content_service({ table: 'individual' })
-          }
-        } catch (err) {
-          console.warn('Neither individual_bonus nor individual table available', err)
-          bonusRows = []
-        }
-      }
+        : await fetch_content_service({ table: 'individual_bonus' })
 
       console.log('raw individual bonus rows:', bonusRows)
 
@@ -144,7 +124,7 @@ export default function IndividualBonusPage() {
           const profileRows = await fetch_content_service({ table: 'profiles', filterOptions: [{ column: 'id', operator: 'in', value: authMemberIds }], selectParam: 'id,full_name' })
           profileRows?.forEach((p: any) => { if (p && p.id) profileMap[String(p.id)] = p.full_name })
         } catch (err) {
-          console.warn('Failed to load profiles for auth_member mapping', err)
+          console.warn('Failed to load profiles for auth_member mapping', classifyError(err))
         }
       }
 
@@ -210,7 +190,7 @@ export default function IndividualBonusPage() {
 
       setRows(filtered)
     } catch (e) {
-      console.error('Error loading individual bonuses', e)
+      console.error('Error loading individual bonuses', classifyError(e))
       setRows([])
     } finally {
       setLoading(false)
@@ -234,7 +214,7 @@ export default function IndividualBonusPage() {
           setLocationOptions([])
         }
       } catch (err) {
-        console.error('Failed to load locations for staff', err)
+        console.error('Failed to load locations for staff', classifyError(err))
         setLocationOptions([])
       }
     } else {
@@ -257,7 +237,7 @@ export default function IndividualBonusPage() {
           setStaffOptions(mapped.filter((s: any) => s.full_name))
         }
       } catch (err) {
-        console.error('Failed to load staff names for dropdown', err)
+        console.error('Failed to load staff names for dropdown', classifyError(err))
       }
     }
     loadStaffNames()
@@ -270,7 +250,7 @@ export default function IndividualBonusPage() {
         const locRows = await fetch_content_service({ table: 'Locations', selectParam: 'id,title' })
         if (Array.isArray(locRows)) setAllLocations(locRows.map((l: any) => ({ id: String(l.id), title: l.title })))
       } catch (err) {
-        console.error('Failed to load Locations', err)
+        console.error('Failed to load Locations', classifyError(err))
       }
     }
     loadLocations()
@@ -424,7 +404,7 @@ export default function IndividualBonusPage() {
         setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paid: true, paying: false, paid_date: nowIso } : r)))
       }
     } catch (err) {
-      console.error('Error paying bonus', err)
+      console.error('Error paying bonus', classifyError(err))
       // clear paying flag on error
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, paying: false } : r)))
       // Optionally: surface an error to user (toast/modal) — left as TODO
@@ -467,7 +447,7 @@ export default function IndividualBonusPage() {
                   // Refresh rows using the computed exclusive range (avoid waiting for state)
                   fetchRows(undefined, { start: start.toISOString(), end: endExclusive.toISOString() }).catch(() => {})
                 } catch (err) {
-                  console.error('Failed to apply week filter', err)
+                  console.error('Failed to apply week filter', classifyError(err))
                 }
               }}
             >
@@ -490,7 +470,7 @@ export default function IndividualBonusPage() {
                   setPickerOpen(false)
                   fetchRows(undefined, { start: start.toISOString(), end: endExclusive.toISOString() }).catch(() => {})
                 } catch (err) {
-                  console.error('Failed to apply month filter', err)
+                  console.error('Failed to apply month filter', classifyError(err))
                 }
               }}
             >
@@ -570,7 +550,7 @@ export default function IndividualBonusPage() {
                   try { await fetchRows() } catch (_) {}
                 }
               } catch (err) {
-                console.error('Failed to call RPC distribute_individual_bonus_daily:', err)
+                console.error('Failed to call RPC distribute_individual_bonus_daily:', classifyError(err))
                 toast.error('Failed to trigger distribution')
               } finally {
                 setCalcRunning(false)
@@ -843,7 +823,7 @@ export default function IndividualBonusPage() {
                   try {
                     await fetchRows(clientFilters)
                   } catch (e) {
-                    console.error('Filter fetch error', e)
+                    console.error('Filter fetch error', classifyError(e))
                   } finally {
                     // clear modal fields so modal is refreshed next time it's opened
                     setFilterStaffName('')

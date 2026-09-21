@@ -1,4 +1,5 @@
 import { create_content_service, fetch_content_service, update_content_service, updateLocationData } from '@/utils/supabase/data_services/data_services';
+import { classifyError } from '@/utils/logging/safe-log';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
@@ -188,7 +189,7 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     set_data(res_data[0]);
                 }
             } catch (error) {
-                console.error('Error in handle_update:', error);
+                console.error('Error in handle_update:', classifyError(error));
                 toast.error('Failed to update location');
             }
             set_update_loading(false);
@@ -224,7 +225,7 @@ function useSingleRowDataHandle(paramData: DataInterface) {
                     throw new Error('Update returned no rows — likely blocked by RLS');
                 }
             } catch (error: any) {
-                console.error('Error in handle_update:', error);
+                console.error('Error in handle_update:', classifyError(error));
                 toast.error(`Update failed: ${error.message || 'Unknown error'}`);
             }
             set_update_loading(false);

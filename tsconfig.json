@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,7 +16,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -20,10 +24,34 @@
       }
     ],
     "paths": {
-      "@/*": ["./*", "./utils", "./types"]
+      "@/*": [
+        "./*",
+        "./utils",
+        "./types"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "actions/supabase_auth", "app/(root)/appoinments/page.js", "app/(root)/tools/websitecontent/Layout.tsx", "app/(root)/tools/cronitor-report/page.js", "components/Select_Dropdown/index.tsx", "utils/supabase/data_services/data_services.tsx", "hooks/useSingleRowDataHandle.jsx"],
-  "exclude": ["node_modules", "cypress", "cypress/**/*", "**/*.cy.ts", "**/*.cy.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "actions/supabase_auth",
+    "app/(root)/appoinments/page.js",
+    "app/(root)/tools/websitecontent/Layout.tsx",
+    "app/(root)/tools/cronitor-report/page.js",
+    "components/Select_Dropdown/index.tsx",
+    "utils/supabase/data_services/data_services.tsx",
+    "hooks/useSingleRowDataHandle.jsx",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "cypress",
+    "cypress/**/*",
+    "**/*.cy.ts",
+    "**/*.cy.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }
-

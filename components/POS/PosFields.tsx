@@ -1,4 +1,5 @@
 "use client";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import React, { useEffect, useState, useContext } from "react";
 import { supabase } from "@/services/supabase";
 import { AuthContext } from "@/context";
@@ -52,7 +53,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           .select(selectCols)
           .contains("location_id", [String(locationId)]);
         if (error) {
-          console.error("Failed to fetch staff", error);
+          console.error("Failed to fetch staff", classifyError(error));
           setSalesPeople([]);
           return;
         }
@@ -60,7 +61,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         const arr = rows.map((r: any) => ({ id: r.id, name: r.full_name || "" }));
         setSalesPeople(arr);
       } catch (e) {
-        console.error("Error fetching staff", e);
+        console.error("Error fetching staff", classifyError(e));
         setSalesPeople([]);
       }
     };
@@ -138,7 +139,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
 
         setCurrentTeam(mapped);
       } catch (e) {
-        console.error('[PosFields] unexpected error fetching current team', e);
+        console.error('[PosFields] unexpected error fetching current team', classifyError(e));
       }
     };
 
@@ -178,7 +179,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           setAuthUserId(null);
         }
       } catch (e) {
-        console.error("[PosFields] error fetching auth user id:", e);
+        console.error("[PosFields] error fetching auth user id:", classifyError(e));
         setAuthUserId(null);
       }
     };
@@ -203,7 +204,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         console.log("[PosFields] current auth user id:", user?.id ?? null);
       }
     } catch (e) {
-      console.error("[PosFields] error logging auth id:", e);
+      console.error("[PosFields] error logging auth id:", classifyError(e));
     }
   };
 
@@ -217,7 +218,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       
       if (!res.ok) {
         const error = await res.json();
-        console.error('[PosFields] Reset failed:', error);
+        console.error('[PosFields] Reset failed:', classifyError(error));
         return;
       }
       
@@ -228,7 +229,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
       setQuery('');
       console.log('[PosFields] Team reset successful');
     } catch (e) {
-      console.error('[PosFields] Error resetting team:', e);
+      console.error('[PosFields] Error resetting team:', classifyError(e));
     }
   };
 
@@ -261,14 +262,14 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
     try {
       onClose();
     } catch (e) {
-      console.error('[PosFields] error calling onClose', e);
+      console.error('[PosFields] error calling onClose', classifyError(e));
     }
 
     // notify parent about the saved selection (do this after closing)
     try {
       onSave(savedSelected);
     } catch (e) {
-      console.error('[PosFields] error calling onSave', e);
+      console.error('[PosFields] error calling onSave', classifyError(e));
     }
 
     // background server call
@@ -282,12 +283,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
         });
         const json = await res.json();
         if (!res.ok) {
-          console.error('[PosFields] server failed to save sales_team', json);
+          logError('pos.sales_team_save_failed', { status: res.status });
         } else {
           console.debug('[PosFields] server saved sales_team', json);
         }
       } catch (e) {
-        console.error('[PosFields] error calling /api/sales-team', e);
+        console.error('[PosFields] error calling /api/sales-team', classifyError(e));
       }
     })();
   };

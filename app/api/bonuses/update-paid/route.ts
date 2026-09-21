@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid payload: items array required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
     const todayYMD = new Date().toISOString().slice(0, 10)
 
     const updated: any[] = []
@@ -165,14 +166,14 @@ export async function POST(req: Request) {
           console.error('[api/bonuses/update-paid] sales_team -> individual_bonus extension error', e2)
         }
       } catch (e) {
-        console.error('[api/bonuses/update-paid] item error', e)
+        console.error('[api/bonuses/update-paid] item error', classifyError(e))
         return NextResponse.json({ error: (e as any)?.message ?? String(e) }, { status: 500 })
       }
     }
 
     return NextResponse.json({ updated, total: updated.length })
   } catch (err: any) {
-    console.error('[api/bonuses/update-paid] error', err)
+    console.error('[api/bonuses/update-paid] error', classifyError(err))
     return NextResponse.json({ error: err?.message ?? String(err) }, { status: 500 })
   }
 }

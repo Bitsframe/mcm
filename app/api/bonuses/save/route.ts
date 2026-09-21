@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
@@ -11,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid payload: bonuses array required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Log incoming bonuses shape for debugging
     try {
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
                 }
                 updatedRows.push({ ...(genData && genData[0] ? genData[0] : r) })
               } catch (e) {
-                console.error('[api/bonuses/save] error recalculating bonus_eligibility for updated row', e)
+                console.error('[api/bonuses/save] error recalculating bonus_eligibility for updated row', classifyError(e))
                 updatedRows.push(r)
               }
             }
@@ -212,7 +213,7 @@ export async function POST(req: Request) {
               if (Array.isArray(genData) && genData.length > 0) inserted.push(...genData)
               else inserted.push(newRow)
               } catch (e) {
-              console.error('[api/bonuses/save] error recalculating bonus_eligibility after insert', e)
+              console.error('[api/bonuses/save] error recalculating bonus_eligibility after insert', classifyError(e))
               inserted.push(insData[0])
             }
           }
@@ -236,7 +237,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: { message: insertEx?.message ?? String(insertEx) } }, { status: 500 })
     }
   } catch (err: any) {
-    console.error('API /bonuses/save error', err)
+    console.error('API /bonuses/save error', classifyError(err))
     return NextResponse.json({ error: err?.message ?? 'unknown error' }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import type React from "react";
 import {
   type FC,
@@ -92,7 +93,7 @@ const PrivateFeedbackComponent: FC = () => {
       setDataList(fetched_data || []);
       setAllData(fetched_data || []);
     } catch (error) {
-      console.error("Error fetching feedback data:", error);
+      console.error("Error fetching feedback data:", classifyError(error));
       setDataList([]);
       setAllData([]);
     } finally {

@@ -4,6 +4,7 @@ import { supabase } from "@/services/supabase";
 
 
 
+import { classifyError } from '@/utils/logging/safe-log';
 export async function getUserEmail(): Promise<any[]> {
   try {
     const pageSize = 1000;
@@ -35,7 +36,7 @@ export async function getUserEmail(): Promise<any[]> {
         .range(from, to);
 
       if (error) {
-        console.error(`Error fetching rows ${from}-${to}:`, error);
+        console.error(`Error fetching rows ${from}-${to}:`, classifyError(error));
         break;
       }
 
@@ -45,7 +46,7 @@ export async function getUserEmail(): Promise<any[]> {
     console.log(`Fetched ${allRows.length} rows (total in DB: ${totalRows})`);
     return allRows;
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected error:", classifyError(error));
     return [];
   }
 }
@@ -61,7 +62,7 @@ export async function getServices(): Promise<any> {
 
     return data;
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected error:", classifyError(error));
     return null;
   }
 }
@@ -75,7 +76,7 @@ export async function getLocations(): Promise<any> {
 
     return data;
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected error:", classifyError(error));
     return null;
   }
 }
@@ -93,7 +94,7 @@ export async function getUserLocations(): Promise<any> {
 
     return data;
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected error:", classifyError(error));
     return null;
   }
 }

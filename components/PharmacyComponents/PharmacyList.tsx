@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import { CircularProgress } from "@mui/material";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
@@ -89,7 +90,7 @@ const PharmacyList = () => {
             toast.success(t("Pharmacy_k27"));
         } catch (error: any) {
             setLoading(false);
-            console.error("Error submitting data:", error);
+            console.error("Error submitting data:", classifyError(error));
             toast.error(
                 `${t("Pharmacy_k28")} ${error?.response?.data?.message || error.message
                 }`
@@ -108,7 +109,7 @@ const PharmacyList = () => {
             toast.success(t("Pharmacy_k29"));
         } catch (error: any) {
             setLoading(false);
-            console.error("Error submitting data:", error);
+            console.error("Error submitting data:", classifyError(error));
             toast.error(
                 `${t("Pharmacy_k30")} ${error?.response?.data?.message || error.message
                 }`
@@ -126,7 +127,7 @@ const PharmacyList = () => {
                 setCurrentPage(currentPage - 1);
             }
         } catch (error: any) {
-            console.error("Error:", error);
+            console.error("Error:", classifyError(error));
             toast.error(`${t("Pharmacy_k33")} ${error?.response?.data?.message || error.message}`);
         }
     };

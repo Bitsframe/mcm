@@ -1,4 +1,5 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio } from "flowbite-react";
 import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
@@ -259,14 +260,14 @@ export const Add_Appointment_Modal = ({
           const result = await response.json();
 
           if (!response.ok) {
-            console.error('Error fetching returning patients:', result?.error);
+            logError('patients.returning_fetch_failed', { status: response.status });
             setComingBackData([]);
             return;
           }
 
           setComingBackData(result.data ?? []);
         } catch (err) {
-          console.error('Failed to fetch returning patients from allpatients', err);
+          console.error('Failed to fetch returning patients from allpatients', classifyError(err));
           setComingBackData([]);
         } finally {
           setComingBackLoading(false);
@@ -531,19 +532,13 @@ export const Add_Appointment_Modal = ({
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('API error:', errorData);
-          console.error('Request payload:', {
-            location_id,
-            first_name,
-            last_name,
-            email_address,
-            phone,
-            sex,
-            service,
-            date_and_time,
-            dob: dob || null,
-            patient_id: selectedComingBackPatient.id,
-          });
+          // The request payload carries first_name, last_name, email_address,
+          // phone, sex and dob — a complete patient identity. This is a client
+          // component, so it was written to the browser console, readable by
+          // devtools, extensions and screen recordings. Neither the payload nor
+          // the upstream error object is logged; the thrown Error below still
+          // surfaces the failure to the user.
+          logError('appointment.create_failed', { status: response.status });
           throw new Error(errorData.error || 'Failed to create appointment');
         }
 
@@ -585,14 +580,14 @@ export const Add_Appointment_Modal = ({
                 }),
               });
             } catch (e) {
-              console.error('Error triggering appointment email (coming back):', e);
+              console.error('Error triggering appointment email (coming back):', classifyError(e));
             }
           }
 
           close_handle();
         }
       } catch (error: any) {
-        console.error('Error inserting appointment for coming back patient:', error);
+        console.error('Error inserting appointment for coming back patient:', classifyError(error));
         if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
           toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
         } else {
@@ -628,19 +623,13 @@ export const Add_Appointment_Modal = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API error:', errorData);
-        console.error('Request payload:', {
-          location_id,
-          first_name,
-          last_name,
-          email_address,
-          phone,
-          sex,
-          service,
-          date_and_time,
-          dob: dob || null,
-          address: addressLine || "",
-        });
+        // The request payload carries first_name, last_name, email_address,
+        // phone, sex and dob — a complete patient identity. This is a client
+        // component, so it was written to the browser console, readable by
+        // devtools, extensions and screen recordings. Neither the payload nor
+        // the upstream error object is logged; the thrown Error below still
+        // surfaces the failure to the user.
+        logError('appointment.create_failed', { status: response.status });
         throw new Error(errorData.error || 'Failed to create appointment');
       }
 
@@ -660,7 +649,7 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.warn("set-address (new patient)", e);
+            console.warn("set-address (new patient)", classifyError(e));
           }
         }
 
@@ -697,14 +686,14 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.error('Error triggering appointment email:', e);
+            console.error('Error triggering appointment email:', classifyError(e));
           }
         }
 
         close_handle();
       }
     } catch (error: any) {
-      console.error('Error creating appointment:', error);
+      console.error('Error creating appointment:', classifyError(error));
       if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
         toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
       } else {
@@ -723,7 +712,7 @@ export const Add_Appointment_Modal = ({
           .select("title");
 
         if (error) {
-          console.error("Error fetching services:", error);
+          console.error("Error fetching services:", classifyError(error));
           setServices([]); // Ensure services state is reset on error
           return;
         }
@@ -733,7 +722,7 @@ export const Add_Appointment_Modal = ({
           setServices(serviceData); // Populate services state
         }
       } catch (err) {
-        console.error("Failed to fetch services:", err);
+        console.error("Failed to fetch services:", classifyError(err));
         setServices([]); // Reset services state on failure
       }
     };

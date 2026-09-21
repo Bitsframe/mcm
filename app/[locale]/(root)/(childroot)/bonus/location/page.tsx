@@ -1,5 +1,7 @@
 "use client"
 
+
+import { classifyError } from '@/utils/logging/safe-log';
 import { useEffect, useState, useRef, useCallback } from "react"
 import { fetchLocations, fetchBonusRowsForDate, fetchActiveThresholds, subscribeToBonusChanges, startPolling, stopPolling, fetchPaidBonusesForDate, fetchBonusConfigHistoryByIds } from './fetch'
 
@@ -156,7 +158,7 @@ const BonusPage = () => {
           cfgMapLocal = {}
         }
       } catch (e) {
-        console.error('[bonus/page] fetchBonusConfigHistoryByIds (calculation) error', e)
+        console.error('[bonus/page] fetchBonusConfigHistoryByIds (calculation) error', classifyError(e))
         setBonusConfigById({})
         cfgMapLocal = {}
       }
@@ -177,7 +179,7 @@ const BonusPage = () => {
         console.debug('[bonus/page] active configs mapped by location', Object.keys(thrMap).length, thrMap)
         setThresholdsByLocation(thrMap)
       } catch (e) {
-        console.error('[bonus/page] thresholds fetch error', e)
+        console.error('[bonus/page] thresholds fetch error', classifyError(e))
         thrMap = {}
         setThresholdsByLocation({})
       }
@@ -307,8 +309,8 @@ const BonusPage = () => {
     }
 
     return () => {
-      try { sub && sub.unsubscribe && sub.unsubscribe() } catch (e) { console.warn('[bonus/page] unsubscribe error', e) }
-      try { stopPolling(pollHandle) } catch (e) { console.warn('[bonus/page] stopPolling error', e) }
+      try { sub && sub.unsubscribe && sub.unsubscribe() } catch (e) { console.warn('[bonus/page] unsubscribe error', classifyError(e)) }
+      try { stopPolling(pollHandle) } catch (e) { console.warn('[bonus/page] stopPolling error', classifyError(e)) }
     }
   }, [columnFilters.date, activeTab, fetchData])
 
@@ -442,11 +444,11 @@ const BonusPage = () => {
             setPaidConfigById({})
           }
         } catch (e) {
-          console.error('[bonus/page] fetchBonusConfigHistoryByIds error', e)
+          console.error('[bonus/page] fetchBonusConfigHistoryByIds error', classifyError(e))
           setPaidConfigById({})
         }
       } catch (e) {
-        console.error('[bonus/page] fetchPaidBonusesForDate error', e)
+        console.error('[bonus/page] fetchPaidBonusesForDate error', classifyError(e))
         if (mounted) setPaidBonusRowsByLocation({})
         if (mounted) setPaidBonusRows([])
       }
@@ -523,7 +525,7 @@ const BonusPage = () => {
         bonusRowsSampleKeys: Object.keys(bonusRowsByLocation).slice(0, 20),
       })
     } catch (err) {
-      console.error('[bonus/page] display data error', err)
+      console.error('[bonus/page] display data error', classifyError(err))
     }
   }, [patients, filteredPatients.length, currentPatients, columnFilters.date, bonusRowsByLocation, bonusLimitByPatient, bonusValueByPatient, bonusTypeByPatient, editedByPatient, computeBonusAmount])
 
@@ -543,11 +545,11 @@ const BonusPage = () => {
           const json = await resp.json()
           console.log('[bonus/page] config-query', { location_id: locId, selectedDate, result: json })
         } catch (e) {
-          console.error('[bonus/page] config-query fetch error for location', p.id, e)
+          console.error('[bonus/page] config-query fetch error for location', p.id, classifyError(e))
         }
       })
     } catch (err) {
-      console.error('[bonus/page] config-query error', err)
+      console.error('[bonus/page] config-query error', classifyError(err))
     }
   }, [activeTab, patients, columnFilters.date])
 
@@ -1000,7 +1002,7 @@ const BonusPage = () => {
                         try { if (typeof fetchData === 'function') await fetchData() } catch(_){}
                       }
                     } catch (err) {
-                      console.error('Failed to call RPC:', err)
+                      console.error('Failed to call RPC:', classifyError(err))
                       toast.error(t('Bonus_k90'))
                     } finally {
                       setCalcRunning(false)

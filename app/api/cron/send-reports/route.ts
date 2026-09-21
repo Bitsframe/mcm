@@ -1,7 +1,31 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  CRON_SECRET_HEADER,
+  authoriseCronRequest,
+} from "@/utils/auth/cron-secret";
 
-export async function GET() {
+/**
+ * Scheduled report data for the cron job.
+ *
+ * Server-to-server only: there is no user session here, so the caller proves
+ * itself with `CRON_SECRET`. That is deliberately not the Supabase secret key —
+ * this route builds a service-role client below, and the credential that opens
+ * the door must not be the same one that unlocks the database.
+ *
+ * Until Next 16 this handler was statically rendered, so it ran once at build
+ * and served a frozen response. It now executes per request, which makes the
+ * guard load-bearing rather than cosmetic.
+ */
+export async function GET(request: Request) {
+  const auth = authoriseCronRequest(request.headers.get(CRON_SECRET_HEADER));
+  if (!auth.ok) {
+    return NextResponse.json(
+      { success: false, error: auth.message },
+      { status: auth.status },
+    );
+  }
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SECRET_KEY;

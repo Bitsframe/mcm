@@ -1,4 +1,5 @@
 import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { classifyError } from '@/utils/logging/safe-log';
 import { translationConstant } from "@/utils/translationConstants";
 import { CircularProgress } from "@mui/material";
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -117,7 +118,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             ? error.message
             : "An unexpected error occurred";
         toast.error(errorMessage);
-        console.error("Error fetching patient history:", error);
+        console.error("Error fetching patient history:", classifyError(error));
       } finally {
         setLoading(false);
       }
@@ -215,7 +216,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       // mark amounts saved so fields render as text
       setAmountsSaved(true);
     } catch (e: any) {
-      console.error("Failed to persist cash/card/zelle amounts", e);
+      console.error("Failed to persist cash/card/zelle amounts", classifyError(e));
       toast.error(e?.message || t("POS-Historyk67"));
       // Re-sync inputs from server state in case of failure
       setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
@@ -278,7 +279,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       setAmountsSaved(true);
       setAmountsEditable(false);
     } catch (e: any) {
-      console.error("Failed to update single payment method", e);
+      console.error("Failed to update single payment method", classifyError(e));
       toast.error(e?.message || t("POS-Historyk67"));
     }
   };

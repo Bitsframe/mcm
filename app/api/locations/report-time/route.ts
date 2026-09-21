@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { bridgePatch, BridgeError } from '@/lib/bridge/client';
 
 /**
@@ -29,7 +30,7 @@ export const PATCH = async (req: Request) => {
                 { status: error.status }
             );
         }
-        console.error('Error updating report time:', error);
+        console.error('Error updating report time:', classifyError(error));
         return NextResponse.json(
             { success: false, message: 'Failed to update report time' },
             { status: 500 }

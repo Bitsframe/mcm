@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useEffect, useState, useContext, useMemo } from "react";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { LocationContext } from "@/context";
@@ -105,7 +106,7 @@ const StockAlertsComponent: React.FC = () => {
       setAllData(normalizedData);
       setLoading(false);
     } catch (error) {
-      console.error(" Error fetching stock alerts:", error);
+      console.error(" Error fetching stock alerts:", classifyError(error));
       setDataList([]);
       setAllData([]);
       setLoading(false);

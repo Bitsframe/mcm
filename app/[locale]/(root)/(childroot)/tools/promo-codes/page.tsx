@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useContext, useEffect, useState } from "react";
 import { Spinner } from "flowbite-react";
 import moment from "moment";
@@ -236,7 +237,7 @@ const Page = () => {
       setDataList(fetched_data || []);
       setAllData(fetched_data || []);
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("Fetch error:", classifyError(error));
       toast.error("Failed to fetch data");
     } finally {
       setLoading(false);
@@ -297,7 +298,7 @@ const Page = () => {
         setAllData(removeDuplicates(newAllData));
       }
     } catch (error) {
-      console.error("Create error:", error);
+      console.error("Create error:", classifyError(error));
       toast.error("Failed to create promocode");
     } finally {
       setModalLoading(false);
@@ -329,7 +330,7 @@ const Page = () => {
       toast.success("Deleted successfully");
       closeModalHandle();
     } catch (error) {
-      console.error("Delete error:", error);
+      console.error("Delete error:", classifyError(error));
       toast.error("Failed to delete promocode");
     } finally {
       setModalLoading(false);
@@ -357,7 +358,7 @@ const Page = () => {
         setDetailsView(newData);
       }
     } catch (error: any) {
-      console.error("Update error:", error);
+      console.error("Update error:", classifyError(error));
       toast.error(error?.message || "Failed to update promocode");
     } finally {
       setModalLoading(false);

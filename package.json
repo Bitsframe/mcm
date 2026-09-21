@@ -6,14 +6,18 @@
     "dev": "node scripts/infisical-run.cjs run -- next dev",
     "fast-dev": "node scripts/infisical-run.cjs run -- next dev",
     "dev:local": "next dev",
-    "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build",
-    "build:infisical": "cross-env NODE_OPTIONS=\"--no-deprecation\" node scripts/infisical-run.cjs run -- next build",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation\" next build --webpack",
+    "build:infisical": "cross-env NODE_OPTIONS=\"--no-deprecation\" node scripts/infisical-run.cjs run -- next build --webpack",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
     "infisical": "node scripts/infisical-run.cjs",
-    "env:pull": "node scripts/fetch-infisical-env.cjs"
+    "env:pull": "node scripts/fetch-infisical-env.cjs",
+    "test:cron-auth": "node scripts/test-cron-auth.mjs",
+    "test:api-auth": "node scripts/test-api-auth.mjs",
+    "test:internal-key": "node scripts/test-internal-key-auth.mjs",
+    "test:safe-log": "node scripts/test-safe-log.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.772.0",
@@ -62,17 +66,17 @@
     "lucide-react": "^0.544.0",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.46",
-    "next": "14.2.35",
-    "next-i18n-router": "^5.5.1",
-    "next-intl": "^3.26.5",
+    "next": "16.3.5",
+    "next-i18n-router": "^5.5.8",
+    "next-intl": "^4.14.5",
     "next-themes": "^0.4.4",
     "nodemailer": "^6.9.14",
     "quill": "^2.0.3",
-    "react": "18.3.1",
+    "react": "19.2.3",
     "react-date-range": "^2.0.1",
     "react-datepicker": "^7.3.0",
     "react-day-picker": "8.10.1",
-    "react-dom": "18.3.1",
+    "react-dom": "19.2.3",
     "react-hook-form": "^7.52.2",
     "react-i18next": "^15.4.1",
     "react-icons": "^4.12.0",
@@ -92,9 +96,9 @@
     "@infisical/cli": "^0.43.82",
     "@types/deno": "^2.3.0",
     "@types/node": "^22.10.2",
-    "@types/react": "^18",
+    "@types/react": "^19",
     "@types/react-date-range": "^1.4.9",
-    "@types/react-dom": "^18",
+    "@types/react-dom": "^19",
     "autoprefixer": "^10.0.1",
     "cross-env": "^7.0.3",
     "cypress": "15.15.0",
@@ -124,5 +128,8 @@
   "directories": {
     "lib": "lib"
   },
-  "keywords": []
+  "keywords": [],
+  "engines": {
+    "node": ">=20.9.0"
+  }
 }

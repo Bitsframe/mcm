@@ -71,7 +71,6 @@ app/api/
 ├── forms/route.ts      # Uses dbSync.syncCreate/Update/Delete
 ├── pharmacy/route.ts   # (Future) Same pattern
 └── sync/
-    └── db-test/route.ts # Test endpoint
 ```
 
 ## ⚙️ Configuration
@@ -173,17 +172,12 @@ export const POST = async (req: Request) => {
 
 ## 🧪 Testing
 
-```bash
-# Check configuration
-GET /api/sync/db-test
+The sync helper reports its own status through `dbSync` in
+`utils/sync/directDbSync.ts`.
 
-# Response shows:
-{
-  "enabled": true,
-  "tables": ["forms", "pharmacy", "allpatients", "Locations"],
-  "childDbUrl": "https://..."
-}
-```
+> The `GET /api/sync/db-test` endpoint was removed: it required no
+> authentication and returned `CHILD_SUPABASE_URL` along with whether each
+> server secret key was configured.
 
 ## 📊 Monitoring
 

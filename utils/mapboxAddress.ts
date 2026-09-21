@@ -6,6 +6,8 @@
  * modals need broken out into street, city, state and ZIP.
  */
 
+import { classifyError, logError } from '@/utils/logging/safe-log';
+
 const MAPBOX_FORWARD_URL = "https://api.mapbox.com/search/geocode/v6/forward";
 
 /** Shape consumed by the address autocomplete dropdowns. */
@@ -89,8 +91,8 @@ async function forwardGeocode(
 
   const res = await fetch(url.toString(), { method: "GET" });
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error(`[mapboxAddress] Mapbox HTTP ${res.status}:`, body.slice(0, 200));
+    // The Mapbox body echoes the address being looked up.
+    logError('mapbox.lookup_failed', { status: res.status });
     return [];
   }
 
@@ -120,7 +122,7 @@ export async function fetchMapboxAddressSuggestions(
   try {
     return await forwardGeocode(query, limit);
   } catch (error) {
-    console.error("[mapboxAddress] Network error:", error);
+    console.error("[mapboxAddress] Network error:", classifyError(error));
     return [];
   }
 }

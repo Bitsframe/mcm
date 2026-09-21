@@ -1,4 +1,5 @@
 "use client";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import Filter from "@/assets/images/icons/Filterwhite.png";
@@ -478,7 +479,7 @@ const EmailBroadcast: React.FC = () => {
       // update visible emails shown in the list immediately
       setVisibleEmails(matched);
     } catch (err) {
-      console.error('Error applying filters', err);
+      console.error('Error applying filters', classifyError(err));
     }
   };
 
@@ -704,7 +705,7 @@ const EmailBroadcast: React.FC = () => {
         </>
       );
     } catch (err) {
-      console.error('FilterContent render error', err);
+      console.error('FilterContent render error', classifyError(err));
       return (
         <div className="p-4 text-center text-sm text-red-600">
           {"Error loading filter options. Please try again."}
@@ -728,7 +729,7 @@ const EmailBroadcast: React.FC = () => {
         const services = await getServices();
         setServiceList(services);
       } catch (error) {
-        console.error("Failed to fetch email:", error);
+        console.error("Failed to fetch email:", classifyError(error));
       } finally {
         setLoading(false);
       }
@@ -873,11 +874,11 @@ const EmailBroadcast: React.FC = () => {
         setCheckedItems([]);
         setPrice("");
       } else {
-        console.error("Email sending failed:", data);
+        logError('email.broadcast_failed', {});
         toast.error(data.message || "Failed to send email", { position: "top-center" });
       }
     } catch (error: any) {
-      console.error("Email sending error:", error);
+      console.error("Email sending error:", classifyError(error));
       const msg = error?.message || "";
       const isJsonError = msg.includes("JSON") || msg.includes("json") || msg.includes("Unexpected end");
       if (isJsonError) {

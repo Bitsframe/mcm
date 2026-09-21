@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import type React from "react";
 import { type FC, useContext, useEffect, useState, useCallback } from "react";
 import {
@@ -94,7 +95,7 @@ const FulfillmentPage = () => {
       }
       setFulfillmentRequests(result.data);
     } catch (error) {
-      console.error("Error fetching fulfillment requests:", error);
+      console.error("Error fetching fulfillment requests:", classifyError(error));
       toast.error("Failed to fetch fulfillment requests");
     } finally {
       setLoading(false);
@@ -134,7 +135,7 @@ const FulfillmentPage = () => {
         setSearchResults([]);
       }
     } catch (error) {
-      console.error("❌ Search request failed:", error);
+      console.error("❌ Search request failed:", classifyError(error));
       toast.error(t("POS-Sales_k70"));
       setSearchResults([]);
     } finally {

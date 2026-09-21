@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { dbSync } from '@/utils/sync/directDbSync';
 import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
@@ -7,10 +8,11 @@ import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
  */
 export const PUT = async (
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   const supabase = getServiceRoleSupabase();
-  const id = Number(params.id); // 🔑 ensure integer
+  // Next 15 made params a Promise.
+  const id = Number((await params).id); // 🔑 ensure integer
 
   try {
     const body = await req.json();
@@ -67,7 +69,7 @@ export const PUT = async (
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Error updating pharmacy:', error);
+    console.error('Error updating pharmacy:', classifyError(error));
     return NextResponse.json(
       { message: error.message || 'Internal Server Error' },
       { status: 500 }
@@ -80,10 +82,11 @@ export const PUT = async (
  */
 export const DELETE = async (
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   const supabase = getServiceRoleSupabase();
-  const id = Number(params.id); // 🔑 ensure integer
+  // Next 15 made params a Promise.
+  const id = Number((await params).id); // 🔑 ensure integer
 
   try {
     const { data, error } = await supabase
@@ -112,7 +115,7 @@ export const DELETE = async (
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Error deleting pharmacy:', error);
+    console.error('Error deleting pharmacy:', classifyError(error));
     return NextResponse.json(
       { message: error.message || 'Internal Server Error' },
       { status: 500 }

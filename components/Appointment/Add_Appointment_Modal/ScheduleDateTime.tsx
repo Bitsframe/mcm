@@ -1,4 +1,5 @@
 import { translationConstant } from '@/utils/translationConstants';
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { FC, useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar } from "@/components/ui/calendar"; // shadcn calendar component
@@ -101,7 +102,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     .eq('location_id', locId);
 
                 if (error) {
-                    console.error('Error fetching appointments directly from Supabase', error);
+                    console.error('Error fetching appointments directly from Supabase', classifyError(error));
                     setBookedTimes([]);
                     return;
                 }
@@ -155,7 +156,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
 
                 setBookedTimes(times);
             } catch (e) {
-                console.error('Failed to fetch booked slots', e);
+                console.error('Failed to fetch booked slots', classifyError(e));
                 setBookedTimes([]);
             }
         };

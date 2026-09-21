@@ -23,7 +23,6 @@ export const PatientDetailsRender: FC<PatientDetailsRenderPropsInterface> = ({
     Locations,
   } = patientData
 
-  console.log(patientData)
 
 
 

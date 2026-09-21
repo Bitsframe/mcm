@@ -1,5 +1,6 @@
 const { useEffect, useState } = require("react");
 import { AuthContext, LocationContext } from '@/context';
+import { classifyError } from '@/utils/logging/safe-log';
 import { fetchLocations, updateLocationData } from '@/utils/supabase/data_services/data_services'
 import { useContext } from 'react';
 import { toast } from 'react-toastify';
@@ -62,7 +63,7 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
                     localStorage.setItem(getStorageKey(), selectedLocation.id.toString());
                 }
             } catch (error) {
-                console.error('Error fetching locations:', error);
+                console.error('Error fetching locations:', classifyError(error));
                 toast.error('Failed to fetch locations');
             }
         };

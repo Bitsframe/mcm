@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
@@ -27,7 +28,7 @@ export type DashboardStats = {
  */
 export async function GET(req: Request) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const {
       data: { user },
@@ -87,7 +88,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data: data as DashboardStats })
   } catch (err) {
-    console.error('[api/dashboard/stats]', err)
+    console.error('[api/dashboard/stats]', classifyError(err))
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed to load dashboard stats' },
       { status: 500 }

@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 export const sendFulfillmentConfirmationEmail = async (
   patientEmail: string,
   patientName: string,
@@ -60,7 +61,7 @@ export const sendFulfillmentConfirmationEmail = async (
     }
     return result;
   } catch (error: any) {
-    console.error("Error sending confirmation email:", error);
+    console.error("Error sending confirmation email:", classifyError(error));
     throw error;
   }
 }; 

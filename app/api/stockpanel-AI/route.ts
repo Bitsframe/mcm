@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { classifyError } from '@/utils/logging/safe-log';
 import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
 export const dynamic = 'force-dynamic';
@@ -151,7 +152,7 @@ export async function GET() {
             console.log(`✅ AI predictions received for ${Object.keys(aiPredictions).length} items`);
           }
         } catch (err) {
-          console.error("❌ AI batch error:", err);
+          console.error("❌ AI batch error:", classifyError(err));
         }
       }
 

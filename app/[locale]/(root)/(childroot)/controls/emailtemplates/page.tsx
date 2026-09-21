@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
@@ -221,7 +222,7 @@ const EmailTemplates = () => {
         setTemplates(loadedTemplates);
         setFilteredTemplates(loadedTemplates);
       } catch (error) {
-        console.error("Error loading templates:", error);
+        console.error("Error loading templates:", classifyError(error));
       }
     };
 
@@ -303,7 +304,7 @@ const EmailTemplates = () => {
   //     setTemplateContent("");
   //     alert("Template saved to Supabase!");
   //   } catch (error) {
-  //     console.error("Error saving template:", error);
+  //     console.error("Error saving template:", classifyError(error));
   //     alert("Failed to save template. Please try again.");
   //   }
   // };
@@ -356,7 +357,7 @@ const handleSaveTemplate = async () => {
       throw new Error("No valid data returned from the service.");
     }
   } catch (error) {
-    console.error("Error saving template:", error);
+    console.error("Error saving template:", classifyError(error));
     alert("Failed to save template. Please try again.");
   }
 };
@@ -413,7 +414,7 @@ const handleSaveTemplate = async () => {
       setTemplateContent("");
       alert("Template content updated successfully!");
     } catch (error) {
-      console.error("Error updating template:", error);
+      console.error("Error updating template:", classifyError(error));
       alert("Failed to update template. Please try again.");
     }
   };
@@ -448,7 +449,7 @@ const handleSaveTemplate = async () => {
 
       alert("Template deleted successfully!");
     } catch (error) {
-      console.error("Error deleting template:", error);
+      console.error("Error deleting template:", classifyError(error));
       alert("Failed to delete template. Please try again.");
     }
   };

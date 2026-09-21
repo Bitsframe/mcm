@@ -30,7 +30,6 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                 patientid: patientId
             });
 
-            console.log('API Response:', response.status, response.data);
 
             if (response.status === 200) {
                 const { discount, promocodeId } = response.data.data;

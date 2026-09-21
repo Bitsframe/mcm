@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { emailBodyContent, EmailBodyInterface, EmailBodyTempEnum, emailFromDetails, getEmailTemplates } from './templateDetails';
 
 export const sendEmail = async ({
@@ -32,6 +33,10 @@ export const sendEmail = async ({
 
     console.log('Email sent successfully:', response.data);
   } catch (error:any) {
-    console.error('Error sending email:', error.response?.data || error.message);
+    // Upstream mail bodies may echo the recipient; log the classification.
+    logError('email.send_failed', {
+      ...classifyError(error),
+      status: error.response?.status,
+    });
   }
 };

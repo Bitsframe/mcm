@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { dbSync } from '@/utils/sync/directDbSync';
 import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
@@ -15,7 +16,7 @@ export const GET = async () => {
 
     return NextResponse.json({ success: true, data: pharmacies }, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching pharmacies:', error);
+    console.error('Error fetching pharmacies:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };
@@ -52,7 +53,7 @@ export const POST = async (req: Request) => {
 
     return NextResponse.json({ success: true, data, message: 'Pharmacy created successfully' }, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating pharmacy:', error);
+    console.error('Error creating pharmacy:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };

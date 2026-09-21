@@ -1,5 +1,6 @@
 export const maxDuration = 300;
 import { NextResponse } from "next/server";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { render } from "@react-email/components";
 import emailtemplate1 from "@/components/EmailTemplate/template1";
 import emailtemplate2 from "@/components/EmailTemplate/template2";
@@ -103,7 +104,13 @@ export async function POST(req: Request) {
     );
 
   } catch (error: any) {
-    console.error("Email API Error:", error.response?.data || error.message);
+    // `error.response.data` is the mail provider's body and may echo the
+    // recipient. The response below still returns detail to the caller;
+    // only the log stream is narrowed.
+    logError('email.send_failed', {
+      ...classifyError(error),
+      status: error.response?.status,
+    });
     return NextResponse.json(
       {
         message: "Failed to send emails",

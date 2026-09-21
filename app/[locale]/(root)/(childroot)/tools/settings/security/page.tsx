@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import { Button } from '@/components/ui/button';
 import React, { useContext, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
@@ -80,7 +81,7 @@ const Security = () => {
       // Force redirect to login page
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout error:', classifyError(error));
       // Force redirect even if logout fails
       window.location.href = '/login';
     }
@@ -123,7 +124,7 @@ const Security = () => {
         }, 2000);
       }
     } catch (error: any) {
-      console.error("Password change error:", error);
+      console.error("Password change error:", classifyError(error));
       
       // Show specific error message
       const errorMessage = error.response?.data?.message || 

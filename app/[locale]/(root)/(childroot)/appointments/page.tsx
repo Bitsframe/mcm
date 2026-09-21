@@ -1,6 +1,7 @@
 "use client"
 
 import StatStrip from "@/components/Dashboard/StatStrip";
+import { classifyError } from '@/utils/logging/safe-log';
 import { useContext, useEffect, useState, useCallback, memo, useRef } from "react"
 import {
   delete_appointment_service,
@@ -117,7 +118,7 @@ const Appointments = () => {
         const onlyDateTimes = (data || []).map((row: any) => row?.date_and_time)
        
       } catch (err) {
-        console.error("Failed to fetch appointment date_and_time", err)
+        console.error("Failed to fetch appointment date_and_time", classifyError(err))
       }
     }
     fetchDateTimes()

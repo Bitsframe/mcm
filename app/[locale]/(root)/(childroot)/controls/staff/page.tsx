@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,14 +46,14 @@ const StaffControlsPage: React.FC = () => {
           .contains('location_id', [String(viewLocationId)]);
 
         if (error) {
-          console.error('Error fetching staff list', error);
+          console.error('Error fetching staff list', classifyError(error));
           setStaffList([]);
           return;
         }
 
         setStaffList(data || []);
       } catch (err) {
-        console.error('Error fetching staff list', err);
+        console.error('Error fetching staff list', classifyError(err));
         setStaffList([]);
       } finally {
         setLoadingStaff(false);
@@ -76,7 +77,9 @@ const StaffControlsPage: React.FC = () => {
       });
       const payload = await res.json();
       if (!res.ok) {
-        console.error("API error creating staff:", payload);
+        // `payload` is the API body; the toast below still shows its message to
+        // the user. Only the log stream is narrowed.
+        logError('staff.create_failed', { status: res.status });
         toast.error(payload?.error || "Failed to create staff");
       } else {
         toast.success("Staff created successfully");

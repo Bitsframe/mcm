@@ -9,8 +9,6 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    // Log incoming data for debugging
-    console.log("Received email data:", data);
 
     // Extract necessary fields from the request data
     const { to, subject, appointmentDate, appointmentTime } = data;
@@ -38,7 +36,6 @@ export async function POST(req: Request) {
     };
 
     // Log the request body for debugging
-    console.log("Sending request body:", requestBody);
 
     // Build endpoint for single email (common shape for edge function)
     if (!EDGE_FUNCTION_URL) {
@@ -71,7 +68,6 @@ export async function POST(req: Request) {
     const responseText = await response.text();
 
     // Log the response from the edge function
-    console.log("Response from edge function:", responseText);
 
     // Handle successful response from the edge function
     if (response.ok) {

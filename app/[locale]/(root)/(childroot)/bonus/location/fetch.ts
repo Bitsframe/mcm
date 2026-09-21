@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import supabase from '@/utils/supabaseClient'
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
 
@@ -42,7 +43,7 @@ export async function fetchActiveThresholds(selectedDate?: string) {
     const json = await resp.json()
     return (json.configs || [])
   } catch (e) {
-    console.error('[bonus/fetch] thresholds fetch error', e)
+    console.error('[bonus/fetch] thresholds fetch error', classifyError(e))
     return []
   }
 }
@@ -58,7 +59,7 @@ export async function fetchBonusConfigHistoryByIds(ids: Array<string | number>) 
     })
     return rows
   } catch (e) {
-    console.error('[bonus/fetch] fetchBonusConfigHistoryByIds error', e)
+    console.error('[bonus/fetch] fetchBonusConfigHistoryByIds error', classifyError(e))
     return []
   }
 }
@@ -74,7 +75,7 @@ export function subscribeToBonusChanges(selectedDate: string, onChange: () => vo
           console.debug('[bonus/fetch] realtime payload', payload)
           onChange()
         } catch (e) {
-          console.error('[bonus/fetch] realtime handler error', e)
+          console.error('[bonus/fetch] realtime handler error', classifyError(e))
         }
       })
       .subscribe()
@@ -85,14 +86,14 @@ export function subscribeToBonusChanges(selectedDate: string, onChange: () => vo
         // @ts-ignore
         supabase.removeChannel?.(channel)
       } catch (e) {
-        console.warn('[bonus/fetch] error removing channel', e)
+        console.warn('[bonus/fetch] error removing channel', classifyError(e))
       }
       try { channel.unsubscribe && channel.unsubscribe() } catch (_) {}
     }
 
     return { unsubscribe, success: true }
   } catch (e) {
-    console.warn('[bonus/fetch] realtime subscription failed', e)
+    console.warn('[bonus/fetch] realtime subscription failed', classifyError(e))
     return { unsubscribe: () => {}, success: false }
   }
 }
@@ -100,15 +101,15 @@ export function subscribeToBonusChanges(selectedDate: string, onChange: () => vo
 export function startPolling(fn: () => void, intervalMs = 30_000) {
   try {
     const handle = setInterval(() => {
-      try { fn() } catch (e) { console.error('[bonus/fetch] polling fn error', e) }
+      try { fn() } catch (e) { console.error('[bonus/fetch] polling fn error', classifyError(e)) }
     }, intervalMs)
     return handle
   } catch (e) {
-    console.warn('[bonus/fetch] polling setup failed', e)
+    console.warn('[bonus/fetch] polling setup failed', classifyError(e))
     return null
   }
 }
 
 export function stopPolling(handle: any) {
-  try { if (handle) clearInterval(handle) } catch (e) { console.warn('[bonus/fetch] stopPolling failed', e) }
+  try { if (handle) clearInterval(handle) } catch (e) { console.warn('[bonus/fetch] stopPolling failed', classifyError(e)) }
 }

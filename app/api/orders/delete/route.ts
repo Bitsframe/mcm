@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { delete_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function POST(request: Request) {
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
           delete_content_service({ table: 'returns', keyByDelete: 'sales_id', id: sid })
         ));
       } catch (err) {
-        console.error('Error deleting returns for sales_history', err);
+        console.error('Error deleting returns for sales_history', classifyError(err));
         return NextResponse.json({ success: false, message: 'Failed to delete returns tied to sales_history', error: err }, { status: 500 });
       }
     }
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, message: 'Order and related records deleted' });
   } catch (error: any) {
-    console.error('Unexpected error deleting order', error);
+    console.error('Unexpected error deleting order', classifyError(error));
     return NextResponse.json({ success: false, message: error.message || 'Unexpected error' }, { status: 500 });
   }
 }

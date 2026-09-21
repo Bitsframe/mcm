@@ -1,5 +1,6 @@
 'use client';
 
+import { classifyError } from '@/utils/logging/safe-log';
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
 import React, { useState, useRef, useContext, useEffect } from "react";
@@ -104,7 +105,7 @@ const Profile = () => {
       }));
   
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload error:', classifyError(error));
       setUploadError(
         error instanceof Error ? 
         error.message.replace('Error: ', '') : 
@@ -152,7 +153,7 @@ const Profile = () => {
         authError: null
       });
     } catch (error: any) {
-      console.error('Profile update error:', error);
+      console.error('Profile update error:', classifyError(error));
       toast.error(error.message || 'Profile update failed');
     }
   };

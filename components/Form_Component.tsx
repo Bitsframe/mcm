@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React from "react";
 import { capitalize_word_letter, formatCount } from "@/helper/common_functions";
 import {
@@ -33,7 +34,7 @@ export const Form_Component = (props: any) => {
       console.log("✅ [Form_Component] handle_update completed successfully");
       toast.success("Updated successfully!");
     } catch (error) {
-      console.error("❌ [Form_Component] handle_update failed:", error);
+      console.error("❌ [Form_Component] handle_update failed:", classifyError(error));
       toast.error("Failed to update");
     }
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ export default function MedicalFormsPage() {
         setForms(response.data.data);
       }
     } catch (error: any) {
-      console.error("Error fetching forms:", error);
+      console.error("Error fetching forms:", classifyError(error));
       toast.error("Failed to fetch forms");
     } finally {
       setLoading(false);
@@ -114,7 +115,7 @@ export default function MedicalFormsPage() {
         toast.success(`Form ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
       }
     } catch (error: any) {
-      console.error("Error updating form:", error);
+      console.error("Error updating form:", classifyError(error));
       toast.error("Failed to update form status");
     } finally {
       setUpdatingId(null);
@@ -140,7 +141,7 @@ export default function MedicalFormsPage() {
         toast.success("Form deleted successfully");
       }
     } catch (error: any) {
-      console.error("Error deleting form:", error);
+      console.error("Error deleting form:", classifyError(error));
       toast.error("Failed to delete form");
     } finally {
       setDeletingId(null);
@@ -195,7 +196,7 @@ export default function MedicalFormsPage() {
         setFieldName("");
       }
     } catch (error: any) {
-      console.error("Error saving form:", error);
+      console.error("Error saving form:", classifyError(error));
       toast.error("Failed to save form");
     } finally {
       setIsSaving(false);
@@ -236,7 +237,7 @@ export default function MedicalFormsPage() {
         fetchForms(); // Refresh the list
       }
     } catch (error: any) {
-      console.error("Error creating form:", error);
+      console.error("Error creating form:", classifyError(error));
       toast.error("Failed to create form");
       throw error; // Re-throw to prevent modal from closing on error
     } finally {
@@ -329,7 +330,7 @@ export default function MedicalFormsPage() {
       
       toast.success("PDF downloaded successfully");
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error generating PDF:', classifyError(error));
       toast.error("Failed to generate PDF. Please try again.");
     }
   };

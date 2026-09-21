@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { classifyError } from '@/utils/logging/safe-log';
 import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
 // Get specials (all or single)
-export const GET = async (_req: Request, { params }: { params: { id: string } }) => {
+export const GET = async (_req: Request, { params }: { params: Promise<{ id: string }> }) => {
 	try {
 		const supabase = getServiceRoleSupabase();
-		const { id } = params;
+		const { id } = await params;
 
 		if (id === "all") {
 			const { data, error } = await supabase
@@ -28,7 +29,7 @@ export const GET = async (_req: Request, { params }: { params: { id: string } })
 
 		return NextResponse.json({ success: true, data }, { status: 200 });
 	} catch (error: any) {
-		console.error("Error fetching specials:", error);
+		console.error("Error fetching specials:", classifyError(error));
 		return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
 	}
 };
@@ -54,16 +55,16 @@ export const POST = async (req: Request) => {
 
 		return NextResponse.json({ success: true, data }, { status: 201 });
 	} catch (error: any) {
-		console.error("Error creating special:", error);
+		console.error("Error creating special:", classifyError(error));
 		return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
 	}
 };
 
 // Update special
-export const PUT = async (req: Request, { params }: { params: { id: string } }) => {
+export const PUT = async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
 	try {
 		const supabase = getServiceRoleSupabase();
-		const { id } = params;
+		const { id } = await params;
 		const body = await req.json();
 		const { file_path, display, title } = body;
 
@@ -83,16 +84,16 @@ export const PUT = async (req: Request, { params }: { params: { id: string } }) 
 
 		return NextResponse.json({ success: true, data }, { status: 200 });
 	} catch (error: any) {
-		console.error("Error updating special:", error);
+		console.error("Error updating special:", classifyError(error));
 		return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
 	}
 };
 
 // Delete special
-export const DELETE = async (_req: Request, { params }: { params: { id: string } }) => {
+export const DELETE = async (_req: Request, { params }: { params: Promise<{ id: string }> }) => {
 	try {
 		const supabase = getServiceRoleSupabase();
-		const { id } = params;
+		const { id } = await params;
 
 		const { data, error } = await supabase
 			.from("special_picture")
@@ -105,7 +106,7 @@ export const DELETE = async (_req: Request, { params }: { params: { id: string }
 
 		return NextResponse.json({ success: true, data }, { status: 200 });
 	} catch (error: any) {
-		console.error("Error deleting special:", error);
+		console.error("Error deleting special:", classifyError(error));
 		return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
 	}
 };

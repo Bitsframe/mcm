@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET(req: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

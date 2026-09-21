@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { classifyError } from '@/utils/logging/safe-log';
 export const sendInvoice = async (orderDetails: any, patientInfo: any, totalAmount: string) => {
 
     try {
@@ -35,6 +36,6 @@ export const sendInvoice = async (orderDetails: any, patientInfo: any, totalAmou
 
         return result;
     } catch (error: any) {
-        console.error('Error sending order email:', error);
+        console.error('Error sending order email:', classifyError(error));
     }
 };

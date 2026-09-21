@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -172,7 +173,7 @@ function Login() {
         );
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error:", classifyError(error));
       toast(
         params.locale === "es"
           ? "Ocurrió un error inesperado. Intente de nuevo."

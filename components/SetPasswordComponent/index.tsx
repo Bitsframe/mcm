@@ -1,4 +1,5 @@
 'use client';
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useContext, useState } from 'react'
 import { Input_Component } from '../Input_Component';
 import axios from 'axios';
@@ -25,7 +26,7 @@ const SetPasswordComponent = () => {
       await signOut()
       await router.replace('/login')
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error:", classifyError(error));
       toast.error(`Error: ${error?.response?.data?.message || error.message}`);
     }
   };

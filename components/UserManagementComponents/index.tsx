@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import { CircularProgress } from "@mui/material";
 import { Switch } from "antd";
 import { useContext, useEffect, useState } from "react";
@@ -128,7 +129,7 @@ const UserManagementComponent = () => {
       toast.success("User created successfully!");
     } catch (error: any) {
       setLoading(false);
-      console.error("Error submitting data:", error);
+      console.error("Error submitting data:", classifyError(error));
       toast.error(
         `Error creating user: ${
           error?.response?.data?.message || error.message
@@ -147,7 +148,7 @@ const UserManagementComponent = () => {
       toast.success("User details has been updated!");
     } catch (error: any) {
       setLoading(false);
-      console.error("Error submitting data:", error);
+      console.error("Error submitting data:", classifyError(error));
       toast.error(
         `Error creating user: ${
           error?.response?.data?.message || error.message
@@ -169,7 +170,7 @@ const UserManagementComponent = () => {
         setCurrentPage(currentPage - 1);
       }
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error:", classifyError(error));
       toast.error(`Error: ${error?.response?.data?.message || error.message}`);
     }
   };

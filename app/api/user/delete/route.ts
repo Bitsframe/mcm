@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { bridgePost, BridgeError } from '@/lib/bridge/client';
 
 /**
@@ -29,7 +30,7 @@ export const POST = async (req: Request) => {
                 { status: error.status }
             );
         }
-        console.error("Error in patient delete:", error);
+        console.error("Error in patient delete:", classifyError(error));
         return NextResponse.json(
             { success: false, message: "An error occurred.", error: error.message || "Internal Server Error" },
             { status: 500 }

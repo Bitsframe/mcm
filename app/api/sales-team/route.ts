@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing location_id' }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get the current user from the cookie-aware server client
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
         .is('valid_to', null);
     } catch (e) {
       // continue even if closing previous team fails
-      console.error('Error closing previous sales_team', e);
+      console.error('Error closing previous sales_team', classifyError(e));
     }
 
     // Normalize members to strings to match DB array types, or keep NULL if no members

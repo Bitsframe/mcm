@@ -1,5 +1,7 @@
 "use client"
 
+
+import { classifyError } from '@/utils/logging/safe-log';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -39,7 +41,7 @@ const LocationLimits = () => {
         setUpdatedLocations((prev) => prev.map((loc) => (loc.id === locationId ? data[0] : loc)))
       }
     } catch (error) {
-      console.error("Error fetching updated location:", error)
+      console.error("Error fetching updated location:", classifyError(error))
     } finally {
       setRefreshingBalance(null)
     }
@@ -86,7 +88,7 @@ const LocationLimits = () => {
         fetchUpdatedLocation(locationId)
       }, 2000)
     } catch (error: any) {
-      console.error("Error updating location limit:", error)
+      console.error("Error updating location limit:", classifyError(error))
       toast.error(error.message || "Failed to update credit limit")
     } finally {
       setUpdating(null)

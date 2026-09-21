@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { supabase } from "@/services/supabase"
 
 interface SortOptions {
@@ -50,7 +51,7 @@ export const getUserAllowedLocations = async (userId: string) => {
     if (error) throw error;
     return data.map(item => item.location_id);
   } catch (error) {
-    console.error('Error fetching user locations:', error);
+    console.error('Error fetching user locations:', classifyError(error));
     return [];
   }
 };
@@ -73,7 +74,7 @@ export const fetchLocations = async (userId?: string) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    console.error('Error fetching locations:', classifyError(error));
     return [];
   }
 };
@@ -106,7 +107,7 @@ export const fetchApprovedAppointmentsByLocation = async (locationId: number) =>
 
     return data;
   } catch (error) {
-    console.error('Error fetching approved appointments:', error);
+    console.error('Error fetching approved appointments:', classifyError(error));
     return [];
 }
 };
@@ -137,7 +138,7 @@ export const fetchUnapprovedAppointmentsByLocation = async (locationId: number) 
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching unapproved appointments:', error);
+    console.error('Error fetching unapproved appointments:', classifyError(error));
     return [];
 }
 };

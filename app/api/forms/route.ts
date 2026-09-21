@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { dbSync } from '@/utils/sync/directDbSync';
 import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
@@ -15,7 +16,7 @@ export const GET = async () => {
 
     return NextResponse.json({ success: true, data: forms }, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching forms:', error);
+    console.error('Error fetching forms:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };
@@ -54,7 +55,7 @@ export const POST = async (req: Request) => {
 
     return NextResponse.json({ success: true, data, message: 'Form created successfully' }, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating form:', error);
+    console.error('Error creating form:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };
@@ -91,7 +92,7 @@ export const PUT = async (req: Request) => {
 
     return NextResponse.json({ success: true, data, message: 'Form updated successfully' }, { status: 200 });
   } catch (error: any) {
-    console.error('Error updating form:', error);
+    console.error('Error updating form:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };
@@ -119,7 +120,7 @@ export const DELETE = async (req: Request) => {
 
     return NextResponse.json({ success: true, message: 'Form deleted successfully' }, { status: 200 });
   } catch (error: any) {
-    console.error('Error deleting form:', error);
+    console.error('Error deleting form:', classifyError(error));
     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 };

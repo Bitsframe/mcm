@@ -1,5 +1,6 @@
 import { currencyFormatHandle } from "@/helper/common_functions";
 
+import { classifyError } from '@/utils/logging/safe-log';
 export const sendFulfillmentRequestEmail = async (
   patientEmail: string,
   patientName: string,
@@ -79,7 +80,7 @@ export const sendFulfillmentRequestEmail = async (
     }
     return result;
   } catch (error: any) {
-    console.error("Error sending fulfillment request email:", error);
+    console.error("Error sending fulfillment request email:", classifyError(error));
     throw error;
   }
 }; 

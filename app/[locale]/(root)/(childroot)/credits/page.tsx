@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import {
   Table,
   TableBody,
@@ -76,7 +77,7 @@ const Credits = () => {
           setLocationData(locationResponse[0]);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching data:", classifyError(error));
       } finally {
         setLoading(false);
       }

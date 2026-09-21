@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { bridgePost, bridgePatch, BridgeError, type PatientCreateResult } from '@/lib/bridge/client';
@@ -6,7 +7,7 @@ import { bridgePost, bridgePatch, BridgeError, type PatientCreateResult } from '
 export const dynamic = 'force-dynamic';
 
 export const GET = async (req: Request) => {
-    const supabase = supabaseCreateClient();
+    const supabase = await supabaseCreateClient();
 
     try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -71,7 +72,7 @@ export const GET = async (req: Request) => {
             { status: 200 }
         );
     } catch (error) {
-        console.error('User details error:', error);
+        console.error('User details error:', classifyError(error));
         return NextResponse.json(
             {
                 success: false,
@@ -84,10 +85,9 @@ export const GET = async (req: Request) => {
 
 export const POST = async (req: Request) => {
     try {
-        const supabase = supabaseCreateClient();
+        const supabase = await supabaseCreateClient();
         const patientData = await req.json();
 
-        console.log('patientData from api:', patientData);
 
         const resolvedAddress =
             patientData.address ?? patientData.streetAddress ?? null;
@@ -166,7 +166,7 @@ export const POST = async (req: Request) => {
                     isApproved: true,
                 };
 
-                const admin = createAdminClient();
+                const admin = await createAdminClient();
                 const { error: apptError } = await admin
                     .from("Appoinments")
                     .insert([appointmentPayload]);
@@ -206,10 +206,9 @@ export const POST = async (req: Request) => {
 
 export const PUT = async (req: Request) => {
     try {
-        const supabase = supabaseCreateClient();
+        const supabase = await supabaseCreateClient();
         const patientData = await req.json();
 
-        console.log('patientData:', patientData);
 
         // Updates go through the bridge too — this app does not write the table.
         let data: unknown;

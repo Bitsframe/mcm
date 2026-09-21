@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function POST(request: Request) {
@@ -59,7 +60,6 @@ export async function POST(request: Request) {
       };
     });
 
-    console.log('Mapped Fulfillment Data:', JSON.stringify(mapData, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Fulfillment search error:', error);
+    console.error('Fulfillment search error:', classifyError(error));
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }

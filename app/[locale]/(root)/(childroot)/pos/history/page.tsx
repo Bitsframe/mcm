@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import StatStrip from "@/components/Dashboard/StatStrip";
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import moment from "moment";
@@ -87,7 +88,7 @@ const SalesHistory = () => {
       // @ts-ignore
       setPreDefinedReasonList(fetched_data || []);
     } catch (error) {
-      console.error("Error fetching return reasons", error);
+      console.error("Error fetching return reasons", classifyError(error));
     } finally {
       setLoading(false);
     }
@@ -224,7 +225,7 @@ const SalesHistory = () => {
       setDataList(rows);
       setAllData(rows);
     } catch (error) {
-      console.error("Error fetching sales history", error);
+      console.error("Error fetching sales history", classifyError(error));
     } finally {
       setLoading(false);
     }
@@ -233,7 +234,6 @@ const SalesHistory = () => {
 
   // Filtering logic
   useEffect(() => {
-    console.log('[FILTER] dobSearch:', dobSearch, 'allData.length:', allData.length, 'first order_date:', allData[0]?.order_date);
     let filtered = allData;
     if (orderIdSearch.trim() !== "") {
       filtered = filtered.filter((item) =>
@@ -310,7 +310,7 @@ const SalesHistory = () => {
       } catch (e) {}
 
       if (!res.ok || !data.success) {
-        console.error('Failed to delete order', data);
+        logError('order.delete_failed', { status: res.status });
         alert(data.message || 'Failed to delete order');
       } else {
         // refresh list
@@ -321,7 +321,7 @@ const SalesHistory = () => {
         setOrderToDelete(null);
       }
     } catch (error) {
-      console.error('Error deleting order', error);
+      console.error('Error deleting order', classifyError(error));
       alert('Error deleting order');
     } finally {
       setDeleteLoading(false);

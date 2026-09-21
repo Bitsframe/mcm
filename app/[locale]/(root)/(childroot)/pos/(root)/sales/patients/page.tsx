@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import { Input_Component } from "@/components/Input_Component";
 import { Select_Dropdown } from "@/components/Select_Dropdown";
 import React, { useContext, useEffect, useState, useCallback } from "react";
@@ -283,7 +284,7 @@ const Patients = () => {
         setShowAddressSuggestions(false);
       }
     } catch (error) {
-      console.error('Error fetching address suggestions:', error);
+      console.error('Error fetching address suggestions:', classifyError(error));
       setAddressSuggestions([]);
       setShowAddressSuggestions(false);
     } finally {
@@ -324,7 +325,7 @@ const Patients = () => {
         setShowEditAddressSuggestions(false);
       }
     } catch (error) {
-      console.error('Error fetching address suggestions:', error);
+      console.error('Error fetching address suggestions:', classifyError(error));
       setEditAddressSuggestions([]);
       setShowEditAddressSuggestions(false);
     } finally {
@@ -661,7 +662,6 @@ const createNewDataHandle = async (): Promise<boolean> => {
     create_pos_walkin_appointment: true,
   };
 
-  console.log("Post Data Before Checking Required Fields:", postData);
 
   for (const field of requiredFields) {
     if (!postData[field as keyof typeof postData]) {
@@ -672,11 +672,9 @@ const createNewDataHandle = async (): Promise<boolean> => {
   }
 
   try {
-    console.log("Making POST request with data:", postData);
     const response = await axios.post("/api/user", postData);
 
     if (response?.data) {
-      console.log("Response received:", response);
       toast.success("Patient successfully added!");
       setCreateActionData({});
       setEmailError("");
@@ -686,7 +684,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
     }
     return false;
   } catch (error: any) {
-    console.error("Error adding patient:", error);
+    console.error("Error adding patient:", classifyError(error));
     const msg =
       error?.response?.data?.message ||
       error?.response?.data?.detail ||

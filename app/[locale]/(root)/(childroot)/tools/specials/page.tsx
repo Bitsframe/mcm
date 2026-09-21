@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Input_Component } from "@/components/Input_Component";
@@ -95,7 +96,7 @@ const SpecialsPage = () => {
 
       toast.success(t("Updated"));
     } catch (e: any) {
-      console.error("[onToggle] Error updating:", e);
+      console.error("[onToggle] Error updating:", classifyError(e));
       toast.error(e.message || t("FailedToUpdate"));
     }
   };

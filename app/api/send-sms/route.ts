@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { classifyError } from '@/utils/logging/safe-log';
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 
 const SNS_REGION = "us-east-2";
@@ -87,7 +88,7 @@ export const POST = async (req: Request) => {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("Error sending SMS:", error);
+    console.error("Error sending SMS:", classifyError(error));
     return NextResponse.json(
       { message: error?.message || "Internal Server Error" },
       { status: 500 }
@@ -146,7 +147,7 @@ export const POST = async (req: Request) => {
 //       { status: 200 }
 //     );
 //   } catch (error: any) {
-//     console.error("Error sending SMS:", error);
+//     console.error("Error sending SMS:", classifyError(error));
 //     return NextResponse.json(
 //       { message: error?.message || "Internal Server Error" },
 //       { status: 500 }

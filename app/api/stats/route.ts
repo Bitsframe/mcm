@@ -1,3 +1,4 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
     const {
       data: { user },
       error: authError,
@@ -75,7 +76,7 @@ export async function GET(req: Request) {
       locations_counted: locationIds.length,
     })
   } catch (err) {
-    console.error('[api/stats]', err)
+    console.error('[api/stats]', classifyError(err))
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed to load stats' },
       { status: 500 }

@@ -1,5 +1,7 @@
 "use client"
 
+
+import { classifyError } from '@/utils/logging/safe-log';
 import { useContext, useEffect, useState } from "react"
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services"
 import { LocationContext } from "@/context"
@@ -130,7 +132,7 @@ const TransactionsPage = () => {
                 )
               }
             } catch (err) {
-              console.error('Error fetching order data:', err)
+              console.error('Error fetching order data:', classifyError(err))
               return {
                 transaction_id: tx.id,
                 transaction_date: tx.created_at,
@@ -168,7 +170,7 @@ const TransactionsPage = () => {
 
       setTransactions(transactionsWithOrders)
     } catch (err) {
-      console.error('Failed to fetch transactions:', err)
+      console.error('Failed to fetch transactions:', classifyError(err))
       setTransactions([])
     } finally {
       setLoading(false)

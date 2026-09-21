@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import type React from "react";
 import {
   type FC,
@@ -248,7 +249,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         setShowAddressSuggestions(false);
       }
     } catch (error) {
-      console.error('Error fetching address suggestions:', error);
+      console.error('Error fetching address suggestions:', classifyError(error));
       setAddressSuggestions([]);
       setShowAddressSuggestions(false);
     } finally {
@@ -299,7 +300,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       const services = await getServices();
       setServiceList(services);
     } catch (error) {
-      console.error("Failed to fetch services:", error);
+      console.error("Failed to fetch services:", classifyError(error));
     }
   };
 
@@ -337,7 +338,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
       });
       setPatients(fetchedData || []);
     } catch (error) {
-      console.error("Error fetching patients:", error);
+      console.error("Error fetching patients:", classifyError(error));
     } finally {
       setLoading(false);
     }
@@ -357,7 +358,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         const locs = await fetchLocations();
         if (mounted) setLocations(locs || []);
       } catch (err) {
-        console.error("Failed to load locations", err);
+        console.error("Failed to load locations", classifyError(err));
       }
     })();
     return () => {
@@ -756,7 +757,7 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
         toast.error(response.data.message || "Failed to delete patient");
       }
     } catch (error: any) {
-      console.error("Error deleting patient:", error);
+      console.error("Error deleting patient:", classifyError(error));
       toast.error(error.response?.data?.message || "Failed to delete patient");
     } finally {
       setDeleteLoading(null);
@@ -1715,7 +1716,7 @@ const EditPatientForm: FC<EditPatientFormProps> = ({
       }
     } catch (error) {
       toast.error("No se pudo actualizar el paciente");
-      console.error("Error updating patient:", error);
+      console.error("Error updating patient:", classifyError(error));
     }
   };
 
@@ -2192,7 +2193,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({
         setShowAddressSuggestions(false);
       }
     } catch (error) {
-      console.error('Error fetching address suggestions:', error);
+      console.error('Error fetching address suggestions:', classifyError(error));
       setAddressSuggestions([]);
       setShowAddressSuggestions(false);
     } finally {

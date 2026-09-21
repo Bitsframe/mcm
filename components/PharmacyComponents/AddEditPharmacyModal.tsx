@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { classifyError } from '@/utils/logging/safe-log';
 import Modal from "@mui/material/Modal";
 import { Input_Component } from "../Input_Component";
 import { CreatePharmacyData, Pharmacy } from "@/types/pharmacy";
@@ -53,7 +54,7 @@ export default function AddEditPharmacyModal({
             const data = await res.json();
             setAddressLookupEnabled(data.enabled);
         } catch (err) {
-            console.error("Failed to check address lookup status:", err);
+            console.error("Failed to check address lookup status:", classifyError(err));
             setAddressLookupEnabled(false);
         }
     };
@@ -135,7 +136,7 @@ export default function AddEditPharmacyModal({
                 setAddressSuggestions([]);
             }
         } catch (error) {
-            console.error('Error fetching address suggestions:', error);
+            console.error('Error fetching address suggestions:', classifyError(error));
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -271,7 +272,7 @@ export default function AddEditPharmacyModal({
             });
 
         } catch (error: any) {
-            console.error('❌ Error checking pharmacy:', error);
+            console.error('❌ Error checking pharmacy:', classifyError(error));
             setIsCheckingApi(false);
             
             // On error, still try to add to database (fail-safe)

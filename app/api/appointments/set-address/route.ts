@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * Uses service role only after session + location access check.
  */
 export async function POST(req: Request) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
     error: authErr,

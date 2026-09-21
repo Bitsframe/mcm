@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: NextRequest) {
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get authenticated user for logging/validation
     const {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (error) {
-      console.error('[Reset Team] Supabase error:', error);
+      console.error('[Reset Team] Supabase error:', classifyError(error));
       return NextResponse.json(
         { error: 'Failed to reset team' },
         { status: 500 }
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       updated: data?.length || 0,
     });
   } catch (e) {
-    console.error('[Reset Team] Error:', e);
+    console.error('[Reset Team] Error:', classifyError(e));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

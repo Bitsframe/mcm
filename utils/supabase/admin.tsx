@@ -3,8 +3,9 @@ import { cookies } from 'next/headers'
 
 // Admin client for operations that require elevated privileges
 // Only use this for specific admin operations that need to bypass RLS
-export const createAdminClient = () => {
-  const cookieStore = cookies()
+export const createAdminClient = async () => {
+  // Next 15 made cookies() async; every caller therefore awaits this factory.
+  const cookieStore = await cookies()
 
   const key = (process.env.SUPABASE_SECRET_KEY ?? '').trim()
   if (!key) {

@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { classifyError } from '@/utils/logging/safe-log';
 import autoTable from 'jspdf-autotable';
 import React, { useContext, useState } from 'react';
 import DateRangeModal from './DateRangeModal';
@@ -161,7 +162,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     totalPaidBonus = (paidBonusRows || []).reduce((s: number, r: any) => s + toNumber(r.bonus_amount), 0);
 
                 } catch (e) {
-                    console.error('ExportAsPDF: error fetching/processing bonus debug rows', e);
+                    console.error('ExportAsPDF: error fetching/processing bonus debug rows', classifyError(e));
                 }
             } catch (e) {
                 // ignore in non-browser env
@@ -184,7 +185,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
 
                 }
             } catch (e) {
-                console.error('ExportAsPDF: Error fetching discounts for orders:', e);
+                console.error('ExportAsPDF: Error fetching discounts for orders:', classifyError(e));
             }
 
             // DEBUG: fetch ALL discounts (select * from discounts) to confirm the table rows exist and inspect types
@@ -205,9 +206,9 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         discount_value: d.discount_value,
                     }));
    
-                } catch (e) { console.error('ExportAsPDF: error summarizing allDiscounts', e); }
+                } catch (e) { console.error('ExportAsPDF: error summarizing allDiscounts', classifyError(e)); }
             } catch (e) {
-                console.error('ExportAsPDF: Error fetching ALL discounts (debug):', e);
+                console.error('ExportAsPDF: Error fetching ALL discounts (debug):', classifyError(e));
             }
 
             // EXTRA DEBUG: fetch and log related tables explicitly to narrow down which data is missing
@@ -241,7 +242,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     console.log('[ExportAsPDF] no inventoryIds found in fetched_data');
                 }
             } catch (e) {
-                console.error('ExportAsPDF: Error during extra debug fetches:', e);
+                console.error('ExportAsPDF: Error during extra debug fetches:', classifyError(e));
             }
 
             // Define table column headers to match desired product-level layout
@@ -464,7 +465,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                             });
                         }
                     } catch (e) {
-                        console.error('ExportAsPDF: error resolving sales team members', e);
+                        console.error('ExportAsPDF: error resolving sales team members', classifyError(e));
                     }
                 }
 
@@ -747,7 +748,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             // DEBUG: log final PDF payload that's passed into autoTable
             try {
                 // logging removed for production
-            } catch (e) { console.error('ExportAsPDF: Error logging PDF payload', e); }
+            } catch (e) { console.error('ExportAsPDF: Error logging PDF payload', classifyError(e)); }
 
             // Render each order separately: draw the patient/invoice block manually
             // and then render that order's product table. This lets us measure
@@ -881,7 +882,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                     // Update cursorY to the end of the table
                     cursorY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 8 : cursorY + productTableEstimate;
                 } catch (e) {
-                    console.error('ExportAsPDF: error rendering order', oIdStr, e);
+                    console.error('ExportAsPDF: error rendering order', oIdStr, classifyError(e));
                 }
             }
 
@@ -894,7 +895,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             handleClose();
         } catch (error) {
             setLoading(false);
-            console.error('Error generating PDF:', error);
+            console.error('Error generating PDF:', classifyError(error));
             toast.error('An error occurred while generating the PDF');
         }
     };

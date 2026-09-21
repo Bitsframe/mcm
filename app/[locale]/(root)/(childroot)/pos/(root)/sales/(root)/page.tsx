@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import React, {
   type FC,
   useContext,
@@ -365,7 +366,7 @@ const Orders = () => {
 
       setAllProductsForLocation(formatted);
     } catch (err) {
-      console.error('Error fetching products for location', err);
+      console.error('Error fetching products for location', classifyError(err));
       setAllProductsForLocation([]);
     } finally {
       setLoadingAllProducts(false);
@@ -505,7 +506,7 @@ const [discountModalOpen, setDiscountModalOpen] = useState(false);
           const totalCredit = data && data.length > 0 ? data[0]?.balance : 0;
           setCreditAmount(totalCredit);
         } catch (error) {
-          console.error("Error fetching credit balance:", error);
+          console.error("Error fetching credit balance:", classifyError(error));
           setCreditAmount(0);
         }
       } else {
@@ -846,7 +847,7 @@ const addToCartHandle = () => {
       setCashInput("");
       setZelleInput("");
     } catch (err: any) {
-      console.error("❌ Order placement failed:", err);
+      console.error("❌ Order placement failed:", classifyError(err));
       toast.error(err.response?.data?.message || err.message, {
         style: {
           background: "#FFFFFF",

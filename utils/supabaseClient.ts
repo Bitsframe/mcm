@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
+import { classifyError } from '@/utils/logging/safe-log';
 let _client: SupabaseClient | undefined;
 
 function getClient(): SupabaseClient {
@@ -36,7 +37,7 @@ const testConnection = async () => {
     console.log("Supabase connection successful, found data:", data);
     return true;
   } catch (error) {
-    console.error("Error connecting to Supabase:", error);
+    console.error("Error connecting to Supabase:", classifyError(error));
     return false;
   }
 };
