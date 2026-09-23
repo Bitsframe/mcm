@@ -34,18 +34,18 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({
             <Label
                 htmlFor="quantity"
                 value={t("POS-Sales_k7")}
-                className="font-bold text-gray-900 dark:text-gray-200 mb-0.5 block text-sm"
+                className="font-bold text-gray-900 mb-0.5 block text-sm"
             />
             
-            <div className="bg-white dark:bg-[#0e1725] p-2 rounded-lg flex items-center w-full border dark:border-gray-700">
-                <p className="flex-1 text-gray-900 dark:text-gray-100 text-sm">{quantity}</p>
+            <div className="bg-white p-2 rounded-lg flex items-center w-full border">
+                <p className="flex-1 text-gray-900 text-sm">{quantity}</p>
                 <div className="flex gap-1 items-center">
                     <button
                         onClick={handlePlusClick}
                         disabled={!canAddMore || disabled}
                         className="disabled:opacity-60 disabled:cursor-default"
                     >
-                        <AiFillPlusCircle className="text-gray-600 dark:text-gray-300 text-lg" />
+                        <AiFillPlusCircle className="text-gray-600 text-lg" />
                     </button>
                     
                     <button
@@ -53,7 +53,7 @@ export const Quantity_Field: FC<QuantityFieldInterface> = ({
                         disabled={quantity === 0 || disabled}
                         className="disabled:opacity-60 disabled:cursor-default"
                     >
-                        <AiFillMinusCircle className="text-gray-600 dark:text-gray-300 text-lg" />
+                        <AiFillMinusCircle className="text-gray-600 text-lg" />
                     </button>
                 </div>
             </div>

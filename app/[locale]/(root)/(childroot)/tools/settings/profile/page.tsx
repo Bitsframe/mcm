@@ -1,5 +1,7 @@
 'use client';
 
+import { resolveAvatar } from '@/utils/avatar';
+
 import { classifyError } from '@/utils/logging/safe-log';
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
@@ -39,8 +41,9 @@ const Profile = () => {
         role: userRole || ''
       });
       
-      if (userProfile.profile_pictures) {
-        setProfileImage(userProfile.profile_pictures);
+      const picture = resolveAvatar(userProfile.profile_pictures);
+      if (picture) {
+        setProfileImage(picture);
       }
     }
   }, [userProfile, userRole]);
@@ -164,9 +167,9 @@ const Profile = () => {
         fullName: userProfile.full_name || `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim(),
         email: userProfile.email || '',
         role: userRole || '',
-        profileImage: userProfile.profile_pictures || ''
+        profileImage: resolveAvatar(userProfile.profile_pictures) || ''
       });
-      setProfileImage(userProfile.profile_pictures || null);
+      setProfileImage(resolveAvatar(userProfile.profile_pictures));
     }
     setUploadError(null);
     setUploadSuccess(false);
@@ -177,24 +180,24 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-background dark:bg-gray-900">
-  <div className="sm:bg-white sm:dark:bg-[#0E1725] sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm sm:p-0 p-0 w-full sm:w-auto sm:mx-0 mx-0 flex sm:block justify-center items-start sm:justify-normal sm:items-stretch min-h-fit">
-    <div className="w-full max-w-md mx-2 sm:mx-0 sm:max-w-none sm:w-auto bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-700 sm:shadow-sm">
-      <div className="p-4 border-b dark:border-gray-700">
-        <h1 className="text-lg sm:text-base font-semibold text-gray-900 dark:text-white">{t("Settings_k4")}</h1>
+    <div className="bg-background">
+  <div className="sm:bg-white sm:rounded-lg sm:border sm:border-gray-200 sm:shadow-sm sm:p-0 p-0 w-full sm:w-auto sm:mx-0 mx-0 flex sm:block justify-center items-start sm:justify-normal sm:items-stretch min-h-fit">
+    <div className="w-full max-w-md mx-2 sm:mx-0 sm:max-w-none sm:w-auto bg-white rounded-lg border border-gray-200 shadow-sm sm:rounded-lg sm:border sm:border-gray-200 sm:shadow-sm">
+      <div className="p-4 border-b">
+        <h1 className="text-headline text-label">{t("Settings_k4")}</h1>
       </div>
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="flex flex-row items-center gap-4 mb-6">
             <div className="flex flex-col">
-              <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <span className="text-xs text-gray-500 mb-1">
                 {t("Settings_k5")}
               </span>
               <div
                 className="relative w-20 h-20 cursor-pointer rounded-full overflow-hidden"
                 onClick={handleImageClick}
               >
-                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center border border-gray-300">
                   {profileImage ? (
                     <>
                       <Image
@@ -212,7 +215,7 @@ const Profile = () => {
                   ) : (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                      className="h-5 w-5 text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -257,7 +260,7 @@ const Profile = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs text-gray-500 dark:text-gray-400">
+              <label className="text-xs text-gray-500">
                 {t("Settings_k6")}
               </label>
               <input
@@ -265,13 +268,13 @@ const Profile = () => {
                 name="fullName"
                 value={userData.fullName}
                 onChange={handleInputChange}
-                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
+                className="w-full p-2 text-sm border border-gray-300 rounded bg-[#F5F5F7]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-gray-500 dark:text-gray-400">
+              <label className="text-xs text-gray-500">
                 {t("Settings_k7")}
               </label>
               <input
@@ -279,20 +282,20 @@ const Profile = () => {
                 name="email"
                 value={userData.email}
                 onChange={handleInputChange}
-                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-[#f1f4f7] dark:bg-gray-800 dark:text-white"
+                className="w-full p-2 text-sm border border-gray-300 rounded bg-[#F5F5F7]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-gray-500 dark:text-gray-400">
+              <label className="text-xs text-gray-500">
                 {t("Settings_k8")}
               </label>
               <input
                 type="text"
                 name="role"
                 value={userData.role}
-                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-300 cursor-not-allowed"
+                className="w-full p-2 text-sm border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
                 readOnly
               />
             </div>
@@ -309,7 +312,7 @@ const Profile = () => {
               </button>
               <Button 
                 type="submit"
-                className="bg-[#0066FF] hover:bg-blue-600 px-5 text-sm rounded-lg transition-colors"
+                className="bg-[#166534] hover:bg-brand-600 px-5 text-sm rounded-lg transition-colors"
                 disabled={isUploading}
               >
                 {t("Settings_k10")}

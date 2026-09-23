@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { dbSync } from '@/utils/sync/directDbSync';
@@ -10,6 +11,9 @@ export const PUT = async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const supabase = getServiceRoleSupabase();
   // Next 15 made params a Promise.
   const id = Number((await params).id); // 🔑 ensure integer
@@ -84,6 +88,9 @@ export const DELETE = async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const supabase = getServiceRoleSupabase();
   // Next 15 made params a Promise.
   const id = Number((await params).id); // 🔑 ensure integer

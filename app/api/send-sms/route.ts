@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from "next/server";
 import { classifyError } from '@/utils/logging/safe-log';
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
@@ -26,6 +27,9 @@ function getSnsClient() {
 }
 
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const snsClient = getSnsClient();
   try {
     const { phoneNumbers, message } = await req.json();
@@ -100,6 +104,7 @@ export const POST = async (req: Request) => {
 // const phoneRegex = /^\+?\d{10,15}$/;
 
 // export const POST = async (req: Request) => {
+
 //   try {
 //     const { phoneNumbers, message } = await req.json();
 

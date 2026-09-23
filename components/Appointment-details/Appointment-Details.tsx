@@ -62,8 +62,8 @@ const AppointmentDetails = memo(
     };
 
     return (
-      <div className="flex flex-col h-full space-y-2 sm:space-y-5 text-black dark:text-white p-2 sm:p-4">
-        <h1 className="text-base sm:text-lg font-semibold dark:text-white">
+      <div className="flex flex-col h-full space-y-2 sm:space-y-5 text-black p-2 sm:p-4">
+        <h1 className="text-base sm:text-lg font-semibold">
           {t("Appoinments_k52")}
         </h1>
 
@@ -71,12 +71,12 @@ const AppointmentDetails = memo(
           {render_detail_keys.map((elem, index) => (
             <div
               key={index}
-              className="border-b border-gray-100 dark:border-gray-700 pb-2 sm:border-none sm:pb-0"
+              className="border-b border-gray-100 pb-2 sm:border-none sm:pb-0"
             >
-              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-1">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">
                 {t(elem.label, { defaultValue: (enAppoinments as any)[elem.label] ?? elem.label })}
               </p>
-              <p className="font-medium dark:text-gray-200 text-xs sm:text-base break-words">
+              <p className="font-medium text-xs sm:text-base break-words">
                 {elem.date_format
                   ? moment(appointment_details["created_at"]).format("LLL")
                   : elem.type === "date_slot" &&
@@ -111,7 +111,7 @@ const AppointmentDetails = memo(
         {/* <div className="flex gap-3 mt-6">
         <button
           onClick={() => onDelete(appointment_details.id)}
-          className="border-2 border-red-700 text-red-700 rounded-md px-4 py-2 text-sm hover:bg-red-50 active:opacity-60 w-full dark:border-red-500 dark:text-red-500 dark:hover:bg-red-900/10"
+          className="border-2 border-red-700 text-red-700 rounded-md px-4 py-2 text-sm hover:bg-red-50 active:opacity-60 w-full"
         >
           {t("Appoinments_k33")}
         </button>

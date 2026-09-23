@@ -1,7 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { classifyError } from '@/utils/logging/safe-log';
 export async function POST(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     try {
         const body = await request.json();
         

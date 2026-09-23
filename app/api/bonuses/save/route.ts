@@ -4,15 +4,20 @@ import { createClient } from '@/utils/supabase/server'
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+    }
+
     const body = await req.json()
-  const { bonuses, configOnly } = body
+    const { bonuses, configOnly } = body
     console.log('[api/bonuses/save] received body:', JSON.stringify(body?.bonuses ? { count: body.bonuses.length } : body))
     if (!bonuses || !Array.isArray(bonuses)) {
       console.log('[api/bonuses/save] invalid payload, bonuses missing or not array')
       return NextResponse.json({ error: 'Invalid payload: bonuses array required' }, { status: 400 })
     }
-
-    const supabase = await createClient()
 
     // Log incoming bonuses shape for debugging
     try {

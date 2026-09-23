@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { keepPortalLocations } from '@/utils/server/portal-locations';
 import { bridgePost, bridgePatch, BridgeError, type PatientCreateResult } from '@/lib/bridge/client';
 
 export const dynamic = 'force-dynamic';
@@ -55,10 +56,16 @@ export const GET = async (req: Request) => {
                 .single() :
             { data: { name: 'admin' } };
 
+        // Only locations switched on for the portal count as this user's locations.
+        const portalLocations = await keepPortalLocations(
+            supabase,
+            (locationsResult.data ?? []).map((row: any) => Number(row.location_id)).filter((id: number) => Number.isFinite(id))
+        );
+
         // Construct response data with null checks and type casting
         const userData = {
             profile: profileResult.data,
-            locations: locationsResult.data?.map(location => location.location_id) ?? [],
+            locations: portalLocations,
             permissions: permissionsResult.data?.map(elem => elem.permissions.permission) ?? [],
             role: roleResult.data?.name ?? 'admin'
         };

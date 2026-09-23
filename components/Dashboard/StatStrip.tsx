@@ -44,13 +44,13 @@ function tilesFor(page: StatsPage, d: Numbers): Tile[] {
     case "patients":
       return [
         { label: "Total patients", value: num(d.total), sub: `${num(d.month)} new this month`, icon: <Users size={16} className="text-violet-700" />, accent: "bg-violet-50" },
-        { label: "Seen this month", value: num(d.seen_this_month), sub: "with a visit recorded", icon: <CalendarCheck2 size={16} className="text-blue-700" />, accent: "bg-blue-50" },
+        { label: "Seen this month", value: num(d.seen_this_month), sub: "with a visit recorded", icon: <CalendarCheck2 size={16} className="text-brand-700" />, accent: "bg-brand-50" },
         { label: "Onsite", value: num(d.onsite), sub: "registered at a clinic", icon: <MapPin size={16} className="text-emerald-700" />, accent: "bg-emerald-50" },
         { label: "Offsite", value: num(d.offsite), sub: "registered remotely", icon: <UserPlus size={16} className="text-slate-700" />, accent: "bg-slate-100" },
       ];
     case "appointments":
       return [
-        { label: "Today", value: num(d.today), sub: "scheduled for today", icon: <CalendarCheck2 size={16} className="text-blue-700" />, accent: "bg-blue-50" },
+        { label: "Today", value: num(d.today), sub: "scheduled for today", icon: <CalendarCheck2 size={16} className="text-brand-700" />, accent: "bg-brand-50" },
         { label: "Upcoming", value: num(d.upcoming), sub: "today and later", icon: <CalendarClock size={16} className="text-violet-700" />, accent: "bg-violet-50" },
         {
           label: "Awaiting approval",
@@ -65,13 +65,13 @@ function tilesFor(page: StatsPage, d: Numbers): Tile[] {
     case "sales":
       return [
         { label: "Revenue today", value: money(d.revenue_today), sub: "so far today", icon: <DollarSign size={16} className="text-emerald-700" />, accent: "bg-emerald-50" },
-        { label: "Revenue this month", value: money(d.revenue_month), sub: `${num(d.orders_month)} items sold`, icon: <Receipt size={16} className="text-blue-700" />, accent: "bg-blue-50" },
+        { label: "Revenue this month", value: money(d.revenue_month), sub: `${num(d.orders_month)} items sold`, icon: <Receipt size={16} className="text-brand-700" />, accent: "bg-brand-50" },
         { label: "Average sale", value: money(d.avg_sale_month), sub: "this month", icon: <DollarSign size={16} className="text-violet-700" />, accent: "bg-violet-50" },
         { label: "Items sold", value: num(d.orders_month), sub: "this month", icon: <Package size={16} className="text-slate-700" />, accent: "bg-slate-100" },
       ];
     case "inventory":
       return [
-        { label: "Items stocked", value: num(d.stocked_items), sub: `across ${num(d.locations)} locations`, icon: <Package size={16} className="text-blue-700" />, accent: "bg-blue-50" },
+        { label: "Items stocked", value: num(d.stocked_items), sub: `across ${num(d.locations)} locations`, icon: <Package size={16} className="text-brand-700" />, accent: "bg-brand-50" },
         {
           label: "Out of stock",
           value: num(d.out_of_stock),
@@ -92,7 +92,7 @@ function tilesFor(page: StatsPage, d: Numbers): Tile[] {
       ];
     case "warehouse":
       return [
-        { label: "Products", value: num(d.products), sub: "in the catalogue", icon: <Package size={16} className="text-blue-700" />, accent: "bg-blue-50" },
+        { label: "Products", value: num(d.products), sub: "in the catalogue", icon: <Package size={16} className="text-brand-700" />, accent: "bg-brand-50" },
         { label: "Categories", value: num(d.categories), sub: "product groups", icon: <Layers size={16} className="text-violet-700" />, accent: "bg-violet-50" },
         { label: "Items stocked", value: num(d.stocked_items), sub: "across your locations", icon: <Package size={16} className="text-emerald-700" />, accent: "bg-emerald-50" },
         {

@@ -97,7 +97,7 @@ const LocationLimits = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen dark:bg-[#0e1725]">
+      <div className="flex items-center justify-center h-screen">
         <CircularProgress />
       </div>
     )
@@ -108,31 +108,31 @@ const LocationLimits = () => {
   }
 
   return (
-    <main className="flex-1 space-y-4 h-[80dvh] dark:bg-[#0e1725]">
-      <Card className="w-full dark:bg-[#0e1725] dark:border-gray-700">
-        <CardHeader className="dark:bg-[#0e1725]">
-          <CardTitle className="dark:text-white">{t("CT_k1")}</CardTitle>
+    <main className="flex-1 space-y-4 h-[80dvh]">
+      <Card className="w-full">
+        <CardHeader className="">
+          <CardTitle className="">{t("CT_k1")}</CardTitle>
         </CardHeader>
-        <CardContent className="dark:bg-[#0e1725]">
+        <CardContent className="">
           <div className="hidden md:block">
-            <div className="overflow-x-auto h-[55dvh] border rounded-lg dark:border-gray-700">
-              <Table className="w-full table-fixed dark:bg-[#0e1725]">
-                <TableHeader className="sticky top-0 bg-white dark:bg-[#0e1725] z-10">
-                  <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
-                    <TableHead className="w-[25%] dark:text-white text-left px-4 py-3">{t("CT_k21")}</TableHead>
-                    <TableHead className="w-[20%] dark:text-white text-left px-4 py-3">{t("CT_k22")}</TableHead>
-                    <TableHead className="w-[20%] dark:text-white text-left px-4 py-3">{t("CT_k23")}</TableHead>
-                    <TableHead className="w-[20%] dark:text-white text-left px-4 py-3">{t("CT_k24")}</TableHead>
-                    <TableHead className="w-[15%] dark:text-white text-left px-4 py-3">{t("CT_k25")}</TableHead>
+            <div className="overflow-x-auto h-[55dvh] border rounded-lg">
+              <Table className="w-full table-fixed">
+                <TableHeader className="sticky top-0 bg-white z-10">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[25%] text-left px-4 py-3">{t("CT_k21")}</TableHead>
+                    <TableHead className="w-[20%] text-left px-4 py-3">{t("CT_k22")}</TableHead>
+                    <TableHead className="w-[20%] text-left px-4 py-3">{t("CT_k23")}</TableHead>
+                    <TableHead className="w-[20%] text-left px-4 py-3">{t("CT_k24")}</TableHead>
+                    <TableHead className="w-[15%] text-left px-4 py-3">{t("CT_k25")}</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="dark:bg-[#0e1725]">
+                <TableBody className="">
                   {!updatedLocations || updatedLocations.length === 0 ? (
-                    <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
-                      <TableCell colSpan={5} className="text-center py-8 dark:bg-[#0e1725] dark:text-white">
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell colSpan={5} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center space-y-2">
-                          <p className="text-gray-500 dark:text-gray-400">No locations found</p>
-                          <p className="text-sm text-gray-400 dark:text-gray-500">
+                          <p className="text-gray-500">No locations found</p>
+                          <p className="text-sm text-gray-400">
                             There are no location records available.
                           </p>
                         </div>
@@ -142,20 +142,20 @@ const LocationLimits = () => {
                     updatedLocations.map((location: LocationLimit) => (
                       <TableRow
                         key={location.id}
-                        className="hover:bg-transparent dark:hover:bg-transparent border-t dark:border-gray-700"
+                        className="hover:bg-transparent border-t"
                       >
-                        <TableCell className="w-[25%] dark:text-white px-4 py-3 truncate">{location.title}</TableCell>
-                        <TableCell className="w-[20%] dark:text-white px-4 py-3">
+                        <TableCell className="w-[25%] px-4 py-3 truncate">{location.title}</TableCell>
+                        <TableCell className="w-[20%] px-4 py-3">
                           {refreshingBalance === location.id ? (
                             <div className="flex items-center space-x-2">
                               <CircularProgress size={16} />
-                              <span className="text-sm text-gray-500 dark:text-gray-400">Updating...</span>
+                              <span className="text-sm text-gray-500">Updating...</span>
                             </div>
                           ) : (
                             <span className="whitespace-nowrap">{formatBalance(location.balance)}</span>
                           )}
                         </TableCell>
-                        <TableCell className="w-[20%] dark:text-white px-4 py-3">
+                        <TableCell className="w-[20%] px-4 py-3">
                           <span className="whitespace-nowrap">${location.credit_limit.toFixed(2)}</span>
                         </TableCell>
                         <TableCell className="w-[20%] px-4 py-3">
@@ -165,7 +165,7 @@ const LocationLimits = () => {
                             step="0.01"
                             value={newLimits[location.id] || ""}
                             onChange={(e) => handleLimitChange(location.id, e.target.value)}
-                            className="w-full max-w-[120px] dark:bg-[#1e293b] dark:border-gray-600 dark:text-white"
+                            className="w-full max-w-[120px]"
                             placeholder="Enter new limit"
                           />
                         </TableCell>
@@ -173,7 +173,7 @@ const LocationLimits = () => {
                           <Button
                             onClick={() => updateLocationLimit(location.id)}
                             disabled={updating === location.id || newLimits[location.id] === location.credit_limit}
-                            className="w-full max-w-[80px] bg-blue-600 dark:hover:bg-blue-700 text-xs"
+                            className="w-full max-w-[80px] bg-brand-600 text-xs"
                           >
                             {updating === location.id ? <CircularProgress size={16} color="inherit" /> : t("CT_k33")}
                           </Button>
@@ -186,39 +186,39 @@ const LocationLimits = () => {
             </div>
           </div>
 
-          <div className="md:hidden space-y-4 dark:bg-[#0e1725]">
+          <div className="md:hidden space-y-4">
             {!updatedLocations || updatedLocations.length === 0 ? (
-              <div className="text-center py-8 dark:bg-[#0e1725]">
+              <div className="text-center py-8">
                 <div className="flex flex-col items-center justify-center space-y-2">
-                  <p className="text-gray-500 dark:text-gray-400">No locations found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">There are no location records available.</p>
+                  <p className="text-gray-500">No locations found</p>
+                  <p className="text-sm text-gray-400">There are no location records available.</p>
                 </div>
               </div>
             ) : (
               updatedLocations.map((location: LocationLimit) => (
-                <Card key={location.id} className="p-4 dark:bg-[#1e293b] dark:border-gray-700">
+                <Card key={location.id} className="p-4">
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium dark:text-gray-300">{t("CT_k21")}</span>
-                      <span className="dark:text-white">{location.title}</span>
+                      <span className="font-medium">{t("CT_k21")}</span>
+                      <span className="">{location.title}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium dark:text-gray-300">{t("CT_k22")}</span>
+                      <span className="font-medium">{t("CT_k22")}</span>
                       {refreshingBalance === location.id ? (
                         <div className="flex items-center space-x-2">
                           <CircularProgress size={16} />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Updating...</span>
+                          <span className="text-sm text-gray-500">Updating...</span>
                         </div>
                       ) : (
-                        <span className="dark:text-white">{formatBalance(location.balance)}</span>
+                        <span className="">{formatBalance(location.balance)}</span>
                       )}
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium dark:text-gray-300">{t("CT_k23")}</span>
-                      <span className="dark:text-white">${location.credit_limit.toFixed(2)}</span>
+                      <span className="font-medium">{t("CT_k23")}</span>
+                      <span className="">${location.credit_limit.toFixed(2)}</span>
                     </div>
                     <div className="space-y-2">
-                      <div className="font-medium dark:text-gray-300">{t("CT_k24")}</div>
+                      <div className="font-medium">{t("CT_k24")}</div>
                       <Input
                         type="number"
                         min="0"
@@ -226,13 +226,13 @@ const LocationLimits = () => {
                         value={newLimits[location.id] || ""}
                         onChange={(e) => handleLimitChange(location.id, e.target.value)}
                         placeholder="Enter new limit"
-                        className="dark:bg-[#0e1725] dark:border-gray-600 dark:text-white"
+                        className=""
                       />
                     </div>
                     <Button
                       onClick={() => updateLocationLimit(location.id)}
                       disabled={updating === location.id || newLimits[location.id] === location.credit_limit}
-                      className="w-full mt-2 dark:bg-blue-600 dark:hover:bg-blue-700"
+                      className="w-full mt-2"
                     >
                       {updating === location.id ? <CircularProgress size={20} color="inherit" /> : t("CT_k26")}
                     </Button>

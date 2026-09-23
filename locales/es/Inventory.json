@@ -65,5 +65,8 @@
   "Inventory_k64": "Elegible para bonificación",
   "Inventory_k65": "Seleccionar clínica",
   "Inventory_k66": "Número de Unidades",
-  "Inventory_k67": "No se pueden asignar más unidades de las disponibles"
+  "Inventory_k67": "No se pueden asignar más unidades de las disponibles",
+  "Inventory_kViewStockAt": "Ver existencias en",
+  "Inventory_kWarehouseAll": "Almacén (todas las sedes)",
+  "Inventory_kSearchLocations": "Buscar sedes…"
 }

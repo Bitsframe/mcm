@@ -207,5 +207,8 @@
 	"POS-Sales_kPrev": "Previous",
 	"POS-Sales_kNext": "Next",
 	"POS-Sales_kPage": "Page",
-	"POS-Sales_kOf": "of"
+	"POS-Sales_kOf": "of",
+	"POS-Sales_kDecreaseQty": "Decrease quantity",
+	"POS-Sales_kIncreaseQty": "Increase quantity",
+	"POS-Sales_kRemoveItem": "Remove item"
 }

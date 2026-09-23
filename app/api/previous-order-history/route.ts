@@ -1,9 +1,13 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const supabase = await supabaseCreateClient();
     const { patientId, currentOrderId } = await req.json();

@@ -226,12 +226,12 @@ const UserManagementComponent = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-1 dark:bg-[#0E1725]">
-      <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
+    <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-1">
+      <div className="w-full bg-white rounded-lg">
         {/* Heading Section */}
         <div className="p-1 sm:px-3">
-          <h1 className="text-xl font-bold dark:text-white">{t("UM_k17")}</h1>
-          <h1 className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="text-xl font-bold">{t("UM_k17")}</h1>
+          <h1 className="mt-1 text-sm text-gray-500">
             {t("UM_k16")}
           </h1>
         </div>
@@ -241,16 +241,16 @@ const UserManagementComponent = () => {
           <div className="relative w-full sm:w-60">
             <input
               onChange={onChangeHandle}
-              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
+              className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-[#F5F5F7]"
               type="text"
               placeholder={t("UM_k3")}
             />
-            <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300" />
+            <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400" />
           </div>
 
           <button
             onClick={handleOpen}
-            className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 flex items-center gap-2 
+            className="bg-brand-600 text-sm text-white px-4 py-2 rounded-md hover:bg-brand-700 active:bg-brand-800 flex items-center gap-2 
     sm:w-auto w-full justify-center sm:justify-start"
           >
             <CirclePlus className="text-lg" />
@@ -261,29 +261,29 @@ const UserManagementComponent = () => {
         {/* Table */}
         <div className="px-3">
           {/* Desktop Table */}
-          <div className="hidden sm:block border rounded-md overflow-auto dark:border-[#172945] relative">
+          <div className="hidden sm:block border rounded-md overflow-auto relative">
             <Table>
-              <TableHeader className="sticky top-0 bg-white dark:bg-[#0E1725] z-10">
-                <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-[#172945]">
-                  <TableHead className="w-10 dark:bg-[#0E1725]"></TableHead>
+              <TableHeader className="sticky top-0 bg-white z-10">
+                <TableRow className="border-b text-sm text-[#6E6E73]">
+                  <TableHead className="w-10"></TableHead>
                   {tableHeader.map(({ label, align, classNames }, index) => (
                     <TableHead
                       key={index}
                       className={`font-medium ${align || "text-left"} ${
                         classNames || ""
-                      } dark:text-white dark:bg-[#0E1725]`}
+                      }`}
                     >
                       {t(label)}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
-              <TableBody className="divide-y dark:bg-[#0E1725]">
+              <TableBody className="divide-y">
                 {tableLoading ? (
                   <TableRow>
                     <TableCell
                       colSpan={tableHeader.length + 1}
-                      className="py-20 dark:bg-[#0E1725]"
+                      className="py-20"
                     >
                       <div className="flex justify-center">
                         <CircularProgress />
@@ -294,9 +294,9 @@ const UserManagementComponent = () => {
                   paginatedDataLarge.map((elem, index) => (
                     <TableRow
                       key={index}
-                      className="hover:bg-gray-50 dark:bg-[#0E1725] dark:border-[#172945]"
+                      className="hover:bg-gray-50"
                     >
-                      <TableCell className="py-4 pr-3 dark:bg-[#0E1725]"></TableCell>
+                      <TableCell className="py-4 pr-3"></TableCell>
                       {tableHeader.map(({ id, classNames, align }, ind) => {
                         const content = elem[id];
                         return (
@@ -304,21 +304,21 @@ const UserManagementComponent = () => {
                             key={ind}
                             className={`py-4 ${align || "text-left"} ${
                               classNames || ""
-                            } dark:text-white dark:bg-[#0E1725]`}
+                            }`}
                           >
                             {id === "toggle" ? (
                               <Switch />
                             ) : id === "actions" ? (
                               <div className="flex items-center space-x-4 justify-end">
                                 <button
-                                  className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
+                                  className="text-gray-500 hover:text-gray-700"
                                   onClick={() => viewUserHandle(elem)}
                                 >
                                   <Eye className="w-4 h-4" color="grey" />
                                 </button>
 
                                 <button
-                                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                  className="text-brand-500 hover:text-brand-700"
                                   onClick={() => editUserHandle(elem)}
                                 >
                                   <PenBoxIcon
@@ -328,7 +328,7 @@ const UserManagementComponent = () => {
                                 </button>
 
                                 <button
-                                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                  className="text-red-500 hover:text-red-700"
                                   disabled={elem.role === "super admin"}
                                   onClick={() => deleteUserHandle(elem.id)}
                                 >
@@ -339,16 +339,16 @@ const UserManagementComponent = () => {
                               <div>
                                 {Array.isArray(content) ? (
                                   content.length > 1 ? (
-                                    <span className="dark:text-white">
+                                    <span className="">
                                       Multiple Locations
                                     </span>
                                   ) : content.length === 1 ? (
-                                    <span className="dark:text-white">
+                                    <span className="">
                                       {content[0].title}
                                     </span>
                                   ) : null
                                 ) : (
-                                  <span className="dark:text-white">
+                                  <span className="">
                                     {content}
                                   </span>
                                 )}
@@ -374,32 +374,32 @@ const UserManagementComponent = () => {
               paginatedDataSmall.map((elem, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 dark:border-[#172945] dark:bg-[#0E1725]"
+                  className="border rounded-lg p-4"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium text-base dark:text-white">
+                      <h3 className="font-medium text-base">
                         {elem.full_name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                      <p className="text-sm text-gray-500">
                         {elem.role}
                       </p>
                     </div>
                     <div className="flex space-x-2">
                       <button
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
+                        className="text-gray-500 hover:text-gray-700"
                         onClick={() => viewUserHandle(elem)}
                       >
                         <Eye className="w-4 h-4" color="grey" />{" "}
                       </button>
                       <button
-                        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="text-brand-500 hover:text-brand-700"
                         onClick={() => editUserHandle(elem)}
                       >
-                        <PenBoxIcon className="w-4 h-4" color="blue" />
+                        <PenBoxIcon className="w-4 h-4" />
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        className="text-red-500 hover:text-red-700"
                         disabled={elem.role === "super admin"}
                         onClick={() => deleteUserHandle(elem.id)}
                       >
@@ -409,16 +409,16 @@ const UserManagementComponent = () => {
                   </div>
                   <div className="mt-3 space-y-2">
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                      <p className="text-sm text-gray-500">
                         {t("UM_k9")}
                       </p>
-                      <p className="text-sm dark:text-white">{elem.email}</p>
+                      <p className="text-sm">{elem.email}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">
+                      <p className="text-sm text-gray-500">
                         {t("UM_k6")}
                       </p>
-                      <p className="text-sm dark:text-white">
+                      <p className="text-sm">
                         {elem.locations.length > 0
                           ? elem.locations.length > 1
                             ? "Multiple Locations"
@@ -433,8 +433,8 @@ const UserManagementComponent = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center pt-3 text-sm dark:text-white">
-            <div className="text-gray-500 dark:text-gray-300">
+          <div className="flex justify-between items-center pt-3 text-sm">
+            <div className="text-gray-500">
               {dataList.length > 0
                 ? `${t("UM_k21")} ${
                     (currentPage - 1) *
@@ -453,14 +453,14 @@ const UserManagementComponent = () => {
             </div>
             <div className="flex gap-2">
               <button
-                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                 onClick={handlePrevious}
                 disabled={currentPage === 1}
               >
                 {t("UM_k18")}
               </button>
               <button
-                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                 onClick={handleNext}
                 disabled={
                   currentPage >=
@@ -484,43 +484,43 @@ const UserManagementComponent = () => {
       />
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full max-w-md dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
+        <SheetContent className="w-full max-w-md m-3 rounded-lg">
           <SheetHeader>
-            <SheetTitle className="text-xl font-semibold dark:text-white">
+            <SheetTitle>
               {t("UM_k20")}
             </SheetTitle>
           </SheetHeader>
           {selectedUser && (
             <div className="grid gap-5 py-6">
               <div className="space-y-0.5">
-                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                <div className="text-sm text-muted-foreground">
                   {t("UM_k4")}
                 </div>
-                <div className="font-medium text-base dark:text-white">
+                <div className="font-medium text-base">
                   {selectedUser.full_name}
                 </div>
               </div>
               <div className="space-y-0.5">
-                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                <div className="text-sm text-muted-foreground">
                   {t("UM_k5")}
                 </div>
-                <div className="font-medium text-base dark:text-white">
+                <div className="font-medium text-base">
                   {selectedUser.role}
                 </div>
               </div>
               <div className="space-y-0.5">
-                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                <div className="text-sm text-muted-foreground">
                   {t("UM_k9")}
                 </div>
-                <div className="font-medium text-base dark:text-white">
+                <div className="font-medium text-base">
                   {selectedUser.email}
                 </div>
               </div>
               <div className="space-y-0.5">
-                <div className="text-sm text-muted-foreground dark:text-gray-300">
+                <div className="text-sm text-muted-foreground">
                   {t("UM_k6")}
                 </div>
-                <div className="font-medium text-base space-y-1 dark:text-white">
+                <div className="font-medium text-base space-y-1">
                   {selectedUser.locations.length > 0 ? (
                     selectedUser.locations.map((loc: any, idx: number) => (
                       <div key={idx}>{loc.title}</div>

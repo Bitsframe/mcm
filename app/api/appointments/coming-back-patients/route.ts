@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import {
   indexLatestAppointmentsByEmail,
   indexLatestAppointmentsByPatientId,
@@ -47,6 +48,9 @@ async function fetchAllPaginated<T>(
 }
 
 export async function GET(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const locationId = Number(
       request.nextUrl.searchParams.get("locationId") ?? ""

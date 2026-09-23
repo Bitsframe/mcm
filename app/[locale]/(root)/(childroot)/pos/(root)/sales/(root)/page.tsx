@@ -1,5 +1,6 @@
 "use client";
 import { classifyError } from '@/utils/logging/safe-log';
+import { LocationPicker } from "@/components/ui/location-picker";
 import React, {
   type FC,
   useContext,
@@ -10,9 +11,9 @@ import React, {
 
 import { Quantity_Field } from "@/components/Quantity_Field";
 import { FaCreditCard } from "react-icons/fa";
-import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import { IoCloseOutline } from "react-icons/io5";
-import { Select } from "flowbite-react";
+import { Minus, Plus } from "lucide-react";
+;
 
 import { PiCaretCircleRightFill } from "react-icons/pi";
 import { FaArrowsAltV } from "react-icons/fa";
@@ -48,6 +49,8 @@ import ProductListModal from '@/components/POS/ProductListModal';
 import { Input } from "@/components/ui/input";
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -160,102 +163,89 @@ const CartItemComponent: FC<CartItemComponentInterface> = ({
     <div
       className={
         isOtherLocation
-          ? "bg-blue-50 dark:bg-blue-900 border border-blue-400 dark:border-blue-600 py-2 px-3 rounded-md shadow-sm"
-          : "bg-[#F1F4F9] dark:bg-gray-800 py-2 px-3 rounded-md"
+          ? "rounded-md border border-brand-400 bg-brand-50 px-2 py-1.5 shadow-mac-sm"
+          : "rounded-md bg-surface px-2 py-1.5"
       }
     >
-      <div className="flex items-center">
-        <div className="flex-1 flex items-center space-x-3">
-          <div className="flex flex-col items-center text-[#121111] dark:text-gray-300">
-            <button
-              onClick={() => qtyHandle("inc")}
-              className="disabled:opacity-60"
-              disabled={quantity_available === quantity}
-            >
-              <IoIosArrowUp
-                size={18}
-                className="text-primary_color dark:text-blue-400"
-              />
-            </button>
-            <span className="block text-base font-bold text-[#121111] dark:text-white">
-              {quantity}
-            </span>
-            <button
-              disabled={quantity === 0}
-              className="disabled:opacity-60"
-              onClick={() => qtyHandle("dec")}
-            >
-              <IoIosArrowDown
-                size={18}
-                className="text-primary_color dark:text-blue-400"
-              />
-            </button>
-          </div>
-          <dl>
-            <dt className="text-base dark:text-white">{product_name}</dt>
-            <dd className="text-sm text-gray-700 dark:text-gray-400">
-              {category_name}
-            </dd>
-            {isOtherLocation && (
-              <dd className="text-xs font-semibold text-blue-800 dark:text-blue-200 mt-1">
-                Fulfilled at: {fulfillment_location_name}
-              </dd>
-            )}
-          </dl>
+      {/* One line per item: a horizontal stepper, the product, its discount and
+          its price. The stepper used to stack arrow/qty/arrow, which alone made
+          every row three lines tall. Wraps rather than overflows when the column
+          is narrow. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex shrink-0 items-center rounded-md border border-input bg-white">
+          <button
+            type="button"
+            disabled={quantity === 0}
+            onClick={() => qtyHandle("dec")}
+            aria-label={t('POS-Sales_kDecreaseQty')}
+            className="flex h-6 w-6 items-center justify-center rounded-l-md text-label-2 transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-40"
+          >
+            <Minus size={13} />
+          </button>
+          <span className="min-w-[1.5rem] text-center text-body font-semibold tabular-nums text-label">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            disabled={quantity_available === quantity}
+            onClick={() => qtyHandle("inc")}
+            aria-label={t('POS-Sales_kIncreaseQty')}
+            className="flex h-6 w-6 items-center justify-center rounded-r-md text-label-2 transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-40"
+          >
+            <Plus size={13} />
+          </button>
         </div>
 
-        {/* Price Section */}
-        <div className="flex items-center space-x-3">
-          {discountPct > 0 ? (
-            <>
-              <p className="text-sm text-gray-500 line-through dark:text-gray-400">
-                ${original_price * quantity} {/* original price before discount */}
-              </p>
-              <p className="font-bold text-[#121111] dark:text-white">
-                ${price} {/* discounted price for total quantity */}
-              </p>
-            </>
-          ) : (
-            <p className="font-bold text-[#121111] dark:text-white">
-              ${original_price * quantity} {/* Total price without discount */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-body text-label">
+            {product_name}
+            {category_name && (
+              <span className="text-label-2"> · {category_name}</span>
+            )}
+          </p>
+          {isOtherLocation && (
+            <p className="truncate text-caption font-semibold text-brand-800">
+              {fulfillment_location_name}
             </p>
           )}
-
-          <div>
-            <button onClick={removeItemHandle}>
-              <IoCloseOutline
-                size={18}
-                className="text-primary_color dark:text-blue-400"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Discount Section */}
-      <div className="mt-2 flex items-center justify-between text-xs px-0.5">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-600 dark:text-gray-300">{t('POS-Sales_kDiscountLabel')}</span>
-          <span className="text-emerald-600 dark:text-emerald-400">
-            {discountPct > 0 ? `${discountPct}%` : t('POS-Sales_kNoDiscount')}
-          </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
+          {discountPct > 0 && (
+            <span className="text-caption font-medium text-brand-700">
+              -{discountPct}%
+            </span>
+          )}
           <button
+            type="button"
             onClick={() => setIsDiscountModalOpen(true)}
-            className="text-[11px] px-2 py-1 rounded border border-[#0066ff] text-[#0066ff] hover:bg-[#cce0ff]/30"
+            className="rounded border border-brand-600 px-1.5 py-0.5 text-caption text-brand-600 transition-colors hover:bg-brand-50"
           >
             {discountPct > 0 ? t('POS-Sales_kChangeDiscount') : t('POS-Sales_kAddDiscount')}
           </button>
           {discountPct > 0 && (
             <button
-              onClick={handleRemoveDiscount} // Removes the discount
-              className="text-[11px] px-2 py-1 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              type="button"
+              onClick={handleRemoveDiscount}
+              className="rounded border border-destructive px-1.5 py-0.5 text-caption text-destructive transition-colors hover:bg-destructive hover:text-white"
             >
               {t('POS-Sales_kRemoveDiscount')}
             </button>
           )}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          {discountPct > 0 && (
+            <span className="text-footnote text-label-3 line-through">
+              ${original_price * quantity}
+            </span>
+          )}
+          <span className="text-body font-bold tabular-nums text-label">
+            ${discountPct > 0 ? price : original_price * quantity}
+          </span>
+          <button type="button" onClick={removeItemHandle} aria-label={t('POS-Sales_kRemoveItem')}>
+            <IoCloseOutline size={18} className="text-label-2 transition-colors hover:text-destructive" />
+          </button>
         </div>
       </div>
 
@@ -1019,33 +1009,33 @@ const addToCartHandle = () => {
 
 
   return (
-    <main className="w-full h-full font-medium text-sm dark:bg-gray-900 dark:text-white">
-      <div className="w-full p-1 grid grid-cols-1 md:grid-cols-3 gap-1">
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[65dvh] md:h-[60dvh] overflow-auto md:col-span-2 rounded w-full">
+    <main className="w-full text-body">
+      <div className="flex w-full flex-col gap-4">
+        {/* Patient details span the full width across the top */}
             {/* Header with fulfillment button */}
             {fetchingDataLoading ? (
               <div className="w-full flex flex-col justify-center h-full space-y-1">
-                <CircularProgress size={16} className="dark:text-white" />
-                <h1 className="text-xs text-gray-400 dark:text-gray-300">
+                <CircularProgress size={16} className="" />
+                <h1 className="text-xs text-gray-400">
                   Fetching patient details
                 </h1>
               </div>
             ) : (
-              <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm ">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-sm font-semibold mb-2 dark:text-white">
+              <div className="rounded-lg border border-border bg-white p-3 shadow-mac-sm">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h2 className="text-headline text-label">
                     {t("POS-Sales_k3")}
                   </h2>
                   <div className="flex items-center gap-2">
                     <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-body font-medium text-white shadow-mac-sm transition-colors hover:bg-brand-700 disabled:pointer-events-none disabled:opacity-50"
                       onClick={openOtherLocationModal}
                       type="button"
                     >
                      {t("POS-Sales_k107")}
                     </button>
                     <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded  hover:bg-blue-700"
+                      className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-body font-medium text-white shadow-mac-sm transition-colors hover:bg-brand-700 disabled:pointer-events-none disabled:opacity-50"
                       onClick={() => setIsAddBalanceModalOpen(true)}
                       disabled={!selectedPatient}
                       type="button"
@@ -1097,7 +1087,7 @@ const addToCartHandle = () => {
 
                 </div>
                 {selectedPatient ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
                     {render_details.map(({ label, key, render_value }, ind) => {
                       const extracted_val = render_value
                         ? render_value(selectedPatient)
@@ -1105,21 +1095,24 @@ const addToCartHandle = () => {
                       return (
                         <div
                           key={ind}
-                          className="space-y-0.5 bg-white dark:bg-[#0E1725] p-2 rounded"
+                          className="flex min-w-0 items-baseline gap-1.5 rounded-md bg-surface px-2.5 py-1.5"
                         >
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="shrink-0 text-footnote text-label-2">
                             {label}
-                          </p>
-                          <p className="text-sm font-medium dark:text-white">
+                          </span>
+                          <span
+                            className="min-w-0 truncate text-body font-medium text-label"
+                            title={String(extracted_val ?? "")}
+                          >
                             {extracted_val}
-                          </p>
+                          </span>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-red-600 dark:text-red-400 text-xs">
+                    <h1 className="text-footnote text-destructive">
                       {t("POS-Sales_k4")}
                     </h1>
                   </div>
@@ -1127,8 +1120,11 @@ const addToCartHandle = () => {
               </div>
             )}
 
-          <div className="bg-[#F1F4F9] dark:bg-[#080E16] p-2 rounded shadow-sm">
-            <div className="space-y-2">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-5 md:items-start">
+          {/* Left: the cart itself, with the controls that add to it */}
+          <div className="flex w-full flex-col gap-4 md:col-span-3">
+          <div className="rounded-lg border border-border bg-white p-4 shadow-mac-sm">
+            <div className="flex flex-wrap items-center gap-2">
               <div>
                 {/* Replaced product details table with a simple Add Product button that opens the product list modal */}
                 <div className="flex">
@@ -1136,7 +1132,7 @@ const addToCartHandle = () => {
                     type="button"
                     disabled={!selectedPatient}
                     onClick={openProductModal}
-                    className={`inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${!selectedPatient ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3.5 text-body font-medium text-white shadow-mac-sm transition-colors hover:bg-brand-700 disabled:pointer-events-none disabled:opacity-50"
                     style={{ minWidth: 0 }}
                   >
                     {t("POS-Sales_k117")}
@@ -1159,11 +1155,11 @@ const addToCartHandle = () => {
                 title={t('POS-Sales_k5') || 'Product Details'}
                 formatPrice={currencyFormatHandle}
               />
-              <div className="mb-2">
+              <div>
                 <button
                   disabled={!selectedProduct || (selectedProduct.quantity_available - productQty) > 0 || selectedProduct?.unlimited}
                   onClick={() => setShowSplitModal(true)}
-                  className="bg-orange-500 my-2 text-white font-medium py-1 px-4 rounded hover:opacity-90 active:opacity-70 disabled:opacity-50 text-base"
+                  className="inline-flex h-8 items-center rounded-md border border-input bg-white px-3.5 text-body font-medium text-label shadow-mac-sm transition-colors hover:bg-surface disabled:pointer-events-none disabled:opacity-50"
                   type="button"
                 >
                   {t("POS-Sales_k82")}
@@ -1171,65 +1167,23 @@ const addToCartHandle = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-[#F1F4F9] dark:bg-[#080E16] h-[60dvh] overflow-auto rounded flex flex-col shadow-sm p-1 w-full mt-2 md:mt-0">
-          <div className="p-2 flex justify-end">
+            <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-mac-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <div className="min-w-0">
+              <h1 className="text-headline text-label">{t("POS-Sales_k9")}</h1>
+              <p className="text-footnote text-label-2">{t("POS-Sales_k10")} # --</p>
+            </div>
             <button
               type="button"
               onClick={openSalesPersonModal}
-              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="inline-flex h-8 shrink-0 items-center rounded-md border border-input bg-white px-3 text-body font-medium text-label shadow-mac-sm transition-colors hover:bg-surface"
             >
-              {t("POS-Sales_k109")} 
+              {t("POS-Sales_k109")}
             </button>
           </div>
-          <div className="p-2 bg-white dark:bg-[#0E1725] rounded border-b border-gray-100 flex items-center justify-between">
-            <div className="flex-1">
-              <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
-                {t("POS-Sales_k9")}
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t("POS-Sales_k10")} # --
-              </p>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h1 className="text-[11px] text-gray-700 dark:text-gray-300 ">
-    {t("POS-Sales_k30")}: {" "}
-    <span className="font-bold">
-      {`${selectedLocation?.credit_limit?.toFixed(2)}`}
-    </span>
-</h1>
-
-              </div>
-              <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
-                  {t("POS-Sales_k29")}:{" "}
-                  <span
-                    className={`font-bold px-1 rounded ${
-                      displayedBalanceLimit === 0
-                        ? "bg-red-600 text-white dark:bg-red-800"
-                        : ""
-                    }`}
-                  >
-                    {isBalanceLoading ? (
-                      <div className="inline-flex items-center">
-                        {/* <CircularProgress size={14} className="mr-1" /> */}
-                        <span className="text-xs opacity-35 font-light">
-                          Updating...
-                        </span>
-                      </div>
-                    ) : (
-                      `${displayedBalanceLimit.toFixed(2)}`
-                    )}
-                  </span>
-                </h1>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-auto flex-1 p-1 my-0.5 bg-white dark:bg-[#0e1725] rounded">
-            <div className="space-y-0.5">
+          <div className="min-h-[96px] flex-1 overflow-auto px-3 py-2">
+            <div className="space-y-1">
               {cartArray.map((data: CartArrayInterface, ind) => (
                 <CartItemComponent
                   index={ind}
@@ -1245,16 +1199,20 @@ const addToCartHandle = () => {
               ))}
             </div>
           </div>
+            </div>
+          </div>
 
-          <div className="bg-white dark:bg-gray-700 mt-auto rounded-b relative">
+          {/* Right: the transaction — totals, payment and checkout */}
+          <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-mac-sm md:col-span-2 md:sticky md:top-0 md:max-h-[calc(100vh-170px)]">
+          <div className="relative flex-1 overflow-y-auto bg-surface/60">
             <div
-              className={`p-2 space-y-2 rounded dark:bg-[#0E1725] transition-all duration-300 ${
+              className={`space-y-2 p-4 transition-all duration-300 ${
                 isPanelShrunk ? "max-h-12 overflow-hidden" : "max-h-none"
               }`}
             >
               <button
                 onClick={() => setIsPanelShrunk(!isPanelShrunk)}
-                className="absolute -top-3 right-2 z-10 p-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors duration-200 border-2 border-white dark:border-gray-700"
+                className="absolute right-3 top-2 z-10 rounded-full border-2 border-white bg-brand-600 p-1 text-white shadow-mac-sm transition-colors hover:bg-brand-700"
                 type="button"
               >
                 {isPanelShrunk ? <FaArrowsAltV /> : <FaArrowsAltV /> }
@@ -1266,19 +1224,19 @@ const addToCartHandle = () => {
               />
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                <h1 className="text-body text-label-2">
                   {t("POS-Sales_k76")}
                 </h1>
-                <p className="text-xs">
+                <p className="text-body font-medium text-label">
                   ${grandTotalHandle(cartArray, 0).productTotalOriginalPrice.toFixed(2)}
                 </p>
               </div>
 <div className="flex items-center justify-between">
-  <h1 className="text-xs text-gray-700 dark:text-gray-300">
+  <h1 className="text-body text-label-2">
     {t("POS-Sales_k13")} %
   </h1>
   <div className="flex items-center gap-2">
-    <p className="text-xs">
+    <p className="text-body font-medium text-label">
       {appliedDiscount
         ? `${Math.abs(
             grandTotalHandle(cartArray, appliedDiscount).discountAmount
@@ -1301,7 +1259,7 @@ const addToCartHandle = () => {
       className={`text-xs px-2 py-0.5 rounded ${
         cartArray.length === 0
           ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-          : "bg-blue-500 text-white"
+          : "bg-brand-500 text-white"
       }`}
       disabled={cartArray.length === 0}
       onClick={() => {
@@ -1317,9 +1275,9 @@ const addToCartHandle = () => {
 {/* Discount Modal */}
 {isDiscountModalOpen && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
+    <div className="bg-white p-6 rounded shadow-md w-96 h-40 flex flex-col justify-between">
       <div>
-        <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+        <h2 className="text-sm font-semibold mb-3 text-gray-800">
           {t('POS-Sales_kDiscountModalTitle')}
         </h2>
         <input
@@ -1339,7 +1297,7 @@ const addToCartHandle = () => {
             }
           }}
           placeholder={t('POS-Sales_kDiscountModalPlaceholder')}
-          className="w-full p-2 border border-gray-400 focus:border-blue-600 rounded outline outline-1 outline-gray-300 focus:outline-blue-500 text-sm text-black dark:text-white dark:bg-[#122136]"
+          className="w-full p-2 border border-gray-400 focus:border-brand-600 rounded outline outline-1 outline-gray-300 focus:outline-brand-500 text-sm text-black"
         />
       </div>
       <div className="flex justify-end gap-2 mt-4">
@@ -1350,7 +1308,7 @@ const addToCartHandle = () => {
           {t('POS-Sales_k85')}
         </button>
         <button
-          className="px-3 py-1 text-sm rounded bg-blue-600 text-white"
+          className="px-3 py-1 text-sm rounded bg-brand-600 text-white"
           onClick={() => {
             const numValue =
               typeof discountInput === "string"
@@ -1373,10 +1331,10 @@ const addToCartHandle = () => {
 
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                <h1 className="text-body text-label-2">
                   {t("POS-Sales_k78")}
                 </h1>
-                <p className="text-xs">
+                <p className="text-body font-medium text-label">
                   $
                   {grandTotalHandle(cartArray, appliedDiscount).amount.toFixed(
                     2
@@ -1385,10 +1343,10 @@ const addToCartHandle = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                <h1 className="text-body text-label-2">
                   {t("POS-Sales_k32")}
                 </h1>
-                <p className="text-xs">
+                <p className="text-body font-medium text-label">
                   {creditAmount < 0
                     ? `-${Math.abs(creditAmount).toFixed(2)}`
                     : `${creditAmount.toFixed(2)}`}
@@ -1396,10 +1354,10 @@ const addToCartHandle = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                <h1 className="text-body text-label-2">
                   {t("POS-Sales_k42")}
                 </h1>
-                <p className="text-xs">
+                <p className="text-body font-medium text-label">
                   {/* ${(grandTotalHandle(cartArray, appliedDiscount).amount - creditAmount).toFixed(2)} */}
                   $
                   {(
@@ -1413,7 +1371,7 @@ const addToCartHandle = () => {
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <span
                     className={`w-4 h-4 flex items-center justify-center rounded-sm 
-${payWithCash ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+${payWithCash ? "bg-brand-600" : "bg-[#F5F5F7]"} 
 transition-colors`}
                   >
                     <input
@@ -1423,10 +1381,10 @@ transition-colors`}
                         setPayWithCash((prev) => !prev);
                         if (payWithCash && !payWithCard) setCardAmount(0);
                       }}
-                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                      className="appearance-none w-full bg-slate-300 rounded-md h-full"
                     />
                   </span>
-                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                  <span className="text-xs text-gray-700">
                     {t("POS-Sales_k90")}
                   </span>
                 </label>
@@ -1434,7 +1392,7 @@ transition-colors`}
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <span
                     className={`w-4 h-4 flex items-center justify-center rounded-sm 
-${payWithCard ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+${payWithCard ? "bg-brand-600" : "bg-[#F5F5F7]"} 
 transition-colors`}
                   >
                     <input
@@ -1444,10 +1402,10 @@ transition-colors`}
                         setPayWithCard((prev) => !prev);
                         if (payWithCard && !payWithCash) setReceivedAmount(0);
                       }}
-                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                      className="appearance-none w-full bg-slate-300 rounded-md h-full"
                     />
                   </span>
-                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                  <span className="text-xs text-gray-700">
                     {t("POS-Sales_k91")}
                   </span>
                 </label>
@@ -1455,7 +1413,7 @@ transition-colors`}
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <span
                     className={`w-4 h-4 flex items-center justify-center rounded-sm 
-${payWithZelle ? "bg-blue-600" : "bg-[#F1F4F9] dark:bg-[#374151]"} 
+${payWithZelle ? "bg-brand-600" : "bg-[#F5F5F7]"} 
 transition-colors`}
                   >
                     <input
@@ -1464,10 +1422,10 @@ transition-colors`}
                       onChange={() => {
                         setPayWithZelle((prev) => !prev);
                       }}
-                      className="appearance-none w-full bg-slate-300 dark:bg-[#374151] rounded-md h-full"
+                      className="appearance-none w-full bg-slate-300 rounded-md h-full"
                     />
                   </span>
-                  <span className="text-xs text-gray-700 dark:text-gray-300">
+                  <span className="text-xs text-gray-700">
                     Zelle
                   </span>
                 </label>
@@ -1476,7 +1434,7 @@ transition-colors`}
               {/* Modified payment input section - Receivables on left, inputs on right */}
               {(payWithCash || payWithCard || payWithZelle) && (
                 <div className="flex items-center justify-between gap-2 mt-1">
-                  <span className="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  <span className="text-xs text-gray-700 whitespace-nowrap">
                     {t("POS-Sales_k99")}:
                   </span>
 
@@ -1484,10 +1442,10 @@ transition-colors`}
                     {payWithCash && (
                       <div className="relative flex items-center">
                         <BsCashCoin
-                          className="absolute left-2 text-gray-500 dark:text-gray-400"
+                          className="absolute left-2 text-gray-500"
                           size={14}
                         />
-                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                        <span className="absolute left-6 ml-1 text-gray-500 text-xs">
                           $
                         </span>
                         <input
@@ -1507,13 +1465,13 @@ transition-colors`}
                             }
                           }}
                           placeholder="0.00"
-                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                          className="w-20 pl-10 border border-gray-400 rounded-md text-sm focus:outline-none bg-[#F5F5F7] text-black p-1"
                         />
                       </div>
                     )}
 
                     {(payWithCash && payWithCard) && (
-                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                      <span className="text-lg font-bold text-gray-700">
                         +
                       </span>
                     )}
@@ -1521,10 +1479,10 @@ transition-colors`}
                     {payWithCard && (
                       <div className="relative flex items-center">
                         <FaCreditCard
-                          className="absolute left-2 text-gray-500 dark:text-gray-400"
+                          className="absolute left-2 text-gray-500"
                           size={14}
                         />
-                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                        <span className="absolute left-6 ml-1 text-gray-500 text-xs">
                           $
                         </span>
                         <input
@@ -1542,23 +1500,23 @@ transition-colors`}
                             }
                           }}
                           placeholder="0.00"
-                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                          className="w-20 pl-10 border border-gray-400 rounded-md text-sm focus:outline-none bg-[#F5F5F7] text-black p-1"
                         />
                       </div>
                     )}
 
                     {((payWithCash || payWithCard) && payWithZelle) && (
-                      <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                      <span className="text-lg font-bold text-gray-700">
                         +
                       </span>
                     )}
 
                     {payWithZelle && (
                       <div className="relative flex items-center">
-                        <span className="absolute left-2 text-gray-500 dark:text-gray-400 text-xs font-semibold">
+                        <span className="absolute left-2 text-gray-500 text-xs font-semibold">
                           Z
                         </span>
-                        <span className="absolute left-6 ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                        <span className="absolute left-6 ml-1 text-gray-500 text-xs">
                           $
                         </span>
                         <input
@@ -1576,7 +1534,7 @@ transition-colors`}
                             }
                           }}
                           placeholder="0.00"
-                          className="w-20 pl-10 border border-gray-400 dark:border-blue-400 rounded-md text-sm focus:outline-none bg-[#f1f4f9] dark:bg-[#374151] text-black dark:text-white p-1"
+                          className="w-20 pl-10 border border-gray-400 rounded-md text-sm focus:outline-none bg-[#F5F5F7] text-black p-1"
                         />
                       </div>
                     )}
@@ -1585,10 +1543,10 @@ transition-colors`}
               )}
 
               <div className="flex items-center justify-between mt-1">
-                <h1 className="text-xs text-gray-700 dark:text-gray-300">
+                <h1 className="text-body text-label-2">
                   {t("POS-Sales_k80")}
                 </h1>
-                <p className="text-xs text-gray-900 dark:text-white">
+                <p className="text-xs text-gray-900">
                   {creditUsed < 0
                     ? `-${Math.abs(creditUsed).toFixed(2)}`
                     : `${creditUsed.toFixed(2)}`}
@@ -1598,14 +1556,13 @@ transition-colors`}
               {/* Total Paid and Place Order button moved to persistent footer so they remain visible when panel is expanded/collapsed */}
             </div>
           </div>
-
           {/* Persistent footer: always visible totals and action */}
-          <div className="p-2 border-t bg-white dark:bg-[#0E1725]">
+          <div className="p-2 border-t bg-white">
             <div className="flex items-center justify-between mt-1">
-              <h1 className="text-xs text-gray-700 dark:text-gray-300">
+              <h1 className="text-body text-label-2">
                 {t("POS-Sales_k100")}
               </h1>
-              <p className="text-xs text-gray-900 dark:text-white">{`${totalPaid.toFixed(
+              <p className="text-xs text-gray-900">{`${totalPaid.toFixed(
                 2
               )}`}</p>
             </div>
@@ -1624,8 +1581,8 @@ transition-colors`}
                   totalPaid > cartTotal + Math.max(creditAmount, 0) ||
                   creditUsed > (selectedLocation?.balance ?? 0) ||
                   ((payWithCash || payWithCard || payWithZelle) && totalPaid === 0 && creditUsed === 0)
-                    ? "opacity-50 bg-blue-600"
-                    : "bg-blue-600"
+                    ? "opacity-50 bg-brand-600"
+                    : "bg-brand-600"
                 }`}
               >
                 {placeOrderLoading ? (
@@ -1639,6 +1596,7 @@ transition-colors`}
               </button>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
@@ -1646,42 +1604,30 @@ transition-colors`}
         show={showOtherLocationModal}
         onClose={() => setShowOtherLocationModal(false)}
       >
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4">
-          <h2 className="text-sm font-semibold mb-3 text-gray-800 dark:text-white">
+        <div className="bg-white rounded-lg shadow-lg p-4">
+          <h2 className="text-sm font-semibold mb-3 text-gray-800">
             {t("POS-Sales_k107")}
           </h2>
           <div className="mb-2">
-            <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+            <label className="block text-xs font-medium mb-1 text-gray-700">
               {t("POS-Sales_k84")}
             </label>
-            <select
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
+            <LocationPicker
+              className="w-full"
+              locations={locations.filter((loc: any) => loc.id !== selectedLocation?.id)}
               value={String(otherLocationId ?? "")}
-              onChange={(e) =>
-                handleOtherLocationChange(Number(e.target.value))
-              }
-            >
-              <option value="">{t("POS-Sales_k84")}</option>
-              {locations.map((loc: any) => (
-                <option
-                  key={String(loc.id)}
-                  value={String(loc.id)}
-                  disabled={loc.id === selectedLocation?.id}
-                >
-                  {loc.title || loc.name}
-                  {loc.id === selectedLocation?.id ? ` (${t("POS-Sales_k112")})` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => handleOtherLocationChange(Number(v))}
+              placeholder={t("POS-Sales_k84")}
+            />
           </div>
 
           {otherLocationId && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+              <label className="block text-xs font-medium mb-1 text-gray-700">
                 {t("POS-Sales_kSelectCategory")}
               </label>
-              <select
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
+              <MacSelect
+                className="w-full border border-gray-300 bg-white text-gray-900 rounded px-2 py-1"
                 value={String(otherLocationCategoryId ?? "")}
                 onChange={(e) =>
                   handleOtherLocationCategoryChange(Number(e.target.value))
@@ -1696,17 +1642,17 @@ transition-colors`}
                     {cat.category_name}
                   </option>
                 ))}
-              </select>
+              </MacSelect>
             </div>
           )}
 
           {otherLocationCategoryId && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+              <label className="block text-xs font-medium mb-1 text-gray-700">
                 {t("POS-Sales_k6")}
               </label>
-              <select
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded px-2 py-1"
+              <MacSelect
+                className="w-full border border-gray-300 bg-white text-gray-900 rounded px-2 py-1"
                 value={String(otherLocationProductId ?? "")}
                 onChange={(e) =>
                   setOtherLocationProductId(Number(e.target.value))
@@ -1721,19 +1667,19 @@ transition-colors`}
                     {prod.product_name}
                   </option>
                 ))}
-              </select>
+              </MacSelect>
             </div>
           )}
 
           {otherLocationProductId !== null && (
             <div className="mb-2">
-              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-200">
+              <label className="block text-xs font-medium mb-1 text-gray-700">
                 {t("POS-Sales_k7")}
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-lg font-bold text-gray-700 dark:text-gray-200 disabled:opacity-50"
+                  className="px-2 py-1 bg-gray-200 rounded text-lg font-bold text-gray-700 disabled:opacity-50"
                   onClick={() =>
                     setOtherLocationProductQty((qty) =>
                       Math.min(
@@ -1754,7 +1700,7 @@ transition-colors`}
                   +
                 </button>
               </div>
-              <div className="text-xs mt-1 text-gray-500 dark:text-gray-400">
+              <div className="text-xs mt-1 text-gray-500">
                 {t("POS-Sales_k131")}:{" "}
                 {otherLocationProducts.find(
                   (p: any) => p.product_id === otherLocationProductId
@@ -1765,7 +1711,7 @@ transition-colors`}
 
           <div className="flex justify-end gap-2 mt-4">
             <button
-              className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
+              className="px-3 py-1 bg-brand-500 hover:bg-brand-600 text-white rounded text-xs"
               onClick={handleAddOtherLocationProduct}
               disabled={
                 !otherLocationId ||

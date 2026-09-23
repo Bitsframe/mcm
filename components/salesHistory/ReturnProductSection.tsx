@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { translationConstant } from '@/utils/translationConstants';
 
 
+import { MacSelect } from "@/components/ui/mac-select";
+
 export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyReturned, preDefinedReasonList }: any) => {
     const { t } = useTranslation(translationConstant.POSSALES);
 
@@ -95,7 +97,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
     if (showModal) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-md relative">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
                     <button
                         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                         onClick={() => setShowModal(false)}
@@ -116,13 +118,13 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
                                 <label className='text-start font-semibold text-gray-600'>
                                     {t('POS-Sales_kReturnReasonLabel')}
                                 </label>
-                                <select onChange={changeReasonHandle} className='border-2 text-sm rounded-md px-2 py-2 flex items-center space-x-2 '>
-                                    <option value={''} disabled selected >{t('POS-Sales_kSelectReturnReason')}</option>
+                                <MacSelect onChange={changeReasonHandle} defaultValue="" className='border-2 text-sm rounded-md px-2 py-2 flex items-center space-x-2 '>
+                                    <option value={''} disabled>{t('POS-Sales_kSelectReturnReason')}</option>
                                 {/* @ts-ignore */}
                                 {preDefinedReasonList.map((opt, ind) => <option key={ind} value={opt?.reason} >{opt?.reason}
 
                                 </option>)}
-                            </select>
+                            </MacSelect>
                             {/* <textarea required onChange={changeReasonHandle} className='border-2 text-sm rounded-md border-gray-200 w-full  resize-none outline-none  focus:border-none focus:ring-offset-0' placeholder='Enter reason of return' rows={4} /> */}
                         </div>
 
@@ -137,7 +139,7 @@ export const ReturnProductSection = ({ data, order_id, setOtherReturned, isAnyRe
     }
 
     if (returnedQty && !loading) {
-        return <button className='border-[#E4E4E7] text-[#696969] border-2 text-xs px-3 py-3 rounded-md' disabled>
+        return <button className='border-[#E5E5EA] text-[#696969] border-2 text-xs px-3 py-3 rounded-md' disabled>
             <strong>{returnedQty}</strong> {t('POS-Sales_kReturned')}
         </button>
     }

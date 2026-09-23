@@ -1,7 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from "next/server";
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     const { promocode, patientid } = await req.json();
 
     try {

@@ -1,7 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from "next/server";
 import supabase from "@/utils/supabaseClient";
 
 export const POST = async (request: NextRequest) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     let { product_id, location_id, quantity } = await request.json();
 

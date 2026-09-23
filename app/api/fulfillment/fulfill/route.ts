@@ -1,9 +1,13 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { update_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
 import { sendFulfillmentConfirmationEmail } from '@/utils/emailServices/sendFulfillmentConfirmationEmail';
 
 export async function POST(requestUser: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const { requestId } = await requestUser.json();
 

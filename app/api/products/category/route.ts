@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
@@ -5,6 +6,9 @@ import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 export const dynamic = 'force-dynamic';
 
 export const GET = async (request: NextRequest) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     const supabase = await supabaseCreateClient();
 
     const searchParams = request.nextUrl.searchParams

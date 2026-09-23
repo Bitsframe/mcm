@@ -36,16 +36,16 @@ const PhoneNumberInput = ({
     const style = document.createElement("style");
     style.textContent = `
       .dark .react-tel-input .country-list {
-        background-color: #374151 !important;
-        border-color: #4B5563 !important;
+        background-color: #1D1D1F !important;
+        border-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .country-list .country:hover {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .country-list .country.highlight {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .country-list .country {
@@ -57,100 +57,100 @@ const PhoneNumberInput = ({
       }
 
       .dark .react-tel-input .country-list .country .dial-code {
-        color: #9CA3AF !important;
+        color: #86868B !important;
       }
 
       .dark .react-tel-input .selected-flag:hover {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .selected-flag {
-        background-color: #374151 !important;
+        background-color: #1D1D1F !important;
       }
 
       .dark .react-tel-input .flag-dropdown {
-        background-color: #374151 !important;
-        border-color: #4B5563 !important;
+        background-color: #1D1D1F !important;
+        border-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .flag-dropdown:hover {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .flag-dropdown.open {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input button {
-        background-color: #374151 !important;
-        border-color: #4B5563 !important;
+        background-color: #1D1D1F !important;
+        border-color: #6E6E73 !important;
       }
 
       .dark .react-tel-input button:hover {
-        background-color: #4B5563 !important;
+        background-color: #6E6E73 !important;
       }
 
       .react-tel-input .selected-flag {
-        background-color: #f1f4f9 !important;
-        border-color: #d1d5db !important;
+        background-color: #F5F5F7 !important;
+        border-color: #D9D9DE !important;
       }
 
       .react-tel-input .selected-flag:hover {
-        background-color: #e5e7eb !important;
+        background-color: #E5E5EA !important;
       }
 
       .react-tel-input .flag-dropdown {
-        background-color: #f1f4f9 !important;
-        border-color: #d1d5db !important;
+        background-color: #F5F5F7 !important;
+        border-color: #D9D9DE !important;
       }
 
       .react-tel-input .flag-dropdown:hover {
-        background-color: #e5e7eb !important;
+        background-color: #E5E5EA !important;
       }
 
       .react-tel-input .flag-dropdown.open {
-        background-color: #e5e7eb !important;
+        background-color: #E5E5EA !important;
       }
 
       .react-tel-input button {
-        background-color: #f1f4f9 !important;
-        border-color: #d1d5db !important;
+        background-color: #F5F5F7 !important;
+        border-color: #D9D9DE !important;
       }
 
       .react-tel-input button:hover {
-        background-color: #e5e7eb !important;
+        background-color: #E5E5EA !important;
       }
 
       .react-tel-input .country-list {
         background-color: white !important;
-        border: 1px solid #d1d5db !important;
-        color: #374151 !important;
+        border: 1px solid #D9D9DE !important;
+        color: #1D1D1F !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
       }
 
       .react-tel-input .country-list .country {
-        color: #374151 !important;
+        color: #1D1D1F !important;
       }
 
       .react-tel-input .country-list .country:hover {
-        background-color: #f3f4f6 !important;
+        background-color: #F5F5F7 !important;
       }
 
       .react-tel-input .country-list .country.highlight {
-        background-color: #f3f4f6 !important;
+        background-color: #F5F5F7 !important;
       }
 
       .react-tel-input .country-list .country .country-name {
-        color: #374151 !important;
+        color: #1D1D1F !important;
       }
 
       .react-tel-input .country-list .country .dial-code {
-        color: #6b7280 !important;
+        color: #6E6E73 !important;
       }
 
       .dark .react-tel-input .country-list {
-        background-color: #374151 !important;
-        border: 1px solid #4B5563 !important;
+        background-color: #1D1D1F !important;
+        border: 1px solid #6E6E73 !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
       }
     `;
@@ -198,22 +198,22 @@ const PhoneNumberInput = ({
           onChange={handlePhoneChange}
           onBlur={handleBlur}
           placeholder={placeholder}
-          inputClass={`!w-full !h-[36px] !text-[13px] !rounded-md dark:!bg-[#122136] dark:!text-white !bg-[#f1f4f9] !text-black !border ${
+          inputClass={`!w-full !h-[36px] !text-[13px] !rounded-md !bg-[#F5F5F7] !text-black !border ${
             showError
               ? "!border-red-500"
-              : "!border-gray-300 dark:!border-gray-600"
+              : "!border-gray-300"
           }`}
-          buttonClass={`!rounded-l-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
+          buttonClass={`!rounded-l-md !bg-[#F5F5F7] !border ${
             showError
               ? "!border-red-500"
-              : "!border-gray-300 dark:!border-gray-600"
+              : "!border-gray-300"
           } !h-[36px]`}
-          containerClass={`!w-full !rounded-md dark:!bg-[#374151] !bg-[#f1f4f9] !border ${
+          containerClass={`!w-full !rounded-md !bg-[#F5F5F7] !border ${
             showError
               ? "!border-red-500"
-              : "!border-gray-300 dark:!border-gray-600"
+              : "!border-gray-300"
           }`}
-          dropdownClass="dark:!bg-[#374151] !bg-white !text-black dark:!text-white"
+          dropdownClass="!bg-white !text-black"
         />
         {showError && (
           <p className="mt-1 text-xs text-red-500">{helperMessage}</p>

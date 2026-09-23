@@ -99,7 +99,7 @@ const Product: React.FC<ProductProps> = ({
   };
 
   const row = (
-    <tr className={onRowSelect ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" : ""}>
+    <tr className={onRowSelect ? "cursor-pointer hover:bg-gray-50" : ""}>
       <td
         className="border-b p-2"
         onClick={onRowSelect}
@@ -116,7 +116,7 @@ const Product: React.FC<ProductProps> = ({
       <td className="border-b p-2">
         <div className="flex items-center space-x-2">
           <button
-            className="bg-gray-300 dark:bg-gray-700 text-black dark:text-white px-2 py-1 rounded disabled:opacity-50"
+            className="bg-gray-300 text-black px-2 py-1 rounded disabled:opacity-50"
             onClick={handleDecrease}
             disabled={!canDecrease || disabled}
           >
@@ -124,7 +124,7 @@ const Product: React.FC<ProductProps> = ({
           </button>
           <span className="min-w-[1.5rem] text-center">{qty}</span>
           <button
-            className="bg-gray-300 dark:bg-gray-700 text-black dark:text-white px-2 py-1 rounded disabled:opacity-50"
+            className="bg-gray-300 text-black px-2 py-1 rounded disabled:opacity-50"
             onClick={handleIncrease}
             disabled={!canIncrease || disabled}
           >
@@ -134,7 +134,7 @@ const Product: React.FC<ProductProps> = ({
       </td>
       <td className="border-b p-2">
         {unlimited ? (
-          <span className="text-amber-600 dark:text-amber-400">{t('POS-Sales_k130')}</span>
+          <span className="text-amber-600">{t('POS-Sales_k130')}</span>
         ) : Number.isFinite(quantityLeft) ? (
           <span>{Math.max(0, quantityLeft - qty)} {t('POS-Sales_k131')}</span>
         ) : (
@@ -150,7 +150,7 @@ const Product: React.FC<ProductProps> = ({
   if (rowMode) return row;
 
   const tableContent = (
-    <div className="bg-white dark:bg-[#0E1725] rounded-lg p-2">
+    <div className="bg-white rounded-lg p-2">
       <table className="w-full table-auto">
         <thead>
           <tr>
@@ -167,7 +167,7 @@ const Product: React.FC<ProductProps> = ({
   );
 
   if (!modal) {
-    return <div className="bg-white dark:bg-[#0E1725] shadow-md rounded-lg p-5">{tableContent}</div>;
+    return <div className="bg-white shadow-md rounded-lg p-5">{tableContent}</div>;
   }
 
   // Modal mode
@@ -181,11 +181,11 @@ const Product: React.FC<ProductProps> = ({
           if (onClose) onClose();
         }}
       />
-      <div className="relative w-full max-w-4xl mx-4 bg-white dark:bg-[#0E1725] rounded-lg shadow-lg overflow-hidden">
+      <div className="relative w-full max-w-4xl mx-4 bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold">{modalTitle ?? t('POS-Sales_k5')}</h3>
           <button
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            className="text-gray-600 hover:text-gray-900"
             onClick={() => {
               if (onClose) onClose();
             }}

@@ -1,8 +1,12 @@
+import { requireSuperAdmin } from '@/utils/server/require-auth';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 
 export const POST = async (req: Request) => {
+  const gate = await requireSuperAdmin();
+  if (gate.response) return gate.response;
+
 
     const supabaseAdmin: any = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,6 +55,9 @@ export const POST = async (req: Request) => {
 }
 
 export const GET = async () => {
+  const gate = await requireSuperAdmin();
+  if (gate.response) return gate.response;
+
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SECRET_KEY!

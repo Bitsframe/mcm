@@ -297,7 +297,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded p-6 w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="mb-4">
           <div className="flex items-center justify-between">
               <div>
@@ -332,7 +332,7 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="mb-3 p-2 bg-blue-50 border rounded">
+              <div className="mb-3 p-2 bg-brand-50 border rounded">
                 <div className="text-sm font-medium mb-1">{t('POS-Sales_kUserCurrent')}</div>
                 <div className="text-sm text-gray-700">{userProfile?.full_name || t('POS-Sales_kLoading')}</div>
               </div>
@@ -387,12 +387,12 @@ const PosFields: React.FC<PosFieldsModalProps> = ({
           </div>
         </div>
 
-        <div className="mt-4 sticky bottom-0 z-10 bg-white dark:bg-gray-800 border-t py-3 flex justify-end gap-2">
+        <div className="mt-4 sticky bottom-0 z-10 bg-white border-t py-3 flex justify-end gap-2">
           <button className="px-3 py-1 bg-gray-300 rounded" onClick={onClose}>
             {t('POS-Sales_k85')}
           </button>
           <button 
-            className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed" 
+            className="px-3 py-1 bg-brand-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed" 
             onClick={handleSave}
             disabled={hasActiveTeam && selected.length === 0}
             title={hasActiveTeam && selected.length === 0 ? t('POS-Sales_kSelectAtLeastOne') : t('POS-Sales_kSave')}

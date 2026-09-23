@@ -298,26 +298,26 @@ const Returns: FC<Props> = () => {
 
   const { t } = useTranslation(translationConstant.POSRETURN);
   return (
-    <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">
+    <main className="w-full h-full font-[500] bg-white text-gray-800">
       <div className="flex justify-between items-center px-4 py-4 space-x-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+          <h1 className="text-2xl font-bold text-gray-800">
             {t("POS-Returnk1")}
           </h1>
-          <h1 className="mt-1 mb-2 text-gray-600 dark:text-gray-400">
+          <h1 className="mt-1 mb-2 text-gray-600">
             {t("POS-Returnk10")}
           </h1>
         </div>
       </div>
 
       <div className="w-full min-h-[80.5dvh] h-[100%] py-1 px-2 grid grid-cols-1 md:grid-cols-3 gap-2">
-        <div className="bg-gray-100 dark:bg-[#080e16] h-[100%] md:col-span-2 rounded-md w-full">
+        <div className="bg-gray-100 h-[100%] md:col-span-2 rounded-md w-full">
           <div className="px-2 py-4">
             <input
               onChange={onChangeHandle}
               type="text"
               placeholder={t("POS-Returnk2")}
-              className="px-4 py-3 w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 bg-white dark:bg-[#0e1725] text-gray-800 dark:text-white"
+              className="px-4 py-3 w-full text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white text-gray-800"
             />
           </div>
 
@@ -345,14 +345,14 @@ const Returns: FC<Props> = () => {
                     <div
                       key={return_id}
                       onClick={() => detailsViewHandle(elem)}
-                      className="cursor-pointer bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      className="cursor-pointer bg-white rounded-lg shadow-sm p-4 border border-gray-300 hover:bg-gray-100"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-800">
                           {t("POS-Returnk3")}: {return_id}
                         </h3>
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                      <div className="text-sm text-gray-600">
                         <p>
                           <span className="font-medium">{t("POS-Returnk4")}:</span>{" "}
                           {order_id}
@@ -374,20 +374,20 @@ const Returns: FC<Props> = () => {
                   );
                 })
               ) : (
-                <div className="flex h-full flex-1 py-4 text-base flex-col justify-center items-center text-gray-500 dark:text-gray-400">
+                <div className="flex h-full flex-1 py-4 text-base flex-col justify-center items-center text-gray-500">
                   <h1>{t("POS-Returnk8")}</h1>
                 </div>
               )}
             </div>
 
             {/* Desktop View: Table Layout ONLY on md+ screens */}
-            <div className="hidden md:flex bg-white dark:bg-[#0e1725] rounded-md shadow-sm flex-col h-[500px] rounded-b-lg">
+            <div className="hidden md:flex bg-white rounded-md shadow-sm flex-col h-[500px] rounded-b-lg">
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-white dark:bg-[#0e1725] z-10">
-                    <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
+                  <TableHeader className="sticky top-0 bg-white z-10">
+                    <TableRow className="font-medium border-b border-gray-300">
                       <TableHead className="p-4 w-10"></TableHead>
-                      <TableHead className="text-left text-gray-600 dark:text-gray-300">
+                      <TableHead className="text-left text-gray-600">
                         {t("POS-Returnk3")}
                         <button
                           onClick={() => sortHandle("return_id")}
@@ -396,13 +396,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "return_id"
-                                ? "text-blue-500 dark:text-blue-400"
+                                ? "text-brand-500"
                                 : "text-gray-500"
-                            } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
+                            } hover:text-gray-700 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600 dark:text-gray-300">
+                      <TableHead className="text-left text-gray-600">
                         {t("POS-Returnk4")}
                         <button
                           onClick={() => sortHandle("order_id")}
@@ -411,13 +411,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "order_id"
-                                ? "text-blue-500 dark:text-blue-400"
+                                ? "text-brand-500"
                                 : "text-gray-500"
-                            } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
+                            } hover:text-gray-700 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600 dark:text-gray-300">
+                      <TableHead className="text-left text-gray-600">
                         {t("POS-Returnk5")}
                         <button
                           onClick={() => sortHandle("quantity")}
@@ -426,13 +426,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "quantity"
-                                ? "text-blue-500 dark:text-blue-400"
+                                ? "text-brand-500"
                                 : "text-gray-500"
-                            } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
+                            } hover:text-gray-700 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600 dark:text-gray-300">
+                      <TableHead className="text-left text-gray-600">
                         {t("POS-Returnk6")}
                         <button
                           onClick={() => sortHandle("date")}
@@ -441,13 +441,13 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "date"
-                                ? "text-blue-500 dark:text-blue-400"
+                                ? "text-brand-500"
                                 : "text-gray-500"
-                            } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
+                            } hover:text-gray-700 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
-                      <TableHead className="text-left text-gray-600 dark:text-gray-300">
+                      <TableHead className="text-left text-gray-600">
                         {t("POS-Returnk7")}
                         <button
                           onClick={() => sortHandle("category")}
@@ -456,9 +456,9 @@ const Returns: FC<Props> = () => {
                           <PiCaretUpDownBold
                             className={`inline ${
                               sortColumn === "category"
-                                ? "text-blue-500 dark:text-blue-400"
+                                ? "text-brand-500"
                                 : "text-gray-500"
-                            } hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-400`}
+                            } hover:text-gray-700 active:text-gray-400`}
                           />
                         </button>
                       </TableHead>
@@ -470,7 +470,7 @@ const Returns: FC<Props> = () => {
                       <TableRow>
                         <TableCell
                           colSpan={6}
-                          className="bg-gray-50 dark:bg-[#0e1725]"
+                          className="bg-gray-50"
                         >
                           <div className="flex h-full flex-1 flex-col justify-center items-center">
                             <Spinner size="xl" color="gray" />
@@ -494,22 +494,22 @@ const Returns: FC<Props> = () => {
                           <TableRow
                             key={return_id}
                             onClick={() => detailsViewHandle(elem)}
-                            className="cursor-pointer border-b border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 bg-white dark:bg-[#0e1725]"
+                            className="cursor-pointer border-b border-gray-300 hover:bg-gray-100 bg-white"
                           >
                             <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4 text-gray-800 dark:text-gray-200">
+                            <TableCell className="p-4 text-gray-800">
                               {return_id}
                             </TableCell>
-                            <TableCell className="p-4 text-gray-800 dark:text-gray-200">
+                            <TableCell className="p-4 text-gray-800">
                               {order_id}
                             </TableCell>
-                            <TableCell className="p-4 text-gray-800 dark:text-gray-200">
+                            <TableCell className="p-4 text-gray-800">
                               {quantity}
                             </TableCell>
-                            <TableCell className="p-4 text-gray-800 dark:text-gray-200">
+                            <TableCell className="p-4 text-gray-800">
                               {product_name}
                             </TableCell>
-                            <TableCell className="p-4 text-gray-800 dark:text-gray-200">
+                            <TableCell className="p-4 text-gray-800">
                               {category_name}
                             </TableCell>
                           </TableRow>
@@ -519,9 +519,9 @@ const Returns: FC<Props> = () => {
                       <TableRow>
                         <TableCell
                           colSpan={6}
-                          className="bg-gray-50 dark:bg-gray-800"
+                          className="bg-gray-50"
                         >
-                          <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center text-gray-500 dark:text-gray-400">
+                          <div className="flex h-full flex-1 py-1 text-base flex-col justify-center items-center text-gray-500">
                             <h1>{t("POS-Returnk8")}</h1>
                           </div>
                         </TableCell>
@@ -534,9 +534,9 @@ const Returns: FC<Props> = () => {
           </div>
         </div>
 
-        <div className="bg-gray-100 dark:bg-[#080e16] h-full rounded-lg overflow-hidden flex flex-col w-full mt-2 md:mt-0">
-          <div className="px-4 py-5 border-b border-gray-300 dark:border-gray-600">
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+        <div className="bg-gray-100 h-full rounded-lg overflow-hidden flex flex-col w-full mt-2 md:mt-0">
+          <div className="px-4 py-5 border-b border-gray-300">
+            <h1 className="text-xl font-semibold text-gray-800">
               {t("POS-Returnk9")}
             </h1>
           </div>
@@ -548,13 +548,13 @@ const Returns: FC<Props> = () => {
                   <dl
                     className={`${
                       detail.col_span_02 ? "col-span-2" : ""
-                    } bg-white dark:bg-[#0e1725] rounded-lg p-4`}
+                    } bg-white rounded-lg p-4`}
                     key={index}
                   >
-                    <dt className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    <dt className="text-sm text-gray-500 mb-1">
                       {t(detail.label)}{" "}
                     </dt>
-                    <dd className="text-base font-medium text-gray-800 dark:text-gray-200">
+                    <dd className="text-base font-medium text-gray-800">
                       {detail.value}
                     </dd>
                   </dl>
@@ -564,14 +564,14 @@ const Returns: FC<Props> = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-6">
                 <button
                   onClick={mergeHandle}
-                  className="w-full px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="w-full px-4 py-3 text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors"
                 >
                   {t("POS-Returnk16")}
                 </button>
                 <button
                   onClick={discardHandle}
                   disabled={deleteLoading}
-                  className="w-full px-4 py-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600"
+                  className="w-full px-4 py-3 text-gray-800 bg-white rounded-lg hover:bg-gray-50 transition-colors border border-gray-300"
                 >
                   {deleteLoading ? "Procesando..." : t("POS-Returnk17")}
                 </button>

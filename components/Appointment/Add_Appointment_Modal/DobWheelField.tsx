@@ -17,7 +17,7 @@ import {
 type WheelValue = { year: string; month: string; day: string };
 
 const triggerClassName =
-  "group w-full min-h-[46px] flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 text-left text-base text-black transition-colors hover:border-gray-300 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:hover:border-gray-500";
+  "group w-full min-h-[46px] flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-[#F5F5F7] px-3 text-left text-base text-black transition-colors hover:border-gray-300";
 
 function formatDisplay(full: string) {
   if (!full || !/^\d{4}-\d{2}-\d{2}$/.test(full)) return "";
@@ -102,12 +102,12 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
         className={triggerClassName}
       >
         <span className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/80 text-blue-600 shadow-sm dark:bg-[#1a2d4a] dark:text-blue-400">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/80 text-brand-600 shadow-sm">
             <CalendarDays className="h-4 w-4" aria-hidden />
           </span>
           <span
             className={`min-w-0 truncate ${
-              display ? "font-medium text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
+              display ? "font-medium text-gray-900" : "text-gray-500"
             }`}
           >
             {display || t("Appoinments_k99", { defaultValue: (enAppoinments as any)["Appoinments_k99"] ?? "Select date of birth" })}
@@ -130,16 +130,16 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
             onClick={() => setSheetOpen(false)}
           />
           <div
-            className="relative z-10 w-full max-w-md rounded-t-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-[#0e1725] sm:rounded-2xl"
+            className="relative z-10 w-full max-w-md rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:rounded-2xl"
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-              <span id="dob-wheel-title" className="font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+              <span id="dob-wheel-title" className="font-semibold text-gray-900">
                 {t("Appoinments_k9")}
               </span>
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                className="rounded-lg px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
                 onClick={() => setSheetOpen(false)}
               >
                 ✕
@@ -147,9 +147,9 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
             </div>
 
             <div className="px-2 pb-2 pt-4">
-              <div className="relative mx-auto max-w-sm rounded-xl border border-gray-100 bg-[#f8fafc] dark:border-gray-700 dark:bg-[#111a2a]">
+              <div className="relative mx-auto max-w-sm rounded-xl border border-gray-100 bg-[#f8fafc]">
                 <div
-                  className="pointer-events-none absolute left-0 right-0 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md bg-gray-200/40 dark:bg-white/5"
+                  className="pointer-events-none absolute left-0 right-0 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md bg-gray-200/40"
                   aria-hidden
                 />
                 <Picker
@@ -160,7 +160,7 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
                   onChange={(v) =>
                     handlePickerChange(v as WheelValue)
                   }
-                  className="relative z-0 font-medium text-gray-900 dark:text-white"
+                  className="relative z-0 font-medium text-gray-900"
                 >
                   <Picker.Column name="year">
                     {years.map((yv) => (
@@ -168,7 +168,7 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm ${
-                              selected ? "text-[#0066ff] font-semibold" : "opacity-50"
+                              selected ? "text-[#166534] font-semibold" : "opacity-50"
                             }`}
                           >
                             {yv}
@@ -183,7 +183,7 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm ${
-                              selected ? "text-[#0066ff] font-semibold" : "opacity-50"
+                              selected ? "text-[#166534] font-semibold" : "opacity-50"
                             }`}
                           >
                             {monthShortLabel(mv)}
@@ -198,7 +198,7 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm tabular-nums ${
-                              selected ? "text-[#0066ff] font-semibold" : "opacity-50"
+                              selected ? "text-[#166534] font-semibold" : "opacity-50"
                             }`}
                           >
                             {parseInt(dv, 10)}
@@ -211,17 +211,17 @@ export function DobWheelField({ dobParts, formDob, onCommit }: Props) {
               </div>
             </div>
 
-            <div className="flex gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
+            <div className="flex gap-2 border-t border-gray-200 p-3">
               <button
                 type="button"
-                className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 onClick={() => setSheetOpen(false)}
               >
                 {t("Appoinments_k58")}
               </button>
               <button
                 type="button"
-                className="flex-1 rounded-lg bg-[#0066ff] py-2.5 text-sm font-semibold text-white hover:bg-[#0052cc]"
+                className="flex-1 rounded-lg bg-[#166534] py-2.5 text-sm font-semibold text-white hover:bg-[#125229]"
                 onClick={handleDone}
               >
                 {t("Appoinments_k22")}

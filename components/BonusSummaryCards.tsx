@@ -62,10 +62,10 @@ const BonusSummaryCards: React.FC<Props> = ({ cards }) => {
         const iconNode = c.icon ?? getDefaultIcon(c.id)
         const iconBgClass = c.iconBg ?? getDefaultBg(c.id)
         return (
-          <div key={c.id ?? c.title} className="bg-white dark:bg-[#0e1725] rounded-lg p-4 flex items-center justify-between border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg">
+          <div key={c.id ?? c.title} className="bg-white rounded-lg p-4 flex items-center justify-between border border-gray-300 shadow-md hover:shadow-lg">
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-300">{c.title}</div>
-              <div className="text-2xl font-bold text-black dark:text-white">{c.value}</div>
+              <div className="text-sm text-gray-500">{c.title}</div>
+              <div className="text-2xl font-bold text-black">{c.value}</div>
               {c.subtitle ? <div className="text-xs text-gray-500 mt-1">{c.subtitle}</div> : null}
             </div>
 

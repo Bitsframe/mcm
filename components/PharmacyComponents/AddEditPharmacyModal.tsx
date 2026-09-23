@@ -318,7 +318,7 @@ export default function AddEditPharmacyModal({
         handleClose();
     };
 
-    const labelStyle = "text-sm font-medium mb-1.5 block text-gray-700 dark:text-gray-300";
+    const labelStyle = "text-sm font-medium mb-1.5 block text-gray-700";
 
     return (
         <div>
@@ -328,11 +328,11 @@ export default function AddEditPharmacyModal({
                 aria-labelledby="add-edit-pharmacy-modal-title"
             >
                 <div className="w-full h-full flex justify-center items-center px-4 bg-black bg-opacity-30">
-                    <div className="bg-white rounded-2xl px-6 py-6 w-full dark:bg-[#0e1725] max-w-[500px] shadow-lg">
+                    <div className="bg-white rounded-2xl px-6 py-6 w-full max-w-[500px] shadow-lg">
                         <div className="flex justify-between items-center mb-6">
                             <h2
                                 id="add-edit-pharmacy-modal-title"
-                                className="text-lg font-semibold dark:text-white text-gray-900"
+                                className="text-lg font-semibold text-gray-900"
                             >
                                 {editData ? t("Pharmacy_k18") : t("Pharmacy_k4")}
                             </h2>
@@ -351,9 +351,9 @@ export default function AddEditPharmacyModal({
                                 <Input_Component
                                     value={formData.name}
                                     placeholder={t("Pharmacy_k19")}
-                                    border="border border-gray-200 rounded-lg dark:border-none"
+                                    border="border border-gray-200 rounded-lg"
                                     onChange={(value) => handleInputChange("name", value)}
-                                    bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
+                                    bg_color=" bg-[#F5F5F7]"
                                 />
                             </div>
 
@@ -365,31 +365,31 @@ export default function AddEditPharmacyModal({
                                     <Input_Component
                                         value={formData.address}
                                         placeholder={t("Pharmacy_k6")}
-                                        border="border border-gray-200 rounded-lg dark:border-none"
+                                        border="border border-gray-200 rounded-lg"
                                         onChange={handleAddressChange}
-                                        bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
+                                        bg_color=" bg-[#F5F5F7]"
                                     />
                                     {isLoadingSuggestions && (
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                                            <div className="animate-spin h-4 w-4 border-2 border-brand-500 border-t-transparent rounded-full"></div>
                                         </div>
                                     )}
                                 </div>
                                 
                                 {/* Address Suggestions Dropdown */}
                                 {addressSuggestions.length > 0 && (
-                                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-[#122136] border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                         {addressSuggestions.map((suggestion, index) => (
                                             <div
                                                 key={index}
                                                 onClick={() => handleSuggestionClick(suggestion)}
-                                                className="p-3 hover:bg-gray-100 dark:hover:bg-[#1a2942] cursor-pointer border-b dark:border-gray-700 last:border-b-0 transition-colors"
+                                                className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 transition-colors"
                                             >
-                                                <div className="font-semibold text-gray-900 dark:text-white">
+                                                <div className="font-semibold text-gray-900">
                                                     {suggestion.street_line}
-                                                    {suggestion.secondary && <span className="text-gray-600 dark:text-gray-400"> {suggestion.secondary}</span>}
+                                                    {suggestion.secondary && <span className="text-gray-600"> {suggestion.secondary}</span>}
                                                 </div>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                <div className="text-sm text-gray-600">
                                                     {suggestion.city}, {suggestion.state} {suggestion.zipcode}
                                                 </div>
                                             </div>
@@ -405,7 +405,7 @@ export default function AddEditPharmacyModal({
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none">+1</span>
                                     <input
                                         type="text"
-                                        className="w-full h-[45px] p-3 rounded-lg dark:bg-[#122136] bg-[#f1f4f9] pl-10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 border border-gray-200 dark:border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-[45px] p-3 rounded-lg bg-[#F5F5F7] pl-10 text-gray-900 placeholder:text-gray-500 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
                                         maxLength={12}
                                         value={formatPhoneDisplay(formData.phone_number)}
                                         onChange={e => {
@@ -418,8 +418,8 @@ export default function AddEditPharmacyModal({
                             </div>
 
                             {/* Delivery Switch */}
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-[#f1f4f9] dark:bg-[#122136] mt-2 border border-gray-100 dark:border-none">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-[#F5F5F7] mt-2 border border-gray-100">
+                                <span className="text-sm font-medium text-gray-700">
                                     {t("Pharmacy_k37")}
                                 </span>
                                 <Switch
@@ -430,29 +430,29 @@ export default function AddEditPharmacyModal({
 
                             {/* API Check Result Display - Only show if match found */}
                             {isCheckingApi && (
-                                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div className="mt-4 p-4 bg-brand-50 border border-brand-200 rounded-lg">
                                     <div className="flex items-center gap-3">
-                                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                                        <span className="text-sm text-blue-700 dark:text-blue-300">Searching for pharmacy...</span>
+                                        <div className="animate-spin h-5 w-5 border-2 border-brand-500 border-t-transparent rounded-full"></div>
+                                        <span className="text-sm text-brand-700">Searching for pharmacy...</span>
                                     </div>
                                 </div>
                             )}
 
                             {/* Only show warning if match was found */}
                             {apiCheckResult && !isCheckingApi && apiCheckResult.success && apiCheckResult.matchFound && (
-                                <div className="mt-4 p-4 rounded-lg border bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700">
+                                <div className="mt-4 p-4 rounded-lg border bg-yellow-50 border-yellow-300">
                                     <div className="space-y-3">
                                         {/* Header */}
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xl">⚠️</span>
-                                                <span className="font-semibold text-yellow-800 dark:text-yellow-300">
+                                                <span className="font-semibold text-yellow-800">
                                                     This pharmacy already exists
                                                 </span>
                                             </div>
                                             <button
                                                 onClick={() => setApiCheckResult(null)}
-                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                className="text-gray-500 hover:text-gray-700"
                                             >
                                                 ✕
                                             </button>
@@ -462,35 +462,35 @@ export default function AddEditPharmacyModal({
                                         {apiCheckResult.data && apiCheckResult.data.length > 0 && (
                                             <div className="space-y-2">
                                                 {apiCheckResult.data.map((pharmacy: any, index: number) => (
-                                                    <div key={index} className="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
+                                                    <div key={index} className="bg-white p-3 rounded-lg border border-yellow-200">
                                                         <div className="grid grid-cols-2 gap-2 text-sm">
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">Name:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.name}</p>
+                                                                <span className="text-gray-600">Name:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.name}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.phone_number || 'N/A'}</p>
+                                                                <span className="text-gray-600">Phone:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.phone_number || 'N/A'}</p>
                                                             </div>
                                                             <div className="col-span-2">
-                                                                <span className="text-gray-600 dark:text-gray-400">Address:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.address}</p>
+                                                                <span className="text-gray-600">Address:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.address}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">City:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.city || 'N/A'}</p>
+                                                                <span className="text-gray-600">City:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.city || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">State:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.state || 'N/A'}</p>
+                                                                <span className="text-gray-600">State:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.state || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">Zipcode:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">{pharmacy.zip_code || 'N/A'}</p>
+                                                                <span className="text-gray-600">Zipcode:</span>
+                                                                <p className="font-medium text-gray-900">{pharmacy.zip_code || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                                                                <p className="font-medium text-gray-900 dark:text-white">
+                                                                <span className="text-gray-600">Status:</span>
+                                                                <p className="font-medium text-gray-900">
                                                                     {pharmacy.is_active ? '✓ Active' : '✗ Inactive'}
                                                                 </p>
                                                             </div>
@@ -508,7 +508,7 @@ export default function AddEditPharmacyModal({
                                 <button
                                     type="button"
                                     onClick={closeModalHandle}
-                                    className="px-5 py-2 rounded-md bg-gray-100 dark:bg-[#122136] dark:text-white text-gray-700 hover:bg-gray-200 transition-colors"
+                                    className="px-5 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                                 >
                                     {t("Pharmacy_k21")}
                                 </button>
@@ -518,7 +518,7 @@ export default function AddEditPharmacyModal({
                                         type="button"
                                         onClick={handleSubmit}
                                         disabled={loading}
-                                        className="px-5 py-2 rounded-md bg-[#0066ff] text-white hover:opacity-90 disabled:bg-gray-400 transition-opacity"
+                                        className="px-5 py-2 rounded-md bg-[#166534] text-white hover:opacity-90 disabled:bg-gray-400 transition-opacity"
                                     >
                                         {editData
                                             ? loading ? t("Pharmacy_k23") : t("Pharmacy_k22")

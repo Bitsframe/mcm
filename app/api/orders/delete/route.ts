@@ -1,8 +1,12 @@
+import { requireSuperAdmin } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { delete_content_service, fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function POST(request: Request) {
+  const gate = await requireSuperAdmin();
+  if (gate.response) return gate.response;
+
   try {
     const body = await request.json();
     const { order_id } = body;

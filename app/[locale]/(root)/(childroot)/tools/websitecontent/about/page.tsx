@@ -55,7 +55,7 @@ const fields: FieldsType = {
         return <div className='flex flex-col space-y-2'>
             {/* <Label>{label}</Label> */}
             <Image
-                src="https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z"
+                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/Aboutus_images/image%201.svg?t=2024-03-17T13%3A01%3A13.546Z`}
                 alt='picture'
                 width={200}
                 height={200}
@@ -95,9 +95,9 @@ const About = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E5EA] rounded-xl'>
                 <div className='grid grid-cols-1 gap-4 sm:flex-row sm:pr-3 sm:gap-24 my-5'>
-                    <Select_Dropdown bg_color='dark:bg-[#f1f4f7]' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
+                    <Select_Dropdown bg_color='' value={selected_language} label={t('WebCont_k8')} options_arr={langage_list_options} on_change_handle={select_language_handle} required={true} />
                 </div>
                 <div className="border-t my-3 border-black"></div>
                 <div className='px-3 w-full space-y-5'>

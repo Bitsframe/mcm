@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 // Mark this route as dynamic so Next won't attempt to statically prerender it
@@ -5,6 +6,9 @@ export const dynamic = 'force-dynamic';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function GET(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     // Use request.nextUrl for server-safe access to URL/search params
     // (avoids using request.url which prevents static prerendering)

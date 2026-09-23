@@ -359,35 +359,32 @@ const SalesHistory = () => {
   }, [setActiveTitle]);
 
   return (
-    <main className="w-full h-full font-[500] bg-white dark:bg-[#0e1725] text-gray-800 dark:text-gray-200">
-      <div className="px-4 pt-4">
-        <StatStrip page="sales" />
-      </div>
-      <div className="flex justify-between items-center px-4 space-x-2">
+    <main className="w-full h-full font-[500] bg-white text-gray-800">
+      {/* Title row, then one compact band of figures — the table is the page. */}
+      <div className="flex items-start justify-between gap-3 px-4 pt-1 pb-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            {t("POS-Historyk1")}
-          </h1>
-          <h1 className="mt-1 mb-2 text-gray-600 dark:text-gray-400">
-            {t("POS-Historyk28")}
-          </h1>
+          <h1 className="text-title2 text-label">{t("POS-Historyk1")}</h1>
+          <p className="text-footnote text-label-2">{t("POS-Historyk28")}</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2">
           <ExportAsPDF />
         </div>
       </div>
+      <div className="px-4">
+        <StatStrip page="sales" />
+      </div>
 
-      {/* Statistics Cards Container */}
-      <div className="px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Day figures (follow the date filter) */}
+      <div className="px-4 pb-2 pt-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {/* Card 1 - Products Sold Today */}
-          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+          <div className="rounded-lg border border-border bg-white px-4 py-3 shadow-mac-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-footnote text-label-2">
                   {t("POS-Historyk35")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="mt-0.5 text-title3 text-label">
                   {(() => {
                     // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
@@ -419,8 +416,8 @@ const SalesHistory = () => {
                   })()}
                 </p>
               </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-brand-100 rounded-full">
+                <svg className="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
@@ -428,13 +425,13 @@ const SalesHistory = () => {
           </div>
 
           {/* Card 2 - Total Amount Received Today */}
-          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+          <div className="rounded-lg border border-border bg-white px-4 py-3 shadow-mac-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-footnote text-label-2">
                   {t("POS-Historyk36")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
                     // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
@@ -467,8 +464,8 @@ const SalesHistory = () => {
                   })()}
                 </p>
               </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-green-100 rounded-full">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
@@ -476,13 +473,13 @@ const SalesHistory = () => {
           </div>
 
           {/* Card 3 - Total Sales */}
-          <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-600">
+          <div className="rounded-lg border border-border bg-white px-4 py-3 shadow-mac-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-footnote text-label-2">
                   {t("POS-Historyk37")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
                     // Use selected date or today's date in CT
                     const targetDateString = dobSearch || (() => {
@@ -513,8 +510,8 @@ const SalesHistory = () => {
                   })()}
                 </p>
               </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                <svg className="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>

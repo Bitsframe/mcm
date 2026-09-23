@@ -84,14 +84,14 @@ const Locations = () => {
 
     return (
         <WebsiteContentLayout>
-            <div className='mb-5 px-3 py-2 border-2 border-[#E5E7EB] dark:border-[#374151] rounded-xl'>
+            <div className='mb-5 px-3 py-2 border-2 border-[#E5E5EA] rounded-xl'>
                 <div className='flex flex-col gap-4 sm:flex-row w-full'>
                     <div className='w-full'>
                         <Select_Dropdown
                             value={selected_list_id} label={t('WebCont_k5')} start_empty={true} options_arr={data_list.map(({ id, title }) => ({ value: id, label: title }))}
                             on_change_handle={change_selected_list_id}
                             required={true}
-                            bg_color='dark:bg-[#374151]' />
+                            bg_color='' />
                     </div>
                     <Custom_Modal create_new_handle={create_content_handle} open_handle={open_modal} close_handle={close_modal} is_open={create_modal_open} Title='Create Location' loading={create_data_loading} >
                         <div className='grid grid-cols-1 gap-4'>

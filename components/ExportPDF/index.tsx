@@ -74,8 +74,24 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
             const fetched_data = await fetch_content_service({
                 table: 'sales_history',
                 language: '',
+                // Two separate reasons a month-long export came back short.
+                //
+                // 1. No pagination. PostgREST caps a response at one page (1000
+                //    rows), so a busy month lost everything past the cap. The
+                //    on-screen history table already paginates; only the export
+                //    did not, which is why the screen and the PDF disagreed.
+                //
+                // 2. `inventory` was a LEFT embed with no "is not null" filter, so
+                //    `inventory.location_id` filtered the EMBED rather than the
+                //    parent: rows from other locations still came back (with
+                //    `inventory: null`), consumed the row cap, and were then
+                //    discarded client side. `inventory!inner` below fixes that.
+                //    `orders` already had an "is not null" filter, which is
+                //    PostgREST's way of asking for an inner join, so its date
+                //    filter was working; `orders!inner` just makes that visible.
+                fetchAll: true,
                 selectParam: `,
-                    orders(order_id, order_date, paid_amount, cash, card, zelle, sales_team_id, pos:allpatients (
+                    orders!inner(order_id, order_date, paid_amount, cash, card, zelle, sales_team_id, pos:allpatients (
                         lastname,
                         firstname,
                         email,
@@ -83,7 +99,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
                         dob,
                         locationid
                     )),
-                    inventory(inventory_id, product_id, location_id, products (
+                    inventory!inner(inventory_id, product_id, location_id, products (
                         product_id,
                         product_name,
                         price,

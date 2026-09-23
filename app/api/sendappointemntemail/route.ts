@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 
 // Use the environment variables
@@ -6,6 +7,9 @@ const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
 const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL; // Add the reply-to email to the environment variables
 
 export async function POST(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const data = await req.json();
 

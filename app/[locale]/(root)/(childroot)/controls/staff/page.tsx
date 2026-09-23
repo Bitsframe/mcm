@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react";
+import { LocationPicker } from "@/components/ui/location-picker";
 import { classifyError, logError } from '@/utils/logging/safe-log';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -102,34 +103,34 @@ const StaffControlsPage: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 space-y-4 h-[80dvh] dark:bg-[#0e1725]">
-      <Card className="w-full dark:bg-[#0e1725] dark:border-gray-700">
-        <CardHeader className="dark:bg-[#0e1725]">
-          <CardTitle className="dark:text-white">{t("CT_k34")}</CardTitle>
+    <main className="flex-1 space-y-4 h-[80dvh]">
+      <Card className="w-full">
+        <CardHeader className="">
+          <CardTitle className="">{t("CT_k34")}</CardTitle>
         </CardHeader>
-        <CardContent className="dark:bg-[#0e1725]">
+        <CardContent className="">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
                 <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">{t("CT_k35")}</label>
+                  <label className="block text-sm font-medium mb-1">{t("CT_k35")}</label>
                   <Input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={t("CT_k36")}
-                    className="w-full dark:bg-[#122136] dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    className="w-full"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">{t("CT_k37")}</label>
+                  <label className="block text-sm font-medium mb-1">{t("CT_k37")}</label>
                     <div>
-                      <div className="w-full rounded border bg-white dark:bg-[#122136] dark:border-gray-600 text-sm p-2 max-h-64 overflow-auto">
+                      <div className="w-full rounded border bg-white text-sm p-2 max-h-64 overflow-auto">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-600 dark:text-gray-400">{t("CT_k38")}</span>
+                          <span className="text-xs text-gray-600">{t("CT_k38")}</span>
                           <button
                             type="button"
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            className="text-xs text-brand-600 hover:underline"
                             onClick={() => setLocationIds(locations?.map((l: any) => String(l.id)) || [])}
                           >
                             {t("CT_k39")}
@@ -140,14 +141,14 @@ const StaffControlsPage: React.FC = () => {
                             const id = String(loc.id);
                             const checked = locationIds.includes(id);
                             return (
-                              <label key={id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                              <label key={id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
                                 <input
                                   type="checkbox"
                                   checked={checked}
                                   onChange={() => toggleLocation(id)}
                                   className="h-4 w-4"
                                 />
-                                <span className="text-sm dark:text-white">{loc.title}</span>
+                                <span className="text-sm">{loc.title}</span>
                               </label>
                             );
                           })}
@@ -157,45 +158,38 @@ const StaffControlsPage: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit" disabled={submitting} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+                  <Button type="submit" disabled={submitting} className="bg-brand-600 hover:bg-brand-700">
                     {submitting ? t("CT_k55") : t("CT_k45")}
                   </Button>
-                  <Button type="button" onClick={() => { setFullName(""); setLocationIds([]); }} className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white">
+                  <Button type="button" onClick={() => { setFullName(""); setLocationIds([]); }} className="bg-gray-300 hover:bg-gray-400">
                     {t("CT_k44")}
                   </Button>
                 </div>
               </form>
             </div>
 
-            <div className="md:col-span-1 border rounded p-4 bg-gray-50 dark:bg-[#122136] dark:border-gray-700">
+            <div className="md:col-span-1 border rounded p-4 bg-gray-50">
               <div className="mb-3">
-                <label className="block text-sm font-medium mb-1 dark:text-white">{t("CT_k40")}</label>
-                <Select value={viewLocationId ? String(viewLocationId) : ""} onValueChange={(v) => setViewLocationId(v ? Number(v) : null)}>
-                  <SelectTrigger className="w-full dark:bg-[#0e1725] dark:border-gray-600 dark:text-white [&>span]:dark:text-gray-300">
-                    <SelectValue placeholder={t("CT_k41")} />
-                  </SelectTrigger>
-                  <SelectContent className="dark:bg-[#122136] dark:border-gray-600">
-                    <SelectGroup>
-                      {locations?.map((loc: any) => (
-                        <SelectItem key={loc.id} value={String(loc.id)} className="dark:text-white dark:hover:bg-gray-700">
-                          {loc.title}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-medium mb-1">{t("CT_k40")}</label>
+                <LocationPicker
+                  className="w-full"
+                  locations={locations ?? []}
+                  value={viewLocationId ? String(viewLocationId) : ""}
+                  onChange={(v) => setViewLocationId(v ? Number(v) : null)}
+                  placeholder={t("CT_k41")}
+                />
               </div>
 
               <div className="space-y-2 max-h-[50vh] overflow-auto">
                 {loadingStaff ? (
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+                  <div className="text-sm text-gray-500">Loading...</div>
                 ) : staffList.length === 0 ? (
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{t("CT_k42")}</div>
+                  <div className="text-sm text-gray-500">{t("CT_k42")}</div>
                 ) : (
                   staffList.map((s: any) => (
-                    <div key={s.id} className="p-2 border-b last:border-b-0 dark:border-gray-600">
-                      <div className="font-medium dark:text-white">{s.full_name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">ID: {s.id}</div>
+                    <div key={s.id} className="p-2 border-b last:border-b-0">
+                      <div className="font-medium">{s.full_name}</div>
+                      <div className="text-xs text-gray-500">ID: {s.id}</div>
                     </div>
                   ))
                 )}

@@ -19,26 +19,20 @@ export default function SettingsLayout({
   }, [setActiveTitle]);
 
   return (
-    <div className="dark:bg-[#0E1725]">
-      <div className="p-1 sm:p-3">
-        <h1 className="text-xl font-bold dark:text-white">{t("Settings_k3")}</h1>
-        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
-          {t("Settings_k2")}
-        </h1>
+    <div className="">
+      <div className="px-2 py-3 sm:px-3">
+        <h1 className="text-title2 text-label">{t("Settings_k3")}</h1>
+        <p className="mt-1 text-body text-label-2">{t("Settings_k2")}</p>
       </div>
 
       <div className="block sm:hidden mb-4">
         <TopTabs />
       </div>
-      <div className="flex justify-center gap-5 px-2 dark:bg-[#0E1725]">
+      <div className="flex justify-center gap-5 px-2">
         <div className="hidden sm:block space-y-5">
           <TopTabs />
         </div>
-        <main
-          className=" w-full font-[500] text-[20px] space-y-5 rounded-md"
-        >
-          <main>{children}</main>
-        </main>
+        <main className="w-full space-y-5">{children}</main>
       </div>
     </div>
   );

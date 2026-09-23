@@ -4,7 +4,7 @@ import { Input_Component } from "@/components/Input_Component";
 import { Select_Dropdown } from "@/components/Select_Dropdown";
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { IoCloseOutline } from "react-icons/io5";
-import { Select } from "flowbite-react";
+;
 import { Action_Button } from "@/components/Action_Button";
 import {
   create_content_service,
@@ -42,6 +42,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import axios from "axios";
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 interface PatientDetailsInterface {
   id: number;
@@ -164,13 +166,13 @@ const Promo_Input = () => {
   const { t } = useTranslation(translationConstant.PROCODE);
 
   return (
-    <div className="w-52 flex rounded-md items-center bg-gray-200 dark:bg-gray-700 p-2 px-2">
+    <div className="w-52 flex rounded-md items-center bg-gray-200 p-2 px-2">
       <input
         type="text"
         placeholder={t('Procode_k_placeholder', { defaultValue: 'Enter Promo Code' })}
-        className="w-full px-1 py-1 text-sm border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+        className="w-full px-1 py-1 text-sm border-2 border-gray-300 focus:outline-none focus:border-brand-500 bg-white text-gray-800"
       />
-      <IoCloseOutline className="text-gray-500 dark:text-gray-400" />
+      <IoCloseOutline className="text-gray-500" />
     </div>
   );
 };
@@ -178,15 +180,15 @@ const Promo_Input = () => {
 const Payment_Method_Select = () => {
   return (
     <div className="w-52">
-      <Select
+      <MacSelect
         className="w-full h-auto"
-        style={{ backgroundColor: "#f3f4f6", color: "black" }}
+        style={{ backgroundColor: "#F5F5F7", color: "black" }}
         id="section"
         required={true}
       >
-        <option className="bg-white dark:bg-gray-700">Cash</option>
-        <option className="bg-white dark:bg-gray-700">Debit Card</option>
-      </Select>
+        <option className="bg-white">Cash</option>
+        <option className="bg-white">Debit Card</option>
+      </MacSelect>
     </div>
   );
 };
@@ -447,13 +449,13 @@ const Patients = () => {
 
   const selectPatientButtonClass = (selected: boolean) =>
     selected
-      ? "bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
-      : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 justify-center transition-colors";
+      ? "bg-brand-600 text-white border border-brand-600 px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center hover:bg-brand-700 transition-colors"
+      : "border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 hover:bg-gray-300 flex-1 justify-center transition-colors";
 
   const selectPatientButtonClassDesktop = (selected: boolean) =>
     selected
-      ? "bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
-      : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors";
+      ? "bg-brand-600 text-white border border-brand-600 px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-brand-700 transition-colors"
+      : "border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm flex items-center gap-1 bg-gray-200 hover:bg-gray-300 transition-colors";
 
   const modalInputChangeHandle = (e: any, id: string) => {
     clearCreateFieldError(id);
@@ -711,17 +713,17 @@ const createNewDataHandle = async (): Promise<boolean> => {
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
-    <main className="w-full bg-white dark:bg-[#0E1725] font-normal text-base p-2 md:py-4">
+    <main className="w-full bg-white font-normal text-base p-2 md:py-4">
       <div className="w-full">
-        <div className="bg-gray-100 dark:bg-[#080e16] rounded-lg shadow-sm w-full mb-4">
+        <div className="mb-4 w-full rounded-lg border border-separator bg-white shadow-mac-sm">
           <div className="p-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-              <h1 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4 md:mb-0">
+              <h1 className="mb-4 text-title3 text-label md:mb-0">
                 {t("POS-Sales_k35")}
               </h1>
               <button
                 onClick={() => setAddPatientModalOpen(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors w-full md:w-auto"
+                className="bg-brand-600 text-white px-4 py-2 rounded-md text-sm hover:bg-brand-700 transition-colors w-full md:w-auto"
               >
                {t("POS-Sales_k81")}
               </button>
@@ -729,29 +731,29 @@ const createNewDataHandle = async (): Promise<boolean> => {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
               <div className="flex items-center gap-2 w-full md:w-[500px]">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
                 {t("POS-Sales_k105")}:
                 </span>
-                <Select
+                <MacSelect
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value as "all" | "name" | "email" | "phone")}
-                  className="w-[100px] bg-[#F1F4F9] dark:bg-[#122136] border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
+                  className="w-[100px] bg-[#F5F5F7] border-gray-300 text-gray-900"
                 >
                   <option value="all">{t("POS-Sales_k35")}</option>
                   <option value="name">{t("POS-Sales_k41")}</option>
                   <option value="email">{t("POS-Sales_k93")}</option>
                   <option value="phone">{t("POS-Sales_k37")}</option>
-                </Select>
-                <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                </MacSelect>
+                <span className="text-lg font-medium text-gray-700">
                   =
                 </span>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("POS-Sales_k15")}
-                    className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-[#1f2937] dark:text-white dark:placeholder-gray-400"
+                    className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
                   />
                 </div>
               </div>
@@ -759,8 +761,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 <button
                   onClick={() => setActiveFilterBtn(0)}
                   className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 0
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                    ? "bg-brand-600 text-white"
+                    : "bg-gray-200 text-gray-800 border border-gray-300"
                     }`}
                 >
                   {t("POS-Sales_k16")}
@@ -768,8 +770,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 <button
                   onClick={() => setActiveFilterBtn(1)}
                   className={`px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm flex-1 md:flex-none ${activeFilterBtn === 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600"
+                    ? "bg-brand-600 text-white"
+                    : "bg-gray-200 text-gray-800 border border-gray-300"
                     }`}
                 >
                   {t("POS-Sales_k17")}
@@ -781,7 +783,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
           <div className="block md:hidden p-4 space-y-3">
             {activeFilterBtn === 0 && dataList.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
+                <p className="text-gray-500 text-lg">
                   {t("POS-Sales_k106")}
                 </p>
               </div>
@@ -795,38 +797,38 @@ const createNewDataHandle = async (): Promise<boolean> => {
               return (
                 <div
                   key={ind}
-                  className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
+                  className="rounded-lg border border-separator bg-white p-4 shadow-mac-sm"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                      <h3 className="text-callout font-medium text-label">
                         {`${firstname} ${lastname}`}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-body text-label-2">
                         {treatmenttype}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-gray-500">
                       {formattedDateTime}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k37")}</p>
-                      <p className="text-gray-700 dark:text-gray-300">
+                      <p className="text-gray-500">{t("POS-Sales_k37")}</p>
+                      <p className="text-gray-700">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k93")}</p>
-                      <p className="text-gray-700 dark:text-gray-300 truncate">
+                      <p className="text-gray-500">{t("POS-Sales_k93")}</p>
+                      <p className="text-gray-700 truncate">
                         {email}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 dark:text-gray-400">{t("POS-Sales_k21")}</p>
-                      <p className="text-gray-700 dark:text-gray-300">
+                      <p className="text-gray-500">{t("POS-Sales_k21")}</p>
+                      <p className="text-gray-700">
                         {gender}
                       </p>
                     </div>
@@ -835,7 +837,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   <div className="flex justify-between gap-2">
                     <button
                       onClick={() => editHandle(elem)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center"
+                      className="bg-brand-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 flex-1 justify-center"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -889,21 +891,21 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
                   className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white"
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-brand-600 text-white"
                     }`}
                 >
                   {t("POS-Sales_kPrev")}
                 </button>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700">
                   {t("POS-Sales_kPage")} {currentPage} {t("POS-Sales_kOf")} {totalPages}
                 </span>
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white"
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-brand-600 text-white"
                     }`}
                 >
                   {t("POS-Sales_kNext")}
@@ -916,13 +918,13 @@ const createNewDataHandle = async (): Promise<boolean> => {
             <div className="px-4 pb-4">
               {activeFilterBtn === 0 && dataList.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">
+                  <p className="text-gray-500 text-lg">
                     {t("POS-Sales_k106")}
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 dark:border-gray-700 font-medium text-sm text-gray-700 dark:text-gray-300">
+                  <div className="grid grid-cols-6 gap-4 py-3 border-b border-gray-300 font-medium text-sm text-gray-700">
                     <div className="col-span-1">ID</div>
                     <div className="col-span-1">{t("POS-Sales_k41")}</div>
                     <div className="col-span-1">{t("POS-Sales_k22")}</div>
@@ -949,34 +951,34 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 return (
                   <div
                     key={ind}
-                    className="grid grid-cols-6 gap-4 py-4 border-b border-gray-300 dark:border-gray-700 items-center"
+                    className="grid grid-cols-6 gap-4 py-4 border-b border-gray-300 items-center"
                   >
                     <div className="col-span-1">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      <p className="text-sm font-medium text-gray-700">
                         {id}
                       </p>
                     </div>
 
                     <div className="col-span-1">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                      <p className="text-sm font-medium text-gray-700 truncate">
                         {`${firstname} ${lastname}`}
                       </p>
                     </div>
 
                     <div className="col-span-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-300 truncate" title={email}>
+                      <p className="text-sm text-gray-600 truncate" title={email}>
                         {truncateEmail(email)}
                       </p>
                     </div>
 
                     <div className="col-span-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <p className="text-sm text-gray-600">
                         {formatPhoneNumber(phone)}
                       </p>
                     </div>
 
                     <div className="col-span-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <p className="text-sm text-gray-600">
                         {formattedDateTime}
                       </p>
                     </div>
@@ -984,7 +986,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     <div className="col-span-1 flex items-center gap-2 justify-center">
                       <button
                         onClick={() => editHandle(elem)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-blue-700 transition-colors"
+                        className="bg-brand-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-brand-700 transition-colors"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1045,13 +1047,13 @@ const createNewDataHandle = async (): Promise<boolean> => {
       }}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-gray-800 dark:text-gray-200">
+            <DialogTitle className="text-xl font-medium text-gray-800">
               {t("POS-Sales_k18")}
             </DialogTitle>
           </DialogHeader>
 
           {Object.keys(createFieldErrors).length > 0 && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <p className="font-medium">Please fix the highlighted fields.</p>
               <ul className="mt-2 space-y-1">
                 {Object.values(createFieldErrors).map((message, index) => (
@@ -1070,7 +1072,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e, "firstname")
                   }
                   label={t("POS-Sales_k19")}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   placeholder={t("POS-Sales_k86")}
                   hasError={!!createFieldErrors.firstname}
                   errorMessage={createFieldErrors.firstname}
@@ -1084,7 +1086,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                     addPatientFieldsChange(e, "lastname")
                   }
                   label={t("POS-Sales_k20")}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   placeholder={t("POS-Sales_k87")}
                   hasError={!!createFieldErrors.lastname}
                   errorMessage={createFieldErrors.lastname}
@@ -1094,7 +1096,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <div>
                 <Select_Dropdown
                   value={createActionData.gender}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   start_empty={true}
                   options_arr={["Male", "Female", "Other"].map((gender) => ({
                     value: gender,
@@ -1114,7 +1116,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <div>
                 <Select_Dropdown
                   value={createActionData.treatmenttype || ""}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   start_empty={true}
                   options_arr={(services || []).map((title) => ({
                     value: title,
@@ -1135,7 +1137,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   value={createActionData.email}
                   onChange={(e: string) => addPatientFieldsChange(e, "email")}
                   label={t("POS-Sales_k22")}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   placeholder={t("POS-Sales_k88")}
                   hasError={!!createFieldErrors.email || !!emailError}
                   errorMessage={createFieldErrors.email || emailError}
@@ -1157,7 +1159,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
 
               <div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700">
                     {t("POS-Sales_k113")}
                   </label>
                   <div className="relative">
@@ -1175,26 +1177,26 @@ const createNewDataHandle = async (): Promise<boolean> => {
                         setTimeout(() => setShowAddressSuggestions(false), 200);
                       }}
                       placeholder={t("POS-Sales_k115")}
-                      className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:border-transparent bg-[#f1f4f9] dark:bg-gray-700 text-gray-900 dark:text-white ${createFieldErrors.address ? "border border-red-500 focus:ring-red-500" : "border border-gray-300 dark:border-gray-600 focus:ring-blue-500"}`}
+                      className={`w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:border-transparent bg-[#F5F5F7] text-gray-900 ${createFieldErrors.address ? "border border-red-500 focus:ring-red-500" : "border border-gray-300 focus:ring-brand-500"}`}
                     />
                     {addressLoading && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600"></div>
                       </div>
                     )}
                     {showAddressSuggestions && addressSuggestions.length > 0 && (
-                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                         {addressSuggestions.map((suggestion, index) => (
                           <div
                             key={index}
-                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                             onClick={() => handleAddressSelect(suggestion)}
                           >
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            <div className="text-sm font-medium text-gray-900">
                               {suggestion.streetLine}
                               {suggestion.secondary && ` ${suggestion.secondary}`}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-gray-500">
                               {suggestion.city}, {suggestion.state} {suggestion.zipcode}
                             </div>
                           </div>
@@ -1213,7 +1215,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                   value={createActionData.dob}
                   onChange={(e: string) => addPatientFieldsChange(e, "dob")}
                   label={t("POS-Sales_k114")}
-                  bg_color="bg-[#f1f4f9] dark:bg-gray-700"
+                  bg_color="bg-[#F5F5F7]"
                   placeholder={t("POS-Sales_k116")}
                   type="date"
                   hasError={!!createFieldErrors.dob}
@@ -1229,7 +1231,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
                 const ok = await createNewDataHandle();
                 if (ok) setAddPatientModalOpen(false);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+              className="bg-brand-600 hover:bg-brand-700 text-white w-full sm:w-auto"
             >
               {t("POS-Sales_k25")}
             </Button>
@@ -1250,17 +1252,17 @@ const createNewDataHandle = async (): Promise<boolean> => {
         create_new_handle={modalSubmitHandle}
       >
         {activeModalMode === "delete" ? (
-          <div className="text-gray-800 dark:text-gray-200">
+          <div className="text-gray-800">
             <h1>¿Está seguro de que desea eliminar este POS?</h1>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 dark:text-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800">
             <div className="md:col-span-1">
               <Input_Component
                 value={actionData?.firstname || ""}
                 type="text"
-                border="border-2 border-gray-300 dark:border-none rounded-md"
-                bg_color="bg-white dark:bg-gray-700"
+                border="border-2 border-gray-300 rounded-md"
+                bg_color="bg-white"
                 onChange={(e: string) => modalInputChangeHandle(e, "firstname")}
                 label={t("POS-Sales_k19")}
               />
@@ -1270,8 +1272,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <Input_Component
                 value={actionData?.lastname || ""}
                 type="text"
-                border="border-2 border-gray-300 dark:border-none rounded-md"
-                bg_color="bg-white dark:bg-gray-700"
+                border="border-2 border-gray-300 rounded-md"
+                bg_color="bg-white"
                 onChange={(e: string) => modalInputChangeHandle(e, "lastname")}
                 label={t("POS-Sales_k20")}
               />
@@ -1281,8 +1283,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <Input_Component
                 value={actionData?.email || ""}
                 type="text"
-                border="border-2 border-gray-300 dark:border-none rounded-md"
-                bg_color="bg-white dark:bg-gray-700"
+                border="border-2 border-gray-300 rounded-md"
+                bg_color="bg-white"
                 onChange={(e: string) => modalInputChangeHandle(e, "email")}
                 label={t("POS-Sales_k93")}
                 hasError={!!modalEmailError}
@@ -1303,7 +1305,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
 
             <div className="md:col-span-2">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-gray-700">
                   {t("POS-Sales_k113")}
                 </label>
                 <div className="relative">
@@ -1321,26 +1323,26 @@ const createNewDataHandle = async (): Promise<boolean> => {
                       setTimeout(() => setShowEditAddressSuggestions(false), 200);
                     }}
                     placeholder={t("POS-Sales_k115")}
-                    className="w-full px-3 py-2 border-2 border-gray-300 dark:border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white text-gray-900"
                   />
                   {editAddressLoading && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600"></div>
                     </div>
                   )}
                   {showEditAddressSuggestions && editAddressSuggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                       {editAddressSuggestions.map((suggestion, index) => (
                         <div
                           key={index}
-                          className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                           onClick={() => handleEditAddressSelect(suggestion)}
                         >
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="text-sm font-medium text-gray-900">
                             {suggestion.streetLine}
                             {suggestion.secondary && ` ${suggestion.secondary}`}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-gray-500">
                             {suggestion.city}, {suggestion.state} {suggestion.zipcode}
                           </div>
                         </div>
@@ -1355,8 +1357,8 @@ const createNewDataHandle = async (): Promise<boolean> => {
               <Input_Component
                 value={actionData?.dob || ""}
                 type="date"
-                border="border-2 border-gray-300 dark:border-none rounded-md"
-                bg_color="bg-white dark:bg-gray-700"
+                border="border-2 border-gray-300 rounded-md"
+                bg_color="bg-white"
                 onChange={(e: string) => modalInputChangeHandle(e, "dob")}
                 label={t("POS-Sales_k114")}
               />
@@ -1365,7 +1367,7 @@ const createNewDataHandle = async (): Promise<boolean> => {
             <div className="md:col-span-2">
               <Select_Dropdown
                 value={actionData?.gender || ""}
-                bg_color="bg-white dark:bg-gray-700"
+                bg_color="bg-white"
                 start_empty
                 options_arr={["Male", "Female"].map((gender) => ({
                   value: gender,

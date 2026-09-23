@@ -415,11 +415,11 @@ const Page = () => {
   };
 
   return (
-    <main className="w-full font-[500] text-[20px] dark:bg-[#0E1725] dark:text-white">
+    <main className="w-full font-[500] text-[20px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-4">
           <h1 className="text-xl font-bold">{t("Procode_k1")}</h1>
-          <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="mt-1 mb-2 text-sm text-gray-500">
             {t("Procode_k17")}
           </h1>
         </div>
@@ -433,12 +433,12 @@ const Page = () => {
                   onChange={onChangeHandle}
                   type="text"
                   placeholder={t("Procode_k3")}
-                  className="w-full py-3 pl-10 pr-3 text-sm rounded-md focus:outline-none bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full py-3 pl-10 pr-3 text-sm rounded-md focus:outline-none bg-[#F5F5F7]"
                 />
               </div>
               <button
                 onClick={addNewHandle}
-                className="w-full sm:w-auto bg-[#0066ff] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 dark:hover:bg-blue-700 dark:active:bg-blue-800 flex justify-center items-center gap-2"
+                className="w-full sm:w-auto bg-[#166534] text-sm text-white px-5 py-2 rounded-md hover:opacity-70 active:opacity-90 flex justify-center items-center gap-2"
               >
                 <PlusCircle className="w-4 h-4" />
                 {t("Procode_k2")} Promo Code
@@ -447,10 +447,10 @@ const Page = () => {
           </div>
 
           <div className="overflow-y-auto max-h-[calc(84dvh-150px)]">
-            <div className="hidden md:block rounded-lg border border-gray-200 dark:border-[#172945]">
+            <div className="hidden md:block rounded-lg border border-gray-200">
               <Table className="w-full">
                 <TableHeader>
-                  <TableRow className="dark:border-[#172945] hover:bg-none">
+                  <TableRow className="hover:bg-none">
                     {["typename", "percentage", "expiry", "active"].map(
                       (fieldId, ind) => {
                         const field = fields.find((f) => f.id === fieldId);
@@ -460,7 +460,7 @@ const Page = () => {
                             key={ind}
                             className={`${
                               field.align || "text-left"
-                            } text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]`}
+                            } text-[#6E6E73] font-medium text-lg px-4 py-2 border-b border-gray-300`}
                           >
                             {t(field.label)}
                             <button
@@ -470,16 +470,16 @@ const Page = () => {
                               <PiCaretUpDownBold
                                 className={`inline ${
                                   sortColumn === field.id
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-gray-400/50 dark:text-gray-500"
-                                } hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-500`}
+                                    ? "text-green-600"
+                                    : "text-gray-400/50"
+                                } hover:text-gray-600 active:text-gray-500`}
                               />
                             </button>
                           </TableHead>
                         );
                       }
                     )}
-                    <TableHead className="text-left text-[#71717A] dark:text-gray-300 font-medium text-lg px-4 py-2 border-b border-gray-300 dark:border-[#172945]">
+                    <TableHead className="text-left text-[#6E6E73] font-medium text-lg px-4 py-2 border-b border-gray-300">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -487,7 +487,7 @@ const Page = () => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="dark:bg-gray-800">
+                      <TableCell colSpan={5} className="">
                         <div className="flex h-64 justify-center items-center">
                           <Spinner size="xl" />
                         </div>
@@ -497,7 +497,7 @@ const Page = () => {
                     currentData.map((elem) => (
                       <TableRow
                         key={elem.id}
-                        className="cursor-pointer border-b border-gray-300 dark:border-gray-700"
+                        className="cursor-pointer border-b border-gray-300"
                         onClick={() => detailsViewHandle(elem)}
                       >
                         {["typename", "percentage", "expiry", "active"].map(
@@ -513,14 +513,14 @@ const Page = () => {
                                 key={field.id}
                                 className={`${
                                   field.align || "text-left"
-                                } font-normal text-base px-5 py-3 dark:text-white dark:bg-[#111827]`}
+                                } font-normal text-base px-5 py-3`}
                               >
                                 {field.id === "active" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
-                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-orange-100 text-orange-700"
                                     }`}
                                   >
                                     {extract_val}
@@ -532,9 +532,9 @@ const Page = () => {
                             );
                           }
                         )}
-                        <TableCell className="text-left px-4 py-2 space-x-2 dark:bg-[#111827]">
+                        <TableCell className="text-left px-4 py-2 space-x-2">
                           <EyeIcon
-                            className="w-4 h-4 inline cursor-pointer text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                            className="w-4 h-4 inline cursor-pointer text-gray-500 hover:text-gray-700"
                             onClick={(e) => {
                               e.stopPropagation();
                               detailsViewHandle(elem);
@@ -542,7 +542,7 @@ const Page = () => {
                             color="grey"
                           />
                           <PenBoxIcon
-                            className="w-4 h-4 inline cursor-pointer ml-2 text-blue-500 hover:text-blue-700 dark:hover:text-blue-300"
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-brand-500 hover:text-brand-700"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
@@ -552,7 +552,7 @@ const Page = () => {
                             color="blue"
                           />
                           <TrashIcon
-                            className="w-4 h-4 inline cursor-pointer ml-2 text-red-500 hover:text-red-700 dark:hover:text-red-300"
+                            className="w-4 h-4 inline cursor-pointer ml-2 text-red-500 hover:text-red-700"
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewDetails(elem);
@@ -566,9 +566,9 @@ const Page = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="dark:bg-[#111827]">
+                      <TableCell colSpan={5} className="">
                         <div className="flex h-64 justify-center items-center">
-                          <h1 className="dark:text-white">No Data found!</h1>
+                          <h1 className="">No Data found!</h1>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -587,7 +587,7 @@ const Page = () => {
                 currentData.map((elem) => (
                   <div
                     key={elem.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm cursor-pointer"
+                    className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm cursor-pointer"
                     onClick={() => detailsViewHandle(elem)}
                   >
                     <div className="space-y-3">
@@ -604,16 +604,16 @@ const Page = () => {
                               key={field.id}
                               className="flex justify-between items-center"
                             >
-                              <span className="text-sm text-gray-600 dark:text-gray-300">
+                              <span className="text-sm text-gray-600">
                                 {t(field.label)}:
                               </span>
-                              <span className="text-sm font-medium dark:text-white max-w-[60%] text-right">
+                              <span className="text-sm font-medium max-w-[60%] text-right">
                                 {field.id === "active" ? (
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       extract_val === "Active"
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
-                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-orange-100 text-orange-700"
                                     }`}
                                   >
                                     {extract_val}
@@ -661,13 +661,13 @@ const Page = () => {
                 ))
               ) : (
                 <div className="flex justify-center items-center h-64">
-                  <h1 className="dark:text-white">No Data found!</h1>
+                  <h1 className="">No Data found!</h1>
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 {dataList.length === 0
                   ? t("Procode_k20")
                   : `${t("Procode_k21")} ${startIndex + 1} ${t(
@@ -678,7 +678,7 @@ const Page = () => {
                 <button
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
-                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 ${
                     currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -687,7 +687,7 @@ const Page = () => {
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages || dataList.length === 0}
-                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white ${
+                  className={`text-sm border rounded px-3 py-1 hover:bg-gray-100 ${
                     currentPage === totalPages || dataList.length === 0
                       ? "opacity-50 cursor-not-allowed"
                       : ""
@@ -704,15 +704,15 @@ const Page = () => {
           open={!!detailsView}
           onOpenChange={(open) => !open && setDetailsView(null)}
         >
-          <SheetContent className="p-0 pt-10 dark:bg-[#0e1725] m-3 rounded-lg dark:border-gray-700">
+          <SheetContent className="p-0 pt-10 m-3 rounded-lg">
             <div className="flex flex-col h-full">
               <div className="px-4 pt-2 pb-3">
                 <SheetHeader className="sr-only">
-                  <SheetTitle className="dark:text-white">
+                  <SheetTitle className="">
                     {t("Procode_k8")}
                   </SheetTitle>
                 </SheetHeader>
-                <h1 className="text-xl font-bold dark:text-white">
+                <h1 className="text-xl font-bold">
                   {t("Procode_k8")}
                 </h1>
               </div>
@@ -736,10 +736,10 @@ const Page = () => {
                             }
                           >
                             <div>
-                              <h1 className="text-sm text-gray-600 dark:text-gray-300">
+                              <h1 className="text-sm text-gray-600">
                                 {t(field.details_label || field.label)}
                               </h1>
-                              <p className="font-medium text-base dark:text-white">
+                              <p className="font-medium text-base">
                                 {extract_val || "N/A"}
                               </p>
                             </div>
@@ -754,16 +754,16 @@ const Page = () => {
                       width="w-full"
                       height="h-12"
                       label={t("Procode_k15")}
-                      bg_color="bg-[#0066ff] dark:bg-blue-700"
-                      border="#0066ff dark:border-blue-700"
+                      bg_color="bg-[#166534]"
+                      border="#166534"
                     />
                     <Action_Button
                       onClick={deleteHandle}
                       width="w-full"
                       height="h-12"
                       label={t("Procode_k16")}
-                      bg_color="bg-[#FFD2CC] dark:bg-red-900"
-                      border="#FFD2CC dark:border-red-900"
+                      bg_color="bg-[#FFD2CC]"
+                      border="#FFD2CC"
                     />
                   </div>
                 </div>
@@ -784,7 +784,7 @@ const Page = () => {
           darkMode={darkMode}
         >
           {activeModalMode === "delete" ? (
-            <div className="dark:text-white">
+            <div className="">
               <h1>{t("Procode_k26")}</h1>
             </div>
           ) : (
@@ -810,7 +810,7 @@ const Page = () => {
                         >
                           {id === "percentage" ? (
                             <div className="flex flex-col w-full">
-                              <label className="text-base font-semibold mb-4 dark:text-white">
+                              <label className="text-base font-semibold mb-4">
                                 {t(label)}
                               </label>
                               <Slidercomp
@@ -832,7 +832,7 @@ const Page = () => {
                               }
                               label={t(label)}
                               darkMode={darkMode}
-                              bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                              bg_color="bg-[#F5F5F7]"
                             />
                           )}
                         </div>
@@ -859,7 +859,7 @@ const Page = () => {
                             label={t(label)}
                             isDate={type === "date"}
                             darkMode={darkMode}
-                            bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                            bg_color="bg-[#F5F5F7]"
                           />
                         </div>
                       );
@@ -886,7 +886,7 @@ const Page = () => {
                           label={t(label)}
                           isDate={type === "date"}
                           darkMode={darkMode}
-                          bg_color="bg-[#F1F4F9] dark:bg-[#122136]"
+                          bg_color="bg-[#F5F5F7]"
                         />
                       </div>
                     );

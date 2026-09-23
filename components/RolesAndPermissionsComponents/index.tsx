@@ -45,6 +45,7 @@ const SingleRoleHandle = ({
   selectRoleHandle,
   selectedRole,
   setSelectedRoleDetails,
+  variant = "row",
 }: any) => {
   const [editValue, setEditValue] = useState(data.name);
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
@@ -67,10 +68,12 @@ const SingleRoleHandle = ({
 
   return (
     <>
-      {/* Desktop Table Row */}
+      {/* Desktop table row — only one of the two shapes renders, so a <div>
+          never lands inside <tbody> and a <tr> never lands inside a <div>. */}
+      {variant === "row" && (
       <TableRow
-        className={`hidden md:table-row border dark:border-[#172945] ${
-          selectedRole.id === data.id ? "bg-gray-200 dark:bg-[#0E1725]" : ""
+        className={`hidden md:table-row border ${
+          selectedRole.id === data.id ? "bg-gray-200" : ""
         }`}
       >
         <TableCell className="font-medium p-2">
@@ -79,7 +82,7 @@ const SingleRoleHandle = ({
               <Input
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="dark:bg-gray-800"
+                className=""
               />
               <div className="flex gap-2">
                 <Button onClick={handleUpdate} size="sm">
@@ -93,14 +96,14 @@ const SingleRoleHandle = ({
           ) : (
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-4 flex-1">
-                <span className="dark:text-white text-left">{data.name}</span>
+                <span className="text-left">{data.name}</span>
               </div>
 
               <div className="flex gap-1 justify-center">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
+                  className="text-gray-500 h-8 w-8 hover:bg-transparent"
                   onClick={handleSelectRole}
                 >
                   <Eye size={16} color="gray" />
@@ -110,7 +113,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-600 dark:text-red-400 h-8 w-8 hover:bg-transparent"
+                      className="text-red-600 h-8 w-8 hover:bg-transparent"
                       onClick={() => deleteRoleHandle(data.id)}
                     >
                       <Trash2 size={16} color="red" />
@@ -118,10 +121,10 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
+                      className="text-gray-500 h-8 w-8 hover:bg-transparent"
                       onClick={() => editHandle(data.id)}
                     >
-                      <PenBoxIcon size={16} color="blue" />
+                      <PenBoxIcon size={16} color="#166534" />
                     </Button>
                   </>
                 )}
@@ -130,13 +133,14 @@ const SingleRoleHandle = ({
           )}
         </TableCell>
       </TableRow>
+      )}
 
-      {/* Mobile Card */}
+      {variant === "card" && (
       <div
-        className={`md:hidden p-4 mb-2 rounded-lg border dark:border-[#172945] ${
+        className={`md:hidden p-4 mb-2 rounded-lg border ${
           selectedRole.id === data.id
-            ? "bg-gray-200 dark:bg-[#0E1725]"
-            : "bg-white dark:bg-[#0E1725]"
+            ? "bg-gray-200"
+            : "bg-white"
         }`}
       >
         {editStateId === data.id ? (
@@ -144,7 +148,7 @@ const SingleRoleHandle = ({
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="dark:bg-gray-800"
+              className=""
             />
             <div className="flex gap-2 justify-end">
               <Button onClick={handleUpdate} size="sm">
@@ -158,12 +162,12 @@ const SingleRoleHandle = ({
         ) : (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="dark:text-white font-medium">{data.name}</span>
+              <span className="font-medium">{data.name}</span>
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
+                  className="text-gray-500 h-8 w-8 hover:bg-transparent"
                   onClick={handleSelectRole}
                 >
                   <Eye size={16} color="gray" />
@@ -173,7 +177,7 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-600 dark:text-red-400 h-8 w-8 hover:bg-transparent"
+                      className="text-red-600 h-8 w-8 hover:bg-transparent"
                       onClick={() => deleteRoleHandle(data.id)}
                     >
                       <Trash2 size={16} color="red" />
@@ -181,10 +185,10 @@ const SingleRoleHandle = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 dark:text-gray-400 h-8 w-8 hover:bg-transparent"
+                      className="text-gray-500 h-8 w-8 hover:bg-transparent"
                       onClick={() => editHandle(data.id)}
                     >
-                      <PenBoxIcon size={16} color="blue" />
+                      <PenBoxIcon size={16} color="#166534" />
                     </Button>
                   </>
                 )}
@@ -193,6 +197,7 @@ const SingleRoleHandle = ({
           </div>
         )}
       </div>
+      )}
     </>
   );
 };
@@ -299,10 +304,10 @@ const RolesAndPermissionsComponent: React.FC = () => {
   const { t } = useTranslation(translationConstant.ROLESANDPERMISSIONS);
 
   return (
-    <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh] dark:bg-[#0E1725]">
+    <div className="px-6 pt-5 w-full mx-auto max-h-[87dvh]">
       <div>
-        <h1 className="text-xl font-bold dark:text-white">{t("RP_k7")}</h1>
-        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+        <h1 className="text-xl font-bold">{t("RP_k7")}</h1>
+        <h1 className="mt-1 mb-2 text-sm text-gray-500">
           {t("RP_k9")}
         </h1>
       </div>
@@ -314,14 +319,14 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 placeholder={t("RP_k14")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="dark:bg-gray-800 dark:text-white bg-[#F1F4F9] border-none pl-10 w-full sm:w-auto"
+                className="bg-[#F5F5F7] border-none pl-10 w-full sm:w-auto"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             </div>
             <div className="w-full sm:w-auto">
               <button
                 onClick={() => toggleActivateAddNewRoleHandle(true)}
-                className="bg-[#0066ff] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="bg-[#166534] py-2 px-3 rounded-lg text-white flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <CirclePlus className="h-4 w-4" />
                 {t("RP_k6")}
@@ -329,10 +334,10 @@ const RolesAndPermissionsComponent: React.FC = () => {
             </div>
           </div>
 
-          <div className="border rounded-md overflow-hidden dark:border-[#172945]">
-            <Table className="w-full hidden md:table border dark:border-[#172945]">
+          <div className="border rounded-md overflow-hidden">
+            <Table className="w-full hidden md:table border">
               <TableHeader>
-                <TableRow className="border dark:border-[#172945]">
+                <TableRow className="border">
                   <TableHead className="w-full">{t("RP_k11")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -346,6 +351,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 ) : (
                   paginatedRoles.map((elem, index) => (
                     <SingleRoleHandle
+                      variant="row"
                       selectedRole={selectedRole}
                       selectRoleHandle={selectRoleHandle}
                       editHandle={setEditStateIndexActivate}
@@ -370,6 +376,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
               ) : (
                 paginatedRoles.map((elem, index) => (
                   <SingleRoleHandle
+                    variant="card"
                     selectedRole={selectedRole}
                     selectRoleHandle={selectRoleHandle}
                     editHandle={setEditStateIndexActivate}
@@ -387,8 +394,8 @@ const RolesAndPermissionsComponent: React.FC = () => {
           </div>
 
           {!loadingDataState && filteredRoles.length > rowsPerPage && (
-            <div className="flex justify-between items-center py-2 border-t dark:border-gray-700 bg-white dark:bg-[#0E1725]">
-              <span className="text-sm text-gray-800 dark:text-white">
+            <div className="flex justify-between items-center py-2 border-t bg-white">
+              <span className="text-sm text-gray-800">
               {t("RP_k15")} {(currentPage - 1) * rowsPerPage + 1} {t("RP_k17")}{" "}
                 {Math.min(currentPage * rowsPerPage, filteredRoles.length)} {t("RP_k16")}{" "}
                 {filteredRoles.length}
@@ -398,7 +405,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   variant="outline"
                   onClick={goToPrevPage}
                   disabled={currentPage === 1}
-                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827] hover:bg-white dark:hover:bg-[#111827]"
+                  className="border border-gray-300 text-gray-800 bg-white hover:bg-white"
                 >
                   {t("RP_k10")}
                 </Button>
@@ -407,7 +414,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   variant="outline"
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className="border border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-200 bg-white dark:bg-[#111827] hover:bg-white dark:hover:bg-[#111827]"
+                  className="border border-gray-300 text-gray-800 bg-white hover:bg-white"
                 >
                   {t("RP_k12")}
                 </Button>
@@ -419,19 +426,19 @@ const RolesAndPermissionsComponent: React.FC = () => {
 
       {/* Role Details Sheet */}
       <Sheet open={showRoleDetails} onOpenChange={setShowRoleDetails}>
-        <SheetContent className=" dark:bg-[#111827] dark:border-gray-700">
-          <SheetHeader>
-            <SheetTitle className="dark:text-white">
+        <SheetContent className="inset-y-4 right-4 h-auto rounded-2xl border shadow-2xl overflow-hidden flex flex-col gap-0">
+          <SheetHeader className="shrink-0">
+            <SheetTitle>
               {selectedRoleDetails?.name || "Role Details"}
             </SheetTitle>
           </SheetHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto grid gap-4 py-4 pr-1">
             {selectedRoleDetails && (
               <>
                 <div className="grid gap-2">
-                  <Label className="dark:text-white">{t("RP_k13")}</Label>
-                  <div className="space-y-3 p-4 dark:bg-[#111827]">
+                  <Label className="">{t("RP_k13")}</Label>
+                  <div className="space-y-3 p-4">
                     {permissions.map((perm: any) => (
                       <div
                         key={perm.name}
@@ -439,7 +446,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                       >
                         <Label
                           htmlFor={`perm-${perm.name}`}
-                          className="dark:text-white"
+                          className=""
                         >
                           {perm.name}
                         </Label>
@@ -452,14 +459,14 @@ const RolesAndPermissionsComponent: React.FC = () => {
                           onChange={(checked: boolean) =>
                             handlePermissionToggle(perm.id, checked)
                           }
-                          className="dark:bg-gray-600 [&.ant-switch-checked]:bg-green-500"
+                          className="[&.ant-switch-checked]:bg-green-500"
                         />
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 dark:text-white">
+                <div className="flex items-center gap-2">
                   <span>{t("RP_k1")}</span>
                   <Switch
                     className="disabled:opacity-65 [&.ant-switch-checked]:bg-green-500"
@@ -482,14 +489,14 @@ const RolesAndPermissionsComponent: React.FC = () => {
         open={activeForAddNewRoleInput}
         onOpenChange={toggleActivateAddNewRoleHandle}
       >
-        <SheetContent className=" dark:bg-[#111827]">
-          <SheetHeader>
-            <SheetTitle className="dark:text-white">{t("RP_k6")}</SheetTitle>
+        <SheetContent className="inset-y-4 right-4 h-auto rounded-2xl border shadow-2xl overflow-hidden flex flex-col gap-0">
+          <SheetHeader className="shrink-0">
+            <SheetTitle>{t("RP_k6")}</SheetTitle>
           </SheetHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto grid gap-4 py-4 pr-1">
             <div className="grid gap-2">
-              <Label htmlFor="role-title" className="dark:text-white">
+              <Label htmlFor="role-title" className="">
                 {t("RP_k7")}
               </Label>
               <Input
@@ -497,13 +504,13 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
                 placeholder={t("RP_k18")}
-                className="bg-[#f1f4f9] dark:bg-[#1f2937] dark:border-gray-600 dark:text-white border border-gray-300"
+                className="bg-[#F5F5F7] border border-gray-300"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label className="dark:text-white">{t("RP_k2")}</Label>
-              <div className="space-y-3 p-4 dark:bg-[#111827]">
+              <Label className="">{t("RP_k2")}</Label>
+              <div className="space-y-3 p-4">
                 {permissions.map((perm: any) => (
                   <div
                     key={perm.name}
@@ -511,7 +518,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   >
                     <Label
                       htmlFor={`perm-${perm.name}`}
-                      className="dark:text-white"
+                      className=""
                     >
                       {perm.name}
                     </Label>
@@ -521,7 +528,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                       onChange={(checked: boolean) =>
                         handlePermissionChange(perm.name, checked)
                       }
-                      className="dark:bg-gray-600 [&.ant-switch-checked]:bg-green-500"
+                      className="[&.ant-switch-checked]:bg-green-500"
                     />
                   </div>
                 ))}
@@ -529,7 +536,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
             </div>
           </div>
 
-          <SheetFooter>
+          <SheetFooter className="shrink-0 pt-4 border-t">
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -539,7 +546,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                   setNewRolePermissions({});
                   toggleActivateAddNewRoleHandle(false);
                 }}
-                className="dark:border-gray-600 dark:text-white dark:hover:bg-[#111827]"
+                className=""
               >
                 {t("RP_k4")}
               </Button>
@@ -547,7 +554,7 @@ const RolesAndPermissionsComponent: React.FC = () => {
                 type="submit"
                 onClick={handleCreateRole}
                 disabled={newAddLoading || !newRoleName.trim()}
-                className="dark:bg-blue-700"
+                className=""
               >
                 {newAddLoading ? <CircularProgress size={20} /> : t("RP_k5")}
               </Button>

@@ -1,16 +1,21 @@
 import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { resolveDashboardLocations } from '@/utils/server/dashboard-locations'
+import { isSuperAdmin } from '@/utils/server/roles'
 
 // Read fresh every load; a cached figure would be wrong the moment a sale lands.
 export const dynamic = 'force-dynamic'
 
 export type DashboardStats = {
-  sales: { revenue_month: number; revenue_total: number; orders_month: number }
-  appointments: { total: number; month: number; upcoming: number }
+  /** null for anyone who is not a super admin. */
+  sales: { revenue_month: number; revenue_total: number; orders_month: number } | null
+  appointments: { total: number; month: number; upcoming: number } | null
   patients: { total: number; month: number }
-  warehouse: { products: number; stocked_items: number; out_of_stock: number }
+  warehouse: { products: number; stocked_items: number; out_of_stock: number } | null
   locations_counted: number
+  /** true when the caller may only see their own patient count. */
+  restricted: boolean
 }
 
 /**
@@ -38,45 +43,29 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
     }
 
-    const { data: grants, error: grantsError } = await supabase
-      .from('user_locations')
-      .select('location_id')
-      .eq('profile_id', user.id)
-    if (grantsError) throw grantsError
-
-    const allowed = Array.from(
-      new Set(
-        (grants ?? [])
-          .map((row: { location_id: number | null }) => Number(row.location_id))
-          .filter((id) => Number.isFinite(id))
-      )
-    )
-
-    const raw = new URL(req.url).searchParams.get('location_id')
-    const wantsOne = raw !== null && raw !== '' && raw !== 'all'
-
-    let locationIds = allowed
-    if (wantsOne) {
-      const requested = Number(raw)
-      if (!Number.isFinite(requested)) {
-        return NextResponse.json({ error: 'location_id must be a number' }, { status: 400 })
-      }
-      if (!allowed.includes(requested)) {
-        return NextResponse.json({ error: 'No access to that location' }, { status: 403 })
-      }
-      locationIds = [requested]
+    const resolved = await resolveDashboardLocations(supabase, user.id, req.url)
+    if (!resolved.ok) {
+      return NextResponse.json({ error: resolved.error }, { status: resolved.status })
     }
+    const locationIds = resolved.locationIds
+
+    // Only a super admin sees company figures. Everyone else gets the patient
+    // count for the clinics assigned to them and nothing else — no revenue, no
+    // order counts, no stock. Decided here, not in the browser, because the
+    // response is the thing worth protecting.
+    const full = await isSuperAdmin(supabase, user.id)
 
     // No grants means nothing to total up, and `= any('{}')` would match nothing
     // anyway — answer explicitly instead of running the query.
     if (locationIds.length === 0) {
       return NextResponse.json({
         data: {
-          sales: { revenue_month: 0, revenue_total: 0, orders_month: 0 },
-          appointments: { total: 0, month: 0, upcoming: 0 },
+          sales: full ? { revenue_month: 0, revenue_total: 0, orders_month: 0 } : null,
+          appointments: full ? { total: 0, month: 0, upcoming: 0 } : null,
           patients: { total: 0, month: 0 },
-          warehouse: { products: 0, stocked_items: 0, out_of_stock: 0 },
+          warehouse: full ? { products: 0, stocked_items: 0, out_of_stock: 0 } : null,
           locations_counted: 0,
+          restricted: !full,
         } satisfies DashboardStats,
       })
     }
@@ -86,7 +75,27 @@ export async function GET(req: Request) {
     })
     if (error) throw error
 
-    return NextResponse.json({ data: data as DashboardStats })
+    const stats = data as DashboardStats
+
+    if (!full) {
+      // Build a fresh object rather than deleting keys, so nothing withheld can
+      // survive by accident if the SQL gains a field later.
+      return NextResponse.json({
+        data: {
+          sales: null,
+          appointments: null,
+          warehouse: null,
+          patients: {
+            total: stats?.patients?.total ?? 0,
+            month: stats?.patients?.month ?? 0,
+          },
+          locations_counted: stats?.locations_counted ?? locationIds.length,
+          restricted: true,
+        } satisfies DashboardStats,
+      })
+    }
+
+    return NextResponse.json({ data: { ...stats, restricted: false } })
   } catch (err) {
     console.error('[api/dashboard/stats]', classifyError(err))
     return NextResponse.json(

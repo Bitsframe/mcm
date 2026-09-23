@@ -41,7 +41,7 @@ export const Form_Component = (props: any) => {
 
   return (
     <>
-      <h6 className="text-lg font-semibold dark:text-white text-gray-800 mb-4">
+      <h6 className="text-lg font-semibold text-gray-800 mb-4">
         {t("WebCont_k9")}
       </h6>
 
@@ -92,8 +92,8 @@ export const Form_Component = (props: any) => {
             disabled={!is_edited || update_loading}
             className={`px-6 py-3 text-sm rounded-lg ${
               !is_edited || update_loading 
-                ? 'bg-[#0066FF] cursor-not-allowed' 
-                : 'bg-[#0066FF] hover:bg-blue-600'
+                ? 'bg-[#166534] cursor-not-allowed' 
+                : 'bg-[#166534] hover:bg-brand-600'
             }`}
           >
             {update_loading ? 'Updating...' : t("WebCont_k12")}

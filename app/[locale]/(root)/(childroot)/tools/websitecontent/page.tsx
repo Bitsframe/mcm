@@ -54,7 +54,7 @@ const Home = () => {
 
   return (
     <WebsiteContentLayout>
-      <div className=" px-2 sm:px-4 py-4 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white rounded-xl shadow-sm border border-gray-200 transition-colors duration-300">
+      <div className=" px-2 sm:px-4 py-4 bg-white rounded-xl shadow-sm border border-gray-200 transition-colors duration-300">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-4 mb-6">
           <Select_Dropdown
             value={selected_section}
@@ -62,7 +62,7 @@ const Home = () => {
             options_arr={home_section_options}
             on_change_handle={select_section_handle}
             required={true}
-            bg_color="bg-[#F1F4F7] dark:bg-[#122139]"
+            bg_color="bg-[#F5F5F7]"
           />
           <Select_Dropdown
             value={selected_language}
@@ -70,7 +70,7 @@ const Home = () => {
             options_arr={langage_list_options}
             on_change_handle={select_language_handle}
             required={true}
-            bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
+            bg_color="bg-[#F5F5F7]"
 
           />
           {selected_section === "Mission" && (
@@ -80,13 +80,13 @@ const Home = () => {
               options_arr={data_list.map((e) => ({ label: e.id, value: e.id }))}
               on_change_handle={change_selected_list_id}
               required={true}
-              bg_color="bg-[#F1F4F7] dark:bg-[#0e1725]"
+              bg_color="bg-[#F5F5F7]"
 
             />
           )}
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-600 mb-6"></div>
+        <div className="border-t border-gray-200 mb-6"></div>
 
         <div className="w-full space-y-5">
           {data && (

@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 // Force this route to be dynamic so Next doesn't attempt static prerendering
@@ -5,6 +6,9 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const url = new URL(req.url)
     const locationId = url.searchParams.get('location_id')

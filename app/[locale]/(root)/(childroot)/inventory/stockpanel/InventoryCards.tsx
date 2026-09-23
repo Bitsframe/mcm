@@ -74,10 +74,10 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-3">
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+      <div className="p-4 rounded-lg bg-[#F5F5F7] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">{procucts_count}</h1>
-          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+          <p className="text-gray-500 text-center mb-2 text-sm">
             {t("SP_k12")}
           </p>
         </div>
@@ -95,10 +95,10 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+      <div className="p-4 rounded-lg bg-[#F5F5F7] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">{categories_count}</h1>
-          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+          <p className="text-gray-500 text-center mb-2 text-sm">
             {t("SP_k11")}
           </p>
         </div>
@@ -116,12 +116,12 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+      <div className="p-4 rounded-lg bg-[#F5F5F7] shadow-sm h-40 flex flex-col md:block">
         <div className="flex-1">
           <h1 className="text-3xl text-center font-bold">
             {usdFormatter.format(stock_value)}
           </h1>
-          <p className="text-gray-500 text-center dark:text-gray-300 mb-2 text-sm">
+          <p className="text-gray-500 text-center mb-2 text-sm">
             {t("SP_k10")}
           </p>
         </div>
@@ -139,13 +139,13 @@ const InventoryCards = ({ archived }: { archived: boolean }) => {
         </div>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#f1f4f9] dark:bg-[#080e16] shadow-sm h-40 flex flex-col md:block">
+      <div className="p-4 rounded-lg bg-[#F5F5F7] shadow-sm h-40 flex flex-col md:block">
         <h1 className="text-3xl text-center font-bold">20%</h1>
-        <p className="text-gray-500 dark:text-gray-300 text-center mb-2 text-sm">
+        <p className="text-gray-500 text-center mb-2 text-sm">
           {t("SP_k9")}
         </p>
         <div className="mt-6 flex items-center justify-center">
-          <div className="w-2/3 h-4 bg-gray-200 dark:bg-gray-700 rounded-md">
+          <div className="w-2/3 h-4 bg-gray-200 rounded-md">
             <div
               className="h-full bg-amber-500 rounded-md"
               style={{ width: "20%" }}

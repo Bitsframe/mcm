@@ -1,4 +1,5 @@
 import { classifyError } from '@/utils/logging/safe-log';
+import { isPosLocation } from '@/utils/locations';
 import { supabase } from "@/services/supabase"
 
 interface SortOptions {
@@ -56,6 +57,24 @@ export const getUserAllowedLocations = async (userId: string) => {
   }
 };
 
+/**
+ * Locations switched on for the portal (this app) in location_configurations.
+ * A location with no row is off. Returns null when the table cannot be read,
+ * so the caller can tell "none enabled" from "could not check".
+ */
+export const fetchPortalLocationIds = async (): Promise<Set<number> | null> => {
+  // Not in the generated Database types yet; regenerate them to drop the cast.
+  const { data, error } = await (supabase as any)
+    .from('location_configurations')
+    .select('location_id, portal_enabled')
+    .eq('portal_enabled', true);
+  if (error) {
+    console.error('Error fetching location configurations:', classifyError(error));
+    return null;
+  }
+  return new Set((data ?? []).map((row: any) => Number(row.location_id)));
+};
+
 export const fetchLocations = async (userId?: string) => {
   try {
     let query = supabase.from('Locations').select('*');
@@ -72,11 +91,22 @@ export const fetchLocations = async (userId?: string) => {
 
   const { data, error } = await query;
     if (error) throw error;
-    return data;
+    // Locations switched off for the portal do not exist for this app.
+    return await onlyPortalLocations(data ?? []);
   } catch (error) {
     console.error('Error fetching locations:', classifyError(error));
     return [];
   }
+};
+
+/**
+ * Drops rows whose location is not portal-enabled (see fetchPortalLocationIds).
+ * When the configuration cannot be read, every active location is kept.
+ */
+export const onlyPortalLocations = async <T extends { id?: number | string; is_active?: boolean | null }>(rows: T[]): Promise<T[]> => {
+  const portalIds = await fetchPortalLocationIds();
+  if (!portalIds) console.warn('location_configurations unavailable; showing all active locations');
+  return rows.filter((row) => isPosLocation(row, portalIds));
 };
 
 export const fetchApprovedAppointmentsByLocation = async (locationId: number) => {
@@ -231,6 +261,9 @@ export async function fetch_content_service({
               break;
             case 'not':
               query = query.not(filter.column, 'is', filter.value);
+              break;
+            case 'eq':
+              query = query.eq(filter.column, filter.value);
               break;
             default:
               console.warn(`Unknown operator: ${filter.operator}`);

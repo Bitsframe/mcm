@@ -79,10 +79,7 @@ const main = {
   justifyContent: "center",
   height: "100%",
   fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-  "@media (prefers-color-scheme: dark)": {
-    backgroundColor: "#1a1a1a"
-  }
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif'
 };
 
 const container = {
@@ -98,9 +95,6 @@ const paragraph = {
   fontSize: "16px",
   lineHeight: "26px",
   color: "#000000", // Black for light mode
-  "@media (prefers-color-scheme: dark)": {
-    color: "#ffffff" // White for dark mode
-  }
 };
 
 const btnContainer = {
@@ -108,7 +102,7 @@ const btnContainer = {
 };
 
 const button = {
-  backgroundColor: "#C1001F",
+  backgroundColor: "#D70015",
   borderRadius: "3px",
   color: "#fff",
   fontSize: "16px",
@@ -119,17 +113,11 @@ const button = {
 };
 
 const hr = {
-  borderColor: "#cccccc",
-  margin: "20px 0",
-  "@media (prefers-color-scheme: dark)": {
-    borderColor: "#333333"
-  }
+  borderColor: "#D9D9DE",
+  margin: "20px 0"
 };
 
 const footer = {
-  color: "#8898aa",
-  fontSize: "12px",
-  "@media (prefers-color-scheme: dark)": {
-    color: "#666666"
-  }
+  color: "#86868B",
+  fontSize: "12px"
 };

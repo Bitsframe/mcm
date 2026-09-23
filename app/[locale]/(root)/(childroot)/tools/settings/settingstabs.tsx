@@ -36,8 +36,8 @@ const TopTabs = () => {
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all
                     ${
                       isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                        ? "bg-brand-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   <span className="text-base font-medium">
@@ -64,8 +64,8 @@ const TopTabs = () => {
                   className={`inline-block px-4 py-2 rounded-t-lg transition-all font-medium text-sm
                     ${
                       isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                        ? "bg-brand-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   {t(menuItem.title)}

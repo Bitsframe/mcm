@@ -2,7 +2,7 @@ import RootLayoutComponent from "@/components/RootLayoutComponent";
 import { ActiveTabProvider, AuthProvider, LocationProvider } from "@/context";
 import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/TranslationsProvider";
-import { NextIntlClientProvider } from "next-intl";
+import IntlProvider from "@/provider/IntlProvider";
 
 
 
@@ -24,6 +24,8 @@ export default async function layout({
 
 	return (
 		<div className="bg-white">
+			{/* next-intl v4 no longer falls back to the route param; see provider/IntlProvider. */}
+			<IntlProvider locale={locale}>
 			<ActiveTabProvider>
 				<LocationProvider>
 					<AuthProvider >
@@ -35,6 +37,7 @@ export default async function layout({
 					</AuthProvider>
 				</LocationProvider>
 			</ActiveTabProvider>
+			</IntlProvider>
 		</div>
 	);
 }

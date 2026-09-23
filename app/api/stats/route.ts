@@ -1,6 +1,7 @@
 import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { keepPortalLocations } from '@/utils/server/portal-locations'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,11 +41,14 @@ export async function GET(req: Request) {
       .eq('profile_id', user.id)
     if (grantsError) throw grantsError
 
-    const allowed = Array.from(
-      new Set(
-        (grants ?? [])
-          .map((row: { location_id: number | null }) => Number(row.location_id))
-          .filter((id) => Number.isFinite(id))
+    const allowed = await keepPortalLocations(
+      supabase,
+      Array.from(
+        new Set(
+          (grants ?? [])
+            .map((row: { location_id: number | null }) => Number(row.location_id))
+            .filter((id) => Number.isFinite(id))
+        )
       )
     )
 

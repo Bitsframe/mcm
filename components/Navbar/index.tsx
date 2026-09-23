@@ -1,6 +1,5 @@
 "use client";
 
-import { HiOutlineBell } from "react-icons/hi";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext, TabContext } from "@/context";
 import MenuWithAvatar from "./MenuWithAvatar";
@@ -9,11 +8,14 @@ import { useLocale } from "next-intl";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { translationConstant } from "@/utils/translationConstants";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { SidebarSection } from "@/components/Sidebar";
-import { Modal, Button } from "flowbite-react";
 import { usePathname } from "next/navigation";
 
+/**
+ * Window toolbar: 52px, translucent, hairline underneath. Title on the left,
+ * account controls on the right. On phones it also owns the sidebar drawer.
+ */
 export const Navbar = ({ width }: { width: string }) => {
   const { activeTitle } = useContext(TabContext);
   const { userProfile } = useContext(AuthContext);
@@ -23,76 +25,62 @@ export const Navbar = ({ width }: { width: string }) => {
   const { t } = useTranslation(translationConstant.DASHBOARD);
 
   useEffect(() => {
-    if (i18n && typeof i18n.changeLanguage === 'function') {
+    if (i18n && typeof i18n.changeLanguage === "function") {
       i18n.changeLanguage(locale);
     }
   }, [locale]);
 
-  // Sidebar drawer state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close sidebar when route changes
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
   return (
     <header
-      className={`h-[70px] flex justify-between items-center fixed bg-[#F1F4F9] dark:bg-[#080E16] text-black dark:text-white pt-[6px] z-50${isMobile ? ' w-full' : ''}`}
-      style={isMobile ? { width: '100vw', left: 0, right: 0 } : { width: `calc(100% - ${width})` }}
+      className="bg-vibrant fixed top-0 z-50 flex h-[52px] items-center justify-between border-b border-border pl-4 pr-3 md:pl-14"
+      style={isMobile ? { width: "100vw", left: 0 } : { width: `calc(100% - ${width})` }}
     >
-      {/* Hamburger for small screens */}
-      <div className={`flex items-center gap-2${isMobile ? ' flex-1 min-w-0 justify-start pl-0' : ''}`}>
+      <div className="flex min-w-0 items-center gap-2">
         <button
-          className={`md:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500${isMobile ? ' ml-0' : ''}`}
+          type="button"
+          aria-label="Open navigation"
+          className="-ml-1 flex h-8 w-8 items-center justify-center rounded-md text-label-2 hover:bg-black/[0.05] md:hidden"
           onClick={() => setSidebarOpen(true)}
         >
-          <Menu size={28} />
+          <Menu size={20} />
         </button>
-        {!isMobile && (
-          <div className="text-[16px] font-[700] ml-2">
-          <div>
-            <span className="text-[#79808B] dark:text-gray-400">
-             {t("Dashboard_k27")}{" "}
-            </span>
-            {userProfile?.full_name}
-          </div>
-        </div>
-        )}
+        <h1 className="truncate text-headline text-label">
+          <span className="font-normal text-label-2">{t("Dashboard_k27")} </span>
+          {userProfile?.full_name}
+        </h1>
+        {activeTitle ? <span className="sr-only">{activeTitle}</span> : null}
       </div>
-      <div className={`flex gap-4 items-center${isMobile ? ' flex-1 justify-end pr-0' : ' pr-4'}`}>
-        {!isMobile && <LanguageChanger  locale={locale} />}
-        {/* <div className="text-[#000000] dark:text-white text-[16px] bg-white dark:bg-[#1A1F27] p-4 rounded-full border border-[#E0E0E0] dark:border-[#2F3640] cursor-not-allowed">
-          <HiOutlineBell size={25} />
-        </div> */}
+
+      <div className="flex items-center gap-2">
+        {!isMobile && <LanguageChanger locale={locale} />}
         <MenuWithAvatar />
       </div>
 
-      {/* Sidebar Drawer for small screens */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-[100] flex md:hidden">
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-40"
-            onClick={() => setSidebarOpen(false)}
-          />
-          {/* Sidebar */}
-          <div className="relative w-64 h-full bg-[#F1F4F9] dark:bg-[#080E16] shadow-lg animate-slideInLeft">
+          <div className="fixed inset-0 bg-black/30" onClick={() => setSidebarOpen(false)} />
+          <div className="animate-slideInLeft relative h-full w-[260px] bg-surface shadow-mac-lg">
             <button
-              className="absolute top-4 right-4 text-gray-600 dark:text-gray-300"
+              type="button"
+              aria-label="Close navigation"
+              className="absolute right-2 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-md text-label-2 hover:bg-black/[0.05]"
               onClick={() => setSidebarOpen(false)}
             >
-              ✕
+              <X size={18} />
             </button>
             <SidebarSection />
           </div>

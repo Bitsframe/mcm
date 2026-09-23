@@ -1,7 +1,8 @@
 const { useEffect, useState } = require("react");
 import { AuthContext, LocationContext } from '@/context';
 import { classifyError } from '@/utils/logging/safe-log';
-import { fetchLocations, updateLocationData } from '@/utils/supabase/data_services/data_services'
+import { isPosLocation } from '@/utils/locations';
+import { fetchLocations, fetchPortalLocationIds, updateLocationData } from '@/utils/supabase/data_services/data_services'
 import { useContext } from 'react';
 import { toast } from 'react-toastify';
 
@@ -26,7 +27,10 @@ export function useLocationClinica(params: { defaultSetFirst?: boolean } = {}) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const allLocations = await fetchLocations();
+                // Only locations switched on for the portal (see utils/locations.ts).
+                const [rawLocations, portalIds] = await Promise.all([fetchLocations(), fetchPortalLocationIds()]);
+                if (!portalIds) console.warn('location_configurations unavailable; falling back to the credit-limit rule');
+                const allLocations = rawLocations.filter((l: any) => isPosLocation(l, portalIds));
                 const locationRecord = localStorage.getItem(getStorageKey());
 
                 // Check if user has full access

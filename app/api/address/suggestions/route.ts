@@ -1,7 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchMapboxAddressSuggestions, isMapboxConfigured } from '@/utils/mapboxAddress';
 
 export async function GET(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const searchParams = request.nextUrl.searchParams;
   const search = searchParams.get('search');
 

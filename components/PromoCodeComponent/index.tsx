@@ -62,11 +62,11 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
             <h1 className='text-sm font-medium'>{t('Procode_k1')}</h1>
 
             {promoCode ? (
-                <div className='flex items-center bg-gray-100 dark:bg-gray-700 text-sm rounded-md px-2 py-1'>
-                    <span className='text-gray-800 dark:text-white mr-2'>{promoCode}</span>
+                <div className='flex items-center bg-gray-100 text-sm rounded-md px-2 py-1'>
+                    <span className='text-gray-800 mr-2'>{promoCode}</span>
                     <IoCloseOutline
                         onClick={removePromoHandle}
-                        className='cursor-pointer text-gray-600 dark:text-white'
+                        className='cursor-pointer text-gray-600'
                         size={18}
                     />
                 </div>
@@ -76,14 +76,14 @@ const PromoCodeComponent: FC<Props> = ({ applyDiscountHandle, patientId }) => {
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
                         placeholder={t('Procode_k_placeholder', { defaultValue: 'Promo Code' })}
-                        className='text-sm px-2 py-1 w-36 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none'
+                        className='text-sm px-2 py-1 w-36 rounded-md border border-gray-300 bg-gray-100 text-gray-800 focus:outline-none'
                         disabled={!patientId}
                         required
                     />
                     <button
                         type='submit'
                         disabled={loading || !patientId}
-                        className='disabled:opacity-60 px-3 py-[2px] text-sm bg-[#0066ff] text-white rounded-lg'
+                        className='disabled:opacity-60 px-3 py-[2px] text-sm bg-[#166534] text-white rounded-lg'
                         color="info"
                     >
                         {loading ? t('Procode_k_checking', { defaultValue: '...' }) : t('Procode_k_apply', { defaultValue: 'Apply' })}

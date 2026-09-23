@@ -9,6 +9,8 @@ import { format, parse } from "date-fns";
 import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 
+import { MacSelect } from "@/components/ui/mac-select";
+
 type DayTimings = {
     mon_timing: string;
     tuesday_timing: string;
@@ -179,7 +181,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
     const { t } = useTranslation(translationConstant.APPOINMENTS);
 
     const fieldSurface =
-        "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 text-base text-black outline-none transition-shadow focus:border-[#0066ff] focus:ring-2 focus:ring-[#0066ff]/20 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:focus:border-[#0066ff]";
+        "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#F5F5F7] px-3 text-base text-black outline-none transition-shadow focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/20";
 
     const selectSurface =
         `${fieldSurface} cursor-pointer py-2 disabled:cursor-not-allowed disabled:opacity-60`;
@@ -187,7 +189,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
     return (
         <div className="grid w-full grid-cols-1 gap-5 pb-4 pt-1 sm:grid-cols-2 sm:gap-6 sm:pb-6">
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="appointment-schedule-date">
+                <label className="block text-sm font-medium text-gray-700" htmlFor="appointment-schedule-date">
                     {t("Appoinments_k2")}
                     <span className="text-red-500"> *</span>
                 </label>
@@ -196,46 +198,46 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                         <button
                             id="appointment-schedule-date"
                             type="button"
-                            className={`${fieldSurface} flex h-[46px] cursor-pointer items-center justify-start gap-2 py-2 font-normal hover:bg-[#e8edf4] dark:hover:bg-[#1a2d4a]`}
+                            className={`${fieldSurface} flex h-[46px] cursor-pointer items-center justify-start gap-2 py-2 font-normal hover:bg-[#e8edf4]`}
                         >
                             <CalendarIcon className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
                             <span className="truncate">
                                 {date ? (
                                     format(date, "MM-dd-yyyy")
                                 ) : (
-                                    <span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k56")}</span>
+                                    <span className="text-gray-500">{t("Appoinments_k56")}</span>
                                 )}
                             </span>
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto border border-gray-200 bg-white p-0 shadow-lg dark:border-gray-700 dark:bg-gray-800" align="start">
+                    <PopoverContent className="w-auto border border-gray-200 bg-white p-0 shadow-lg" align="start">
                         <Calendar
                             mode="single"
                             selected={date}
                             onSelect={dateTimeChangeHandle}
                             fromDate={new Date()}
                             initialFocus
-                            className="rounded-md bg-white dark:bg-gray-800"
+                            className="rounded-md bg-white"
                             classNames={{
                                 months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                                 month: "space-y-4",
-                                caption: "flex justify-center pt-1 relative items-center text-gray-900 dark:text-gray-100",
-                                caption_label: "text-sm font-medium text-gray-900 dark:text-gray-100",
+                                caption: "flex justify-center pt-1 relative items-center text-gray-900",
+                                caption_label: "text-sm font-medium text-gray-900",
                                 nav: "space-x-1 flex items-center",
-                                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md",
+                                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-gray-900 hover:bg-gray-100 rounded-md",
                                 nav_button_previous: "absolute left-1",
                                 nav_button_next: "absolute right-1",
                                 table: "w-full border-collapse space-y-1",
                                 head_row: "flex",
-                                head_cell: "text-gray-500 dark:text-gray-400 rounded-md w-9 font-normal text-[0.8rem]",
+                                head_cell: "text-gray-500 rounded-md w-9 font-normal text-[0.8rem]",
                                 row: "flex w-full mt-2",
-                                cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-blue-100 dark:[&:has([aria-selected])]:bg-blue-900 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                day: "h-9 w-9 p-0 font-normal text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md aria-selected:opacity-100",
-                                day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 dark:focus:bg-blue-700",
-                                day_today: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100",
-                                day_outside: "text-gray-400 dark:text-gray-600 opacity-50",
-                                day_disabled: "text-gray-400 dark:text-gray-600 opacity-50",
-                                day_range_middle: "aria-selected:bg-blue-100 dark:aria-selected:bg-blue-900 aria-selected:text-gray-900 dark:aria-selected:text-gray-100",
+                                cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-brand-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                day: "h-9 w-9 p-0 font-normal text-gray-900 hover:bg-gray-100 rounded-md aria-selected:opacity-100",
+                                day_selected: "bg-brand-600 text-white hover:bg-brand-600 hover:text-white focus:bg-brand-600 focus:text-white",
+                                day_today: "bg-gray-100 text-gray-900",
+                                day_outside: "text-gray-400 opacity-50",
+                                day_disabled: "text-gray-400 opacity-50",
+                                day_range_middle: "aria-selected:bg-brand-100 aria-selected:text-gray-900",
                                 day_hidden: "invisible"
                             }}
                         />
@@ -244,11 +246,11 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="appointment-schedule-time">
+                <label className="block text-sm font-medium text-gray-700" htmlFor="appointment-schedule-time">
                     {t("Appoinments_k1")}
                     <span className="text-red-500"> *</span>
                 </label>
-                <select
+                <MacSelect
                     id="appointment-schedule-time"
                     value={selectedSlot}
                     onChange={(e) => selectSlotHandle(e.target.value)}
@@ -257,11 +259,11 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                     aria-label={t("Appoinments_k1")}
                 >
                     {isClosed ? (
-                        <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">Closed</option>
+                        <option value="" className="bg-white text-black">Closed</option>
                     ) : (
                         availableTimes.length > 0 ? (
                             <>
-                                <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                                <option value="" className="bg-white text-black">
                                     {t("Appoinments_k55")}
                                 </option>
                                 {availableTimes.map((time, index) => {
@@ -272,7 +274,7 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                                             key={index}
                                             value={time}
                                             disabled={isBooked}
-                                            className={`bg-white dark:bg-[#122136] text-black dark:text-white ${isBooked ? "opacity-60" : ""}`}
+                                            className={`bg-white text-black ${isBooked ? "opacity-60" : ""}`}
                                         >
                                             {time}{isBooked ? " (Booked)" : ""}
                                         </option>
@@ -280,10 +282,10 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
                                 })}
                             </>
                         ) : (
-                            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">No available times</option>
+                            <option value="" className="bg-white text-black">No available times</option>
                         )
                     )}
-                </select>
+                </MacSelect>
             </div>
         </div>
     );

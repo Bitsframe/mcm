@@ -52,18 +52,32 @@ export async function getUserEmail(): Promise<any[]> {
 }
 
 
-export async function getServices(): Promise<any> {
+/**
+ * Service titles for the patient and broadcast pickers.
+ *
+ * Always resolves to an array. A query failure is logged server-side with the
+ * PostgREST code and returns an empty list, so the caller renders an empty
+ * picker instead of throwing an error with nothing readable in it.
+ */
+export async function getServices(): Promise<{ title: string }[]> {
   try {
     const { data, error } = await supabase
-      .from("services") 
+      .from("services")
       .select("title");
 
-    console.log(data);
+    if (error) {
+      console.error("[getServices] query failed", {
+        code: error.code,
+        message: error.message,
+        hint: error.hint,
+      });
+      return [];
+    }
 
-    return data;
+    return data ?? [];
   } catch (error) {
-    console.error("Unexpected error:", classifyError(error));
-    return null;
+    console.error("[getServices] unexpected error:", classifyError(error));
+    return [];
   }
 }
 export async function getLocations(): Promise<any> {

@@ -1,6 +1,8 @@
 import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { resolveDashboardLocations } from '@/utils/server/dashboard-locations'
+import { isSuperAdmin } from '@/utils/server/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,10 +36,11 @@ export type DashboardActivity = {
 /**
  * The dashboard's lower half — trend, what is booked next, stock, returns.
  *
- * Locations come from user_locations for the signed-in user, never the query
- * string, so the panels can only ever show clinics the viewer may see.
+ * Locations come from user_locations for the signed-in user; an optional
+ * location_id narrows to one, but only after it is checked against that grant,
+ * so the panels can only ever show clinics the viewer may see.
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const supabase = await createClient()
     const {
@@ -48,19 +51,19 @@ export async function GET() {
       return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
     }
 
-    const { data: grants, error: grantsError } = await supabase
-      .from('user_locations')
-      .select('location_id')
-      .eq('profile_id', user.id)
-    if (grantsError) throw grantsError
+    const resolved = await resolveDashboardLocations(supabase, user.id, req.url)
+    if (!resolved.ok) {
+      return NextResponse.json({ error: resolved.error }, { status: resolved.status })
+    }
+    const locationIds = resolved.locationIds
 
-    const locationIds = Array.from(
-      new Set(
-        (grants ?? [])
-          .map((row: { location_id: number | null }) => Number(row.location_id))
-          .filter((id) => Number.isFinite(id))
-      )
-    )
+    // Every panel below the tiles is a company figure: revenue trend, stock
+    // levels, pending approvals. None of it is shown to anyone but a super
+    // admin, so the query is not even run.
+    if (!(await isSuperAdmin(supabase, user.id))) {
+      return NextResponse.json({ data: null, restricted: true })
+    }
+
     if (locationIds.length === 0) {
       return NextResponse.json({ data: null, locations_counted: 0 })
     }

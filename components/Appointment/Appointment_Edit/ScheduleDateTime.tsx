@@ -6,35 +6,37 @@ import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import enAppoinments from "@/locales/en/Appoinments.json";
 
+import { MacSelect } from "@/components/ui/mac-select";
+
 // Custom styles for ReactDatePicker dark mode
 const customDatePickerStyles = `
   .react-datepicker {
     background-color: white !important;
-    border: 1px solid #e5e7eb !important;
+    border: 1px solid #E5E5EA !important;
     border-radius: 8px !important;
     font-family: inherit !important;
   }
   
   .dark .react-datepicker {
     background-color: #122136 !important;
-    border: 1px solid #374151 !important;
+    border: 1px solid #1D1D1F !important;
     color: white !important;
   }
   
   .react-datepicker__header {
-    background-color: #f9fafb !important;
-    border-bottom: 1px solid #e5e7eb !important;
+    background-color: #F5F5F7 !important;
+    border-bottom: 1px solid #E5E5EA !important;
   }
   
   .dark .react-datepicker__header {
     background-color: #1f2937 !important;
-    border-bottom: 1px solid #374151 !important;
+    border-bottom: 1px solid #1D1D1F !important;
   }
   
   .react-datepicker__current-month,
   .react-datepicker__day-name,
   .react-datepicker__day {
-    color: #111827 !important;
+    color: #1D1D1F !important;
   }
   
   .dark .react-datepicker__current-month,
@@ -44,11 +46,11 @@ const customDatePickerStyles = `
   }
   
   .react-datepicker__day:hover {
-    background-color: #f3f4f6 !important;
+    background-color: #F5F5F7 !important;
   }
   
   .dark .react-datepicker__day:hover {
-    background-color: #374151 !important;
+    background-color: #1D1D1F !important;
   }
   
   .react-datepicker__day--selected {
@@ -72,19 +74,19 @@ const customDatePickerStyles = `
   }
   
   .react-datepicker__navigation {
-    color: #6b7280 !important;
+    color: #6E6E73 !important;
   }
   
   .dark .react-datepicker__navigation {
-    color: #9ca3af !important;
+    color: #86868B !important;
   }
   
   .react-datepicker__navigation:hover {
-    color: #374151 !important;
+    color: #1D1D1F !important;
   }
   
   .dark .react-datepicker__navigation:hover {
-    color: #d1d5db !important;
+    color: #D9D9DE !important;
   }
 `;
 
@@ -230,61 +232,61 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
       <style dangerouslySetInnerHTML={{ __html: customDatePickerStyles }} />
       <div className="flex flex-col md:flex-row justify-center w-full gap-5 items-center">
       <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
-        <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
+        <label className="text-[16px] text-customGray font-poppins font-bold">
           {t("Appoinments_k56")}
         </label>
-        <span className="border-[1px] border-[#000000] dark:border-gray-500 rounded-[10px] w-full">
+        <span className="border-[1px] border-[#000000] rounded-[10px] w-full">
           <ReactDatePicker
             selected={date}
             onChange={dateTimeChangeHandle}
             placeholderText="Select Schedule date"
             dateFormat="MM-dd-yyyy"
-            className="w-full h-[46px] text-[16px] text-black dark:text-white placeholder:text-customGray placeholder:text-opacity-50 dark:placeholder:text-gray-400 px-5 bg-[#f1f4f9] dark:bg-[#122136] outline-none rounded-[10px]"
-            calendarClassName="bg-white dark:bg-[#122136] border border-gray-200 dark:border-gray-700 shadow-lg"
-            dayClassName={(date) => "text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"}
+            className="w-full h-[46px] text-[16px] text-black placeholder:text-customGray placeholder:text-opacity-50 px-5 bg-[#F5F5F7] outline-none rounded-[10px]"
+            calendarClassName="bg-white border border-gray-200 shadow-lg"
+            dayClassName={(date) => "text-black hover:bg-gray-100"}
             //@ts-ignore
-            monthClassName="text-black dark:text-white"
+            monthClassName="text-black"
             //@ts-ignore
-            yearClassName="text-black dark:text-white"
-            headerClassName="text-black dark:text-white"
+            yearClassName="text-black"
+            headerClassName="text-black"
           />
         </span>
       </div>
       <div className="flex flex-col items-start md:w-1/2 w-full justify-center">
-        <label className="text-[16px] text-customGray dark:text-gray-300 font-poppins font-bold">
+        <label className="text-[16px] text-customGray font-poppins font-bold">
           {t("Appoinments_k55")}
         </label>
-        <select
+        <MacSelect
           value={selectedSlot}
           onChange={(e) => selectSlotHandle(e.target.value)}
-          className="w-full h-[46px] text-[16px] text-black dark:text-white bg-[#f1f4f9] dark:bg-[#122136] border-none outline-none rounded-lg px-3 py-2"
+          className="w-full h-[46px] text-[16px] text-black bg-[#F5F5F7] border-none outline-none rounded-lg px-3 py-2"
           disabled={isClosed}
         >
           {isClosed ? (
-            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+            <option value="" className="bg-white text-black">
               Closed
             </option>
           ) : availableTimes.length > 0 ? (
             <>
-              <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+              <option value="" className="bg-white text-black">
                 {t("Appoinments_k95", { defaultValue: (enAppoinments as any)["Appoinments_k95"] ?? "Select Slot" })}
               </option>
               {availableTimes.map((time, index) => (
                 <option
                   key={index}
                   value={time}
-                  className="bg-white dark:bg-[#122136] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="bg-white text-black hover:bg-gray-100"
                 >
                   {time}
                 </option>
               ))}
             </>
           ) : (
-            <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+            <option value="" className="bg-white text-black">
               {t("Appoinments_k97", { defaultValue: (enAppoinments as any)["Appoinments_k97"] ?? "No available times" })}
             </option>
           )}
-        </select>
+        </MacSelect>
       </div>
     </div>
     </>

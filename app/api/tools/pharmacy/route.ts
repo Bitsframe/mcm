@@ -1,9 +1,13 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 import { classifyError } from '@/utils/logging/safe-log';
 import { dbSync } from '@/utils/sync/directDbSync';
 import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client';
 
 export const GET = async () => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const supabase = getServiceRoleSupabase();
 
   try {
@@ -22,6 +26,9 @@ export const GET = async () => {
 };
 
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const supabase = getServiceRoleSupabase();
 
   try {

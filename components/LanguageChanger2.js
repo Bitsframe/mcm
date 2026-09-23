@@ -26,19 +26,19 @@ export default function LanguageChanger({ locale }) {
   return (
     <div className="relative w-44 z-50">
       {/* Language Options - Visible directly */}
-      <div className="flex flex-col gap-2 bg-white dark:bg-[#0e1725] overflow-hidden">
+      <div className="flex flex-col gap-2 bg-white overflow-hidden">
         {languages.map((lang) => (
           <div
             key={lang.code}
             onClick={() => handleChange(lang)}
             className={`flex items-center gap-2 p-4 cursor-pointer ${
               selectedLang.code === lang.code
-                ? "bg-gray-100 dark:bg-gray-600"
-                : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                ? "bg-gray-100"
+                : "hover:bg-gray-100"
             }`}
           >
-            <Image src={lang.flag} alt={lang.label} width={20} height={15} />
-            <span className="dark:text-white">{lang.label}</span>
+            <Image src={lang.flag} alt={lang.label} width={20} height={15} className="h-[15px] w-[20px] rounded-[2px] object-cover" />
+            <span className="">{lang.label}</span>
           </div>
         ))}
       </div>

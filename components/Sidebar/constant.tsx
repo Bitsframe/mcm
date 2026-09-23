@@ -3,7 +3,6 @@ import {
   Users,
   CalendarCheck2,
   Warehouse,
-  Grid,
   Hammer,
   Calculator,
   Settings,
@@ -31,9 +30,16 @@ interface Route {
 
 // Route path constants
 //
-// Hidden from the UI but otherwise intact: Credits, Transactions, Bonus, Stock Panel,
-// Promo Codes, Reputation, Pharmacy and Medical Forms came out of the sidebar, and
-// Location Limits and Staff out of the Controls tabs. Their pages, API routes and data
+// Bonus came back into the sidebar on 2026-09-23 with the v2 calculation, then
+// came out again the same day on request — the pages and routes are untouched.
+// When it is restored, the children's `name` values must stay 'bonus-location'
+// and 'bonus-individual': withAuthorization matches those exact names to grant
+// the `control` permission access to the bonus pages.
+// Hidden from the UI but otherwise intact: Bonus, Credits, Transactions, Stock Panel,
+// Promo Codes, Reputation, Pharmacy and Medical Forms came out of the sidebar, then
+// (2026-09-22) Inventory, Patients Onsite/Offsite and the standalone Specials entry —
+// Specials is reached as a Website Content tab. Location Limits and Staff came out of
+// the Controls tabs. Their pages, API routes and data
 // are untouched, and the paths below are deliberately kept, so restoring an entry is a
 // one-liner — see git history for the exact blocks.
 
@@ -63,7 +69,10 @@ const ROUTES = {
   CONTROLS: "/controls",
   CREDITS: "/credits",
   TRANSACTIONS: "/transactions",
-  BONUS: "/bonus",
+  BONUS: {
+    LOCATION: "/bonus/location",
+    INDIVIDUAL: "/bonus/individual",
+  },
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -81,22 +90,16 @@ export const routeList: Route[] = [
   {
     id: 'home',
     name: "dashboard",
-    label: "Sidebar_k1",
+    label: "Sidebar_k2",
     icon: Home,
-    children: [
-      { id: 'home-dashboard', name: "dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
-    ],
+    route: ROUTES.HOME,
   },
   {
     id: 'patients',
     name: "patients",
     label: "Sidebar_k3",
     icon: Users,
-    children: [
-      { id: 'patients-all', name: "patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
-      { id: 'patients-onsite', name: "patients", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
-      { id: 'patients-offsite', name: "patients", label: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
-    ],
+    route: ROUTES.PATIENTS.ALL,
   },
   {
     id: 'appointments',
@@ -115,13 +118,6 @@ export const routeList: Route[] = [
       { id: 'pos-history', name: "pos", label: "Sidebar_k21", route: ROUTES.POS.HISTORY },
       { id: 'pos-return', name: "pos", label: "Sidebar_k20", route: ROUTES.POS.RETURN },
     ],
-  },
-  {
-    id: 'inventory',
-    name: "inventory",
-    label: "Sidebar_k11",
-    icon: Grid,
-    route: ROUTES.INVENTORY.MANAGE,
   },
   {
     id: 'warehouse',
@@ -166,12 +162,6 @@ export const routeList: Route[] = [
         name: "user management",
         label: "Sidebar_k18",
         route: ROUTES.TOOLS.USER_MANAGEMENT
-      },
-      {
-        id: 'tools-specials',
-        name: "specials",
-        label: "Sidebar_k37",
-        route: ROUTES.TOOLS.SPECIALS
       },
       {
         id: 'settings',

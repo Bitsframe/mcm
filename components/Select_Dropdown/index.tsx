@@ -1,5 +1,7 @@
-import { Label, Select } from "flowbite-react";
+import { Label } from "flowbite-react";
 import React from "react";
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 interface OptionArrayInterface {
   value: string | number;
@@ -32,7 +34,7 @@ export const Select_Dropdown = ({
   value = "",
   label,
   start_empty = false,
-  bg_color = " dark:bg-[#122136]",
+  bg_color = "",
   //@ts-ignore
   initialValue = "" || 0,
   hideLabel = false,
@@ -45,47 +47,42 @@ export const Select_Dropdown = ({
         <Label
           htmlFor="section"
           value={label}
-          className={`font-bold ${hasError ? "text-red-600 dark:text-red-400" : "dark:text-gray-300"}`}
+          className={`font-bold ${hasError ? "text-red-600" : ""}`}
         />
       )}
-      <Select
+      <MacSelect
         disabled={disabled}
         value={value}
+        // `selected` on <option> is not how React sets a select; when the
+        // caller passes no value, the option flagged selected becomes the default.
+        defaultValue={value === undefined ? options_arr.find((o) => o.selected)?.value : undefined}
         onChange={on_change_handle}
         id="section"
         required={required}
-        className={`w-full h-auto disabled:opacity-70 text-black dark:text-gray-300 outline-none border ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"}`}
-        style={{
-          backgroundColor: document.documentElement.classList.contains("dark")
-            ? "#122136"
-            : "#f1f4f9",
-          color: document.documentElement.classList.contains("dark")
-            ? "#d1d5db"
-            : "#000000",
-        }}
+        className={`w-full h-auto disabled:opacity-70 text-black outline-none border ${hasError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-gray-300 focus:border-brand-500 focus:ring-brand-500"}`}
+        style={{ backgroundColor: "#FFFFFF", color: "#1D1D1F" }}
       >
         {start_empty && (
           <option
             value={initialValue}
-            className="dark:bg-[#122136] dark:text-gray-300"
+            className=""
           >
             {label}
           </option>
         )}
         {options_arr.map(
-          ({ value, label, selected, disabled }: any, ind: number) => (
+          ({ value, label, disabled }: any, ind: number) => (
             <option
               key={ind}
               disabled={disabled || false}
-              selected={selected || false}
               value={value}
-              className="text-black dark:text-gray-300 dark:bg-[#122136]"
+              className="text-black"
             >
               {label}
             </option>
           )
         )}
-      </Select>
+      </MacSelect>
       {hasError && errorMessage && (
         <p className="text-sm text-red-500">{errorMessage}</p>
       )}

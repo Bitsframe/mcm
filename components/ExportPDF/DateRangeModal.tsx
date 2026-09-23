@@ -62,7 +62,7 @@ export default function DateRangeModal({
         <div>
             <button
                 onClick={handleOpen}
-                className="bg-[#0066FF] text-base px-3 py-2 text-white rounded-md flex items-center space-x-2 hover:bg-[#0052cc] transition-colors duration-200"
+                className="bg-[#166534] text-base px-3 py-2 text-white rounded-md flex items-center space-x-2 hover:bg-[#125229] transition-colors duration-200"
             >
                 <FileClock className="w-5 h-5" />
                 <span className="hidden sm:inline">{t("POS-Historyk1")}</span>
@@ -76,12 +76,12 @@ export default function DateRangeModal({
                 aria-describedby="date-range-modal-description"
             >
                 <div className="w-full h-full flex justify-center items-center p-2 sm:p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md sm:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto">
                         {/* Header */}
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                        <div className="px-4 py-3 border-b border-gray-200">
                             <h2 
                                 id="date-range-modal-title" 
-                                className="text-lg font-semibold text-gray-900 dark:text-white"
+                                className="text-lg font-semibold text-gray-900"
                             >
                                 Select a Date Range
                             </h2>
@@ -94,7 +94,7 @@ export default function DateRangeModal({
                                     /* Light mode styles */
                                     .date-range-picker-container .rdrCalendarWrapper {
                                         background: transparent !important;
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrMonth {
@@ -103,106 +103,106 @@ export default function DateRangeModal({
                                     
                                     .date-range-picker-container .rdrDefinedRangesWrapper {
                                         background: #ffffff !important;
-                                        color: #111827 !important;
-                                        border-right: 1px solid #e5e7eb !important;
+                                        color: #1D1D1F !important;
+                                        border-right: 1px solid #E5E5EA !important;
                                     }
                                     
                                     .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRange {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                         background: transparent !important;
                                     }
                                     
                                     .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRange:hover {
-                                        background: #f3f4f6 !important;
+                                        background: #F5F5F7 !important;
                                     }
                                     
                                     .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRangeSelected {
-                                        color: #0066FF !important;
+                                        color: #166534 !important;
                                         background: #eff6ff !important;
                                     }
                                     
                                     .date-range-picker-container .rdrInputRanges {
                                         background: #ffffff !important;
-                                        border-top: 1px solid #e5e7eb !important;
+                                        border-top: 1px solid #E5E5EA !important;
                                     }
                                     
                                     .date-range-picker-container .rdrInputRange {
                                         background: #ffffff !important;
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrInputRangeInput {
                                         background: #ffffff !important;
-                                        color: #111827 !important;
-                                        border: 1px solid #d1d5db !important;
+                                        color: #1D1D1F !important;
+                                        border: 1px solid #D9D9DE !important;
                                     }
                                     
                                     .date-range-picker-container .rdrWeekDay {
-                                        color: #374151 !important;
+                                        color: #1D1D1F !important;
                                         font-weight: 600 !important;
                                     }
                                     
                                     .date-range-picker-container .rdrWeekDays {
-                                        color: #374151 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrDay {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrDayNumber span {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrMonthAndYearWrapper {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                         background: #ffffff !important;
                                     }
                                     
                                     .date-range-picker-container .rdrMonthAndYearWrapper * {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrMonthAndYearPickers select {
                                         background: #ffffff !important;
-                                        color: #111827 !important;
-                                        border: 1px solid #d1d5db !important;
+                                        color: #1D1D1F !important;
+                                        border: 1px solid #D9D9DE !important;
                                     }
                                     
                                     .date-range-picker-container .rdrMonthName,
                                     .date-range-picker-container .rdrYearPicker,
                                     .date-range-picker-container .rdrMonthPicker {
-                                        color: #111827 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     .date-range-picker-container .rdrPrevNextButton {
-                                        background: #f3f4f6 !important;
-                                        color: #111827 !important;
+                                        background: #F5F5F7 !important;
+                                        color: #1D1D1F !important;
                                     }
                                     
                                     /* Dark mode styles */
                                     .dark .date-range-picker-container .rdrCalendarWrapper {
                                         background: transparent !important;
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrMonth {
-                                        background: #374151 !important;
+                                        background: #1D1D1F !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDefinedRangesWrapper {
-                                        background: #374151 !important;
-                                        color: #f9fafb !important;
-                                        border-right: 1px solid #6b7280 !important;
+                                        background: #1D1D1F !important;
+                                        color: #F5F5F7 !important;
+                                        border-right: 1px solid #6E6E73 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRange {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                         background: transparent !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRange:hover {
-                                        background: #4b5563 !important;
+                                        background: #6E6E73 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDefinedRangesWrapper .rdrStaticRangeSelected {
@@ -211,71 +211,71 @@ export default function DateRangeModal({
                                     }
                                     
                                     .dark .date-range-picker-container .rdrInputRanges {
-                                        background: #374151 !important;
-                                        border-top: 1px solid #6b7280 !important;
+                                        background: #1D1D1F !important;
+                                        border-top: 1px solid #6E6E73 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrInputRange {
-                                        background: #374151 !important;
-                                        color: #f9fafb !important;
+                                        background: #1D1D1F !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrInputRangeInput {
-                                        background: #4b5563 !important;
-                                        color: #f9fafb !important;
-                                        border: 1px solid #6b7280 !important;
+                                        background: #6E6E73 !important;
+                                        color: #F5F5F7 !important;
+                                        border: 1px solid #6E6E73 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrWeekDay {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                         font-weight: 600 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrWeekDays {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDay {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDayNumber span {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrMonthAndYearWrapper {
-                                        color: #f9fafb !important;
-                                        background: #374151 !important;
+                                        color: #F5F5F7 !important;
+                                        background: #1D1D1F !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrMonthAndYearWrapper * {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrMonthAndYearPickers select {
-                                        background: #4b5563 !important;
-                                        color: #f9fafb !important;
-                                        border: 1px solid #6b7280 !important;
+                                        background: #6E6E73 !important;
+                                        color: #F5F5F7 !important;
+                                        border: 1px solid #6E6E73 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrMonthName,
                                     .dark .date-range-picker-container .rdrYearPicker,
                                     .dark .date-range-picker-container .rdrMonthPicker {
-                                        color: #f9fafb !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrPrevNextButton {
-                                        background: #4b5563 !important;
-                                        color: #f9fafb !important;
+                                        background: #6E6E73 !important;
+                                        color: #F5F5F7 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrPrevNextButton:hover {
-                                        background: #6b7280 !important;
+                                        background: #6E6E73 !important;
                                     }
                                     
                                     /* Day hover states */
                                     .date-range-picker-container .rdrDayHovered .rdrDayNumber span {
-                                        color: #0066FF !important;
+                                        color: #166534 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDayHovered .rdrDayNumber span {
@@ -284,7 +284,7 @@ export default function DateRangeModal({
                                     
                                     /* Today indicator */
                                     .date-range-picker-container .rdrDayToday .rdrDayNumber span:after {
-                                        background: #0066FF !important;
+                                        background: #166534 !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDayToday .rdrDayNumber span:after {
@@ -293,11 +293,11 @@ export default function DateRangeModal({
                                     
                                     /* Disabled days */
                                     .date-range-picker-container .rdrDayDisabled .rdrDayNumber span {
-                                        color: #9ca3af !important;
+                                        color: #86868B !important;
                                     }
                                     
                                     .dark .date-range-picker-container .rdrDayDisabled .rdrDayNumber span {
-                                        color: #6b7280 !important;
+                                        color: #6E6E73 !important;
                                     }
                                     
                                     /* Selected range */
@@ -365,7 +365,7 @@ export default function DateRangeModal({
                                     //@ts-ignore
                                     showSelectionPreview={true}
                                     showDateDisplay={false}
-                                    rangeColors={['#0066FF']}
+                                    rangeColors={['#166534']}
                                     // Prevent selecting today or future dates by capping maxDate to yesterday
                                     maxDate={getYesterdayDate()}
                                 />
@@ -373,17 +373,17 @@ export default function DateRangeModal({
                         </div>
 
                         {/* Footer */}
-                        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex flex-col-reverse sm:flex-row justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3">
+                        <div className="px-4 py-3 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3">
                             <button
                                 onClick={handleClose}
-                                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
+                                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                             >
                                 Close
                             </button>
                             <button
                                 onClick={applyHandle}
                                 disabled={loading}
-                                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-[#0066FF] hover:bg-[#0052cc] disabled:bg-gray-400 disabled:hover:bg-gray-400 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-[#166534] hover:bg-[#125229] disabled:bg-gray-400 disabled:hover:bg-gray-400 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">

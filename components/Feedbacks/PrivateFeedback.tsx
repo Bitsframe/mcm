@@ -136,9 +136,9 @@ const PrivateFeedbackComponent: FC = () => {
       <PiCaretUpDownBold
         className={`inline ${
           sortColumn === column
-            ? "text-blue-500 dark:text-blue-400"
-            : "text-gray-500 dark:text-gray-400"
-          } hover:text-gray-700 dark:hover:text-gray-300`}
+            ? "text-brand-500"
+            : "text-gray-500"
+          } hover:text-gray-700`}
           />
         ),
         [sortColumn]
@@ -152,12 +152,12 @@ const PrivateFeedbackComponent: FC = () => {
           {detailsArray(dataDetails).map((detail, index) => (
             <div
               key={index}
-              className="rounded-xl bg-white dark:bg-[#0E1725] p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+              className="rounded-xl bg-white p-4 shadow-sm border border-gray-200"
             >
-              <dt className="text-sm text-[#707070] dark:text-gray-400">
+              <dt className="text-sm text-[#707070]">
                 {t(detail.label)}
               </dt>
-              <dd className="text-[17px] text-gray-800 dark:text-gray-200 font-medium break-words">
+              <dd className="text-[17px] text-gray-800 font-medium break-words">
                 {detail.value}
               </dd>
             </div>
@@ -173,21 +173,21 @@ const PrivateFeedbackComponent: FC = () => {
   }, [dataList]);
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white dark:bg-[#0E1725] overflow-y-auto">
+    <main className="w-full h-full font-[500] text-[20px] p-3 bg-white overflow-y-auto">
       <div>
-        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+        <h1 className="text-xl font-bold text-gray-800">
           {t("Privatefeedback_k8")}
         </h1>
       </div>
 
       <div className="w-full py-2 grid grid-cols-1 md:grid-cols-5 gap-2">
-        <div className="bg-[#F1F4F7] dark:bg-[#080e16] md:col-span-3 rounded-md py-2 w-full">
+        <div className="bg-[#F5F5F7] md:col-span-3 rounded-md py-2 w-full">
           <div className="space-y-6 px-3 pb-4 flex flex-col sm:flex-row sm:justify-between">
             <input
               onChange={onChangeHandle}
               type="text"
               placeholder={t("Privatefeedback_k1")}
-              className="px-2 py-3 w-full sm:w-72 text-sm rounded-md focus:outline-none mt-2 bg-white dark:bg-[#0E1725] border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+              className="px-2 py-3 w-full sm:w-72 text-sm rounded-md focus:outline-none mt-2 bg-white border border-gray-300 text-gray-800"
             />
           </div>
 
@@ -216,26 +216,26 @@ const PrivateFeedbackComponent: FC = () => {
                       <div
                         key={feedback_id}
                         onClick={() => setDataDetails(elem)}
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                        className="bg-white rounded-lg shadow p-4 cursor-pointer hover:bg-gray-50"
                       >
                         <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                          <h3 className="font-medium text-gray-800">
                             {firstname} {lastname}
                           </h3>
-                          <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+                          <span className="bg-brand-100 text-brand-800 text-xs font-medium px-2.5 py-0.5 rounded">
                             {rating}/5
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                        <div className="text-xs text-gray-500 space-y-1">
                           <div className="flex justify-between">
                             <span>{t("Privatefeedback_k2")}:</span>
-                            <span className="text-gray-800 dark:text-gray-200">
+                            <span className="text-gray-800">
                               {order_id}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>{t("Privatefeedback_k3")}:</span>
-                            <span className="text-gray-800 dark:text-gray-200">
+                            <span className="text-gray-800">
                               {moment(created_at).format("MMM DD, YYYY")}
                             </span>
                           </div>
@@ -244,7 +244,7 @@ const PrivateFeedbackComponent: FC = () => {
                     );
                   })
               ) : (
-                <div className="flex h-40 flex-1 py-2 text-base justify-center items-center text-gray-500 dark:text-gray-400">
+                <div className="flex h-40 flex-1 py-2 text-base justify-center items-center text-gray-500">
                   <h1>{t("Privatefeedback_k9")}</h1>
                 </div>
               )}
@@ -258,11 +258,11 @@ const PrivateFeedbackComponent: FC = () => {
                     setCurrentPage((prev) => Math.max(0, prev - 1))
                   }
                   disabled={currentPage === 0}
-                  className="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200"
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600">
                   Page {currentPage + 1} of{" "}
                   {Math.ceil(dataList.length / cardsPerPage)}
                 </span>
@@ -278,7 +278,7 @@ const PrivateFeedbackComponent: FC = () => {
                   disabled={
                     currentPage >= Math.ceil(dataList.length / cardsPerPage) - 1
                   }
-                  className="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200"
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-800"
                 >
                   Next
                 </button>
@@ -288,9 +288,9 @@ const PrivateFeedbackComponent: FC = () => {
 
           <div className="px-3 pt-5 overflow-x-auto hidden md:block">
             <Table className="min-w-[600px] text-xs sm:text-sm">
-              <TableHeader className="sticky top-0 bg-white dark:bg-[#0E1725] z-10">
-                <TableRow className="font-medium border-b border-gray-300 dark:border-gray-600">
-                  <TableHead className="text-left text-gray-600 dark:text-gray-300">
+              <TableHeader className="sticky top-0 bg-white z-10">
+                <TableRow className="font-medium border-b border-gray-300">
+                  <TableHead className="text-left text-gray-600">
                     {t("Privatefeedback_k1")}
                     <button
                       onClick={() => sortHandle("name")}
@@ -299,7 +299,7 @@ const PrivateFeedbackComponent: FC = () => {
                       {sortIcon("name")}
                     </button>
                   </TableHead>
-                  <TableHead className="text-center text-gray-600 dark:text-gray-300">
+                  <TableHead className="text-center text-gray-600">
                     {t("Privatefeedback_k2")}
                     <button
                       onClick={() => sortHandle("order_id")}
@@ -308,7 +308,7 @@ const PrivateFeedbackComponent: FC = () => {
                       {sortIcon("order_id")}
                     </button>
                   </TableHead>
-                  <TableHead className="text-center text-gray-600 dark:text-gray-300">
+                  <TableHead className="text-center text-gray-600">
                     {t("Privatefeedback_k3")}
                     <button
                       onClick={() => sortHandle("date")}
@@ -317,7 +317,7 @@ const PrivateFeedbackComponent: FC = () => {
                       {sortIcon("date")}
                     </button>
                   </TableHead>
-                  <TableHead className="text-end text-gray-600 dark:text-gray-300">
+                  <TableHead className="text-end text-gray-600">
                     {t("Privatefeedback_k4")}
                     <button
                       onClick={() => sortHandle("rating")}
@@ -334,7 +334,7 @@ const PrivateFeedbackComponent: FC = () => {
                   <TableRow>
                     <TableCell
                       colSpan={4}
-                      className="bg-white dark:bg-gray-900"
+                      className="bg-white"
                     >
                       <div className="flex h-full flex-1 flex-col justify-center items-center">
                         <Spinner size="xl" />
@@ -354,18 +354,18 @@ const PrivateFeedbackComponent: FC = () => {
                       <TableRow
                         key={feedback_id}
                         onClick={() => setDataDetails(elem)}
-                        className="cursor-pointer rounded-md px-3 py-2 text-base hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-inherit"
+                        className="cursor-pointer rounded-md px-3 py-2 text-base hover:bg-gray-50 hover:text-inherit"
                       >
-                        <TableCell className="text-start text-gray-800 dark:text-gray-200">
+                        <TableCell className="text-start text-gray-800">
                           {firstname} {lastname}
                         </TableCell>
-                        <TableCell className="text-center text-gray-800 dark:text-gray-200">
+                        <TableCell className="text-center text-gray-800">
                           {order_id}
                         </TableCell>
-                        <TableCell className="text-center text-gray-800 dark:text-gray-200">
+                        <TableCell className="text-center text-gray-800">
                           {moment(created_at).format("MMM DD, YYYY")}
                         </TableCell>
-                        <TableCell className="text-end pr-4 text-gray-800 dark:text-gray-200">
+                        <TableCell className="text-end pr-4 text-gray-800">
                           {rating}/5
                         </TableCell>
                       </TableRow>
@@ -375,9 +375,9 @@ const PrivateFeedbackComponent: FC = () => {
                   <TableRow>
                     <TableCell
                       colSpan={4}
-                      className="bg-white dark:bg-gray-900"
+                      className="bg-white"
                     >
-                      <div className="flex h-full flex-1 py-2 text-base justify-center items-center text-gray-500 dark:text-gray-400">
+                      <div className="flex h-full flex-1 py-2 text-base justify-center items-center text-gray-500">
                         <h1>{t("Privatefeedback_k9")}</h1>
                       </div>
                     </TableCell>
@@ -388,9 +388,9 @@ const PrivateFeedbackComponent: FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#F1f4f7] dark:bg-[#080e16] rounded-md w-full mt-2 md:mt-0 md:col-span-2">
-          <div className="px-4 py-4 border-b-[1px] border-gray-300 dark:border-gray-700">
-            <h1 className="text-2xl font-bold w-full text-gray-800 dark:text-gray-200">
+        <div className="bg-[#F5F5F7] rounded-md w-full mt-2 md:mt-0 md:col-span-2">
+          <div className="px-4 py-4 border-b-[1px] border-gray-300">
+            <h1 className="text-2xl font-bold w-full text-gray-800">
               {t("Privatefeedback_k6")}
             </h1>
           </div>
@@ -399,7 +399,7 @@ const PrivateFeedbackComponent: FC = () => {
             {dataDetails ? (
               details
             ) : (
-              <div className="h-40 md:h-80 flex items-center justify-center text-xl font-semibold text-gray-500 dark:text-gray-400">
+              <div className="h-40 md:h-80 flex items-center justify-center text-xl font-semibold text-gray-500">
                 <h1>{t("Privatefeedback_k7")}</h1>
               </div>
             )}

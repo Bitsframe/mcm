@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 export const maxDuration = 300;
 import { NextResponse } from "next/server";
 import { classifyError, logError } from '@/utils/logging/safe-log';
@@ -28,6 +29,9 @@ const templates = [
 ];
 
 export async function POST(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     // Safe JSON parsing - handles empty/malformed body (can happen on Amplify with large payloads)
     let body: any;

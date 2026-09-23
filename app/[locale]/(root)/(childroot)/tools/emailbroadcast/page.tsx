@@ -1,4 +1,5 @@
 "use client";
+import { LocationPicker } from "@/components/ui/location-picker";
 import { classifyError, logError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
@@ -56,6 +57,8 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from "lucide-react";
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -155,19 +158,19 @@ const EmailBroadcast: React.FC = () => {
   const MenuBar = ({ editor }: any) => {
     if (!editor) return null;
     return (
-      <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2">
-        <button onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bold') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Bold"><Bold className="w-4 h-4"/></button>
-        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('italic') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Italic"><Italic className="w-4 h-4"/></button>
-        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('underline') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Underline"><UnderlineIcon className="w-4 h-4"/></button>
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
-        <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('bulletList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Bullet List"><List className="w-4 h-4"/></button>
-        <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('orderedList') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Numbered List"><ListOrdered className="w-4 h-4"/></button>
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
-        <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Left"><AlignLeft className="w-4 h-4"/></button>
-        <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Center"><AlignCenter className="w-4 h-4"/></button>
-        <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Align Right"><AlignRight className="w-4 h-4"/></button>
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
-        <button onClick={() => { const url = window.prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${editor.isActive('link') ? 'bg-gray-100 dark:bg-gray-800' : ''}`} title="Add Link"><LinkIcon className="w-4 h-4"/></button>
+      <div className="border-b border-gray-200 p-2 flex flex-wrap gap-2">
+        <button onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-100' : ''}`} title="Bold"><Bold className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-100' : ''}`} title="Italic"><Italic className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-100' : ''}`} title="Underline"><UnderlineIcon className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 mx-1" />
+        <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('bulletList') ? 'bg-gray-100' : ''}`} title="Bullet List"><List className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('orderedList') ? 'bg-gray-100' : ''}`} title="Numbered List"><ListOrdered className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 mx-1" />
+        <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-100' : ''}`} title="Align Left"><AlignLeft className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-100' : ''}`} title="Align Center"><AlignCenter className="w-4 h-4"/></button>
+        <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-100' : ''}`} title="Align Right"><AlignRight className="w-4 h-4"/></button>
+        <div className="w-px h-6 bg-gray-200 mx-1" />
+        <button onClick={() => { const url = window.prompt('Enter URL'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} className={`p-2 rounded hover:bg-gray-100 ${editor.isActive('link') ? 'bg-gray-100' : ''}`} title="Add Link"><LinkIcon className="w-4 h-4"/></button>
       </div>
     );
   };
@@ -347,20 +350,20 @@ const EmailBroadcast: React.FC = () => {
           }
         }
         return (
-          <div className="relative text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800">
+          <div className="relative text-foreground bg-[#F5F5F7]">
             <button
               onClick={() => openTemplateEditor()}
               title={isEditingTemplate ? "Exit edit mode" : "Edit template"}
-              className="absolute top-2 right-2 p-1 rounded bg-white/90 dark:bg-black/70 hover:opacity-90 shadow"
+              className="absolute top-2 right-2 p-1 rounded bg-white/90 hover:opacity-90 shadow"
             >
-              <Edit className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+              <Edit className="w-4 h-4 text-gray-700" />
             </button>
             <div
               style={{ whiteSpace: "pre-line" }}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
             {isEditingTemplate && (
-              <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="mt-2 text-sm text-yellow-700">
                 Edit mode enabled
               </div>
             )}
@@ -375,7 +378,7 @@ const EmailBroadcast: React.FC = () => {
     if (SelectedTemplateComponent) {
       return (
         <div
-          className="relative text-foreground dark:text-white bg-[#f1f4f7] dark:bg-gray-800"
+          className="relative text-foreground bg-[#F5F5F7]"
           style={
             {
               "--text-color": "var(--foreground)",
@@ -385,9 +388,9 @@ const EmailBroadcast: React.FC = () => {
           <button
             onClick={() => openTemplateEditor()}
             title={isEditingTemplate ? "Exit edit mode" : "Edit template"}
-            className="absolute top-2 right-2 p-1 rounded bg-white/90 dark:bg-black/70 hover:opacity-90 shadow"
+            className="absolute top-2 right-2 p-1 rounded bg-white/90 hover:opacity-90 shadow"
           >
-            <Edit className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+            <Edit className="w-4 h-4 text-gray-700" />
           </button>
           <SelectedTemplateComponent
             userFirstname={"[Patient]"}
@@ -400,10 +403,10 @@ const EmailBroadcast: React.FC = () => {
             endDate={moment(endDate).format("MM/DD/YYYY") || "[End Date]"}
             price={price || "0"}
             // @ts-ignore
-            className="text-foreground dark:text-white"
+            className="text-foreground"
           />
           {isEditingTemplate && (
-            <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+            <div className="mt-2 text-sm text-yellow-700">
               built-in templates cannot be edited
             </div>
           )}
@@ -496,7 +499,7 @@ const EmailBroadcast: React.FC = () => {
                   {Array.from({ length: 5 }).map((_, index) => (
                     <Skeleton
                       key={index}
-                      className="h-10 w-full rounded bg-secondary dark:bg-[#0e1725]"
+                      className="h-10 w-full rounded bg-secondary"
                     />
                   ))}
                 </div>
@@ -504,12 +507,12 @@ const EmailBroadcast: React.FC = () => {
                 (Array.isArray(filteredEmails) ? filteredEmails : []).map((email: any, index: any) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center p-3 sm:p-4 bg-[#f1f4f7] dark:bg-[#0e1725] w-full my-2 rounded"
+                    className="flex justify-between items-center p-3 sm:p-4 bg-[#F5F5F7] w-full my-2 rounded"
                   >
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                        className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                         id={`checkbox-${index}`}
                         value={email?.email}
                         checked={checkedItems.some(
@@ -553,7 +556,7 @@ const EmailBroadcast: React.FC = () => {
                       type="checkbox"
                       value="Male"
                       onChange={handleGenderChange}
-                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                       checked={selectedGender.includes("Male")}
                     />
                     <Label
@@ -567,7 +570,7 @@ const EmailBroadcast: React.FC = () => {
                     <input
                       type="checkbox"
                       value="Female"
-                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                       onChange={handleGenderChange}
                       checked={selectedGender.includes("Female")}
                     />
@@ -582,7 +585,7 @@ const EmailBroadcast: React.FC = () => {
                     <input
                       type="checkbox"
                       value="other"
-                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                       onChange={handleGenderChange}
                       checked={selectedGender.includes("other")}
                     />
@@ -601,16 +604,16 @@ const EmailBroadcast: React.FC = () => {
                   {t("EmailB_k23")}
                 </h1>
                 <Select value={treatmentType ?? ""} onValueChange={(value) => setTreatmentType(value)}>
-                  <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
+                  <SelectTrigger className="w-full sm:w-[180px] bg-background border-input text-foreground text-sm sm:text-base">
                     <SelectValue placeholder={t("EmailB_k44")} className="text-foreground text-sm sm:text-base" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
+                  <SelectContent className="bg-background border max-h-[200px] overflow-y-auto">
                     <SelectGroup>
                       {(Array.isArray(serviceList) ? serviceList : []).map((patient: any, index) => (
                         <SelectItem
                           value={patient?.title}
                           key={index}
-                          className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
+                          className="hover:bg-accent text-foreground text-sm sm:text-base"
                         >
                           {patient?.title}
                         </SelectItem>
@@ -628,7 +631,7 @@ const EmailBroadcast: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                       checked={onsite === true}
                       onChange={() => handleVisitChange(true)}
                     />
@@ -642,7 +645,7 @@ const EmailBroadcast: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                      className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                       checked={onsite === false}
                       onChange={() => handleVisitChange(false)}
                     />
@@ -660,42 +663,28 @@ const EmailBroadcast: React.FC = () => {
                 <h1 className="font-bold text-foreground text-sm sm:text-base">
                   {t("EmailB_k25")}
                 </h1>
-                <Select value={location ?? ""} onValueChange={(value) => setLocation(value)}>
-                  <SelectTrigger className="w-full sm:w-[180px] bg-background dark:bg-[#0e1725] border-input dark:border-[#0e1725] text-foreground text-sm sm:text-base">
-                    <SelectValue placeholder={t("EmailB_k45")} className="text-foreground text-sm sm:text-base" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background dark:bg-[#080e16] border dark:border-[#0e1725] max-h-[200px] overflow-y-auto">
-                    <SelectGroup>
-                      {(Array.isArray(locationList) ? locationList : [])
-                        .filter(
-                          (location, index, self) =>
-                            index ===
-                            self.findIndex((loc) => loc.title === location.title)
-                        )
-                        .map((location, index) => (
-                          <SelectItem
-                            key={index}
-                            value={location?.title}
-                            className="hover:bg-accent dark:hover:bg-[#0e1725] text-foreground text-sm sm:text-base"
-                          >
-                            {location?.title}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                {/* Value is the location title here, so ids mirror titles. */}
+                <LocationPicker
+                  className="w-full sm:w-[220px]"
+                  locations={(Array.isArray(locationList) ? locationList : [])
+                    .filter((loc, i, self) => i === self.findIndex((l) => l.title === loc.title))
+                    .map((loc: any) => ({ id: loc.title, title: loc.title }))}
+                  value={location ?? ""}
+                  onChange={(v: string) => setLocation(v)}
+                  placeholder={t("EmailB_k45")}
+                />
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleReset()}
-                  className=" bg-[#0066ff] py-2 px-5 rounded-lg  text-base text-white"
+                  className=" bg-[#166534] py-2 px-5 rounded-lg  text-base text-white"
                 >
                   {t("EmailB_k26")}
                 </button>
                 <button
                   onClick={() => applyFilters()}
-                  className=" bg-green-600 py-2 px-4 rounded-lg text-base text-white"
+                  className="rounded-lg bg-brand-600 px-4 py-2 text-body text-white hover:bg-brand-700"
                 >
                   {t("EmailB_k46")}
                 </button>
@@ -789,7 +778,7 @@ const EmailBroadcast: React.FC = () => {
         }
         // Always add the logo at the top
         const STATIC_LOGO_URL =
-          "https://vsvueqtgulraaczqnnvh.supabase.co/storage/v1/object/public/email-assets//clinca_logo.png";
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/email-assets/clinca_logo.png`;
         previewHtml = `
           <div style="text-align:center;margin-bottom:16px;">
             <img src="${STATIC_LOGO_URL}" alt="Clinic Logo" style="width:120px;object-fit:contain;" />
@@ -905,16 +894,16 @@ const EmailBroadcast: React.FC = () => {
   const { t } = useTranslation(translationConstant.EMAILB);
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-4 dark:bg-[#0e1725]">
+    <div className="flex flex-col gap-4 px-4 pt-4">
       <div>
         <h1 className="text-xl font-bold">{t("EmailB_k12")}</h1>
-        <h1 className="mt-1 mb-2 text-sm text-gray-500 dark:text-gray-400">
+        <h1 className="mt-1 mb-2 text-sm text-gray-500">
           {t("EmailB_k13")}
         </h1>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm py-4">
+        <div className="w-full md:w-1/2 bg-white rounded-lg shadow-sm py-4">
           <div className="space-y-2">
             <label
               htmlFor="patients"
@@ -925,7 +914,7 @@ const EmailBroadcast: React.FC = () => {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button className="w-full p-2 my-1 text-[16px] bg-[#f1f4f7] text-muted-foreground text-left rounded dark:bg-[#122136]">
+                <button className="w-full p-2 my-1 text-[16px] bg-[#F5F5F7] text-muted-foreground text-left rounded">
                   {checkedItems.length > 0
                     ? checkedItems
                         .slice(0, 2)
@@ -944,8 +933,8 @@ const EmailBroadcast: React.FC = () => {
                   max-h-[90vh] sm:h-[600px]
                   overflow-hidden flex flex-col
                   p-4 sm:p-4
-                  bg-background dark:bg-[#080e16]
-                  border dark:border-[#0e1725]
+                  bg-background
+                  border
                   rounded-lg
                 "
               >
@@ -958,9 +947,9 @@ const EmailBroadcast: React.FC = () => {
                             {t("EmailB_k7")}
                           </AlertDialogTitle>
                         </div>
-                        <AlertDialogCancel className="bg-gray-200 dark:bg-gray-700 border border-gray-400 dark:border-gray-500 hover:bg-gray-300 dark:hover:bg-gray-600 h-8 w-8 flex items-center justify-center rounded-full shadow-md transition-colors">
+                        <AlertDialogCancel className="bg-gray-200 border border-gray-400 hover:bg-gray-300 h-8 w-8 flex items-center justify-center rounded-full shadow-md transition-colors">
                           <button>
-                            <X className="w-4 h-4 text-black dark:text-white" />
+                            <X className="w-4 h-4 text-black" />
                           </button>
                         </AlertDialogCancel>
                       </div>
@@ -972,7 +961,7 @@ const EmailBroadcast: React.FC = () => {
                             .map((item: any, index: any) => (
                               <span
                                 key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-brand-100 text-brand-800"
                               >
                                 {item.email}
                                 <button
@@ -989,14 +978,14 @@ const EmailBroadcast: React.FC = () => {
                                       item
                                     );
                                   }}
-                                  className="ml-1.5 inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 dark:hover:bg-blue-800"
+                                  className="ml-1.5 inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-brand-400 hover:bg-brand-200 hover:text-brand-500"
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
                               </span>
                             ))}
                           {checkedItems.length > 2 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-brand-100 text-brand-800">
                               +{checkedItems.length - 2}
                             </span>
                           )}
@@ -1004,14 +993,14 @@ const EmailBroadcast: React.FC = () => {
                      
 
                       <div className="flex items-center justify-between mt-2 sm:mt-3">
-                        <div className="relative border border-input dark:border-[#0e1725] rounded-lg w-full sm:w-auto flex-1">
+                        <div className="relative border border-input rounded-lg w-full sm:w-auto flex-1">
                                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                                           <Search className="w-4 h-4" />
                                         </span>
                                         <input
                                           placeholder={t("EmailB_k9") + ' or name'}
                                           type="text"
-                                          className="pl-10 pr-2 py-2 border border-input dark:border-[#0e1725] rounded-lg bg-background dark:bg-[#0e1725] text-foreground w-full text-sm sm:text-base"
+                                          className="pl-10 pr-2 py-2 border border-input rounded-lg bg-background text-foreground w-full text-sm sm:text-base"
                                           value={searchQuery}
                                           onChange={(e) => setSearchQuery(e.target.value)}
                                         />
@@ -1023,7 +1012,7 @@ const EmailBroadcast: React.FC = () => {
                           height={20}
                           width={20}
                           onClick={() => setFilter(true)}
-                          className="cursor-pointer dark:invert ml-2 sm:ml-3"
+                          className="cursor-pointer ml-2 sm:ml-3"
                         />
                       </div>
 
@@ -1031,7 +1020,7 @@ const EmailBroadcast: React.FC = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="border-2 border-gray-500 dark:border-gray-300 bg-gray-300 dark:bg-[#122136] rounded p-2 accent-blue-600 w-4 h-4 sm:w-5 sm:h-5"
+                            className="border-2 border-gray-500 bg-gray-300 rounded p-2 accent-brand-600 w-4 h-4 sm:w-5 sm:h-5"
                             checked={
                               filteredEmails.length > 0 &&
                               filteredEmails.every((email: any) =>
@@ -1063,20 +1052,20 @@ const EmailBroadcast: React.FC = () => {
 
                         </AlertDialogTitle>
                       </div>
-                      <AlertDialogCancel className="bg-[#f1f4f9] dark:bg-[#122136] text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-[#1a2e4a] h-8 w-8 sm:h-10 sm:w-10">
+                      <AlertDialogCancel className="bg-[#F5F5F7] text-gray-700 border border-gray-300 hover:bg-gray-200 h-8 w-8 sm:h-10 sm:w-10">
                         <X className="h-4 w-4" />
                       </AlertDialogCancel>
                     </div>
                   )}
-                  <hr className="border-border dark:border-[#0e1725] my-2" />
+                  <hr className="border-border my-2" />
                 </AlertDialogHeader>
 
                 <AlertDialogDescription className="flex-1 overflow-y-auto">
                   <FilterContent />
                 </AlertDialogDescription>
-                <AlertDialogFooter className="flex-none sticky bottom-0 w-full flex justify-end bg-background dark:bg-[#080e16] pt-2">
+                <AlertDialogFooter className="flex-none sticky bottom-0 w-full flex justify-end bg-background pt-2">
                   {!filter && checkedItems.length > 0 && (
-                    <AlertDialogCancel className="bg-blue-600 h-10 sm:h-12 hover:bg-blue-700 text-white border-none text-sm sm:text-base">
+                    <AlertDialogCancel className="bg-brand-600 h-10 sm:h-12 hover:bg-brand-700 text-white border-none text-sm sm:text-base">
                       Close
                     </AlertDialogCancel>
                   )}
@@ -1088,16 +1077,16 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2 mt-2">
             <label
               htmlFor="template"
-              className="text-sm font-medium flex items-center text-foreground dark:text-white"
+              className="text-sm font-medium flex items-center text-foreground"
             >
               {t("EmailB_k15")} {" "}
-              <span className="text-destructive dark:text-red-500 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             </label>
 
             <div className="relative">
-              <select
+              <MacSelect
                 id="template"
-                className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm text-foreground dark:text-white rounded-md border-none dark:border-gray-600 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500"
+                className="w-full p-3 bg-[#F5F5F7] text-sm text-foreground rounded-md border-none appearance-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
                 disabled={loadingTemplates}
@@ -1106,13 +1095,13 @@ const EmailBroadcast: React.FC = () => {
                   <option
                     key={template.value}
                     value={template.value}
-                    className="bg-background dark:bg-gray-700 text-foreground dark:text-white"
+                    className="bg-background text-foreground"
                   >
                     {template.label}
                     {template.type === "db" ? " (DB)" : " (Built-in)"}
                   </option>
                 ))}
-              </select>
+              </MacSelect>
 
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <svg
@@ -1121,7 +1110,7 @@ const EmailBroadcast: React.FC = () => {
                   viewBox="0 0 16 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="text-muted-foreground dark:text-gray-400"
+                  className="text-muted-foreground"
                 >
                   <path
                     d="M4 6L8 10L12 6"
@@ -1136,7 +1125,7 @@ const EmailBroadcast: React.FC = () => {
             <div className="mt-2 flex items-center gap-2">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-sm"
+                className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-body text-white hover:bg-brand-700"
                 title={t("EmailB_k30")}
               >
                 <Plus className="w-4 h-4" />
@@ -1148,10 +1137,10 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2 mt-2">
             <label
               htmlFor="subject"
-              className="text-sm font-medium flex items-center text-foreground dark:text-white"
+              className="text-sm font-medium flex items-center text-foreground"
             >
               {t("EmailB_k3")} {" "}
-              <span className="text-destructive dark:text-red-500 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             </label>
               <input
               type="text"
@@ -1160,30 +1149,30 @@ const EmailBroadcast: React.FC = () => {
               value={subject || ""}
               onChange={(e) => setSubject(e.target.value)}
               placeholder={t("EmailB_k31")}
-              className="w-full p-3 dark:bg-[#122136] bg-[#f1f4f7] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
+              className="w-full p-3 bg-[#F5F5F7] text-sm rounded-md border border-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-colors"
             />
 
             {/* Template Editor Modal */}
             {editModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                <div className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl">
-                  <h2 className="text-lg font-semibold mb-3 text-foreground dark:text-white">{t("EmailB_k32")}</h2>
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl">
+                  <h2 className="text-lg font-semibold mb-3 text-foreground">{t("EmailB_k32")}</h2>
                   <textarea
                     value={editBody}
                     onChange={(e) => setEditBody(e.target.value)}
-                    className="w-full h-64 p-3 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-[#0b1320] text-foreground dark:text-white"
+                    className="w-full h-64 p-3 rounded border border-gray-300 bg-gray-100 text-foreground"
                     style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   />
                   <div className="flex justify-end gap-2 mt-3">
                     <button
                       onClick={() => { setEditModalOpen(false); setIsEditingTemplate(false); }}
-                      className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-foreground"
+                      className="px-4 py-2 rounded bg-gray-200 text-foreground"
                     >
                       {t("EmailB_k40")}
                     </button>
                     <button
                       onClick={() => submitTemplateUpdate()}
-                      className="px-4 py-2 rounded bg-blue-600 text-white"
+                      className="px-4 py-2 rounded bg-brand-600 text-white"
                     >
                       {t("EmailB_k41")}
                     </button>
@@ -1195,7 +1184,7 @@ const EmailBroadcast: React.FC = () => {
           {/* Create Template Modal (TipTap) */}
           {showCreateModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-              <div ref={createModalRef} className="bg-white dark:bg-[#0b1220] rounded-lg shadow-lg p-6 w-full max-w-3xl" id="emailbroadcast-create-modal">
+              <div ref={createModalRef} className="bg-white rounded-lg shadow-lg p-6 w-full max-w-3xl" id="emailbroadcast-create-modal">
                 <style>{`
                   #emailbroadcast-create-modal .editor-inner input, 
                   #emailbroadcast-create-modal .editor-inner .ProseMirror p { 
@@ -1213,29 +1202,29 @@ const EmailBroadcast: React.FC = () => {
                   }
                 `}</style>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold mb-1 text-foreground dark:text-white">{t("EmailB_k33")}</h2>
+                  <h2 className="text-lg font-semibold mb-1 text-foreground">{t("EmailB_k33")}</h2>
                   <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="text-muted-foreground">{t("EmailB_k39")}</button>
                 </div>
 
                 <div className="mb-3">
                   <label className="text-sm text-foreground block mb-1">{t("EmailB_k34")}</label>
-                  <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} className="w-full p-2 rounded border border-gray-300 bg-gray-100 dark:bg-[#0b1320] text-foreground dark:text-white" />
+                  <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} className="w-full p-2 rounded border border-gray-300 bg-gray-100 text-foreground" />
                 </div>
 
                 <div className="mb-3">
                   <div className="flex flex-col h-[300px]">
                     <MenuBar editor={editor} />
                     <div 
-                      className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b bg-gray-100 dark:bg-[#07101a] cursor-text"
+                      className="flex-1 overflow-auto border border-gray-200 text-base rounded-b bg-gray-100 cursor-text"
                       onClick={() => editor?.commands.focus()}
                     >
-                      <EditorContent editor={editor} className="h-full min-h-[360px] p-4 bg-transparent text-black dark:text-white" />
+                      <EditorContent editor={editor} className="h-full min-h-[360px] p-4 bg-transparent text-black" />
                     </div>
                   </div>
                 </div>
 
                   <div className="flex justify-end gap-2 mt-4">
-                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="px-3 py-2 rounded bg-gray-200 dark:bg-gray-700">Cancel</button>
+                  <button onClick={() => { setShowCreateModal(false); setTemplateName(''); setTemplateContent(''); }} className="px-3 py-2 rounded bg-gray-200">Cancel</button>
                   <button
                     ref={saveBtnRef}
                     onClick={async () => {
@@ -1270,7 +1259,7 @@ const EmailBroadcast: React.FC = () => {
                         toast.error(err?.message || t("EmailB_k38"));
                       }
                     }}
-                    className="px-3 py-2 rounded bg-blue-600 text-white"
+                    className="px-3 py-2 rounded bg-brand-600 text-white"
                   >
                     {t("EmailB_k41")}
                   </button>
@@ -1283,7 +1272,7 @@ const EmailBroadcast: React.FC = () => {
           <div className="space-y-2 mt-2">
             <label
               htmlFor="name"
-              className="text-sm font-medium text-foreground dark:text-white"
+              className="text-sm font-medium text-foreground"
             >
               {t("EmailB_k4")}
             </label>
@@ -1294,7 +1283,7 @@ const EmailBroadcast: React.FC = () => {
               value={name || ""}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("EmailB_k42")}
-              className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
+              className="w-full p-3 bg-[#F5F5F7] text-sm rounded-md border border-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-colors"
             />
           </div>
 
@@ -1302,7 +1291,7 @@ const EmailBroadcast: React.FC = () => {
             <div className="space-y-2 mt-2">
               <label
                 htmlFor="price"
-                className="text-sm font-medium text-foreground dark:text-white"
+                className="text-sm font-medium text-foreground"
               >
                 {t("EmailB_k5")}
               </label>
@@ -1311,7 +1300,7 @@ const EmailBroadcast: React.FC = () => {
                 id="price"
                 name="price"
                 placeholder={t("EmailB_k43")}
-                className="w-full p-3 bg-[#f1f4f7] dark:bg-[#122136] text-sm rounded-md border border-input dark:border-gray-600 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent dark:focus:ring-primary-500 focus:outline-none transition-colors"
+                className="w-full p-3 bg-[#F5F5F7] text-sm rounded-md border border-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-colors"
                 value={price || ""}
                 onChange={(e) => setPrice(e.target.value)}
               />
@@ -1320,7 +1309,7 @@ const EmailBroadcast: React.FC = () => {
 
           <div className="mt-5">
             <button
-              className="px-4 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
+              className="px-4 py-3 bg-brand-600 text-white rounded-md text-sm font-medium hover:bg-brand-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
               onClick={sendEmail}
               disabled={isSendingEmail}
             >
@@ -1336,11 +1325,11 @@ const EmailBroadcast: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 bg-white dark:bg-[#0E1725] rounded-lg shadow-sm p-4">
-          <h2 className="text-sm font-medium mb-4 text-foreground dark:text-white">
+        <div className="w-full md:w-1/2 bg-white rounded-lg shadow-sm p-4">
+          <h2 className="text-sm font-medium mb-4 text-foreground">
             {t("EmailB_k17")}
           </h2>
-          <div className="border border-border bg-[#f1f4f7] dark:border-gray-600 rounded-md p-6 dark:bg-gray-800">
+          <div className="border border-border bg-[#F5F5F7] rounded-md p-6">
             <RenderTemplate />
           </div>
         </div>

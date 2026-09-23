@@ -2,37 +2,31 @@
 
 import Image from "next/image";
 import { useContext } from "react";
-import { useTheme } from "next-themes";
-import { Darklogo, Lightlogo } from "@/assets/images";
+import { Darklogo } from "@/assets/images";
 import { SidebarCollapseContext } from "@/context";
 
 import { Clinic } from "./Clinic";
 import { SidebarPanel } from "./SidebarPanel";
 
+/**
+ * The window's source-list column: translucent over whatever scrolls under it,
+ * separated from the content by a hairline, with the clinic switcher pinned at
+ * the bottom like an account row.
+ */
 export const SidebarSection = () => {
-  const { theme } = useTheme();
   const collapsed = useContext(SidebarCollapseContext);
 
   return (
-    <div
-      className={`w-full h-full flex flex-col gap-5 items-start py-5 bg-[#F1F4F9] dark:bg-[#080E16] ${
-        collapsed ? "pr-0 px-2" : "pr-5"
-      }`}
-    >
-      {/* The logo is a wordmark, so it has no square form to shrink to; the rail
-          gives the space to the collapse handle instead. */}
-      {!collapsed && (
-        <div className="flex justify-center w-full overflow-hidden">
-          <Image
-            src={theme === "dark" ? Lightlogo : Darklogo}
-            alt="logo"
-            className="w-[155px] aspect-auto object-contain"
-          />
-        </div>
-      )}
-      {collapsed && <div className="h-[34px] w-full" aria-hidden />}
+    <div className="bg-vibrant flex h-full w-full flex-col border-r border-border">
+      {/* The logo is a wordmark with no square form to shrink to; the rail
+          leaves the space to the toolbar's sidebar toggle instead. */}
+      <div className="flex h-16 shrink-0 items-center px-4">
+        {!collapsed && (
+          <Image src={Darklogo} alt="MyClinic MD" className="h-12 w-auto max-w-[200px] object-contain" priority />
+        )}
+      </div>
 
-      <div className="w-full flex-1 overflow-y-auto overflow-x-hidden text-[#79808B] dark:text-gray-300">
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-4 pt-1 ${collapsed ? "px-3.5" : ""}`}>
         <SidebarPanel />
       </div>
 

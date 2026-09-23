@@ -104,7 +104,7 @@ const btnContainer = {
 };
 
 const button = {
-  backgroundColor: "#C1001F",
+  backgroundColor: "#D70015",
   borderRadius: "3px",
   color: "#fff",
   fontSize: "16px",
@@ -115,11 +115,11 @@ const button = {
 };
 
 const hr = {
-  borderColor: "#cccccc",
+  borderColor: "#D9D9DE",
   margin: "20px 0",
 };
 
 const footer = {
-  color: "#8898aa",
+  color: "#86868B",
   fontSize: "12px",
 };

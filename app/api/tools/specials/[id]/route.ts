@@ -1,9 +1,13 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from "next/server";
 import { classifyError } from '@/utils/logging/safe-log';
 import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
 // Get specials (all or single)
 export const GET = async (_req: Request, { params }: { params: Promise<{ id: string }> }) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
 	try {
 		const supabase = getServiceRoleSupabase();
 		const { id } = await params;
@@ -36,6 +40,9 @@ export const GET = async (_req: Request, { params }: { params: Promise<{ id: str
 
 // Create (insert) special
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
 	try {
 		const supabase = getServiceRoleSupabase();
 		const body = await req.json();
@@ -62,6 +69,9 @@ export const POST = async (req: Request) => {
 
 // Update special
 export const PUT = async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
 	try {
 		const supabase = getServiceRoleSupabase();
 		const { id } = await params;
@@ -91,6 +101,9 @@ export const PUT = async (req: Request, { params }: { params: Promise<{ id: stri
 
 // Delete special
 export const DELETE = async (_req: Request, { params }: { params: Promise<{ id: string }> }) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
 	try {
 		const supabase = getServiceRoleSupabase();
 		const { id } = await params;

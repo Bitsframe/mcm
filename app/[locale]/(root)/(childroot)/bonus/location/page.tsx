@@ -18,6 +18,8 @@ import { toast, ToastContainer } from 'react-toastify'
 import supabase from '@/utils/supabaseClient'
 import 'react-toastify/dist/ReactToastify.css'
 
+import { MacSelect } from "@/components/ui/mac-select";
+
 const BonusPage = () => {
   const [patients, setPatients] = useState<any[]>([])
   const [selectedPatient, setSelectedPatient] = useState<any>(null)
@@ -75,7 +77,7 @@ const BonusPage = () => {
   const [editedByPatient, setEditedByPatient] = useState<Record<string, boolean>>({})
   const [saveMessage, setSaveMessage] = useState<string>("")
 
-  type ActiveTab = 'calculation' | 'transactions' | 'set-limits'
+  type ActiveTab = 'calculation' | 'transactions'
   const [activeTab, setActiveTab] = useState<ActiveTab>('calculation')
   
   
@@ -272,13 +274,6 @@ const BonusPage = () => {
   // Re-fetch bonus rows whenever the selected date changes so the table immediately
   // shows rows for the newly-selected date (or '-' for locations without rows).
   useEffect(() => {
-    // If we're in Set limits mode, do not fetch or subscribe to any bonus rows for the selected date.
-    if (activeTab === 'set-limits') {
-      // still reset pagination to first page when date changes in other tabs, keep page at 1 here
-      setCurrentPage(1)
-      return
-    }
-
     // Avoid double-fetch on mount by only fetching when date changes after initial load.
     // Calling fetchData() here is acceptable; it will fetch bonus rows for the selected date.
     fetchData()
@@ -292,9 +287,6 @@ const BonusPage = () => {
   // polling fallback (every 30s) for environments where realtime is unavailable.
   useEffect(() => {
     if (typeof window === 'undefined') return
-
-    // Do not subscribe or poll while the user is in Set limits mode
-    if (activeTab === 'set-limits') return
 
     const selectedDate = columnFilters.date ?? getTodayYMD()
     // Use helper subscription function from fetch.ts
@@ -461,9 +453,16 @@ const BonusPage = () => {
   }, [columnFilters])
 
 
+  /**
+   * Preview of the pool for a location, mirroring calculate_bonus_for_location_date.
+   * The percentage applies to BONUS-ELIGIBLE sales, never to total sales; total
+   * sales only decide whether the clinic reached its daily goal.
+   */
   const computeBonusAmount = useCallback((patient: any) => {
-    const total = bonusRowsByLocation[String(patient.id)]?.total_sales ?? (totalsByLocation[String(patient.id)]?.total) ?? 0
-    const type = (bonusTypeByPatient[String(patient.id)] ?? 'FLAT')
+    const row = bonusRowsByLocation[String(patient.id)]
+    const total = Number(row?.total_sales ?? totalsByLocation[String(patient.id)]?.total ?? 0)
+    const eligible = Number(row?.bonus_sales ?? 0)
+    const type = String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase()
     const valStr = (bonusValueByPatient[String(patient.id)] ?? '')
 
     const thr = thresholdsByLocation[String(patient.id)]
@@ -473,25 +472,14 @@ const BonusPage = () => {
 
     const value = valStr === '' ? 0 : Number(valStr)
     const limit = limitStr === '' ? null : Number(limitStr)
-    let amount = 0
 
-    if (type === 'FLAT') {
-      amount = isNaN(value) ? 0 : value
-    } else {
-      const pct = isNaN(value) ? 0 : value
-      amount = total * (pct / 100)
-    }
+    // Threshold is met at or above the goal, matching the SQL.
+    if (limit !== null && !isNaN(limit) && total < limit) return 0
 
-    if (limit !== null && !isNaN(limit)) {
-      if (total <= limit) {
-        amount = 0
-      } else if (type === 'FLAT') {
-        const allowed = Math.max(0, total - limit)
-        amount = Math.min(amount, allowed)
-      }
-    }
+    if (type === 'FLAT') return isNaN(value) ? 0 : Math.round(value * 100) / 100
 
-    return amount
+    const pct = isNaN(value) ? 0 : value
+    return Math.round(eligible * (pct / 100) * 100) / 100
   }, [bonusRowsByLocation, totalsByLocation, bonusTypeByPatient, bonusValueByPatient, thresholdsByLocation, bonusLimitByPatient])
 
   useEffect(() => {
@@ -558,8 +546,10 @@ const BonusPage = () => {
   }
 
   const { t } = useTranslation(translationConstant.BONUS)
-  const isSetLimits = activeTab === 'set-limits'
-  const isCalcOrSet = activeTab === 'calculation' || activeTab === 'set-limits'
+  // The Set limits tab was removed on 2026-09-23. The bonus percentage and the
+  // daily threshold now live only in bonus_config_history.
+  const isSetLimits = false
+  const isCalcOrSet = activeTab === 'calculation'
 
   const generateTransactionId = (index: number) => `TXN${String(index + 1).padStart(3, "0")}`
 
@@ -765,26 +755,6 @@ const BonusPage = () => {
     return title.includes(setLimitSearch.toLowerCase())
   })
 
-  // Per-location editable limits for Set limits tab
-  const [limitsByLocation, setLimitsByLocation] = useState<Record<string, { flat_percentage: 'FLAT' | 'PERCENTAGE', value: string, bonus_threshold: string, edited?: boolean }>>({})
-
-  // Populate limitsByLocation when entering Set limits tab or when patients change
-  useEffect(() => {
-    if (activeTab !== 'set-limits') return
-    const map: Record<string, { flat_percentage: 'FLAT' | 'PERCENTAGE', value: string, bonus_threshold: string }> = {}
-    ;(patients || []).forEach((p: any) => {
-      const key = String(p.id)
-      const b = bonusRowsByLocation[key] || {}
-      const thr = thresholdsByLocation[key] || {}
-      map[key] = {
-        // prefer explicit value from active thresholds/config if available, otherwise fall back to bonus row
-        flat_percentage: (b.flat_percentage || b.flatPercentage || b.flat_percentage === 0) ? (String(b.flat_percentage).toUpperCase() === 'PERCENTAGE' ? 'PERCENTAGE' : 'FLAT') : (thr.flat_percentage ? (String(thr.flat_percentage).toUpperCase() === 'PERCENTAGE' ? 'PERCENTAGE' : 'FLAT') : 'FLAT'),
-        value: (thr.value ?? b.value ?? b.val ?? '') !== null ? String(thr.value ?? b.value ?? b.val ?? '') : '',
-        bonus_threshold: (thr.bonus_threshold ?? b.bonus_threshold ?? b.bonus_limit ?? '') !== null ? String(thr.bonus_threshold ?? b.bonus_threshold ?? b.bonus_limit ?? '') : '',
-      }
-    })
-    setLimitsByLocation(map)
-  }, [activeTab, patients, bonusRowsByLocation, thresholdsByLocation])
 
   const handleSetLimitSubmit = async () => {
   
@@ -894,37 +864,31 @@ const BonusPage = () => {
   }
 
     return (
-    <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
+    <div className="p-6 max-w-7xl mx-auto">
 
       <ToastContainer position="top-right" autoClose={3000} />
       
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{t('Bonus_k1')}</h1>
+          <h1 className="text-title2 text-label">{t('Bonus_k1')}</h1>
         </div>
       </div>
 
 
 
           <div className="mb-4">
-        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 border-b border-gray-200">
           <button
             onClick={() => setActiveTab('calculation')}
-            className={`${activeTab === 'calculation' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
+            className={`${activeTab === 'calculation' ? 'text-brand-600 border-b-2 border-brand-600 font-semibold' : 'text-gray-600'} py-2 px-3`}
           >
             {t('Bonus_k2')}
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
-            className={`${(activeTab as any) === 'transactions' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
+            className={`${(activeTab as any) === 'transactions' ? 'text-brand-600 border-b-2 border-brand-600 font-semibold' : 'text-gray-600'} py-2 px-3`}
           >
             {t('Bonus_k3')}
-          </button>
-          <button
-            onClick={() => setActiveTab('set-limits')}
-            className={`${activeTab === 'set-limits' ? 'text-blue-600 border-b-2 border-blue-600 font-semibold' : 'text-gray-600 dark:text-gray-300'} py-2 px-3`}
-          >
-            {t('Bonus_k4')}
           </button>
         </div>
       </div>
@@ -934,16 +898,16 @@ const BonusPage = () => {
   {activeTab === 'calculation' && (
         loadingPatients ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-gray-500 dark:text-gray-300">{t('Bonus_k45')}</div>
+            <div className="text-gray-500">{t('Bonus_k45')}</div>
           </div>
         ) : (
           <>
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh]">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-auto max-h-[60vh]">
               {/* Toolbar: date on left, filter button on right */}
               <div className="flex justify-between items-center p-4 gap-4">
-                <div className="flex items-center text-lg text-gray-700 dark:text-gray-300">
+                <div className="flex items-center text-lg text-gray-700">
                   <span className="mr-3 font-semibold">{t('Bonus_k5')}</span>
                   <span className="font-semibold text-lg">{displayDate}</span>
                   <div className="ml-4 flex items-center gap-2">
@@ -989,7 +953,7 @@ const BonusPage = () => {
                 <Button
                   size="sm"
                   disabled={calcRunning}
-                  className={`${calcRunning ? 'opacity-60 cursor-wait' : ''} px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600`}
+                  className={`${calcRunning ? 'opacity-60 cursor-wait' : ''} px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white border-brand-600`}
                   onClick={async () => {
                     setCalcRunning(true)
                     try {
@@ -1016,38 +980,38 @@ const BonusPage = () => {
               </div>
               <Table>
                   <TableHeader>
-                  <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
-                    <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
-                    {!isSetLimits && <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>}
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-semibold w-[200px] text-gray-500">{t('Bonus_k7')}</TableHead>
+                    {!isSetLimits && <TableHead className="font-semibold w-[180px] text-gray-500">{t('Bonus_k8')}</TableHead>}
                     {/* New column: Bonus Sales (shows sales that count toward bonus calculation) */}
-                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k46')}</TableHead>}
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
-                    <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
-                    <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
-                    {!isSetLimits && <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k12')}</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k46')}</TableHead>}
+                    <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k9')}</TableHead>
+                    <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k10')}</TableHead>
+                    <TableHead className="font-semibold w-[150px] text-gray-500">{t('Bonus_k11')}</TableHead>
+                    {!isSetLimits && <TableHead className="font-semibold w-[150px] text-gray-500">{t('Bonus_k12')}</TableHead>}
 
-                    {(activeTab as any) === 'transactions' && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k13')}</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k14')}</TableHead>}
-                    {!isSetLimits && <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t('Bonus_k15')}</TableHead>}
+                    {(activeTab as any) === 'transactions' && <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k13')}</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k14')}</TableHead>}
+                    {!isSetLimits && <TableHead className="font-semibold w-[160px] text-gray-500">{t('Bonus_k15')}</TableHead>}
                   </TableRow>
                   {/* Inline filters removed - use Filter modal instead */}
                 </TableHeader>
-                <TableBody className="dark:bg-[#0e1725]">
+                <TableBody className="">
                   {currentPatients.length > 0 ? (
                     currentPatients.map((patient) => {
                       const balance = patientCreditBalances[patient.id] || 0
                       return (
                         <TableRow 
                           key={patient.id} 
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-[#0e1725]"
+                          className="hover:bg-gray-50"
                         >
-                          <TableCell className="font-medium dark:text-white">
+                          <TableCell className="font-medium">
                             {patient.title || patient.name || `Location ${patient.id}`}
                           </TableCell>
                           {!isSetLimits && (
-                            <TableCell className="dark:text-white">
+                            <TableCell className="">
                               {/* Total sales: read from bonus DB when available, otherwise show - */}
-                              <span className="font-semibold text-green-600 dark:text-green-400">
+                              <span className="font-semibold text-green-600">
                                 { (() => {
                                     const b = bonusRowsByLocation[String(patient.id)]
                                     if (b && (b.total_sales !== undefined && b.total_sales !== null)) {
@@ -1061,8 +1025,8 @@ const BonusPage = () => {
                           )}
                           {/* Bonus Sales column (new) */}
                           {!isSetLimits && (
-                            <TableCell className="dark:text-white">
-                              <span className="font-semibold text-green-600 dark:text-green-400">
+                            <TableCell className="">
+                              <span className="font-semibold text-green-600">
                                 {(() => {
                                   const b = bonusRowsByLocation[String(patient.id)]
                                   // prefer explicit `bonus_sales` field when available, otherwise show '-'
@@ -1075,7 +1039,7 @@ const BonusPage = () => {
                               </span>
                             </TableCell>
                           )}
-                          <TableCell className="dark:text-white">
+                          <TableCell className="">
                             {/* Bonus Threshold: prefer active threshold (thresholdsByLocation), then authoritative bonus row value (bonus_threshold or bonus_limit), otherwise show editable input */}
                             {(() => {
                               const key = String(patient.id)
@@ -1095,7 +1059,7 @@ const BonusPage = () => {
                               return (
                                 isSetLimits ? (
                                   <input
-                                    className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-transparent"
                                     placeholder="Min"
                                     inputMode="numeric"
                                     value={bonusLimitByPatient[String(patient.id)] ?? ''}
@@ -1111,11 +1075,11 @@ const BonusPage = () => {
                               )
                             })()}
                           </TableCell>
-                          <TableCell className="dark:text-white">
+                          <TableCell className="">
                             {/* Flat/Percentage: editable select (initialized from DB) */}
                             { isSetLimits ? (
-                              <select
-                                className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                              <MacSelect
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-transparent"
                                 value={bonusTypeByPatient[String(patient.id)] ?? 'FLAT'}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1125,18 +1089,18 @@ const BonusPage = () => {
                               >
                                 <option value="FLAT">FLAT</option>
                                 <option value="PERCENTAGE">PERCENTAGE</option>
-                              </select>
+                              </MacSelect>
                             ) : (
-                              <span className="text-gray-700 dark:text-white">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
+                              <span className="text-gray-700">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
                             ) }
                           </TableCell>
-                          <TableCell className="dark:text-white">
+                          <TableCell className="">
                             {/* Value: editable input (initialized from DB) */}
                             { isSetLimits ? (
                               <div className="flex items-center">
-                                <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
+                                <span className="mr-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                                 <input
-                                  className="w-full text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-transparent"
                                   placeholder="Value"
                                   inputMode="decimal"
                                   value={bonusValueByPatient[String(patient.id)] ?? ''}
@@ -1150,18 +1114,18 @@ const BonusPage = () => {
                                     setEditedByPatient((s) => ({ ...s, [key]: true }))
                                   }}
                                 />
-                                <span className="ml-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
+                                <span className="ml-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
                               </div>
                             ) : (
                               <div className="flex items-center">
-                                <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
-                                <span className="text-gray-700 dark:text-white">{bonusValueByPatient[String(patient.id)] ?? ((bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val) ?? renderBigDash('text-gray-700'))}</span>
-                                <span className="ml-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
+                                <span className="mr-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
+                                <span className="text-gray-700">{bonusValueByPatient[String(patient.id)] ?? ((bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val) ?? renderBigDash('text-gray-700'))}</span>
+                                <span className="ml-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
                               </div>
                             ) }
                           </TableCell>
                           {!isSetLimits && (
-                            <TableCell className="dark:text-white">
+                            <TableCell className="">
                               {/* Bonus amount: if user edited inputs show computed, otherwise prefer DB value then computed fallback */}
                               {(() => {
                                 const key = String(patient.id)
@@ -1169,14 +1133,14 @@ const BonusPage = () => {
                                 const isEdited = !!editedByPatient[key]
                                 if (isEdited) {
                                   const computed = computeBonusAmount(patient)
-                                  if (computed && computed > 0) return <span className="font-semibold text-blue-600 dark:text-blue-400">${computed.toFixed(2)}</span>
+                                  if (computed && computed > 0) return <span className="font-semibold text-brand-600">${computed.toFixed(2)}</span>
                                   return renderBigDash('text-gray-400')
                                 }
                                 if (b && (b.bonus_amount !== undefined && b.bonus_amount !== null)) {
-                                  return <span className="font-semibold text-blue-600 dark:text-blue-400">${Number(b.bonus_amount).toFixed(2)}</span>
+                                  return <span className="font-semibold text-brand-600">${Number(b.bonus_amount).toFixed(2)}</span>
                                 }
                                 const computed = computeBonusAmount(patient)
-                                if (computed && computed > 0) return <span className="font-semibold text-blue-600 dark:text-blue-400">${computed.toFixed(2)}</span>
+                                if (computed && computed > 0) return <span className="font-semibold text-brand-600">${computed.toFixed(2)}</span>
                                 return renderBigDash('text-gray-400')
                               })()}
                             </TableCell>
@@ -1187,7 +1151,7 @@ const BonusPage = () => {
                               {(() => {
                                 const b = bonusRowsByLocation[String(patient.id)]
                                 if (b && (b.date !== undefined && b.date !== null)) {
-                                  return <span className="text-gray-500 dark:text-gray-300">{String(b.date)}</span>
+                                  return <span className="text-gray-500">{String(b.date)}</span>
                                 }
                                 return renderBigDash('text-gray-400')
                               })()}
@@ -1198,14 +1162,14 @@ const BonusPage = () => {
                               {(() => {
                                 const b = bonusRowsByLocation[String(patient.id)]
                                 if (b && (b.paid_date !== undefined && b.paid_date !== null)) {
-                                  return <span className="text-gray-500 dark:text-gray-300">{String(b.paid_date)}</span>
+                                  return <span className="text-gray-500">{String(b.paid_date)}</span>
                                 }
                                 return <span className="text-gray-400">-</span>
                               })()}
                             </TableCell>
                           )}
                           {!isSetLimits && (
-                            <TableCell className="dark:text-white">
+                            <TableCell className="">
                               {/* Bonus generated: green if bonus > 0, red otherwise */}
                               {(() => {
                                 const key = String(patient.id)
@@ -1245,8 +1209,8 @@ const BonusPage = () => {
                                       !isGenerated
                                         ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200'
                                         : (isPaid
-                                            ? 'bg-blue-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
-                                            : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
+                                            ? 'bg-brand-200 text-gray-700 border-gray-200'
+                                            : 'bg-brand-600 text-white hover:bg-brand-700 border-brand-600')
                                     }
                                     onClick={async (e) => {
                                       if (!isGenerated) return
@@ -1287,7 +1251,7 @@ const BonusPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-400 dark:text-gray-300">
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-400">
                         {t('Bonus_k43')}
                       </TableCell>
                     </TableRow>
@@ -1320,11 +1284,11 @@ const BonusPage = () => {
                 return (
                   <Card 
                     key={patient.id} 
-                    className="border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-[#0e1725]"
+                    className="border border-gray-200 hover:bg-gray-50"
                   >
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-base font-semibold dark:text-white">
+                        <CardTitle className="text-base font-semibold">
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-gray-400" />
                             {patient.title || patient.name || `Location ${patient.id}`}
@@ -1337,15 +1301,15 @@ const BonusPage = () => {
                         {!isSetLimits && (
                           <div className="flex items-center gap-2">
                               <DollarSign className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k8')}:</span>
-                              <span className="font-semibold text-green-600 dark:text-green-400">{ bonusRowsByLocation[String(patient.id)]?.total_sales !== undefined ? `$${Number(bonusRowsByLocation[String(patient.id)].total_sales).toFixed(2)}` : '-' }</span>
+                              <span className="text-gray-500">{t('Bonus_k8')}:</span>
+                              <span className="font-semibold text-green-600">{ bonusRowsByLocation[String(patient.id)]?.total_sales !== undefined ? `$${Number(bonusRowsByLocation[String(patient.id)].total_sales).toFixed(2)}` : '-' }</span>
                           </div>
                         )}
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k10')}:</span>
+                          <span className="text-gray-500">{t('Bonus_k10')}:</span>
                           { isSetLimits ? (
-                            <select
-                              className="ml-2 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                            <MacSelect
+                              className="ml-2 text-sm border border-gray-300 rounded px-2 py-1 bg-transparent"
                               value={bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT')}
                               onChange={(e) => {
                                 const key = String(patient.id)
@@ -1355,18 +1319,18 @@ const BonusPage = () => {
                             >
                               <option value="FLAT">FLAT</option>
                               <option value="PERCENTAGE">PERCENTAGE</option>
-                            </select>
+                            </MacSelect>
                           ) : (
-                            <span className="ml-2 text-gray-700 dark:text-white">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
+                            <span className="ml-2 text-gray-700">{formatFlatPercentage(bonusTypeByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.flat_percentage ?? 'FLAT'))}</span>
                           ) }
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('Bonus_k11')}:</span>
-                          <span className="ml-2 dark:text-white">
-                            <span className="mr-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
+                          <span className="text-gray-500">{t('Bonus_k11')}:</span>
+                          <span className="ml-2">
+                            <span className="mr-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '' : '$'}</span>
                             { isSetLimits ? (
                               <input
-                                className="w-24 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white inline"
+                                className="w-24 text-sm border border-gray-300 rounded px-2 py-1 bg-transparent inline"
                                 value={bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '')}
                                 onChange={(e) => {
                                   const key = String(patient.id)
@@ -1379,13 +1343,13 @@ const BonusPage = () => {
                                 inputMode="decimal"
                               />
                             ) : (
-                              <span className="text-gray-700 dark:text-white">{bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '-')}</span>
+                              <span className="text-gray-700">{bonusValueByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.value ?? bonusRowsByLocation[String(patient.id)]?.val ?? '-')}</span>
                             ) }
-                            <span className="ml-2 text-gray-700 dark:text-gray-300">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
+                            <span className="ml-2 text-gray-700">{(String(bonusTypeByPatient[String(patient.id)] ?? 'FLAT').toUpperCase() === 'PERCENTAGE') ? '%' : ''}</span>
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Bonus Limit:</span>
+                          <span className="text-gray-500">Bonus Limit:</span>
                           {(() => {
                             const key = String(patient.id)
                             const thr = thresholdsByLocation[key]
@@ -1401,7 +1365,7 @@ const BonusPage = () => {
                             }
                             return (isSetLimits ? (
                               <input
-                                className="ml-2 w-28 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent dark:text-white"
+                                className="ml-2 w-28 text-sm border border-gray-300 rounded px-2 py-1 bg-transparent"
                                 value={bonusLimitByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.bonus_limit ?? '')}
                                 onChange={(e) => {
                                   const key2 = String(patient.id)
@@ -1411,14 +1375,14 @@ const BonusPage = () => {
                                 inputMode="numeric"
                               />
                             ) : (
-                              <span className="ml-2 text-gray-700 dark:text-white">{ (bonusLimitByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.bonus_limit ?? null)) ?? renderBigDash('text-gray-700') }</span>
+                              <span className="ml-2 text-gray-700">{ (bonusLimitByPatient[String(patient.id)] ?? (bonusRowsByLocation[String(patient.id)]?.bonus_limit ?? null)) ?? renderBigDash('text-gray-700') }</span>
                             ))
                           })()}
                         </div>
                         {!isSetLimits && (
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">Bonus amount:</span>
-                            <span className="ml-2 font-semibold text-blue-600 dark:text-blue-400">{
+                            <span className="text-gray-500">Bonus amount:</span>
+                            <span className="ml-2 font-semibold text-brand-600">{
                               (() => {
                                 const key = String(patient.id)
                                 const b = bonusRowsByLocation[key]
@@ -1436,14 +1400,14 @@ const BonusPage = () => {
                         )}
                         {!isSetLimits && (
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">Date:</span>
-                            <span className="ml-2 dark:text-white">{ bonusRowsByLocation[String(patient.id)]?.date ?? renderBigDash('text-gray-400') }</span>
+                            <span className="text-gray-500">Date:</span>
+                            <span className="ml-2">{ bonusRowsByLocation[String(patient.id)]?.date ?? renderBigDash('text-gray-400') }</span>
                           </div>
                         )}
                         {(activeTab as any) === 'transactions' && (
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">Paid date:</span>
-                            <span className="ml-2 dark:text-white">{ bonusRowsByLocation[String(patient.id)]?.paid_date ?? renderBigDash('text-gray-400') }</span>
+                            <span className="text-gray-500">Paid date:</span>
+                            <span className="ml-2">{ bonusRowsByLocation[String(patient.id)]?.paid_date ?? renderBigDash('text-gray-400') }</span>
                           </div>
                         )}
                         {!isSetLimits && (
@@ -1455,7 +1419,7 @@ const BonusPage = () => {
                               const has = !!(b && b.bonus_eligibility === true)
                               return (
                                 <div className="mt-1">
-                                  <span className="text-gray-500 dark:text-gray-400">Bonus generated:</span>
+                                  <span className="text-gray-500">Bonus generated:</span>
                                   {has ? (
                                     <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">Yes</span>
                                   ) : (
@@ -1483,8 +1447,8 @@ const BonusPage = () => {
                                   className={!isGenerated
                                     ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500 border-gray-200'
                                     : (isPaid
-                                      ? 'bg-blue-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600'
-                                      : 'bg-blue-600 text-white dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 border-blue-600 dark:border-blue-700')
+                                      ? 'bg-brand-200 text-gray-500 border-gray-200'
+                                      : 'bg-brand-600 text-white hover:bg-brand-700 border-brand-600')
                                   }
                                   onClick={async (e) => {
                                     if (!isGenerated) return
@@ -1523,7 +1487,7 @@ const BonusPage = () => {
                 )
               })
             ) : (
-              <div className="text-center py-8 text-gray-400 dark:text-gray-300">{t('Bonus_k44')}</div>
+              <div className="text-center py-8 text-gray-400">{t('Bonus_k44')}</div>
             )}
           </div>
 
@@ -1532,136 +1496,22 @@ const BonusPage = () => {
         )
       )}
 
-  {/* Set limits tab intentionally does not fetch or display any bonus/transaction data */}
-  {activeTab === 'set-limits' && (
-    <div className="p-6 max-w-7xl mx-auto dark:bg-[#0e1725] dark:text-white">
-      <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-auto max-h-[60vh] p-6">
-        <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{t('Bonus_k4')}</h2>
-        {/* Replace single-location form with a table of all locations for bulk editing */}
-        <div className="overflow-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k38')}</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k39')}</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k11')}</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k9')}</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-white">{t('Bonus_k40')}</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-              {(patients || []).map((p: any) => {
-                const key = String(p.id)
-                const row = limitsByLocation[key] || { flat_percentage: 'FLAT' as const, value: '', bonus_threshold: '' }
-                return (
-                  <tr key={key} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-white">{p.title ?? `Location ${p.id}`}</td>
-                    <td className="px-4 py-2">
-                      <select
-                        className="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        value={row.flat_percentage}
-                        onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), flat_percentage: (e.target.value as 'FLAT' | 'PERCENTAGE'), edited: true } }))}
-                      >
-                              <option value="FLAT">{t('Bonus_k34')}</option>
-                              <option value="PERCENTAGE">{t('Bonus_k35')}</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="relative">
-                        {/* Prefix or suffix depending on FLAT / PERCENTAGE */}
-                        {((row.flat_percentage ?? 'FLAT') === 'FLAT') && (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">$</span>
-                        )}
-                        <input
-                          className={"w-full rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white " + (((row.flat_percentage ?? 'FLAT') === 'FLAT') ? 'pl-8' : 'pr-8')}
-                          value={row.value ?? ''}
-                          onChange={(e) => {
-                            let v = String(e.target.value).replace(/[^0-9.]/g, '')
-                            const parts = v.split('.')
-                            if (parts.length > 1) v = parts.shift() + '.' + parts.join('')
-                            // If PERCENTAGE, clamp to 0-100
-                            const type = (row.flat_percentage ?? 'FLAT')
-                            if (v !== '' && type === 'PERCENTAGE') {
-                              const n = Number(v)
-                              if (!Number.isNaN(n)) {
-                                if (n < 0) v = '0'
-                                else if (n > 100) v = '100'
-                                else {
-                                  // keep as-is but remove leading zeros except zero before decimal
-                                  v = String(n)
-                                }
-                              }
-                            }
-                            setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), value: v, edited: true } }))
-                          }}
-                          inputMode="decimal"
-                        />
-                        {((row.flat_percentage ?? 'FLAT') === 'PERCENTAGE') && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300">%</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        className="w-full rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        value={row.bonus_threshold ?? ''}
-                        onChange={(e) => setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), bonus_threshold: e.target.value, edited: true } }))}
-                        inputMode="numeric"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <Button
-                        size="sm"
-                        disabled={!row?.edited || setLimitSubmitting}
-                        aria-disabled={!row?.edited || setLimitSubmitting}
-                        className={(!row?.edited || setLimitSubmitting)
-                          ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 px-3 py-1'
-                          : 'px-3 py-1 bg-green-600 hover:bg-green-700 text-white border-green-600'
-                        }
-                        onClick={async (ev) => {
-                          ev.stopPropagation()
-                          const toSave = { location_id: Number(key), flat_percentage: row.flat_percentage, value: row.value === '' ? null : Number(row.value), bonus_threshold: row.bonus_threshold === '' ? null : Number(row.bonus_threshold) }
-                          try {
-                            setSetLimitSubmitting(true)
-                            const resp = await fetch('/api/bonuses/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bonuses: [toSave], configOnly: true }) })
-                            if (!resp.ok) { try { toast.error('Failed to save configuration') } catch(_) {} return }
-                            try { toast.success(t('Bonus_k42')) } catch(_) {}
-                            setLimitsByLocation(s => ({ ...s, [key]: { ...(s[key] || row), edited: false } }))
-                          } catch (err) {
-                            try { toast.error('Failed to save configuration') } catch(_) {}
-                          } finally { setSetLimitSubmitting(false) }
-                        }}
-                      >
-                        {t('Bonus_k41')}
-                      </Button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-
-          {/* Bulk Save removed: per-row Save is used to persist each location's config */}
-        </div>
-      </div>
-    </div>
-  )}
 
       {activeTab === 'transactions' && (
-        <div className="bg-white dark:bg-[#0e1725] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-[#0e1725] dark:border-gray-700">
-                <TableHead className="font-semibold w-[200px] text-gray-500 dark:text-gray-400">{t('Bonus_k7')}</TableHead>
-                <TableHead className="font-semibold w-[180px] text-gray-500 dark:text-gray-400">{t('Bonus_k8')}</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k46')}</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k9')}</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k10')}</TableHead>
-                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k11')}</TableHead>
-                <TableHead className="font-semibold w-[150px] text-gray-500 dark:text-gray-400">{t('Bonus_k12')}</TableHead>
-                <TableHead className="font-semibold w-[140px] text-gray-500 dark:text-gray-400">{t('Bonus_k13')}</TableHead>
-                <TableHead className="font-semibold w-[160px] text-gray-500 dark:text-gray-400">{t('Bonus_k15')}</TableHead>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-semibold w-[200px] text-gray-500">{t('Bonus_k7')}</TableHead>
+                <TableHead className="font-semibold w-[180px] text-gray-500">{t('Bonus_k8')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k46')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k9')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k10')}</TableHead>
+                <TableHead className="font-semibold w-[150px] text-gray-500">{t('Bonus_k11')}</TableHead>
+                <TableHead className="font-semibold w-[150px] text-gray-500">{t('Bonus_k12')}</TableHead>
+                <TableHead className="font-semibold w-[140px] text-gray-500">{t('Bonus_k13')}</TableHead>
+                <TableHead className="font-semibold w-[160px] text-gray-500">{t('Bonus_k15')}</TableHead>
               </TableRow>
             </TableHeader>
             {(() => {
@@ -1678,7 +1528,7 @@ const BonusPage = () => {
               })
 
               return (
-                <TableBody className="dark:bg-[#0e1725]">
+                <TableBody className="">
                   {paidRows.length > 0 ? (
                     paidRows.map((b: any, idx: number) => {
                       const locId = String(b.location_id ?? b.locationid ?? b.location ?? '')
@@ -1687,32 +1537,32 @@ const BonusPage = () => {
                       // prefer explicit config referenced by the bonus row when available
                       const cfg = (b?.bonus_config_history_id ? paidConfigById[String(b.bonus_config_history_id)] : null) || thresholdsByLocation[locId] || null
                       return (
-                        <TableRow key={b.id ?? `${locId}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-[#0e1725]">
-                          <TableCell className="font-medium dark:text-white">{displayName}</TableCell>
-                          <TableCell className="dark:text-white">
-                            <span className="font-semibold text-green-600 dark:text-green-400">{ b?.total_sales !== undefined ? `$${Number(b.total_sales).toFixed(2)}` : '-' }</span>
+                        <TableRow key={b.id ?? `${locId}-${idx}`} className="hover:bg-gray-50">
+                          <TableCell className="font-medium">{displayName}</TableCell>
+                          <TableCell className="">
+                            <span className="font-semibold text-green-600">{ b?.total_sales !== undefined ? `$${Number(b.total_sales).toFixed(2)}` : '-' }</span>
                           </TableCell>
-                          <TableCell className="dark:text-white">
-                            <span className="font-semibold text-green-600 dark:text-green-400">{ b && (b.bonus_sales !== undefined && b.bonus_sales !== null) ? `$${Number(b.bonus_sales).toFixed(2)}` : '-' }</span>
+                          <TableCell className="">
+                            <span className="font-semibold text-green-600">{ b && (b.bonus_sales !== undefined && b.bonus_sales !== null) ? `$${Number(b.bonus_sales).toFixed(2)}` : '-' }</span>
                           </TableCell>
-                          <TableCell className="dark:text-white">
-                            <span className="text-gray-700 dark:text-white">{ (cfg && typeof cfg.bonus_threshold !== 'undefined' && cfg.bonus_threshold !== null) ? Number(cfg.bonus_threshold).toFixed(2) : (b && Object.prototype.hasOwnProperty.call(b, 'bonus_limit') ? Number(b.bonus_limit).toFixed(2) : '-') }</span>
+                          <TableCell className="">
+                            <span className="text-gray-700">{ (cfg && typeof cfg.bonus_threshold !== 'undefined' && cfg.bonus_threshold !== null) ? Number(cfg.bonus_threshold).toFixed(2) : (b && Object.prototype.hasOwnProperty.call(b, 'bonus_limit') ? Number(b.bonus_limit).toFixed(2) : '-') }</span>
                           </TableCell>
-                          <TableCell className="dark:text-white">
-                            <span className="text-gray-700 dark:text-white">{ formatFlatPercentage((cfg && cfg.flat_percentage) ? cfg.flat_percentage : (b?.flat_percentage ?? '-')) }</span>
+                          <TableCell className="">
+                            <span className="text-gray-700">{ formatFlatPercentage((cfg && cfg.flat_percentage) ? cfg.flat_percentage : (b?.flat_percentage ?? '-')) }</span>
                           </TableCell>
-                          <TableCell className="dark:text-white">
+                          <TableCell className="">
                             <div className="flex items-center">
-                              <span className="mr-2 text-gray-700 dark:text-gray-300">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '' : '$' }</span>
-                              <span className="text-gray-700 dark:text-white">{ (() => { const val = (cfg && (cfg.value !== undefined && cfg.value !== null)) ? cfg.value : (b?.value ?? b?.val ?? null); return (val !== undefined && val !== null) ? (Number(val).toFixed ? Number(val).toFixed(2) : String(val)) : '-' })() }</span>
-                              <span className="ml-2 text-gray-700 dark:text-gray-300">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '%' : '' }</span>
+                              <span className="mr-2 text-gray-700">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '' : '$' }</span>
+                              <span className="text-gray-700">{ (() => { const val = (cfg && (cfg.value !== undefined && cfg.value !== null)) ? cfg.value : (b?.value ?? b?.val ?? null); return (val !== undefined && val !== null) ? (Number(val).toFixed ? Number(val).toFixed(2) : String(val)) : '-' })() }</span>
+                              <span className="ml-2 text-gray-700">{ (String(((cfg && cfg.flat_percentage) ?? b?.flat_percentage ?? '').toUpperCase()) === 'PERCENTAGE') ? '%' : '' }</span>
                             </div>
                           </TableCell>
-                          <TableCell className="dark:text-white">
-                            <span className="font-semibold text-blue-600 dark:text-blue-400">{ b?.bonus_amount !== undefined ? `$${Number(b.bonus_amount).toFixed(2)}` : (patient ? (computeBonusAmount(patient) > 0 ? `$${computeBonusAmount(patient).toFixed(2)}` : '-') : '-') }</span>
+                          <TableCell className="">
+                            <span className="font-semibold text-brand-600">{ b?.bonus_amount !== undefined ? `$${Number(b.bonus_amount).toFixed(2)}` : (patient ? (computeBonusAmount(patient) > 0 ? `$${computeBonusAmount(patient).toFixed(2)}` : '-') : '-') }</span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-gray-500 dark:text-gray-300">{ b?.paid_date ?? '-' }</span>
+                            <span className="text-gray-500">{ b?.paid_date ?? '-' }</span>
                           </TableCell>
                           <TableCell>
                             { (b?.paid) ? (
@@ -1726,7 +1576,7 @@ const BonusPage = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-400 dark:text-gray-300">{t('Bonus_k96')}</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-400">{t('Bonus_k96')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -1738,9 +1588,9 @@ const BonusPage = () => {
 
       {/* Transaction Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="overflow-y-auto dark:bg-[#0e1725] dark:border-gray-700">
+        <SheetContent className="overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-xl font-bold dark:text-white">
+            <SheetTitle className="text-xl font-bold">
               {selectedPatient ? `${selectedPatient.firstname} ${selectedPatient.lastname} - Transactions` : "Transaction Details"}
             </SheetTitle>
           </SheetHeader>
@@ -1751,49 +1601,49 @@ const BonusPage = () => {
               <div className="space-y-4">
                 {loading ? (
                   <div className="text-center py-8">
-                    <div className="text-gray-500 dark:text-gray-300">Loading transactions...</div>
+                    <div className="text-gray-500">Loading transactions...</div>
                   </div>
                 ) : transactions.length > 0 ? (
                   transactions.map((tx: any, index: number) => {
                     const status = getTransactionStatus(tx)
                     const paymentMethod = getPaymentMethod(tx)
                     return (
-                      <div key={tx.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <div key={tx.id} className="bg-white rounded-lg border border-gray-200 p-4">
                         <div className="grid grid-cols-1 gap-3">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Transaction ID:</span>
-                            <span className="font-semibold dark:text-white">{generateTransactionId(index)}</span>
+                            <span className="font-medium text-gray-600">Transaction ID:</span>
+                            <span className="font-semibold">{generateTransactionId(index)}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k3")}:</span>
-                            <span className="dark:text-white">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : "-"}</span>
+                            <span className="font-medium text-gray-600">{t("Transaction_k3")}:</span>
+                            <span className="">{tx.created_at ? new Date(tx.created_at).toLocaleDateString() : "-"}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k4")}:</span>
-                            <span className="font-semibold dark:text-white">${tx.amount?.toFixed(2)}</span>
+                            <span className="font-medium text-gray-600">{t("Transaction_k4")}:</span>
+                            <span className="font-semibold">${tx.amount?.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">{t("Transaction_k6")}:</span>
-                            <span className="dark:text-white">${tx.balance?.toFixed(2)}</span>
+                            <span className="font-medium text-gray-600">{t("Transaction_k6")}:</span>
+                            <span className="">${tx.balance?.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Treatment Type:</span>
-                            <span className="dark:text-white">{tx.type}</span>
+                            <span className="font-medium text-gray-600">Treatment Type:</span>
+                            <span className="">{tx.type}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Status:</span>
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                            <span className="font-medium text-gray-600">Status:</span>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                               {status}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Payment Method:</span>
-                            <span className="dark:text-white">{paymentMethod}</span>
+                            <span className="font-medium text-gray-600">Payment Method:</span>
+                            <span className="">{paymentMethod}</span>
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-                            <span className="font-medium text-gray-600 dark:text-gray-400">Actions:</span>
+                          <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                            <span className="font-medium text-gray-600">Actions:</span>
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
@@ -1803,7 +1653,7 @@ const BonusPage = () => {
                     )
                   })
                 ) : (
-                  <div className="text-center py-8 text-gray-400 dark:text-gray-300">
+                  <div className="text-center py-8 text-gray-400">
                     {t("Transaction_k8")}
                   </div>
                 )}
