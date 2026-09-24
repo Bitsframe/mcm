@@ -1,3 +1,10 @@
+import { convertUTCtoCtDate } from '@/utils/datetime/centralTime';
+
+const MONTHS_SHORT = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
 export function buildOrderInfoBlock(orderObj: any, totals: any, colCount: number) {
     // colCount is total number of columns in the main table
     const leftColSpan = Math.max(3, Math.floor(colCount * 0.5));
@@ -7,11 +14,10 @@ export function buildOrderInfoBlock(orderObj: any, totals: any, colCount: number
     function formatDateOnly(dateStr: string) {
         if (!dateStr) return '';
         try {
-            const d = new Date(dateStr);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = d.toLocaleString('en-US', { month: 'short' });
-            const year = d.getFullYear();
-            return `${day} ${month} ${year}`;
+            const ymd = convertUTCtoCtDate(dateStr);
+            if (!ymd) return dateStr;
+            const [year, month, day] = ymd.split('-');
+            return `${day} ${MONTHS_SHORT[Number(month) - 1]} ${year}`;
         } catch (e) { return dateStr; }
     }
 
@@ -89,11 +95,10 @@ export function getOrderInfoData(orderObj: any, totals: any, colCount: number) {
     function formatDateOnly(dateStr: string) {
         if (!dateStr) return '';
         try {
-            const d = new Date(dateStr);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = d.toLocaleString('en-US', { month: 'short' });
-            const year = d.getFullYear();
-            return `${day} ${month} ${year}`;
+            const ymd = convertUTCtoCtDate(dateStr);
+            if (!ymd) return dateStr;
+            const [year, month, day] = ymd.split('-');
+            return `${day} ${MONTHS_SHORT[Number(month) - 1]} ${year}`;
         } catch (e) { return dateStr; }
     }
 
