@@ -76,6 +76,7 @@ import { Card, CardContent } from "../ui/card";
 import PhoneNumberInput from "../PhoneNumberInput";
 
 import { MacSelect } from "@/components/ui/mac-select";
+import { CT_TIME_ZONE, formatDateOnly } from "@/utils/datetime/centralTime";
 
 interface EditPatientModalProps {
   patientDetails: Patient;
@@ -516,10 +517,12 @@ const PatientTableComponent: FC<Props> = ({ renderType = "all" }) => {
     const parsedDate = moment(date);
     if (!parsedDate.isValid()) return "-";
 
+    // created_at / lastvisit are timestamps — render them in the business timezone.
     return new Intl.DateTimeFormat("es-ES", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      timeZone: CT_TIME_ZONE,
     }).format(parsedDate.toDate());
   }, []);
 
@@ -1970,7 +1973,7 @@ const PatientDetails: FC<{
             {t("Patients_k60")}
           </p>
           <p className="text-base font-medium">
-            {patient.dob ? new Intl.DateTimeFormat("es-ES").format(new Date(patient.dob)) : t("Patients_k63")}
+            {patient.dob ? formatDateOnly(patient.dob, "es-ES", {}) : t("Patients_k63")}
           </p>
         </div>
 

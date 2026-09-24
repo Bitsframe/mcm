@@ -16,6 +16,7 @@ import { translationConstant } from "@/utils/translationConstants";
 import { LocationContext } from "@/context";
 import { TabContext } from "@/context";
 import { Modal } from "flowbite-react";
+import { formatCtDateTime } from "@/utils/datetime/centralTime";
 
 interface FulfillmentRequest {
   id: number;
@@ -175,15 +176,7 @@ const FulfillmentPage = () => {
       .length,
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const formatDate = (dateString: string) => formatCtDateTime(dateString);
 
   return (
     <main className="w-full max-w-7xl mx-auto font-medium text-sm py-4 px-4 sm:px-6 lg:px-4">

@@ -16,23 +16,11 @@ import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
 import { Eye } from "lucide-react";
 import ConfirmDeleteModal from '@/components/Modal_Components/ConfirmDeleteModal';
+import { convertUTCtoCtDate, todayInCtDate } from "@/utils/datetime/centralTime";
 
 interface DataListInterface {
   [key: string]: any;
 }
-
-// Helper function to convert UTC datetime to CT date string (YYYY-MM-DD)
-const convertUTCtoCtDate = (utcDateString: string): string => {
-  if (!utcDateString) return "";
-  const date = new Date(utcDateString);
-  // CT is UTC-6 (Central Standard Time)
-  const ctOffset = -6 * 60 * 60 * 1000; // 6 hours in milliseconds
-  const ctDate = new Date(date.getTime() + ctOffset);
-  const year = ctDate.getUTCFullYear();
-  const month = String(ctDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(ctDate.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 const tableHeader = [
   {
@@ -387,16 +375,7 @@ const SalesHistory = () => {
                 <p className="mt-0.5 text-title3 text-label">
                   {(() => {
                     // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || (() => {
-                      // If no date selected, show today in CT
-                      const today = new Date();
-                      const ctOffset = -6 * 60 * 60 * 1000;
-                      const todayInCT = new Date(today.getTime() + ctOffset);
-                      const year = todayInCT.getUTCFullYear();
-                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
-                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
-                      return `${year}-${month}-${day}`;
-                    })();
+                    const targetDateString = dobSearch || todayInCtDate();
                     
                     let totalProductsSold = 0;
                     
@@ -434,15 +413,7 @@ const SalesHistory = () => {
                 <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
                     // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || (() => {
-                      const today = new Date();
-                      const ctOffset = -6 * 60 * 60 * 1000;
-                      const todayInCT = new Date(today.getTime() + ctOffset);
-                      const year = todayInCT.getUTCFullYear();
-                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
-                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
-                      return `${year}-${month}-${day}`;
-                    })();
+                    const targetDateString = dobSearch || todayInCtDate();
                     
                     let totalAmount = 0;
                     
@@ -482,15 +453,7 @@ const SalesHistory = () => {
                 <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
                     // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || (() => {
-                      const today = new Date();
-                      const ctOffset = -6 * 60 * 60 * 1000;
-                      const todayInCT = new Date(today.getTime() + ctOffset);
-                      const year = todayInCT.getUTCFullYear();
-                      const month = String(todayInCT.getUTCMonth() + 1).padStart(2, '0');
-                      const day = String(todayInCT.getUTCDate()).padStart(2, '0');
-                      return `${year}-${month}-${day}`;
-                    })();
+                    const targetDateString = dobSearch || todayInCtDate();
                     
                     let totalSales = 0;
                     

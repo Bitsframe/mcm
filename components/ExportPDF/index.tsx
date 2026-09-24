@@ -8,6 +8,7 @@ import { supabase } from '@/services/supabase';
 import { LocationContext } from '@/context';
 import { toast } from 'react-toastify'; // Import the toast library
 import { buildOrderInfoBlock, getOrderInfoData } from './pdfHelpers';
+import { convertUTCtoCtDate } from '@/utils/datetime/centralTime';
 
 interface TableData {
     orderId: string;
@@ -28,18 +29,7 @@ const ExportAsPDF: React.FC<ExportAsPDFProps> = () => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    // Helper: convert a UTC datetime string to Central Time (CT) date string YYYY-MM-DD
-    const convertUTCtoCtDate = (utcDateString: string): string => {
-        if (!utcDateString) return '';
-        const date = new Date(utcDateString);
-        // CT (CST) is UTC-6; using fixed offset to align with POS history page logic
-        const ctOffsetMs = -6 * 60 * 60 * 1000;
-        const ctDate = new Date(date.getTime() + ctOffsetMs);
-        const year = ctDate.getUTCFullYear();
-        const month = String(ctDate.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(ctDate.getUTCDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
+    // Central-Time date bucketing lives in utils/datetime/centralTime.
 
     // Function to generate the PDF
     const generatePDF = async (startDate: string, endDate: string) => {

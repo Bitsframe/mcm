@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslation } from "react-i18next"
 import { translationConstant } from "@/utils/translationConstants"
 import { Plus, Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Phone, Mail, User, DollarSign } from "lucide-react"
+import { formatCtDate } from "@/utils/datetime/centralTime";
 
 const TransactionsPage = () => {
   const [patients, setPatients] = useState<any[]>([])
@@ -493,7 +494,7 @@ const TransactionsPage = () => {
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600">{t("Transaction_k3")}:</span>
-                            <span className="">{tx.transaction_date ? new Date(tx.transaction_date).toLocaleDateString() : "-"}</span>
+                            <span className="">{tx.transaction_date ? formatCtDate(tx.transaction_date) : "-"}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-600">{t("Transaction_k4")}:</span>

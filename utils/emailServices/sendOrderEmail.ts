@@ -1,7 +1,8 @@
 import { currencyFormatHandle } from "@/helper/common_functions";
 
 import { classifyError } from '@/utils/logging/safe-log';
-// Helper: format a UTC datetime string as CT (UTC-6) in 'DD Mon YYYY'
+import { ctDateString } from '@/utils/datetime/centralTime';
+// Helper: format a UTC datetime string as Central Time in 'DD Mon YYYY'
 function formatUTCToCTDate(utcDateString?: string): string {
   try {
     const months = [
@@ -12,13 +13,9 @@ function formatUTCToCTDate(utcDateString?: string): string {
       ? utcDateString.replace(' ', 'T') // normalize 'YYYY-MM-DD hh:mm' → ISO-like
       : new Date().toISOString();
     const d = new Date(source);
-    // CT is UTC-6 (fixed offset to match app display logic)
-    const ctMs = d.getTime() + (-6 * 60 * 60 * 1000);
-    const ct = new Date(ctMs);
-    const day = String(ct.getUTCDate()).padStart(2, '0');
-    const month = months[ct.getUTCMonth()];
-    const year = ct.getUTCFullYear();
-    return `${day} ${month} ${year}`;
+    // Central Time via the IANA zone — see utils/datetime/centralTime.
+    const [year, month, day] = ctDateString(d).split('-');
+    return `${day} ${months[Number(month) - 1]} ${year}`;
   } catch {
     // Fallback to today's date in local if parsing fails
     const today = new Date();

@@ -51,6 +51,7 @@ import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Modal } from "flowbite-react";
 
 import { MacSelect } from "@/components/ui/mac-select";
+import { formatDateOnly } from "@/utils/datetime/centralTime";
 
 interface CartItemComponentInterface {
   data: CartArrayInterface;
@@ -1002,7 +1003,7 @@ const addToCartHandle = () => {
     {
       key: "dob",
       label: t("POS-Sales_kPatientDOBLabel"),
-      render_value: (val: any) => val?.dob ? new Intl.DateTimeFormat(t('POS-Sales_kPatientDOBFormatLocale') || 'en-US').format(new Date(val.dob)) : "N/D",
+      render_value: (val: any) => val?.dob ? formatDateOnly(val.dob, t('POS-Sales_kPatientDOBFormatLocale') || 'en-US', {}) : "N/D",
     },
   ];
 

@@ -1,6 +1,7 @@
 import { requireSuperAdmin } from '@/utils/server/require-auth';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { formatCtDate } from '@/utils/datetime/centralTime';
 
 
 export const POST = async (req: Request) => {
@@ -112,7 +113,7 @@ export const GET = async () => {
                 email: user.email,
                 full_name: profile.full_name || 'No Name',
                 role: roleMap[profile.role_id] || 'Unknown Role', // Map role name using role_id
-                created_at: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A',
+                created_at: profile.created_at ? formatCtDate(profile.created_at) : 'N/A',
                 active: profile.active || false,
                 locations: profile.user_locations
                     ? profile.user_locations.map((loc: any) => loc.Locations?.title).join(', ')

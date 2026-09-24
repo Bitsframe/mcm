@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { formatCtDate } from "@/utils/datetime/centralTime";
 
 interface DataListInterface {
   id: number;
@@ -102,7 +103,7 @@ const UserManagementComponent = () => {
         role_id: user.role_id,
         email: user.email,
         role: user.roles.name,
-        created_at: new Date(user.created_at).toLocaleDateString(),
+        created_at: formatCtDate(user.created_at),
         active: user.active,
         locations: user.user_locations.map((elem: any) => ({
           title: elem.Locations.title,
