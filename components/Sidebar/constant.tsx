@@ -5,6 +5,7 @@ import {
   Warehouse,
   Hammer,
   Calculator,
+  Coins,
   Settings,
 } from "lucide-react";
 import { ComponentType } from "react";
@@ -30,12 +31,10 @@ interface Route {
 
 // Route path constants
 //
-// Bonus came back into the sidebar on 2026-09-23 with the v2 calculation, then
-// came out again the same day on request — the pages and routes are untouched.
-// When it is restored, the children's `name` values must stay 'bonus-location'
-// and 'bonus-individual': withAuthorization matches those exact names to grant
-// the `control` permission access to the bonus pages.
-// Hidden from the UI but otherwise intact: Bonus, Credits, Transactions, Stock Panel,
+// Bonus is a single page as of 2026-09-24: the per-location and per-person
+// pages were removed and Staff Bonuses replaced both. Its `name` must stay
+// 'bonus' — withAuthorization matches that to grant the `control` permission.
+// Hidden from the UI but otherwise intact: Credits, Transactions, Stock Panel,
 // Promo Codes, Reputation, Pharmacy and Medical Forms came out of the sidebar, then
 // (2026-09-22) Inventory, Patients Onsite/Offsite and the standalone Specials entry —
 // Specials is reached as a Website Content tab. Location Limits and Staff came out of
@@ -69,10 +68,7 @@ const ROUTES = {
   CONTROLS: "/controls",
   CREDITS: "/credits",
   TRANSACTIONS: "/transactions",
-  BONUS: {
-    LOCATION: "/bonus/location",
-    INDIVIDUAL: "/bonus/individual",
-  },
+  BONUS: "/bonus/staff",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
@@ -125,6 +121,13 @@ export const routeList: Route[] = [
     label: "Sidebar_k25",
     icon: Warehouse,
     route: ROUTES.WAREHOUSE.MANAGE,
+  },
+  {
+    id: 'bonus',
+    name: "bonus",
+    label: "Sidebar_k32",
+    icon: Coins,
+    route: ROUTES.BONUS,
   },
   {
     id: 'controls',

@@ -73,7 +73,7 @@ const withAuthorization = (Component: any) => {
 
           // Special case: If user has "control" permission, allow bonus routes
           if (permLower === 'control') {
-            if (routeNameLower === 'bonus-location' || routeNameLower === 'bonus-individual') {
+            if (routeNameLower === 'bonus') {
               return true;
             }
           }

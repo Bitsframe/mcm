@@ -11,13 +11,15 @@ export const GET = async (req: Request) => {
     const supabase = await supabaseCreateClient();
 
     try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // getUser() re-verifies against the auth server. getSession() only reads
+        // the cookie, which Supabase warns may not be authentic.
+        const { data: { user: authUser }, error: sessionError } = await supabase.auth.getUser();
 
-        if (sessionError || !session?.user) {
+        if (sessionError || !authUser) {
             return NextResponse.json({ message: 'User not authenticated.' }, { status: 401 });
         }
 
-        const userId = session.user.id;
+        const userId = authUser.id;
 
         const profileResult = await supabase
             .from('profiles')
@@ -25,9 +27,16 @@ export const GET = async (req: Request) => {
             .eq('id', userId)
             .single();
 
-        if (!profileResult || profileResult.error) {
-            console.error('Error fetching profile:', profileResult.error);
-            return;
+        // This branch used to `return;` with no value. Next then raised
+        // "No response is returned from route handler" and answered 500, which
+        // took the whole app down with it because AuthContext calls this on
+        // every page load.
+        if (!profileResult || profileResult.error || !profileResult.data) {
+            console.error('Error fetching profile:', classifyError(profileResult?.error));
+            return NextResponse.json(
+                { success: false, message: 'No profile found for this account.' },
+                { status: 404 }
+            );
         }
 
         const [locationsResult, permissionsResult] = await Promise.all([

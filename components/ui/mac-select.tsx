@@ -121,10 +121,14 @@ export const MacSelect = React.forwardRef<HTMLButtonElement, MacSelectProps>(
     },
     ref
   ) => {
-    const opts = React.useMemo(
-      () => options ?? optionsFromChildren(children),
-      [options, children]
-    );
+    // `children` is a fresh array on every render, so memoising on it handed
+    // back a new `opts` identity every time, defeating the memo. Key it on the
+    // option contents instead. NOTE: this did NOT fix the render loop on the
+    // user-management role picker — that bug is still open.
+    const rawOpts = options ?? optionsFromChildren(children);
+    const optsKey = JSON.stringify(rawOpts.map((o) => [o.value, o.disabled]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const opts = React.useMemo(() => rawOpts, [optsKey]);
     const controlled = value !== undefined;
     const [inner, setInner] = React.useState(toKey(defaultValue));
     const current = controlled ? toKey(value) : inner;

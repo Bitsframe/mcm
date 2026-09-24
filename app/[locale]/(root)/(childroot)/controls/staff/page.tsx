@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "@/context";
 import { LocationPicker } from "@/components/ui/location-picker";
 import { classifyError, logError } from '@/utils/logging/safe-log';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,11 @@ import { translationConstant } from "@/utils/translationConstants";
 
 const StaffControlsPage: React.FC = () => {
   const { t } = useTranslation(translationConstant.CONTROLS);
+  const { userRole } = useContext(AuthContext);
+  // Creating people and assigning them to clinics is an administrator action,
+  // and the assignment decides who the daily bonus is split between. The API
+  // enforces the same rule, so this is a courtesy, not the control.
+  const isSuperAdmin = String(userRole ?? "").trim().toLowerCase() === "super admin";
   const { locations, update_loading } = useLocationClinica();
   const [fullName, setFullName] = useState("");
   const [locationIds, setLocationIds] = useState<string[]>([]);
@@ -95,12 +101,59 @@ const StaffControlsPage: React.FC = () => {
     }
   };
 
+  const [removingId, setRemovingId] = useState<number | null>(null);
+
+  // Unassign, not delete: the person keeps their row and their bonus history,
+  // they just stop counting towards this clinic's daily split from here on.
+  const removeFromLocation = async (staffId: number, staffName: string) => {
+    if (!viewLocationId) return;
+    const locationName =
+      (locations ?? []).find((l: any) => Number(l.id) === Number(viewLocationId))?.title ??
+      `location ${viewLocationId}`;
+    if (!window.confirm(`Remove ${staffName} from ${locationName}? They keep their record and past bonuses.`)) return;
+
+    try {
+      setRemovingId(staffId);
+      const res = await fetch("/api/controls/staff/remove-location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ staff_id: staffId, location_id: viewLocationId }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        logError('staff.remove_location_failed', { status: res.status });
+        toast.error(payload?.error || "Could not remove them from this location");
+        return;
+      }
+      setStaffList((prev) => prev.filter((row: any) => Number(row.id) !== staffId));
+      toast.success(
+        payload?.unassigned_everywhere
+          ? `${staffName} removed. They are no longer assigned to any clinic.`
+          : `${staffName} removed from ${locationName}.`
+      );
+    } catch (err) {
+      console.error('Error removing staff from location', classifyError(err));
+      toast.error("Could not remove them from this location");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   const toggleLocation = (id: string) => {
     setLocationIds((prev) => {
       if (prev.includes(id)) return prev.filter((p) => p !== id);
       return [...prev, id];
     });
   };
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="rounded-xl border border-separator bg-surface p-6 text-body text-label-2">
+        Staff management is limited to administrator accounts.
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 space-y-4 h-[80dvh]">
@@ -187,9 +240,19 @@ const StaffControlsPage: React.FC = () => {
                   <div className="text-sm text-gray-500">{t("CT_k42")}</div>
                 ) : (
                   staffList.map((s: any) => (
-                    <div key={s.id} className="p-2 border-b last:border-b-0">
-                      <div className="font-medium">{s.full_name}</div>
-                      <div className="text-xs text-gray-500">ID: {s.id}</div>
+                    <div key={s.id} className="flex items-center justify-between gap-2 p-2 border-b last:border-b-0">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{s.full_name}</div>
+                        <div className="text-xs text-gray-500">ID: {s.id}</div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={removingId === Number(s.id)}
+                        onClick={() => removeFromLocation(Number(s.id), s.full_name)}
+                        className="shrink-0 rounded-md border border-destructive/30 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/[0.06] disabled:opacity-50"
+                      >
+                        {removingId === Number(s.id) ? "Removing…" : "Remove"}
+                      </button>
                     </div>
                   ))
                 )}

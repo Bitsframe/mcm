@@ -86,9 +86,13 @@ const PrivateFeedbackComponent: FC = () => {
   const fetch_handle = useCallback(async () => {
     setLoading(true);
     try {
+      // Was ", pos(firstname,lastname)" — a leading comma makes the PostgREST
+      // select malformed, and `feedback` has no `pos` relationship anyway. The
+      // patient is reached through feedback.patient_id -> allpatients, aliased
+      // back to `pos` so the rows keep the shape this component reads.
       const fetched_data: any = await fetch_content_service({
         table: "feedback",
-        selectParam: ", pos(firstname,lastname)",
+        selectParam: "*, pos:allpatients(firstname,lastname)",
       });
       setDataList(fetched_data || []);
       setAllData(fetched_data || []);

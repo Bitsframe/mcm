@@ -12,7 +12,10 @@ export const dynamic = 'force-dynamic';
  * the only way to run them outside the nightly job. It is idempotent: running it
  * twice for the same day produces the same figures, never double payouts.
  *
- * Body: { business_date: 'YYYY-MM-DD', location_ids?: number[] }
+ * Body: { business_date | from + to: 'YYYY-MM-DD', location_ids?: number[] }
+ *
+ * A range is capped at 31 days, because the Bonus page calls this on open and a
+ * wide range would mean hundreds of location-days per page load.
  */
 export async function POST(req: Request) {
   try {
@@ -24,12 +27,29 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const businessDate = String(body?.business_date ?? '');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(businessDate)) {
+    const ymd = (v: any) =>
+      typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+
+    const single = ymd(body?.business_date);
+    const from = single ?? ymd(body?.from);
+    const to = single ?? ymd(body?.to) ?? from;
+
+    if (!from || !to) {
       return NextResponse.json(
-        { error: 'business_date is required as YYYY-MM-DD' },
+        { error: 'business_date, or from and to, are required as YYYY-MM-DD' },
         { status: 400 }
       );
+    }
+
+    const dates: string[] = [];
+    for (let d = new Date(from + 'T00:00:00Z'); d <= new Date(to + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1)) {
+      dates.push(d.toISOString().slice(0, 10));
+      if (dates.length > 31) {
+        return NextResponse.json(
+          { error: 'That range is longer than 31 days. Narrow it and try again.' },
+          { status: 400 }
+        );
+      }
     }
 
     // Who is asking, and what may they touch.
@@ -84,26 +104,51 @@ export async function POST(req: Request) {
 
     // The functions are service-role only by design.
     const admin = await createAdminClient();
-    const done: number[] = [];
-    const failed: { location_id: number; message: string }[] = [];
 
-    for (const locationId of targets) {
-      const { error } = await (admin as any).rpc('recalculate_bonus_for_date', {
-        p_location_id: locationId,
-        p_business_date: businessDate,
-      });
-      if (error) {
-        console.error('[api/bonuses/recalculate] failed for location', locationId, error);
-        failed.push({ location_id: locationId, message: error.message });
-      } else {
-        done.push(locationId);
+    // Only clinics that actually sold something in the window can have changed.
+    // Without this the Bonus page would recalculate every location for every day
+    // on each open, which on 20-odd clinics is hundreds of pointless calls.
+    let active = targets;
+    try {
+      const { data: sold } = await (admin as any)
+        .from('bonus_sale_lines')
+        .select('location_id')
+        .gte('business_date', from)
+        .lte('business_date', to)
+        .in('location_id', targets);
+
+      if (Array.isArray(sold)) {
+        const seen = new Set(sold.map((r: any) => Number(r.location_id)));
+        active = targets.filter((id: number) => seen.has(id));
+      }
+    } catch {
+      // Fall back to recalculating everything rather than skipping work.
+    }
+    const failed: { location_id: number; business_date: string; message: string }[] = [];
+    let ok = 0;
+
+    for (const locationId of active) {
+      for (const businessDate of dates) {
+        const { error } = await (admin as any).rpc('recalculate_bonus_for_date', {
+          p_location_id: locationId,
+          p_business_date: businessDate,
+        });
+        if (error) {
+          console.error('[api/bonuses/recalculate] failed', locationId, businessDate, error);
+          failed.push({ location_id: locationId, business_date: businessDate, message: error.message });
+        } else {
+          ok += 1;
+        }
       }
     }
 
     return NextResponse.json({
       success: failed.length === 0,
-      business_date: businessDate,
-      recalculated: done,
+      from,
+      to,
+      locations: active.length,
+      locations_considered: targets.length,
+      recalculated: ok,
       failed,
     });
   } catch (err: any) {

@@ -4,7 +4,8 @@ import { GoDotFill } from "react-icons/go";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { AuthContext } from "@/context";
 
 const TopTabs = () => {
   const pathname = usePathname();
@@ -27,19 +28,17 @@ const TopTabs = () => {
     };
   }, [menuOpen]);
 
+  const { userRole } = useContext(AuthContext);
+  const isSuperAdmin = String(userRole ?? "").trim().toLowerCase() === "super admin";
+
+  // Staff is administrators only: it is where people are created and assigned to
+  // clinics, and that assignment is what the daily bonus is divided by. The page
+  // and POST /api/controls/staff/create enforce this too — hiding the tab alone
+  // would not be a control.
   const WebsiteContentMenu = [
-    {
-      title: "CT_k29",
-      url: "/",
-    },
-    {
-      title: "CT_k8",
-      url: "emailtemplates",
-    },
-    // {
-    //   title: "Inventory Settings",
-    //   url: "inventorysettings",
-    // },
+    { title: "CT_k29", url: "/" },
+    { title: "CT_k8", url: "emailtemplates" },
+    ...(isSuperAdmin ? [{ title: "CT_k58", url: "staff" }] : []),
   ];
 
   const { t } = useTranslation(translationConstant.CONTROLS);
@@ -49,14 +48,16 @@ const TopTabs = () => {
       <nav className="w-48 hidden sm:block">
         <ul className="flex flex-col gap-1">
           {WebsiteContentMenu.map((menuItem, index) => {
+            const href = (menuItem as any).href ?? `/controls/${menuItem.url}`;
             const isActive =
+              pathname === href ||
               pathname === `/controls/${menuItem.url}` ||
               (pathname === "/controls" && menuItem.url === "/");
 
             return (
               <li key={index}>
                 <Link
-                  href={`/controls/${menuItem.url}`}
+                  href={href}
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all
               ${
                 isActive
@@ -87,13 +88,15 @@ const TopTabs = () => {
           <div className="absolute z-50 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200">
             <ul className="flex flex-col gap-1 py-2">
               {WebsiteContentMenu.map((menuItem, index) => {
+                const href = (menuItem as any).href ?? `/controls/${menuItem.url}`;
                 const isActive =
+                  pathname === href ||
                   pathname === `/controls/${menuItem.url}` ||
                   (pathname === "/controls" && menuItem.url === "/");
                 return (
                   <li key={index}>
                     <Link
-                      href={`/controls/${menuItem.url}`}
+                      href={href}
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all w-full
                         ${
                           isActive
