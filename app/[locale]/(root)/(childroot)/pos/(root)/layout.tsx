@@ -9,26 +9,22 @@ interface PosLayoutProps {
   children: ReactNode;
 }
 
+/** POS window: title, caption, hairline, then the segmented control over the content. */
 const PosLayout: React.FC<PosLayoutProps> = ({ children }) => {
   const { t } = useTranslation(translationConstant.POSSALES);
   return (
-    <div>
-      <div className="space-y-3 p-2">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 px-2 pt-2">
         <div>
-          <h1 className="text-xl font-bold">{t("POS-Sales_k26")}</h1>
-          <p className="mt-0.5 mb-1 text-gray-500 text-sm">{t("POS-Sales_k27")}</p>
+          <h1 className="text-title2 text-label">{t("POS-Sales_k26")}</h1>
+          <p className="mt-1 text-body text-label-2">{t("POS-Sales_k27")}</p>
         </div>
-        <div className="h-px w-full bg-gray-300"></div>
+        <div className="h-px w-full bg-separator" />
         <div className="flex justify-start">
-        <TopTabs />
+          <TopTabs />
         </div>
       </div>
-      <main
-        style={{ zIndex: 9999999 }}
-        className=" w-full bg-white dark:bg-[#0e1725] font-medium text-base space-y-3 p-1 rounded"
-      >
-        {children}
-      </main>
+      <main className="w-full">{children}</main>
     </div>
   );
 };

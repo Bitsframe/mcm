@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchLocations as fetchLocationsService } from "@/utils/supabase/data_services/data_services";
 import React, { useState, useEffect, forwardRef, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
@@ -72,19 +73,19 @@ const TimeSelector = forwardRef<
       <SelectTrigger
         // @ts-ignore
         ref={ref}
-        className="w-full bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white [&>span]:text-gray-900 [&>span]:dark:text-white"
+        className="w-full bg-white border-gray-300 text-gray-900 [&>span]:text-gray-900 [&>"
       >
         <SelectValue
           placeholder="Select time"
-          className="text-gray-900 dark:text-white placeholder:text-gray-500 placeholder:dark:text-gray-400"
+          className="text-gray-900 placeholder:text-gray-500"
         />
       </SelectTrigger>
-      <SelectContent className="bg-white dark:bg-[#1f2937] border-gray-300 dark:border-gray-600">
+      <SelectContent className="bg-white border-gray-300">
         {timeOptions.map(({ label, value }) => (
           <SelectItem
             key={value}
             value={value}
-            className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:bg-gray-100 dark:focus:bg-gray-600 data-[highlighted]:bg-gray-100 data-[highlighted]:dark:bg-gray-600 data-[highlighted]:text-gray-900 data-[highlighted]:dark:text-white"
+            className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
           >
             {label}
           </SelectItem>
@@ -109,8 +110,7 @@ const SettingsComponent: React.FC = () => {
   const fetchLocations = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await getSettingsSupabase().from("Locations").select("*");
-      if (error) throw error;
+      const data = await fetchLocationsService();
       if (data?.length) {
         setLocations(data as unknown as Location[]);
         selectLocation(data[0] as unknown as Location);
@@ -169,19 +169,19 @@ const SettingsComponent: React.FC = () => {
   };
 
   return (
-    <div className="relative z-0 h-[80dvh] md:h-[75dvh] bg-background dark:bg-[#0e1725]">
-      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-        <div className="p-4 border-b dark:border-gray-700">
-          <h1 className="text-lg font-medium text-gray-900 dark:text-white">
+    <div className="relative z-0 h-[80dvh] md:h-[75dvh] bg-background">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full">
+        <div className="p-4 border-b">
+          <h1 className="text-lg font-medium text-gray-900">
           {t("CT_k29")}
           </h1>
         </div>
 
         <div className="flex flex-col md:flex-row">
           {/* Left - Locations */}
-          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
+          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50">
+            <div className="p-4 border-b">
+              <h2 className="text-sm font-medium mb-3 text-gray-800">
                 {t("CT_k2")}
               </h2>
               <div className="relative">
@@ -190,7 +190,7 @@ const SettingsComponent: React.FC = () => {
                   placeholder={t("CT_k30")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white"
                 />
                 <svg
                   className="absolute left-2 top-2.5 h-4 w-4 text-gray-400"
@@ -217,10 +217,10 @@ const SettingsComponent: React.FC = () => {
                   <div
                     key={location.id}
                     onClick={() => selectLocation(location)}
-                    className={`px-4 py-3 cursor-pointer border-b text-sm dark:border-gray-700 ${
+                    className={`px-4 py-3 cursor-pointer border-b text-sm ${
                       selectedLocation?.id === location.id
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        ? "bg-brand-50 text-brand-700"
+                        : "hover:bg-gray-100 text-gray-700"
                     }`}
                   >
                     {location.title}
@@ -230,7 +230,7 @@ const SettingsComponent: React.FC = () => {
           </div>
 
           {/* Right - Details */}
-          <div className="flex-1 p-6 w-full md:w-[70%] text-gray-800 dark:text-gray-100">
+          <div className="flex-1 p-6 w-full md:w-[70%] text-gray-800">
             {selectedLocation ? (
               <>
                 <div className="mb-6">
@@ -274,7 +274,7 @@ const SettingsComponent: React.FC = () => {
                   <button
                     onClick={handleReportTimeUpdate}
                     disabled={isUpdating}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center"
+                    className="px-4 py-2 bg-brand-500 text-white rounded-md text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center"
                   >
                     {isUpdating ? (
                       <>
@@ -286,13 +286,13 @@ const SettingsComponent: React.FC = () => {
                     )}
                   </button>
 
-                  <button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
                     {t("CT_k7")}
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
+              <div className="flex justify-center items-center h-full text-gray-500">
                 Select a location to view details
               </div>
             )}

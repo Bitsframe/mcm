@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useEffect, useState, useContext, useMemo } from "react";
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { LocationContext } from "@/context";
@@ -105,7 +106,7 @@ const StockAlertsComponent: React.FC = () => {
       setAllData(normalizedData);
       setLoading(false);
     } catch (error) {
-      console.error(" Error fetching stock alerts:", error);
+      console.error(" Error fetching stock alerts:", classifyError(error));
       setDataList([]);
       setAllData([]);
       setLoading(false);
@@ -250,10 +251,10 @@ const StockAlertsComponent: React.FC = () => {
     }
 
     if (sortConfig.direction === "asc") {
-      return <ChevronUp className="w-4 h-4 text-blue-500" />;
+      return <ChevronUp className="w-4 h-4 text-brand-500" />;
     }
 
-    return <ChevronDown className="w-4 h-4 text-blue-500" />;
+    return <ChevronDown className="w-4 h-4 text-brand-500" />;
   };
 
   const handlePreviousPage = () =>
@@ -284,11 +285,11 @@ const StockAlertsComponent: React.FC = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Critical":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-red-100 text-red-700";
       case "Warning":
-        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+        return "bg-orange-100 text-orange-700";
       default:
-        return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400";
+        return "bg-cyan-100 text-cyan-700";
     }
   };
 
@@ -326,7 +327,7 @@ const StockAlertsComponent: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-[#0e1725] rounded-2xl shadow-sm mb-6">
+      <div className="bg-white rounded-2xl shadow-sm mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
@@ -346,19 +347,19 @@ const StockAlertsComponent: React.FC = () => {
           <input
             type="text"
             value={searchTerm}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             placeholder={t("SP_k22")}
             onChange={onSearchHandle}
           />
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="text-gray-600 dark:text-gray-400">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+              <span className="text-gray-600">
                 {t("SP_k30")}
               </span>
             </div>
@@ -366,9 +367,9 @@ const StockAlertsComponent: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-[#0e1725]">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
                       type="button"
                       onClick={() => handleSort("product_name")}
@@ -378,7 +379,7 @@ const StockAlertsComponent: React.FC = () => {
                       {renderSortIcon("product_name")}
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
                       type="button"
                       onClick={() => handleSort("quantity")}
@@ -388,7 +389,7 @@ const StockAlertsComponent: React.FC = () => {
                       {renderSortIcon("quantity")}
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
                       type="button"
                       onClick={() => handleSort("threshold")}
@@ -398,7 +399,7 @@ const StockAlertsComponent: React.FC = () => {
                       {renderSortIcon("threshold")}
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
                       type="button"
                       onClick={() => handleSort("priority")}
@@ -408,7 +409,7 @@ const StockAlertsComponent: React.FC = () => {
                       {renderSortIcon("priority")}
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
                       type="button"
                       onClick={() => handleSort("anomaly_severity")}
@@ -420,18 +421,18 @@ const StockAlertsComponent: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-[#0e1725] divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {currentData.map((item, index) => {
                   const isLowStock = item.quantity <= item.threshold;
                   return (
                     <tr
                       key={index}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => openModal(item)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></div>
                           <span>
                             {item.inventory?.products?.product_name ||
                               item.product_name ||
@@ -460,14 +461,14 @@ const StockAlertsComponent: React.FC = () => {
                             className={`text-sm font-medium ${
                               isLowStock
                                 ? "text-orange-500"
-                                : "text-gray-900 dark:text-white"
+                                : "text-gray-900"
                             }`}
                           >
                             {item.quantity || 0}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                         {item.threshold || 0}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -483,10 +484,10 @@ const StockAlertsComponent: React.FC = () => {
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             item.anomaly_severity === "High"
-                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              ? "bg-red-100 text-red-700"
                               : item.anomaly_severity === "Medium"
-                              ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-green-100 text-green-700"
                           }`}
                         >
                           {getAnomalyText(item.anomaly_severity)}
@@ -498,7 +499,7 @@ const StockAlertsComponent: React.FC = () => {
               </tbody>
             </table>
 
-            <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] px-4">
+            <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 text-xs sm:text-sm text-gray-500 bg-white px-4">
               <div>
                 {sortedData.length === 0
                   ? `${t("SP_k16")} 0 ${t("SP_k17")} 0 ${t("SP_k18")} 0`
@@ -510,7 +511,7 @@ const StockAlertsComponent: React.FC = () => {
                 <button
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+                  className={`px-3 py-1 rounded text-gray-600 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 ${
                     currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -521,7 +522,7 @@ const StockAlertsComponent: React.FC = () => {
                   disabled={
                     currentPage === totalPages || sortedData.length === 0
                   }
-                  className={`px-3 py-1 rounded text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+                  className={`px-3 py-1 rounded text-gray-600 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 ${
                     currentPage === totalPages || sortedData.length === 0
                       ? "opacity-50 cursor-not-allowed"
                       : ""
@@ -537,14 +538,14 @@ const StockAlertsComponent: React.FC = () => {
 
       {modalOpen && selectedAlert && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {t("stock_alert_details")}
               </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-gray-600"
               >
                 <svg
                   className="w-6 h-6"
@@ -566,68 +567,68 @@ const StockAlertsComponent: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700">
                       {t("product_name")}
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900">
                       {selectedAlert.inventory?.products?.product_name ||
                         selectedAlert.product_name ||
                         "-"}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700">
                       {t("quantity")}
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900">
                       {selectedAlert.quantity || 0}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700">
                       {t("threshold")}
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900">
                       {selectedAlert.threshold || 0}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700">
                       {t("priority")}
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900">
                       {selectedAlert.priority || "-"}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700">
                       {t("anomaly_severity")}
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900">
                       {getAnomalyText(selectedAlert.anomaly_severity)}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700">
                     {t("anomaly_message")}
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="mt-1 text-sm text-gray-900">
                     {selectedAlert.anomaly_message || "-"}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700">
                     {t("forecasted_runout_months")}
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="mt-1 text-sm text-gray-900">
                     {selectedAlert.forecasted_runout_months || "-"}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="text-md font-medium text-gray-900 mb-3">
                   {t("stock_trend_analysis")}
                 </h4>
                 <div className="h-[300px]">
@@ -787,7 +788,7 @@ const StockAlertsComponent: React.FC = () => {
                     </LineChart>
                   </ChartContainer>
                 </div>
-                <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="mt-3 text-sm text-gray-600">
                   <p>
                     {t("projected_runout_in", { count: selectedAlert.forecasted_runout_months || t("unknown") })}
                   </p>

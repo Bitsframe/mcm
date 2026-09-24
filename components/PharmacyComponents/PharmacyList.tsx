@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import { CircularProgress } from "@mui/material";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
@@ -89,7 +90,7 @@ const PharmacyList = () => {
             toast.success(t("Pharmacy_k27"));
         } catch (error: any) {
             setLoading(false);
-            console.error("Error submitting data:", error);
+            console.error("Error submitting data:", classifyError(error));
             toast.error(
                 `${t("Pharmacy_k28")} ${error?.response?.data?.message || error.message
                 }`
@@ -108,7 +109,7 @@ const PharmacyList = () => {
             toast.success(t("Pharmacy_k29"));
         } catch (error: any) {
             setLoading(false);
-            console.error("Error submitting data:", error);
+            console.error("Error submitting data:", classifyError(error));
             toast.error(
                 `${t("Pharmacy_k30")} ${error?.response?.data?.message || error.message
                 }`
@@ -126,7 +127,7 @@ const PharmacyList = () => {
                 setCurrentPage(currentPage - 1);
             }
         } catch (error: any) {
-            console.error("Error:", error);
+            console.error("Error:", classifyError(error));
             toast.error(`${t("Pharmacy_k33")} ${error?.response?.data?.message || error.message}`);
         }
     };
@@ -175,12 +176,12 @@ const PharmacyList = () => {
     };
 
     return (
-        <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-1 dark:bg-[#0E1725]">
-            <div className="w-full bg-white rounded-lg dark:bg-[#0E1725]">
+        <div className="flex flex-col sm:flex-row justify-center px-2 sm:px-4 pt-1">
+            <div className="w-full bg-white rounded-lg">
                 {/* Heading Section */}
                 <div className="p-1 sm:px-3">
-                    <h1 className="text-xl font-bold dark:text-white">{t("Pharmacy_k1")}</h1>
-                    <h1 className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <h1 className="text-xl font-bold">{t("Pharmacy_k1")}</h1>
+                    <h1 className="mt-1 text-sm text-gray-500">
                         {t("Pharmacy_k2")}
                     </h1>
                 </div>
@@ -190,16 +191,16 @@ const PharmacyList = () => {
                     <div className="relative w-full sm:w-60">
                         <input
                             onChange={onChangeHandle}
-                            className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#f1f4f9] dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600"
+                            className="w-full pl-8 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-[#F5F5F7]"
                             type="text"
                             placeholder={t("Pharmacy_k3")}
                         />
-                        <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-300" />
+                        <IoSearchOutline className="absolute left-2 top-2.5 text-gray-400" />
                     </div>
 
                     <button
                         onClick={handleOpen}
-                        className="bg-blue-600 text-sm text-white px-4 py-2 rounded-md hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 flex items-center gap-2 
+                        className="bg-brand-600 text-sm text-white px-4 py-2 rounded-md hover:bg-brand-700 active:bg-brand-800 flex items-center gap-2 
     sm:w-auto w-full justify-center sm:justify-start"
                     >
                         <CirclePlus className="text-lg" />
@@ -210,28 +211,28 @@ const PharmacyList = () => {
                 {/* Table */}
                 <div className="px-3">
                     {/* Desktop Table */}
-                    <div className="hidden sm:block border rounded-md overflow-auto dark:border-[#172945] relative">
+                    <div className="hidden sm:block border rounded-md overflow-auto relative">
                         <Table>
-                            <TableHeader className="sticky top-0 bg-white dark:bg-[#0E1725] z-10">
-                                <TableRow className="border-b text-sm text-[#71717A] dark:text-gray-300 dark:border-[#172945]">
-                                    <TableHead className="w-10 dark:bg-[#0E1725]"></TableHead>
+                            <TableHeader className="sticky top-0 bg-white z-10">
+                                <TableRow className="border-b text-sm text-[#6E6E73]">
+                                    <TableHead className="w-10"></TableHead>
                                     {tableHeader.map(({ label, align, classNames }, index) => (
                                         <TableHead
                                             key={index}
                                             className={`font-medium ${align || "text-left"} ${classNames || ""
-                                                } dark:text-white dark:bg-[#0E1725]`}
+                                                }`}
                                         >
                                             {t(label)}
                                         </TableHead>
                                     ))}
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="divide-y dark:bg-[#0E1725]">
+                            <TableBody className="divide-y">
                                 {tableLoading ? (
                                     <TableRow>
                                         <TableCell
                                             colSpan={tableHeader.length + 1}
-                                            className="py-20 dark:bg-[#0E1725]"
+                                            className="py-20"
                                         >
                                             <div className="flex justify-center">
                                                 <CircularProgress />
@@ -242,17 +243,17 @@ const PharmacyList = () => {
                                     paginatedDataLarge.map((elem, index) => (
                                         <TableRow
                                             key={index}
-                                            className="hover:bg-gray-50 dark:bg-[#0E1725] dark:border-[#172945]"
+                                            className="hover:bg-gray-50"
                                         >
-                                            <TableCell className="py-4 pr-3 dark:bg-[#0E1725]"></TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.name}</TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.address}</TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.phone_number}</TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">{elem.delivers ? t("Pharmacy_k10") : t("Pharmacy_k11")}</TableCell>
-                                            <TableCell className="py-4 text-left dark:text-white dark:bg-[#0E1725]">
+                                            <TableCell className="py-4 pr-3"></TableCell>
+                                            <TableCell className="py-4 text-left">{elem.name}</TableCell>
+                                            <TableCell className="py-4 text-left">{elem.address}</TableCell>
+                                            <TableCell className="py-4 text-left">{elem.phone_number}</TableCell>
+                                            <TableCell className="py-4 text-left">{elem.delivers ? t("Pharmacy_k10") : t("Pharmacy_k11")}</TableCell>
+                                            <TableCell className="py-4 text-left">
                                                 <div className="flex items-center space-x-4 justify-end">
                                                     <button
-                                                        className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
+                                                        className="px-4 py-1 rounded bg-brand-500 text-white hover:bg-brand-700 transition-colors"
                                                         onClick={() => openEditModal(elem)}
                                                     >
                                                         {t("Pharmacy_k38")}
@@ -282,20 +283,20 @@ const PharmacyList = () => {
                             paginatedDataSmall.map((elem, index) => (
                                 <div
                                     key={index}
-                                    className="border rounded-lg p-4 dark:border-[#172945] dark:bg-[#0E1725]"
+                                    className="border rounded-lg p-4"
                                 >
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <h3 className="font-medium text-base dark:text-white">
+                                            <h3 className="font-medium text-base">
                                                 {elem.name}
                                             </h3>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">
+                                            <p className="text-sm text-gray-500">
                                                 {elem.address}
                                             </p>
                                         </div>
                                         <div className="flex space-x-2">
                                             <button
-                                                className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-700 transition-colors"
+                                                className="px-4 py-1 rounded bg-brand-500 text-white hover:bg-brand-700 transition-colors"
                                                 onClick={() => openEditModal(elem)}
                                             >
                                                 {t("Pharmacy_k38")}
@@ -310,14 +311,14 @@ const PharmacyList = () => {
                                     </div>
                                     <div className="mt-3 space-y-2">
                                         <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">
+                                            <p className="text-sm text-gray-500">
                                                 {t("Pharmacy_k7")}
                                             </p>
-                                            <p className="text-sm dark:text-white">{elem.phone_number || "N/A"}</p>
+                                            <p className="text-sm">{elem.phone_number || "N/A"}</p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-300">{t("Pharmacy_k8")}</p>
-                                            <p className="text-sm dark:text-white">{elem.delivers ? t("Pharmacy_k10") : t("Pharmacy_k11")}</p>
+                                            <p className="text-sm text-gray-500">{t("Pharmacy_k8")}</p>
+                                            <p className="text-sm">{elem.delivers ? t("Pharmacy_k10") : t("Pharmacy_k11")}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -326,8 +327,8 @@ const PharmacyList = () => {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex justify-between items-center pt-3 text-sm dark:text-white">
-                        <div className="text-gray-500 dark:text-gray-300">
+                    <div className="flex justify-between items-center pt-3 text-sm">
+                        <div className="text-gray-500">
                             {dataList.length > 0
                                 ? `${t("Pharmacy_k12")} ${(currentPage - 1) *
                                 (window.innerWidth < 640
@@ -345,14 +346,14 @@ const PharmacyList = () => {
                         </div>
                         <div className="flex gap-2">
                             <button
-                                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 onClick={handlePrevious}
                                 disabled={currentPage === 1}
                             >
                                 {t("Pharmacy_k16")}
                             </button>
                             <button
-                                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50"
+                                className="px-3 py-1 border rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 onClick={handleNext}
                                 disabled={
                                     currentPage >=

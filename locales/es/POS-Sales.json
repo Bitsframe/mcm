@@ -208,5 +208,8 @@
   "POS-Sales_kPrev": "Anterior",
   "POS-Sales_kNext": "Siguiente",
   "POS-Sales_kPage": "Página",
-  "POS-Sales_kOf": "de"
+  "POS-Sales_kOf": "de",
+  "POS-Sales_kDecreaseQty": "Disminuir cantidad",
+  "POS-Sales_kIncreaseQty": "Aumentar cantidad",
+  "POS-Sales_kRemoveItem": "Eliminar artículo"
 }

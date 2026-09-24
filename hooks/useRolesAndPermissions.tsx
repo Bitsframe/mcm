@@ -1,4 +1,5 @@
 import { create_content_service, delete_content_service, fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { classifyError } from '@/utils/logging/safe-log';
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -269,7 +270,7 @@ export function useRolesAndPermissions() {
                 toast.error(roleError.message || 'Failed to delete role');
             }
         } catch (error: any) {
-            console.error('Error deleting role:', error);
+            console.error('Error deleting role:', classifyError(error));
             toast.error(error.message || 'An error occurred while deleting the role');
         }
     };

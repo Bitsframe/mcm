@@ -26,7 +26,7 @@ const TopTabs = () => {
   return (
     <nav className="mt-5">
       <div className="max-w-7xl mx-auto">
-        <ul className="flex gap-1 w-fit p-1 rounded-xl bg-gray-100 dark:bg-[#080E16]">
+        <ul className="flex gap-1 w-fit p-1 rounded-xl bg-gray-100">
           {PosTopMenu.map((menuItem, index) => {
             const isActive =
               pathname === `/pos/sales/${menuItem.url}` ||
@@ -40,8 +40,8 @@ const TopTabs = () => {
                   href={`/pos/sales/${menuItem.url}`}
                   className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-xl font-medium transition-all ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-600 dark:text-gray-300"
+                      ? "bg-brand-600 text-white"
+                      : "text-gray-600"
                   }`}
                 >
                   <Icon

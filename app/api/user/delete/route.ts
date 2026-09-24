@@ -1,4 +1,6 @@
+import { requireSuperAdmin } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { bridgePost, BridgeError } from '@/lib/bridge/client';
 
 /**
@@ -6,6 +8,9 @@ import { bridgePost, BridgeError } from '@/lib/bridge/client';
  * mcm-bridge owns the write; this route keeps the validation and response shape.
  */
 export const POST = async (req: Request) => {
+  const gate = await requireSuperAdmin();
+  if (gate.response) return gate.response;
+
     try {
         const { patientId } = await req.json();
 
@@ -29,7 +34,7 @@ export const POST = async (req: Request) => {
                 { status: error.status }
             );
         }
-        console.error("Error in patient delete:", error);
+        console.error("Error in patient delete:", classifyError(error));
         return NextResponse.json(
             { success: false, message: "An error occurred.", error: error.message || "Internal Server Error" },
             { status: 500 }

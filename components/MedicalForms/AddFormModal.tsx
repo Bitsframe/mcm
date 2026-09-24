@@ -91,15 +91,15 @@ export default function AddFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">
             Add New Medical Form
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-gray-400 hover:text-gray-600"
           >
             <X className="w-5 h-5" />
           </button>
@@ -109,7 +109,7 @@ export default function AddFormModal({
         <div className="flex-1 overflow-auto p-6 space-y-4">
           {/* Form Name Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Form Name
             </label>
             <Input
@@ -122,18 +122,18 @@ export default function AddFormModal({
 
           {/* Rich Text Editor */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Form Content
             </label>
 
             {/* Editor Toolbar */}
-            <div className="border border-gray-300 dark:border-gray-600 rounded-t-lg bg-gray-50 dark:bg-gray-700 p-2 flex flex-wrap gap-1">
+            <div className="border border-gray-300 rounded-t-lg bg-gray-50 p-2 flex flex-wrap gap-1">
               <button
                 onClick={() => editor?.chain().focus().toggleBold().run()}
                 className={`px-3 py-1 rounded text-sm font-semibold ${
                   editor?.isActive("bold")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -143,8 +143,8 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().toggleItalic().run()}
                 className={`px-3 py-1 rounded text-sm italic ${
                   editor?.isActive("italic")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -154,8 +154,8 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().toggleUnderline().run()}
                 className={`px-3 py-1 rounded text-sm underline ${
                   editor?.isActive("underline")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -165,15 +165,15 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().toggleStrike().run()}
                 className={`px-3 py-1 rounded text-sm line-through ${
                   editor?.isActive("strike")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
                 S
               </button>
 
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+              <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
               <button
                 onClick={() =>
@@ -181,8 +181,8 @@ export default function AddFormModal({
                 }
                 className={`px-3 py-1 rounded text-sm font-bold ${
                   editor?.isActive("heading", { level: 1 })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -194,8 +194,8 @@ export default function AddFormModal({
                 }
                 className={`px-3 py-1 rounded text-sm font-bold ${
                   editor?.isActive("heading", { level: 2 })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -207,22 +207,22 @@ export default function AddFormModal({
                 }
                 className={`px-3 py-1 rounded text-sm font-bold ${
                   editor?.isActive("heading", { level: 3 })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
                 H3
               </button>
 
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+              <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
               <button
                 onClick={() => editor?.chain().focus().setTextAlign("left").run()}
                 className={`px-3 py-1 rounded text-sm ${
                   editor?.isActive({ textAlign: "left" })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -232,8 +232,8 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().setTextAlign("center").run()}
                 className={`px-3 py-1 rounded text-sm ${
                   editor?.isActive({ textAlign: "center" })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -243,22 +243,22 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().setTextAlign("right").run()}
                 className={`px-3 py-1 rounded text-sm ${
                   editor?.isActive({ textAlign: "right" })
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
                 ➡
               </button>
 
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+              <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
               <button
                 onClick={() => editor?.chain().focus().toggleBulletList().run()}
                 className={`px-3 py-1 rounded text-sm ${
                   editor?.isActive("bulletList")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
@@ -268,15 +268,15 @@ export default function AddFormModal({
                 onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                 className={`px-3 py-1 rounded text-sm ${
                   editor?.isActive("orderedList")
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
                 type="button"
               >
                 1. List
               </button>
 
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+              <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
               {/* User Input Button */}
               <button
@@ -291,7 +291,7 @@ export default function AddFormModal({
 
             {/* User Input Field Name Dialog */}
             {showFieldInput && (
-              <div className="border border-t-0 border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20 p-3 flex items-center gap-2">
+              <div className="border border-t-0 border-gray-300 bg-yellow-50 p-3 flex items-center gap-2">
                 <Input
                   value={fieldName}
                   onChange={(e) => setFieldName(e.target.value)}
@@ -325,21 +325,21 @@ export default function AddFormModal({
             )}
 
             {/* Editor Content */}
-            <div className="border border-t-0 border-gray-300 dark:border-gray-600 rounded-b-lg bg-white dark:bg-gray-800 min-h-[300px] max-h-[400px] overflow-auto">
+            <div className="border border-t-0 border-gray-300 rounded-b-lg bg-white min-h-[300px] max-h-[400px] overflow-auto">
               <EditorContent editor={editor} />
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
           <Button variant="outline" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-brand-600 hover:bg-brand-700"
           >
             {loading ? (
               <>

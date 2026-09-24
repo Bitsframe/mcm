@@ -4,7 +4,9 @@ import "./globals.css";
 import ThemeProviderWrapper from "@/provider/ThemeProvider";
 import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"] });
+// Fallback for non-Apple devices; Apple devices render the system SF font
+// first (see fontFamily.sans in tailwind.config.ts).
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "MyClinic MD",
@@ -18,10 +20,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      {/* suppressHydrationWarning: browser extensions (password managers,
+          Grammarly) add attributes to <body> before React hydrates. */}
+      <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
         <ThemeProviderWrapper>
           {children}
-          <Toaster position="top-right" />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              className: "rounded-lg shadow-mac-lg border border-border font-sans text-body",
+            }}
+          />
         </ThemeProviderWrapper>
       </body>
     </html>

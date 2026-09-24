@@ -46,16 +46,16 @@ export const Custom_Modal: FC<PropsInterface> = ({
   return (
     <Modal show={is_open} onClose={close_handle} className="!p-0">
       <div className="fixed inset-0 z-[1000] flex items-center justify-center min-h-screen p-2">
-        <div className="bg-white dark:bg-[#0e1725] rounded-lg shadow-lg w-full max-w-[95vw] sm:max-w-[600px] mx-auto">
-          <Modal.Header className="bg-white dark:bg-[#0e1725] dark:text-white text-black rounded-t-lg">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-[95vw] sm:max-w-[600px] mx-auto">
+          <Modal.Header className="bg-white text-black rounded-t-lg">
             {translatedTitle}
           </Modal.Header>
-          <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
+          <Modal.Body className="bg-white text-black">
             <div className="space-y-6">{children}</div>
           </Modal.Body>
-          <Modal.Footer className="flex justify-end bg-white dark:bg-[#0e1725] rounded-b-lg">
+          <Modal.Footer className="flex justify-end bg-white rounded-b-lg">
             <button
-              className="bg-[#f1f4f9] dark:bg-[#122136] text-black dark:text-white px-4 py-[10px] rounded-lg"
+              className="bg-[#F5F5F7] text-black px-4 py-[10px] rounded-lg"
               onClick={close_handle}
             >
               {t("Procode_k27", { ns: translationConstant.PROCODE })}

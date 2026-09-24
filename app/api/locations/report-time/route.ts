@@ -1,4 +1,6 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { bridgePatch, BridgeError } from '@/lib/bridge/client';
 
 /**
@@ -6,6 +8,9 @@ import { bridgePatch, BridgeError } from '@/lib/bridge/client';
  * with the publishable key. Writes go through mcm-bridge now, so it calls this route.
  */
 export const PATCH = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     try {
         const { locationId, reportTime } = await req.json();
 
@@ -29,7 +34,7 @@ export const PATCH = async (req: Request) => {
                 { status: error.status }
             );
         }
-        console.error('Error updating report time:', error);
+        console.error('Error updating report time:', classifyError(error));
         return NextResponse.json(
             { success: false, message: 'Failed to update report time' },
             { status: 500 }

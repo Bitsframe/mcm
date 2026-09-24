@@ -19,23 +19,19 @@ export default function ControlsLayout({
 
   return (
     <div>
-      <div className="py-3">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white pl-4">{t("CT_k27")}</h1>
+      <div className="px-2 py-3">
+        <h1 className="text-title2 text-label">{t("CT_k27")}</h1>
       </div>
 
       <div className="block sm:hidden mb-4">
         <TopTabs />
       </div>
 
-      <div className="flex gap-5 dark:bg-[#0E1725]">
+      <div className="flex gap-5">
         <div className="hidden sm:block space-y-5">
           <TopTabs />
         </div>
-        <main
-          className=" w-full font-[500] text-[20px] space-y-5 rounded-md"
-        >
-          <main>{children}</main>
-        </main>
+        <main className="w-full space-y-5">{children}</main>
       </div>
     </div>
   );

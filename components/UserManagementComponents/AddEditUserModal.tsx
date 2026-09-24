@@ -91,11 +91,11 @@ export default function AddEditUserModal({
         aria-describedby="add-edit-user-modal-description"
       >
         <div className="w-full h-full flex justify-center items-center px-4 bg-black bg-opacity-30">
-          <div className="bg-white rounded-2xl px-6 py-6 w-full dark:bg-[#0e1725] max-w-[500px] shadow-lg ">
+          <div className="bg-white rounded-2xl px-6 py-6 w-full max-w-[500px] shadow-lg ">
             <div className="flex justify-between items-center mb-6">
               <h2
                 id="add-edit-user-modal-title"
-                className="text-lg font-semibold dark:text-white text-gray-900"
+                className="text-lg font-semibold text-gray-900"
               >
                 {editData ? t("UM_k15") : t("UM_k2")}
               </h2>
@@ -112,9 +112,9 @@ export default function AddEditUserModal({
                 <Input_Component
                   value={formData.fullName}
                   placeholder={t("UM_k7")}
-                  border="border border-gray-200 rounded-lg dark:border-none"
+                  border="border border-gray-200 rounded-lg"
                   onChange={(value) => handleInputChange("fullName", value)}
-                  bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
+                  bg_color=" bg-[#F5F5F7]"
                 />
 
                 <Select_Dropdown
@@ -130,7 +130,7 @@ export default function AddEditUserModal({
                     handleInputChange("roleId", Number(e.target.value))
                   }
                   required
-                // bg_color=" dark:bg-[#122136]"
+                // bg_color=""
                 />
               </div>
 
@@ -139,9 +139,9 @@ export default function AddEditUserModal({
                 disabled={!!editData}
                 placeholder={t("UM_k9")}
                 type="email"
-                border="border border-gray-200 rounded-lg dark:border-none"
+                border="border border-gray-200 rounded-lg"
                 onChange={(value) => handleInputChange("email", value)}
-                bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
+                bg_color=" bg-[#F5F5F7]"
               />
 
               <Input_Component
@@ -150,9 +150,9 @@ export default function AddEditUserModal({
                 disabled={!!editData}
                 placeholder={t("UM_k10")}
                 type="password"
-                border="border border-gray-200 rounded-lg dark:border-none"
+                border="border border-gray-200 rounded-lg"
                 onChange={(value) => handleInputChange("password", value)}
-                bg_color=" dark:bg-[#122136] bg-[#f1f4f9]"
+                bg_color=" bg-[#F5F5F7]"
               />
 
               <LocationModal
@@ -163,7 +163,7 @@ export default function AddEditUserModal({
               />
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-gray-700">
                   {t("UM_k31")}
                 </label>
                 <div className="flex gap-4">
@@ -174,9 +174,9 @@ export default function AddEditUserModal({
                       value="doctor"
                       checked={formData.userType === "doctor"}
                       onChange={() => handleInputChange("userType", "doctor")}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                    <span className="text-sm text-gray-900">
                       {t("UM_k32")}
                     </span>
                   </label>
@@ -187,9 +187,9 @@ export default function AddEditUserModal({
                       value="staff"
                       checked={formData.userType === "staff"}
                       onChange={() => handleInputChange("userType", "staff")}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                    <span className="text-sm text-gray-900">
                       {t("UM_k33")}
                     </span>
                   </label>
@@ -200,9 +200,9 @@ export default function AddEditUserModal({
                       value=""
                       checked={!formData.userType}
                       onChange={() => handleInputChange("userType", null)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-900 dark:text-gray-300">
+                    <span className="text-sm text-gray-900">
                       {t("UM_k34")}
                     </span>
                   </label>
@@ -212,14 +212,14 @@ export default function AddEditUserModal({
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={handleClose}
-                  className="px-5 py-2 rounded-md bg-gray-100 dark:bg-[#122136] dark:text-white text-gray-700 hover:bg-gray-200"
+                  className="px-5 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
                 >
                   {t("UM_k12")}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="px-5 py-2 rounded-md bg-[#0066ff] text-white hover:opacity-90 disabled:bg-gray-400"
+                  className="px-5 py-2 rounded-md bg-[#166534] text-white hover:opacity-90 disabled:bg-gray-400"
                 >
                   {editData
                     ? loading

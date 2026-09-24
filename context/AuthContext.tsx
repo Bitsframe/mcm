@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: any) => {
                 // Store allowed locations in localStorage for persistence
                 localStorage.setItem('allowedLocations', JSON.stringify(locationIds));
             } catch (error) {
-                console.error("Error fetching user data:", error);
+                console.error("Error fetching user data:", classifyError(error));
                 updateAuthState({
                     checkingAuth: false,
                     authError: axios.isAxiosError(error) ? error.response?.data || error.message : "Failed to fetch user data."

@@ -56,16 +56,16 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       <div
-        className="relative w-full max-w-5xl mx-4 bg-white dark:bg-[#0E1725] rounded-lg shadow-lg overflow-hidden flex flex-col"
+        className="relative w-full max-w-5xl mx-4 bg-white rounded-lg shadow-lg overflow-hidden flex flex-col"
         style={{ height: '72vh' }}
       >
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-baseline gap-3">
             <h3 className="text-lg font-semibold">{title ?? t('POS-Sales_k5')}</h3>
-            <span className="text-sm text-gray-600 dark:text-gray-300">{`${t('POS-Sales_k121')} ${filteredProducts.length} ${filteredProducts.length !== 1 ? t('POS-Sales_k123') : t('POS-Sales_k122')}`}</span>
+            <span className="text-sm text-gray-600">{`${t('POS-Sales_k121')} ${filteredProducts.length} ${filteredProducts.length !== 1 ? t('POS-Sales_k123') : t('POS-Sales_k122')}`}</span>
           </div>
           <button
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            className="text-gray-600 hover:text-gray-900"
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -73,20 +73,20 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
           </button>
         </div>
 
-        <div className="bg-white dark:bg-[#0E1725] flex items-center gap-2 justify-between px-4 py-3 border-b flex-shrink-0">
+        <div className="bg-white flex items-center gap-2 justify-between px-4 py-3 border-b flex-shrink-0">
           <div className="flex items-center gap-2 flex-1">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t('POS-Sales_k118')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-sm"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded text-sm"
+                className="px-3 py-2 bg-gray-200 rounded text-sm"
               >
                 {t('POS-Sales_k119')}
               </button>
@@ -98,7 +98,7 @@ const ProductListModal: React.FC<ProductListModalProps> = ({
               type="button"
               onClick={handleAddAllToCart}
               disabled={!hasAnyQty || disabled}
-              className="px-3 py-2 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
+              className="px-3 py-2 bg-brand-500 text-white rounded text-sm disabled:opacity-50"
             >
               {t('POS-Sales_k120')}
             </button>

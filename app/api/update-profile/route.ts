@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
   try {
-    const supabase = supabaseCreateClient();
+    const supabase = await supabaseCreateClient();
     const { fullName, email, profileImage } = await req.json();
 
     const { data: { user }, error: sessionError } = await supabase.auth.getUser();
@@ -46,7 +47,9 @@ export async function POST(req: Request) {
     }
 
     if (result.error) {
-      console.error('Profile update error:', result.error);
+      // Supabase error details embed row values; the response below still
+      // returns the message to the authenticated caller.
+      logError('profile.update_failed', classifyError(result.error));
       return NextResponse.json(
         { message: result.error.message },
         { status: 500 }
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Profile update error:', error);
+    console.error('Profile update error:', classifyError(error));
     return NextResponse.json(
       { message: error.message || 'Internal server error' },
       { status: 500 }

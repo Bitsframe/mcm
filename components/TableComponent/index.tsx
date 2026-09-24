@@ -129,7 +129,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
 
       return (
         <div key={index} className="flex justify-between py-1">
-          <span className="text-gray-500 dark:text-gray-400 font-medium">
+          <span className="text-gray-500 font-medium">
             {t(label, {
               ns: translationConstant.STOCKPANEL,
               defaultValue: t(label, {
@@ -138,15 +138,15 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
             })}
             :
           </span>
-          <span className="text-gray-700 dark:text-gray-200">{content}</span>
+          <span className="text-gray-700">{content}</span>
         </div>
       );
     });
   };
 
   return (
-    <div className="bg-white dark:bg-[#0e1725] w-full text-black dark:text-white">
-      <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 gap-2 sm:gap-0 sticky top-0 z-20 bg-white dark:bg-[#0e1725]">
+    <div className="bg-white w-full text-black">
+      <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 gap-2 sm:gap-0 sticky top-0 z-20 bg-white">
   {/* No global search bar for this table */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
           {pdf ? <ExportAsPDF /> : null}
@@ -155,7 +155,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
       </div>
 
       <div
-        className={`w-full border border-gray-200 dark:border-gray-700 rounded-md ${tableHeight} flex flex-col min-w-0 overflow-x-auto`}
+        className={`w-full border border-gray-200 rounded-md ${tableHeight} flex flex-col min-w-0 overflow-x-auto`}
       >
         {/* Mobile Cards View */}
         <div className="block md:hidden p-4 space-y-3 min-w-0">
@@ -168,10 +168,10 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
               {currentData.map((elem, index) => (
                 <div
                   key={startIndex + index}
-                  className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-[#0e1725] min-w-0 text-xs"
+                  className="border border-gray-300 rounded-lg p-4 shadow-sm bg-white min-w-0 text-xs"
                 >
                   {renderCardContent(elem)}
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-[11px]">
+                  <div className="mt-3 pt-3 border-t border-gray-200 text-[11px]">
                     {tableHeader.map(({ id, render_value }) => {
                       if (id !== "last_updated") return null;
                       const content = render_value
@@ -191,17 +191,17 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded text-gray-500 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
-                  <span className="text-xs text-gray-500 dark:text-gray-300">
+                  <span className="text-xs text-gray-500">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded text-gray-500 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -214,7 +214,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
         {/* Desktop Table View */}
         <div className="hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
-            <TableHeader className="bg-white dark:bg-[#0E1725] sticky top-0 z-10 min-w-0">
+            <TableHeader className="bg-white sticky top-0 z-10 min-w-0">
               {/* Search Inputs Row */}
               {searchInputs && (
                 <TableRow>
@@ -223,7 +223,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                         placeholder={t("POS-Historyk38", { ns: "POS-History", defaultValue: "Order ID" })}
                         value={searchInputs.orderIdSearch}
                         onChange={e => {
@@ -235,7 +235,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                       <input
                         type="text"
-                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                         placeholder={t("POS-Historyk39", { ns: "POS-History", defaultValue: "Patient Name" })}
                         value={searchInputs.patientNameSearch}
                         onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
@@ -244,7 +244,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   <TableCell className="p-1">
                       <input
                         type="date"
-                        className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                         placeholder={t("POS-Historyk40", { ns: "POS-History", defaultValue: "Date of Birth" })}
                         value={searchInputs.dobSearch}
                         onChange={e => searchInputs.setDobSearch(e.target.value)}
@@ -257,7 +257,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                           type="text"
                           inputMode="numeric"
                           pattern="[0-9]*"
-                          className="w-full border-2 border-gray-300 dark:border-gray-700 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
+                          className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
                           placeholder={t("POS-Historyk41", { ns: "POS-History", defaultValue: "Phone Number" })}
                           value={searchInputs.phoneSearch}
                           onChange={e => {
@@ -272,7 +272,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                       <input
                         type="text"
                         className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
-                        ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300 dark:border-gray-700'}`}
+                        ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300'}`}
                         placeholder={t("POS-Historyk42", { ns: "POS-History", defaultValue: "Email" })}
                         value={emailValue}
                         onChange={e => {
@@ -291,17 +291,17 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   {openModal && <TableCell className="p-1"></TableCell>}
                 </TableRow>
               )}
-              <TableRow className="border-b border-gray-400 dark:border-gray-700 rounded-lg min-w-0">
+              <TableRow className="border-b border-gray-400 rounded-lg min-w-0">
                 {/* Order ID */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk43", { ns: "POS-History", defaultValue: "Order ID" })}</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk43", { ns: "POS-History", defaultValue: "Order ID" })}</TableHead>
                 {/* Patient Name */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk44", { ns: "POS-History", defaultValue: "Patient Name" })}</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk44", { ns: "POS-History", defaultValue: "Patient Name" })}</TableHead>
                 {/* Amount Received */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{  t("POS-Historyk45", { ns: "POS-History", defaultValue: "Amount Received" })}</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{  t("POS-Historyk45", { ns: "POS-History", defaultValue: "Amount Received" })}</TableHead>
                 {/* Phone Number */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk46", { ns: "POS-History", defaultValue: "Phone Number" })}</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk46", { ns: "POS-History", defaultValue: "Phone Number" })}</TableHead>
                 {/* Email */}
-                <TableHead className="py-3 text-sm text-gray-500 dark:text-gray-300 font-medium text-center min-w-0">{t("POS-Historyk47", { ns: "POS-History", defaultValue: "Email" })}</TableHead>
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk47", { ns: "POS-History", defaultValue: "Email" })}</TableHead>
                 {/* Details column header cell for alignment */}
                   {openModal && <TableHead className="py-3 text-sm min-w-0"></TableHead>}
                   {/* Delete column header (if delete handler provided) */}
@@ -324,7 +324,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                 currentData.map((elem, index) => (
                   <TableRow
                     key={startIndex + index}
-                    className="hover:bg-gray-50 dark:hover:bg-[#334155] border-b border-gray-200 dark:border-gray-700 min-w-0"
+                    className="hover:bg-gray-50 border-b border-gray-200 min-w-0"
                   >
                     {/* Order ID */}
                     <TableCell className="py-3 text-sm text-center min-w-0">{elem.order_id}</TableCell>
@@ -341,7 +341,7 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                       <TableCell className="py-3 text-center min-w-0">
                         <button
                           onClick={() => openModal(elem)}
-                          className="px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 text-xs"
+                          className="px-2 py-1 rounded bg-brand-500 text-white hover:bg-brand-600 transition-colors duration-150 text-xs"
                           title="View Details"
                         >
                           {t("POS-Historyk48", { ns: "POS-History", defaultValue: "Details" })}
@@ -377,11 +377,11 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
           </Table>
         </div>
       </div>
-      <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-500 dark:text-gray-300 bg-white dark:bg-[#0e1725] min-w-0">
+      <div className="flex flex-row justify-between items-center gap-2 py-3 border-t border-gray-200 text-xs sm:text-sm text-gray-500 bg-white min-w-0">
         <div>
           {dataList.length === 0
-            ? `${t("SP_k16")} 0 ${t("SP_k17")} 0 ${t("SP_k18")} 0`
-            : `${t("SP_k16")} ${startIndex + 1}  ${t("SP_k17")} ${endIndex} ${t("SP_k18")} ${
+            ? `${t("SP_k16", { ns: "Stockpanel" })} 0 ${t("SP_k17", { ns: "Stockpanel" })} 0 ${t("SP_k18", { ns: "Stockpanel" })} 0`
+            : `${t("SP_k16", { ns: "Stockpanel" })} ${startIndex + 1}  ${t("SP_k17", { ns: "Stockpanel" })} ${endIndex} ${t("SP_k18", { ns: "Stockpanel" })} ${
                 dataList.length
               }`}
         </div>
@@ -389,22 +389,22 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
           <button
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+            className={`px-3 py-1 rounded text-gray-500 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 ${
               currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {t("SP_k15")}
+            {t("SP_k15", { ns: "Stockpanel" })}
           </button>
           <button
             onClick={handleNextPage}
             disabled={currentPage === totalPages || dataList.length === 0}
-            className={`px-3 py-1 rounded text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors duration-150 ${
+            className={`px-3 py-1 rounded text-gray-500 border border-gray-200 bg-white hover:bg-gray-100 transition-colors duration-150 ${
               currentPage === totalPages || dataList.length === 0
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
           >
-            {t("SP_k14")}
+            {t("SP_k14", { ns: "Stockpanel" })}
           </button>
         </div>
       </div>

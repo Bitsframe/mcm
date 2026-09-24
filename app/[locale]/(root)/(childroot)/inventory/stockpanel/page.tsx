@@ -146,14 +146,14 @@ const StockPanel = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
-        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden">
+      <div className="text-sm text-gray-500 flex items-center gap-2">
+        <div className="flex items-center bg-gray-100 rounded-md overflow-hidden">
           <button
             onClick={handleActiveClick}
             className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
               !getDataArchiveType
-                ? "bg-blue-600 text-white"
-                : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                ? "bg-brand-600 text-white"
+                : "bg-transparent text-gray-500 hover:text-black"
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -163,8 +163,8 @@ const StockPanel = () => {
             onClick={handleArchiveClick}
             className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 ${
               getDataArchiveType
-                ? "bg-blue-600 text-white"
-                : "bg-transparent text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                ? "bg-brand-600 text-white"
+                : "bg-transparent text-gray-500 hover:text-black"
             }`}
           >
             <Archive className="w-4 h-4" />
@@ -175,8 +175,8 @@ const StockPanel = () => {
           onClick={handleZeroQuantityToggle}
           className={`flex items-center gap-x-1 px-4 py-2 transition-colors duration-200 rounded-md ${
             excludeZeroQuantity
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:text-black dark:hover:text-white"
+              ? "bg-brand-600 text-white"
+              : "bg-gray-100 text-gray-500 hover:text-black"
           }`}
           title="Exclude zero quantity products"
         >
@@ -197,8 +197,8 @@ const StockPanel = () => {
   );
 
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:text-white max-w-full overflow-x-hidden">
-      <h1 className="text-2xl font-bold p-3">{t("ai_stock_panel")}</h1>
+    <main className="w-full h-full max-w-full overflow-x-hidden">
+      <h1 className="p-3 text-title2 text-label">{t("ai_stock_panel")}</h1>
       <div className="w-full h-full overflow-y-auto overflow-x-hidden py-2 px-2 flex flex-col gap-4 max-w-full">
         <div className="w-full max-w-full">
           <InventoryCards archived={getDataArchiveType} />

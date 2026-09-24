@@ -5,26 +5,30 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * macOS push button. 28px tall by default, 13px text, a hairline edge and a
+ * faint top highlight on the filled variant; presses scale down a hair.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center text-white  whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-body font-medium transition-[background-color,box-shadow,transform,color] duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-black text-white text-white hover:bg-primary/90",
+        default:
+          "bg-brand-600 text-white shadow-[0_1px_1px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-brand-700 active:bg-brand-800",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-          outline: "border border-input bg-white text-gray-900 hover:bg-gray-100 hover:text-black"
-          ,
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive text-white shadow-[0_1px_1px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-[#B80012]",
+        outline:
+          "border border-input bg-white text-label shadow-mac-sm hover:bg-surface active:bg-surface-2",
+        secondary: "bg-surface-2 text-label hover:bg-[#E0E0E3] active:bg-[#D6D6DA]",
+        ghost: "text-label hover:bg-black/[0.05] active:bg-black/[0.08]",
+        link: "text-brand-700 underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-8 px-3.5",
+        sm: "h-7 rounded-[6px] px-2.5 text-footnote",
+        lg: "h-10 px-5 text-callout",
+        icon: "h-8 w-8",
       },
     },
     defaultVariants: {

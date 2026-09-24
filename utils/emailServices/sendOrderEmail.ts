@@ -1,5 +1,6 @@
 import { currencyFormatHandle } from "@/helper/common_functions";
 
+import { classifyError } from '@/utils/logging/safe-log';
 // Helper: format a UTC datetime string as CT (UTC-6) in 'DD Mon YYYY'
 function formatUTCToCTDate(utcDateString?: string): string {
   try {
@@ -293,7 +294,7 @@ export const sendOrderEmail = async (
 
     return result;
   } catch (error: any) {
-    console.error("Error sending order email:", error);
+    console.error("Error sending order email:", classifyError(error));
     throw error;
   }
 }; 

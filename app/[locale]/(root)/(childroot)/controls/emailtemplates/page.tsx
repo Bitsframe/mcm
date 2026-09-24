@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
@@ -73,11 +74,11 @@ const MenuBar = ({ editor }: any) => {
   }
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2">
+    <div className="border-b border-gray-200 p-2 flex flex-wrap gap-2">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("bold") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("bold") ? "bg-gray-100" : ""
         }`}
         title="Bold"
       >
@@ -85,8 +86,8 @@ const MenuBar = ({ editor }: any) => {
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("italic") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("italic") ? "bg-gray-100" : ""
         }`}
         title="Italic"
       >
@@ -94,18 +95,18 @@ const MenuBar = ({ editor }: any) => {
       </button>
       <button
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("underline") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("underline") ? "bg-gray-100" : ""
         }`}
         title="Underline"
       >
         <UnderlineIcon className="w-4 h-4" />
       </button>
-      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <div className="w-px h-6 bg-gray-200 mx-1" />
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("bulletList") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("bulletList") ? "bg-gray-100" : ""
         }`}
         title="Bullet List"
       >
@@ -113,19 +114,19 @@ const MenuBar = ({ editor }: any) => {
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("orderedList") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("orderedList") ? "bg-gray-100" : ""
         }`}
         title="Numbered List"
       >
         <ListOrdered className="w-4 h-4" />
       </button>
-      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <div className="w-px h-6 bg-gray-200 mx-1" />
       <button
         onClick={() => editor.chain().focus().setTextAlign("left").run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+        className={`p-2 rounded hover:bg-gray-100 ${
           editor.isActive({ textAlign: "left" })
-            ? "bg-gray-100 dark:bg-gray-800"
+            ? "bg-gray-100"
             : ""
         }`}
         title="Align Left"
@@ -134,9 +135,9 @@ const MenuBar = ({ editor }: any) => {
       </button>
       <button
         onClick={() => editor.chain().focus().setTextAlign("center").run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+        className={`p-2 rounded hover:bg-gray-100 ${
           editor.isActive({ textAlign: "center" })
-            ? "bg-gray-100 dark:bg-gray-800"
+            ? "bg-gray-100"
             : ""
         }`}
         title="Align Center"
@@ -145,16 +146,16 @@ const MenuBar = ({ editor }: any) => {
       </button>
       <button
         onClick={() => editor.chain().focus().setTextAlign("right").run()}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+        className={`p-2 rounded hover:bg-gray-100 ${
           editor.isActive({ textAlign: "right" })
-            ? "bg-gray-100 dark:bg-gray-800"
+            ? "bg-gray-100"
             : ""
         }`}
         title="Align Right"
       >
         <AlignRight className="w-4 h-4" />
       </button>
-      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+      <div className="w-px h-6 bg-gray-200 mx-1" />
       <button
         onClick={() => {
           const url = window.prompt("Enter URL");
@@ -162,8 +163,8 @@ const MenuBar = ({ editor }: any) => {
             editor.chain().focus().setLink({ href: url }).run();
           }
         }}
-        className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          editor.isActive("link") ? "bg-gray-100 dark:bg-gray-800" : ""
+        className={`p-2 rounded hover:bg-gray-100 ${
+          editor.isActive("link") ? "bg-gray-100" : ""
         }`}
         title="Add Link"
       >
@@ -221,7 +222,7 @@ const EmailTemplates = () => {
         setTemplates(loadedTemplates);
         setFilteredTemplates(loadedTemplates);
       } catch (error) {
-        console.error("Error loading templates:", error);
+        console.error("Error loading templates:", classifyError(error));
       }
     };
 
@@ -303,7 +304,7 @@ const EmailTemplates = () => {
   //     setTemplateContent("");
   //     alert("Template saved to Supabase!");
   //   } catch (error) {
-  //     console.error("Error saving template:", error);
+  //     console.error("Error saving template:", classifyError(error));
   //     alert("Failed to save template. Please try again.");
   //   }
   // };
@@ -356,7 +357,7 @@ const handleSaveTemplate = async () => {
       throw new Error("No valid data returned from the service.");
     }
   } catch (error) {
-    console.error("Error saving template:", error);
+    console.error("Error saving template:", classifyError(error));
     alert("Failed to save template. Please try again.");
   }
 };
@@ -413,7 +414,7 @@ const handleSaveTemplate = async () => {
       setTemplateContent("");
       alert("Template content updated successfully!");
     } catch (error) {
-      console.error("Error updating template:", error);
+      console.error("Error updating template:", classifyError(error));
       alert("Failed to update template. Please try again.");
     }
   };
@@ -448,18 +449,18 @@ const handleSaveTemplate = async () => {
 
       alert("Template deleted successfully!");
     } catch (error) {
-      console.error("Error deleting template:", error);
+      console.error("Error deleting template:", classifyError(error));
       alert("Failed to delete template. Please try again.");
     }
   };
 
   return (
-    <div className="relative z-[49] h-[120dvh] md:h-[75dvh] bg-background dark:bg-gray-900">
+    <div className="relative z-[49] h-[120dvh] md:h-[75dvh] bg-background">
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-          <div className="bg-white dark:bg-[#080e16] rounded-lg p-6 w-full max-w-md relative">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
               onClick={() => {
                 setShowCreateModal(false);
                 setTemplateName("");
@@ -468,28 +469,28 @@ const handleSaveTemplate = async () => {
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
+            <h2 className="mb-1 text-title3 text-label">
               {t("CT_k18")}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            <p className="mb-6 text-body text-label-2">
               {t("CT_k19")}
             </p>
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-2 text-gray-600">
                 {t("CT_k17")}
               </label>
               <input
                 type="text"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
-                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
+                className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800"
                 placeholder="Type here"
                 autoFocus={true}
               />
             </div>
             <div className="flex justify-end gap-3">
               <button
-                className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm"
                 onClick={() => {
                   setShowCreateModal(false);
                   setTemplateName("");
@@ -498,7 +499,7 @@ const handleSaveTemplate = async () => {
                 {t("CT_k16")}
               </button>
               <button
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+                className="px-5 py-2.5 bg-brand-600 text-white rounded-md hover:bg-brand-700 transition-colors font-medium text-sm"
                 onClick={handleCreateTemplateConfirm}
               >
                 {t("CT_k9")}
@@ -508,13 +509,13 @@ const handleSaveTemplate = async () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#0E1725] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-full flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center dark:border-gray-700">
-          <h1 className="text-lg font-medium text-gray-900 dark:text-white">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+        <div className="p-4 border-b flex justify-between items-center">
+          <h1 className="text-headline text-label">
             {t("CT_k8")}
           </h1>
           <button
-            className="bg-[#0066ff] text-white px-4 py-2 rounded-md text-base transition-colors flex items-center gap-1"
+            className="flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-body text-white transition-colors hover:bg-brand-700"
             onClick={handleCreateNewTemplate}
           >
             <PlusCircle className="w-5 h-5" />
@@ -523,16 +524,16 @@ const handleSaveTemplate = async () => {
         </div>
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 dark:bg-gray-800 dark:border-gray-700 flex flex-col">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h2 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-300">
+          <div className="w-full md:w-[30%] border-r md:border-r bg-gray-50 flex flex-col">
+            <div className="p-4 border-b">
+              <h2 className="mb-3 text-callout font-semibold text-label">
                 {t("CT_k11")}
               </h2>
               <div className="relative">
                 <input
                   type="text"
                   placeholder={t("CT_k31")}
-                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="w-full pl-8 pr-2 py-2 text-sm border rounded-md bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -541,7 +542,7 @@ const handleSaveTemplate = async () => {
             </div>
             <div className="overflow-auto h-[180px] md:h-[calc(69vh-130px)] p-0">
               {filteredTemplates.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 p-4">
+                <p className="text-sm text-gray-500 p-4">
                   {searchQuery.trim()
                     ? "No matching templates found"
                     : "No templates saved yet"}
@@ -551,10 +552,10 @@ const handleSaveTemplate = async () => {
                   {filteredTemplates.map((template) => (
                     <li
                       key={template.id}
-                      className={`px-4 py-3 cursor-pointer border-b text-sm dark:border-gray-700 ${
+                      className={`px-4 py-3 cursor-pointer border-b text-sm ${
                         activeTemplate?.id === template.id
-                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                          ? "bg-brand-50 text-brand-700"
+                          : "hover:bg-gray-100 text-gray-700"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -569,7 +570,7 @@ const handleSaveTemplate = async () => {
                             e.stopPropagation();
                             handleDeleteTemplate(template.id);
                           }}
-                          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                          className="p-1 hover:bg-gray-200 rounded-md transition-colors"
                           title="Delete template"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
@@ -582,27 +583,27 @@ const handleSaveTemplate = async () => {
             </div>
           </div>
 
-          <div className="flex-1 p-6 text-gray-800 dark:text-gray-100 overflow-auto">
+          <div className="flex-1 p-6 text-gray-800 overflow-auto">
             {isCreatingNew ? (
               <>
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                  <h2 className="text-title3 text-label">
                     {activeTemplate?.id ? t("CT_k12") : t("CT_k57")}
                   </h2>
                 </div>
 
                 <div className="flex flex-col h-[calc(100%-200px)]">
                   <MenuBar editor={editor} />
-                  <div className="flex-1 overflow-auto border border-gray-200 dark:border-gray-700 text-base rounded-b">
+                  <div className="flex-1 overflow-auto border border-gray-200 text-base rounded-b">
                     <EditorContent editor={editor} className="h-full p-4" />
                   </div>
                 </div>
 
                 <div className="mt-6">
-                  <h2 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">
+                  <h2 className="mb-2 text-callout font-semibold text-label">
                   {t("CT_k13")}
                   </h2>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 min-h-[120px] text-base overflow-auto">
+                  <div className="bg-gray-50 rounded-md p-2 border border-gray-200 min-h-[120px] text-base overflow-auto">
                     <div
                       dangerouslySetInnerHTML={{
                         __html: getFullPreviewHtml(templateContent),
@@ -614,21 +615,21 @@ const handleSaveTemplate = async () => {
                 <div className="mt-4 flex gap-3">
                   {activeTemplate?.id ? (
                     <button
-                      className="px-4 py-2 bg-[#0066ff] text-white rounded-md text-sm font-medium transition-colors"
+                      className="px-4 py-2 bg-[#166534] text-white rounded-md text-sm font-medium transition-colors"
                       onClick={handleUpdateTemplate}
                     >
                       {t("CT_k14")}
                     </button>
                   ) : (
                     <button
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                      className="px-4 py-2 bg-brand-500 text-white rounded-md text-sm font-medium hover:bg-brand-600 transition-colors"
                       onClick={handleSaveTemplate}
                     >
                       {t("CT_k15")}
                     </button>
                   )}
                   <button
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
                     onClick={() => {
                       setIsCreatingNew(false);
                       setTemplateName("");
@@ -642,7 +643,7 @@ const handleSaveTemplate = async () => {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  <p className="text-gray-500 mb-4">
                     {filteredTemplates.length > 0
                       ? t("CT_k10")
                       : "No templates available. Create your first template"}

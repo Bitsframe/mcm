@@ -1,12 +1,13 @@
 "use client"
 
+import StatStrip from "@/components/Dashboard/StatStrip";
+import { classifyError } from '@/utils/logging/safe-log';
 import { useContext, useEffect, useState, useCallback, memo, useRef } from "react"
 import {
   delete_appointment_service,
   fetchApprovedAppointmentsByLocation,
   fetchUnapprovedAppointmentsByLocation,
-  fetch_content_service,
-} from "@/utils/supabase/data_services/data_services"
+  fetch_content_service } from "@/utils/supabase/data_services/data_services"
 import { toast } from "react-toastify"
 import moment from "moment"
 import { DatePicker, ConfigProvider, theme } from "antd"
@@ -21,10 +22,11 @@ import { translationConstant } from "@/utils/translationConstants"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { AppointmentEditModal } from "@/components/Appointment/Appointment_Edit/Appointment_Edit_Modal"
 import { TabContext } from "@/context"
-import { Calendar, CheckCircle, UserPlus, Hourglass, CalendarPlus, CheckCheck } from "lucide-react"
+import { Calendar, CheckCircle, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import DeleteConfirmationModal from "@/components/Appointment/DeleteConfirmationModal"
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 const Appointments = () => {
   const { locations } = useLocationClinica()
@@ -116,7 +118,7 @@ const Appointments = () => {
         const onlyDateTimes = (data || []).map((row: any) => row?.date_and_time)
        
       } catch (err) {
-        console.error("Failed to fetch appointment date_and_time", err)
+        console.error("Failed to fetch appointment date_and_time", classifyError(err))
       }
     }
     fetchDateTimes()
@@ -331,81 +333,36 @@ const Appointments = () => {
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
   return (
-    <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 dark:bg-[#0E1725] dark:text-gray-300 overflow-x-hidden">
-      <h1 className="text-xl sm:text-2xl font-bold text-black px-2 sm:px-4 pt-2 sm:pt-4 dark:text-white">
+    <main className="w-full h-full text-gray-600 font-medium space-y-2 sm:space-y-5 overflow-x-hidden">
+      <div className="px-2 pt-2 sm:px-4 sm:pt-4">
+        <StatStrip page="appointments" />
+      </div>
+      <h1 className="px-2 text-title2 text-label sm:px-4">
         {t("Appoinments_k48")}
       </h1>
 
-      <div className="grid grid-cols-2 gap-2 px-0 sm:px-4 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-6">
-        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
-            <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
-              <Calendar className="h-4 w-4 sm:h-6 sm:w-6" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k39")}</p>
-              <h2 className="text-lg font-bold dark:text-white sm:text-2xl">
-                {approvedAppointments.length + unapprovedAppointments.length}
-              </h2>
-            </div>
-          </CardContent>
-        </Card>
+      {/* The stat strip above carries the figures (today / upcoming / awaiting
+          approval / booked this month); the Approved and Pending tabs below give
+          the rest, so there is no second row of cards. */}
 
-        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
-            <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
-              <CheckCheck className="h-4 w-4 sm:h-6 sm:w-6" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k24")}</p>
-              <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{approvedAppointments.length}</h2>
-            </div> 
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
-            <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
-              <Hourglass className="h-4 w-4 sm:h-6 sm:w-6" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k38")}</p>
-              <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{unapprovedAppointments.length}</h2>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#F1F4F9] dark:bg-[#080E16]">
-          <CardContent className="p-2 sm:p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:gap-4">
-            <div className="bg-white p-2 rounded-lg dark:bg-gray-700 mb-1 sm:mb-0">
-              <CalendarPlus className="h-4 w-4 sm:h-6 sm:w-6" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{t("Appoinments_k25")}</p>
-              <h2 className="text-lg font-bold dark:text-white sm:text-2xl">{unapprovedAppointments.length}</h2>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4 dark:bg-[#0E1725]">
+      <div className="bg-white rounded-lg px-1 xs:px-2 sm:px-4">
         <div className="space-y-4">
           <div className="flex items-center justify-between w-full flex-wrap md:flex-nowrap">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{t("Appoinments_k65")}:</span>
-              <select
+              <span className="text-sm text-gray-600 whitespace-nowrap">{t("Appoinments_k65")}:</span>
+              <MacSelect
                 value={searchType}
                 onChange={(e) => {
                   setSearchType(e.target.value)
                   filterHandle(null)
                 }}
-                className="min-w-[100px] border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                className="min-w-[100px] border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900"
               >
                 <option value="all">{t("Appoinments_k88")}</option>
                 <option value="name">{t("Appoinments_k89")}</option>
                 <option value="phone">{t("Appoinments_k90")}</option>
                 <option value="email">{t("Appoinments_k91")}</option>
-              </select>
+              </MacSelect>
               <span className="text-gray-500">=</span>
               <input
                 type="text"
@@ -416,7 +373,7 @@ const Appointments = () => {
                   setSearchTerm(newValue)
                   setTimeout(() => filterHandle(null), 0)
                 }}
-                className="w-56 border bg-[#f1f4f9] border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                className="w-56 border bg-[#F5F5F7] border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400"
               />
             </div>
             <div className="md:w-56 ml-auto">
@@ -424,19 +381,19 @@ const Appointments = () => {
                 theme={{
                   algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
                   token: {
-                    colorBgContainer: isDarkMode ? '#374151' : '#ffffff',
+                    colorBgContainer: isDarkMode ? '#1D1D1F' : '#ffffff',
                     colorText: isDarkMode ? '#ffffff' : '#000000',
-                    colorTextPlaceholder: isDarkMode ? '#9CA3AF' : '#6B7280',
-                    colorBorder: isDarkMode ? '#4B5563' : '#D1D5DB',
-                    colorBgElevated: isDarkMode ? '#374151' : '#ffffff',
+                    colorTextPlaceholder: isDarkMode ? '#86868B' : '#6E6E73',
+                    colorBorder: isDarkMode ? '#6E6E73' : '#D9D9DE',
+                    colorBgElevated: isDarkMode ? '#1D1D1F' : '#ffffff',
                   },
                 }}
               >
                 <DatePicker
                   onChange={filterHandle}
-                  className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-white"
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black placeholder-gray-400"
                   placeholder={t("Appoinments_k59")}
-                  suffixIcon={<Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                  suffixIcon={<Calendar className="h-4 w-4 text-gray-500" />}
                 />
               </ConfigProvider>
             </div>
@@ -444,10 +401,10 @@ const Appointments = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <Tabs className="w-full sm:w-auto order-2 sm:order-1" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-gray-100 p-1 rounded-lg dark:bg-[#080E16] w-full flex-nowrap">
+              <TabsList className="bg-gray-100 p-1 rounded-lg w-full flex-nowrap">
                 <TabsTrigger
                   value="approved"
-                  className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
+                  className="data-[state=active]:bg-[#166534] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none"
                 >
                   <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">{t("Appoinments_k24")}</span>
@@ -455,7 +412,7 @@ const Appointments = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="request"
-                  className="data-[state=active]:bg-[#0066ff] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none dark:data-[state=active]:bg-blue-600"
+                  className="data-[state=active]:bg-[#166534] data-[state=active]:text-white rounded-md px-2 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none"
                 >
                   <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">{t("Appoinments_k25")}</span>
@@ -548,7 +505,7 @@ const AppointmentDetailsPanel = ({
           }
         }}
       >
-        <SheetContent className="p-0 dark:bg-gray-900 m-0 sm:m-3 rounded-xl overflow-y-auto overflow-x-hidden">
+        <SheetContent className="p-0 m-0 sm:m-3 rounded-xl overflow-y-auto overflow-x-hidden">
           <SheetTitle className="sr-only">
             {appointmentDetails
               ? `${appointmentDetails.first_name} ${appointmentDetails.last_name}'s Appointment Details`
@@ -557,32 +514,25 @@ const AppointmentDetailsPanel = ({
           <div className="p-2 sm:p-4">
             {appointmentDetails ? (
               <>
+                {/* Actions sit in the sheet's top-right corner, clear of the details. */}
+                <div className="mb-3 flex items-center justify-end gap-2 pr-8">
+                  <Button variant="outline" size="sm" onClick={handleEdit}>
+                    {t("Appoinments_k34")}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => onDelete(appointmentDetails.id)}>
+                    {t("Appoinments_k33")}
+                  </Button>
+                </div>
+
                 <AppointmentDetails
                   onDelete={onDelete}
                   appointment_details={appointmentDetails}
                   find_locations={findLocations}
                   update_reflect_on_close_modal={updateReflectOnCloseModal}
                 />
-
-                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleEdit}
-                    className="border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 w-full sm:w-auto"
-                  >
-                   {t("Appoinments_k34")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => onDelete(appointmentDetails.id)}
-                    className="w-full sm:w-auto"
-                  >
-                    {t("Appoinments_k33")} 
-                  </Button>
-                </div>
               </>
             ) : (
-              <div className="flex h-full justify-center items-center dark:text-gray-300 p-4">
+              <div className="flex h-full justify-center items-center p-4">
                 <h1 className="text-base sm:text-lg text-center">Select an appointment to view details</h1>
               </div>
             )}

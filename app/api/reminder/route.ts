@@ -3,6 +3,11 @@ import moment from 'moment';
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import 'dotenv/config';
+import {
+  INTERNAL_KEY_HEADER,
+  authoriseInternalRequest,
+} from '@/utils/auth/internal-key';
+import { classifyError, logError, logWarn } from '@/utils/logging/safe-log';
 
 // ===== Secure Environment Variables =====
 const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL!;
@@ -10,18 +15,18 @@ const SENDER_BROADCAST_EMAIL = process.env.SENDER_BROADCAST_EMAIL!;
 const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY!;
-const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY!;
 
 // ===== Main Handler (server-to-server, no user auth) =====
 export async function GET(req: Request) {
-  // 🔐 Validate x-internal-key header
-  const internalKey = req.headers.get('x-internal-key');
-  
-  
-
-  if (internalKey !== INTERNAL_API_KEY) {
-    console.warn('❌ Unauthorized access attempt. Key received:', internalKey);
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // 🔐 Validate the internal key.
+  //
+  // The attempted value is deliberately not logged. `console.warn` survives
+  // `compiler.removeConsole` by design, so logging it wrote credential guesses
+  // straight into the production log stream. Missing and wrong keys return the
+  // same body, so a caller cannot learn whether the endpoint is guarded.
+  const auth = authoriseInternalRequest(req.headers.get(INTERNAL_KEY_HEADER));
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.message }, { status: auth.status });
   }
 
   // Environment variables are available (not logged to avoid leaking secrets)
@@ -41,7 +46,8 @@ export async function GET(req: Request) {
       .order('id', { ascending: true });
 
     if (fetchError) {
-      console.error('❌ Error fetching appointments:', fetchError.message);
+      // Supabase messages embed row values; log the classification only.
+      logError('reminder.fetch_failed', classifyError(fetchError));
       return NextResponse.json({ success: false, error: fetchError.message }, { status: 500 });
     }
 
@@ -79,7 +85,8 @@ export async function GET(req: Request) {
         ], true);
 
         if (!apptDate.isValid()) {
-          console.warn(`❌ Invalid appointment date: ${rawDate}`);
+          // The raw date is appointment data; the code alone is the signal.
+          logWarn('reminder.skipped', { code: 'INVALID_DATE' });
           continue;
         }
 
@@ -105,7 +112,10 @@ export async function GET(req: Request) {
   // email content created
 
         if (!appt.email_address) {
-          console.warn(`❌ Appointment ID ${appt.id} has no email address.`);
+          // The appointment id links to a patient, so it is not logged. The
+          // per-appointment detail is already in `results`, returned to the
+          // authenticated caller rather than written to the log stream.
+          logWarn('reminder.skipped', { code: 'NO_EMAIL_ADDRESS' });
           results.push({
             appointmentId: appt.id,
             type: reminderType,
@@ -137,7 +147,7 @@ export async function GET(req: Request) {
             timeout: 15000,
           });
         } catch (err: any) {
-          console.error('❌ Email send failed (network):', err?.message);
+          logError('reminder.email_send_failed', { ...classifyError(err), code: 'NETWORK' });
           results.push({
             appointmentId: appt.id,
             type: reminderType,
@@ -148,7 +158,12 @@ export async function GET(req: Request) {
         }
 
         if (response.status !== 200) {
-          console.error('❌ Email send failed (non-200):', response.data);
+          // `response.data` is an upstream body we do not control and which may
+          // echo the recipient back. The status is enough to diagnose.
+          logError('reminder.email_send_failed', {
+            code: 'UPSTREAM_NON_200',
+            status: response.status,
+          });
           results.push({
             appointmentId: appt.id,
             type: reminderType,
@@ -170,12 +185,12 @@ export async function GET(req: Request) {
           .eq('id', appt.id);
 
         if (updateError) {
-          console.error('❌ Error updating flags for appointment ID:', appt.id, updateError.message);
+          logError('reminder.flag_update_failed', classifyError(updateError));
           throw updateError;
         }
         results.push({ appointmentId: appt.id, type: reminderType, status: 'sent' });
       } catch (err: any) {
-        console.error('⚠️ Error processing appointment', appt.id, err?.message);
+        logError('reminder.appointment_failed', classifyError(err));
         results.push({
           appointmentId: appt.id,
           type: 'error',
@@ -194,7 +209,7 @@ export async function GET(req: Request) {
       details: results,
     });
   } catch (err: any) {
-    console.error('[getReminders] Job failed:', err?.message || err);
+    logError('reminder.job_failed', classifyError(err));
     return NextResponse.json(
       { success: false, error: err?.message || String(err) },
       { status: 500 }

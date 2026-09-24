@@ -1,9 +1,14 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 // Mark this route as dynamic so Next won't attempt to statically prerender it
 export const dynamic = 'force-dynamic';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export async function GET(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     // Use request.nextUrl for server-safe access to URL/search params
     // (avoids using request.url which prevents static prerendering)
@@ -36,7 +41,6 @@ export async function GET(request: NextRequest) {
       ]
     });
 
-    console.log('Raw data from fetch_content_service:', data);
 
     const formattedData = data.map((item: any) => ({
       id: item.id,
@@ -52,7 +56,6 @@ export async function GET(request: NextRequest) {
       patient_email: item.orders?.pos?.email || ''
     }));
 
-    console.log('Formatted response data:', formattedData);
 
     return NextResponse.json({
       success: true,
@@ -60,7 +63,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching fulfillment requests:', error);
+    console.error('Error fetching fulfillment requests:', classifyError(error));
     return NextResponse.json(
       { error: 'Failed to fetch fulfillment requests' },
       { status: 500 }

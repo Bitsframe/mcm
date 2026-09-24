@@ -1,17 +1,23 @@
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+    }
+
     const body = await req.json()
-  const { bonuses, configOnly } = body
+    const { bonuses, configOnly } = body
     console.log('[api/bonuses/save] received body:', JSON.stringify(body?.bonuses ? { count: body.bonuses.length } : body))
     if (!bonuses || !Array.isArray(bonuses)) {
       console.log('[api/bonuses/save] invalid payload, bonuses missing or not array')
       return NextResponse.json({ error: 'Invalid payload: bonuses array required' }, { status: 400 })
     }
-
-    const supabase = createClient()
 
     // Log incoming bonuses shape for debugging
     try {
@@ -171,7 +177,7 @@ export async function POST(req: Request) {
                 }
                 updatedRows.push({ ...(genData && genData[0] ? genData[0] : r) })
               } catch (e) {
-                console.error('[api/bonuses/save] error recalculating bonus_eligibility for updated row', e)
+                console.error('[api/bonuses/save] error recalculating bonus_eligibility for updated row', classifyError(e))
                 updatedRows.push(r)
               }
             }
@@ -212,7 +218,7 @@ export async function POST(req: Request) {
               if (Array.isArray(genData) && genData.length > 0) inserted.push(...genData)
               else inserted.push(newRow)
               } catch (e) {
-              console.error('[api/bonuses/save] error recalculating bonus_eligibility after insert', e)
+              console.error('[api/bonuses/save] error recalculating bonus_eligibility after insert', classifyError(e))
               inserted.push(insData[0])
             }
           }
@@ -236,7 +242,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: { message: insertEx?.message ?? String(insertEx) } }, { status: 500 })
     }
   } catch (err: any) {
-    console.error('API /bonuses/save error', err)
+    console.error('API /bonuses/save error', classifyError(err))
     return NextResponse.json({ error: err?.message ?? 'unknown error' }, { status: 500 })
   }
 }

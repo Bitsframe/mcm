@@ -1,5 +1,6 @@
 const { useEffect, useState } = require("react");
 import { LocationContext } from '@/context';
+import { classifyError } from '@/utils/logging/safe-log';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services'
 import axios from 'axios';
 import { useContext } from 'react';
@@ -28,7 +29,7 @@ export function useCategoriesClinica(productsWithQuantity?: boolean, locationId?
       
               setCategories(data);
             } catch (error) {
-              console.error("Error fetching categories:", error);
+              console.error("Error fetching categories:", classifyError(error));
               setCategories([]); 
             }
           })(productsWithQuantity, locationId || selectedLocation?.id);

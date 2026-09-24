@@ -1,21 +1,25 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { keepPortalLocations } from '@/utils/server/portal-locations';
 import { bridgePost, bridgePatch, BridgeError, type PatientCreateResult } from '@/lib/bridge/client';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = async (req: Request) => {
-    const supabase = supabaseCreateClient();
+    const supabase = await supabaseCreateClient();
 
     try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // getUser() re-verifies against the auth server. getSession() only reads
+        // the cookie, which Supabase warns may not be authentic.
+        const { data: { user: authUser }, error: sessionError } = await supabase.auth.getUser();
 
-        if (sessionError || !session?.user) {
+        if (sessionError || !authUser) {
             return NextResponse.json({ message: 'User not authenticated.' }, { status: 401 });
         }
 
-        const userId = session.user.id;
+        const userId = authUser.id;
 
         const profileResult = await supabase
             .from('profiles')
@@ -23,9 +27,16 @@ export const GET = async (req: Request) => {
             .eq('id', userId)
             .single();
 
-        if (!profileResult || profileResult.error) {
-            console.error('Error fetching profile:', profileResult.error);
-            return;
+        // This branch used to `return;` with no value. Next then raised
+        // "No response is returned from route handler" and answered 500, which
+        // took the whole app down with it because AuthContext calls this on
+        // every page load.
+        if (!profileResult || profileResult.error || !profileResult.data) {
+            console.error('Error fetching profile:', classifyError(profileResult?.error));
+            return NextResponse.json(
+                { success: false, message: 'No profile found for this account.' },
+                { status: 404 }
+            );
         }
 
         const [locationsResult, permissionsResult] = await Promise.all([
@@ -54,10 +65,16 @@ export const GET = async (req: Request) => {
                 .single() :
             { data: { name: 'admin' } };
 
+        // Only locations switched on for the portal count as this user's locations.
+        const portalLocations = await keepPortalLocations(
+            supabase,
+            (locationsResult.data ?? []).map((row: any) => Number(row.location_id)).filter((id: number) => Number.isFinite(id))
+        );
+
         // Construct response data with null checks and type casting
         const userData = {
             profile: profileResult.data,
-            locations: locationsResult.data?.map(location => location.location_id) ?? [],
+            locations: portalLocations,
             permissions: permissionsResult.data?.map(elem => elem.permissions.permission) ?? [],
             role: roleResult.data?.name ?? 'admin'
         };
@@ -71,7 +88,7 @@ export const GET = async (req: Request) => {
             { status: 200 }
         );
     } catch (error) {
-        console.error('User details error:', error);
+        console.error('User details error:', classifyError(error));
         return NextResponse.json(
             {
                 success: false,
@@ -84,10 +101,9 @@ export const GET = async (req: Request) => {
 
 export const POST = async (req: Request) => {
     try {
-        const supabase = supabaseCreateClient();
+        const supabase = await supabaseCreateClient();
         const patientData = await req.json();
 
-        console.log('patientData from api:', patientData);
 
         const resolvedAddress =
             patientData.address ?? patientData.streetAddress ?? null;
@@ -166,7 +182,7 @@ export const POST = async (req: Request) => {
                     isApproved: true,
                 };
 
-                const admin = createAdminClient();
+                const admin = await createAdminClient();
                 const { error: apptError } = await admin
                     .from("Appoinments")
                     .insert([appointmentPayload]);
@@ -206,10 +222,9 @@ export const POST = async (req: Request) => {
 
 export const PUT = async (req: Request) => {
     try {
-        const supabase = supabaseCreateClient();
+        const supabase = await supabaseCreateClient();
         const patientData = await req.json();
 
-        console.log('patientData:', patientData);
 
         // Updates go through the bridge too — this app does not write the table.
         let data: unknown;

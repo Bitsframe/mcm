@@ -34,10 +34,10 @@ interface PatientListProps {
 type WheelValue = { year: string; month: string; day: string };
 
 const searchInputClass =
-  "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 py-2 pl-10 text-base text-black outline-none transition-shadow placeholder:text-gray-500 focus:border-[#0066ff] focus:ring-2 focus:ring-[#0066ff]/20 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:placeholder:text-gray-400";
+  "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#F5F5F7] px-3 py-2 pl-10 text-base text-black outline-none transition-shadow placeholder:text-gray-500 focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/20";
 
 const filterTriggerClass =
-  "flex min-h-[46px] w-full max-w-md items-center justify-between gap-2 rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 text-left text-sm text-black transition-colors hover:border-gray-300 dark:border-gray-600 dark:bg-[#122136] dark:text-white";
+  "flex min-h-[46px] w-full max-w-md items-center justify-between gap-2 rounded-lg border border-gray-200 bg-[#F5F5F7] px-3 text-left text-sm text-black transition-colors hover:border-gray-300";
 
 function patientToYmd(dob: string | null | undefined): string | null {
   if (!dob) return null;
@@ -165,7 +165,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="coming-back-search">
+        <label className="text-sm font-medium text-gray-700" htmlFor="coming-back-search">
           {t("Appoinments_k65")}
         </label>
         <div className="relative">
@@ -187,14 +187,14 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
 
       <div className="space-y-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          <span className="text-sm font-medium text-gray-700">
             {t("Appoinments_k84")}
           </span>
           {dobFilterYmd ? (
             <button
               type="button"
               onClick={clearDobFilter}
-              className="inline-flex items-center gap-1 self-start text-xs font-medium text-[#0066ff] hover:underline sm:self-auto"
+              className="inline-flex items-center gap-1 self-start text-xs font-medium text-[#166534] hover:underline sm:self-auto"
             >
               <X className="h-3.5 w-3.5" />
               {t("Appoinments_k85")}
@@ -203,10 +203,10 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
         </div>
         <button type="button" onClick={openDobWheel} className={filterTriggerClass}>
           <span className="flex min-w-0 flex-1 items-center gap-2">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/90 text-blue-600 shadow-sm dark:bg-[#1a2d4a] dark:text-blue-400">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/90 text-brand-600 shadow-sm">
               <CalendarDays className="h-4 w-4" aria-hidden />
             </span>
-            <span className={`truncate ${dobFilterYmd ? "font-medium text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"}`}>
+            <span className={`truncate ${dobFilterYmd ? "font-medium text-gray-900" : "text-gray-500"}`}>
               {dobFilterLabel}
             </span>
           </span>
@@ -214,7 +214,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
       </div>
 
       {filteredData.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 py-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <p className="rounded-lg border border-dashed border-gray-200 py-8 text-center text-sm text-gray-500">
           {t("Appoinments_k86")}
         </p>
       ) : (
@@ -223,20 +223,20 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
           <ul className="space-y-2 sm:hidden">
             {filteredData.map((patient) => (
               <li key={patient.id}>
-                <label className="flex cursor-pointer gap-3 rounded-xl border border-gray-200 bg-[#f8fafc] p-3 dark:border-gray-700 dark:bg-[#0a1424]">
+                <label className="flex cursor-pointer gap-3 rounded-xl border border-gray-200 bg-[#f8fafc] p-3">
                   <input
                     type="radio"
                     name="coming-back-select"
                     checked={selectedPatient === patient.id}
                     onChange={() => handleSelectPatient(patient.id)}
-                    className="mt-1 h-4 w-4 shrink-0 accent-[#0066ff]"
+                    className="mt-1 h-4 w-4 shrink-0 accent-[#166534]"
                     aria-label={`${patient.first_name} ${patient.last_name}`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900">
                       {patient.first_name} {patient.last_name}
                     </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs text-gray-500">
                       ID {patient.id} · {formatDobDisplay(patient.dob)}
                     </p>
                   </div>
@@ -246,19 +246,19 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
           </ul>
 
           {/* sm+: table */}
-          <div className="hidden sm:block sm:overflow-x-auto sm:rounded-xl sm:border sm:border-gray-200 dark:sm:border-gray-700">
+          <div className="hidden sm:block sm:overflow-x-auto sm:rounded-xl sm:border sm:border-gray-200">
             <table className="w-full min-w-[520px] table-fixed text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-[#0a1424]">
-                  <th className="w-14 px-3 py-3 font-semibold text-gray-700 dark:text-gray-200"> </th>
-                  <th className="w-20 px-3 py-3 font-semibold text-gray-700 dark:text-gray-200">ID</th>
-                  <th className="px-3 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="w-14 px-3 py-3 font-semibold text-gray-700"> </th>
+                  <th className="w-20 px-3 py-3 font-semibold text-gray-700">ID</th>
+                  <th className="px-3 py-3 font-semibold text-gray-700">
                     {t("Appoinments_k26")}
                   </th>
-                  <th className="px-3 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  <th className="px-3 py-3 font-semibold text-gray-700">
                     {t("Appoinments_k12")}
                   </th>
-                  <th className="w-36 px-3 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  <th className="w-36 px-3 py-3 font-semibold text-gray-700">
                     {t("Appoinments_k9")}
                   </th>
                 </tr>
@@ -267,7 +267,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                 {filteredData.map((patient) => (
                   <tr
                     key={patient.id}
-                    className="border-b border-gray-100 last:border-0 dark:border-gray-800"
+                    className="border-b border-gray-100 last:border-0"
                   >
                     <td className="px-3 py-3 align-middle">
                       <input
@@ -275,20 +275,20 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                         name="coming-back-select"
                         checked={selectedPatient === patient.id}
                         onChange={() => handleSelectPatient(patient.id)}
-                        className="h-4 w-4 accent-[#0066ff]"
+                        className="h-4 w-4 accent-[#166534]"
                         aria-label={`${patient.first_name} ${patient.last_name}`}
                       />
                     </td>
-                    <td className="px-3 py-3 align-middle tabular-nums text-gray-600 dark:text-gray-300">
+                    <td className="px-3 py-3 align-middle tabular-nums text-gray-600">
                       {patient.id}
                     </td>
-                    <td className="px-3 py-3 align-middle font-medium text-gray-900 dark:text-white">
+                    <td className="px-3 py-3 align-middle font-medium text-gray-900">
                       {patient.first_name}
                     </td>
-                    <td className="px-3 py-3 align-middle text-gray-800 dark:text-gray-200">
+                    <td className="px-3 py-3 align-middle text-gray-800">
                       {patient.last_name}
                     </td>
-                    <td className="px-3 py-3 align-middle text-gray-600 dark:text-gray-300">
+                    <td className="px-3 py-3 align-middle text-gray-600">
                       {formatDobDisplay(patient.dob)}
                     </td>
                   </tr>
@@ -311,21 +311,21 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
             aria-label={t("Appoinments_k58")}
             onClick={() => setDobWheelOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-t-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-[#0e1725] sm:rounded-2xl">
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-              <span className="font-semibold text-gray-900 dark:text-white">{t("Appoinments_k84")}</span>
+          <div className="relative z-10 w-full max-w-md rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:rounded-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+              <span className="font-semibold text-gray-900">{t("Appoinments_k84")}</span>
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                className="rounded-lg px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
                 onClick={() => setDobWheelOpen(false)}
               >
                 ✕
               </button>
             </div>
             <div className="px-2 pb-2 pt-4">
-              <div className="relative mx-auto max-w-sm rounded-xl border border-gray-100 bg-[#f8fafc] dark:border-gray-700 dark:bg-[#111a2a]">
+              <div className="relative mx-auto max-w-sm rounded-xl border border-gray-100 bg-[#f8fafc]">
                 <div
-                  className="pointer-events-none absolute left-0 right-0 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md bg-gray-200/40 dark:bg-white/5"
+                  className="pointer-events-none absolute left-0 right-0 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md bg-gray-200/40"
                   aria-hidden
                 />
                 <Picker
@@ -334,7 +334,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                   wheelMode="natural"
                   value={pickerValue}
                   onChange={(v) => handlePickerChange(v as WheelValue)}
-                  className="relative z-0 font-medium text-gray-900 dark:text-white"
+                  className="relative z-0 font-medium text-gray-900"
                 >
                   <Picker.Column name="year">
                     {years.map((yv) => (
@@ -342,7 +342,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm ${
-                              selected ? "font-semibold text-[#0066ff]" : "opacity-50"
+                              selected ? "font-semibold text-[#166534]" : "opacity-50"
                             }`}
                           >
                             {yv}
@@ -357,7 +357,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm ${
-                              selected ? "font-semibold text-[#0066ff]" : "opacity-50"
+                              selected ? "font-semibold text-[#166534]" : "opacity-50"
                             }`}
                           >
                             {monthShortLabel(mv)}
@@ -372,7 +372,7 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                         {({ selected }) => (
                           <span
                             className={`block py-2 text-center text-sm tabular-nums ${
-                              selected ? "font-semibold text-[#0066ff]" : "opacity-50"
+                              selected ? "font-semibold text-[#166534]" : "opacity-50"
                             }`}
                           >
                             {parseInt(dv, 10)}
@@ -384,17 +384,17 @@ const ComingBackTable: React.FC<PatientListProps> = ({ data, onSelect }) => {
                 </Picker>
               </div>
             </div>
-            <div className="flex gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
+            <div className="flex gap-2 border-t border-gray-200 p-3">
               <button
                 type="button"
-                className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 onClick={() => setDobWheelOpen(false)}
               >
                 {t("Appoinments_k58")}
               </button>
               <button
                 type="button"
-                className="flex-1 rounded-lg bg-[#0066ff] py-2.5 text-sm font-semibold text-white hover:bg-[#0052cc]"
+                className="flex-1 rounded-lg bg-[#166534] py-2.5 text-sm font-semibold text-white hover:bg-[#125229]"
                 onClick={applyDobFilter}
               >
                 {t("Appoinments_k22")}

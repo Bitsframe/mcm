@@ -1,4 +1,6 @@
 'use server'
+
+import { classifyError } from '@/utils/logging/safe-log';
 import  { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
@@ -6,7 +8,7 @@ import { createClient } from '@/utils/supabase/server'
 const allowedLocales = new Set(['en', 'es'])
 
 export async function login(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const localeRaw = (formData.get('locale') as string) || 'en'
   const locale = allowedLocales.has(localeRaw) ? localeRaw : 'en'
@@ -50,7 +52,7 @@ export async function login(formData: FormData) {
 
 export async function signOut() {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Sign out from Supabase
     const { error } = await supabase.auth.signOut();
@@ -65,7 +67,7 @@ export async function signOut() {
     if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
       throw error;
     }
-    console.error('Error during sign out:', error);
+    console.error('Error during sign out:', classifyError(error));
     redirect('/login');
   }
 }

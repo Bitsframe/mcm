@@ -1,6 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from "next/server";
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     const { promocode, patientid } = await req.json();
 
     try {
@@ -64,7 +69,7 @@ export const POST = async (req: Request) => {
         }, { status: 200 });
 
     } catch (error) {
-        console.error('Error:', error); // Log the error for debugging
+        console.error('Error:', classifyError(error)); // Log the error for debugging
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }

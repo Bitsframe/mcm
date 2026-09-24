@@ -1,9 +1,14 @@
+import { requireUser } from '@/utils/server/require-auth';
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 // Force this route to be dynamic so Next doesn't attempt static prerendering
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const url = new URL(req.url)
     const locationId = url.searchParams.get('location_id')
@@ -13,7 +18,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'location_id and selected_date are required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Fetch bonus row for the location and date
     const { data: bonusData, error: bonusErr } = await supabase
@@ -51,7 +56,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(result)
   } catch (err: any) {
-    console.error('[api/bonuses/config-query] error', err)
+    console.error('[api/bonuses/config-query] error', classifyError(err))
     return NextResponse.json({ error: err?.message ?? String(err) }, { status: 500 })
   }
 }

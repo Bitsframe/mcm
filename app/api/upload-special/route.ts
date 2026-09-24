@@ -1,7 +1,11 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceRoleSupabase } from '@/utils/supabase/service-role-client'
 
 export async function POST(req: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   const supabase = getServiceRoleSupabase()
   const contentType = req.headers.get('content-type') || ''
 

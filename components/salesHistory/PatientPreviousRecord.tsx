@@ -1,4 +1,5 @@
 import { CircularProgress } from '@mui/material';
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { TableRowRender } from './RenderRow';
@@ -27,7 +28,7 @@ const PatientPreviousRecord: React.FC<PatientPreviousRecordInterface> = ({ patie
       );
       setHistoryData(response.data.data);
     } catch (error) {
-      console.error('Error fetching patient history:', error);
+      console.error('Error fetching patient history:', classifyError(error));
     } finally {
       setLoading(false);
     }

@@ -2,106 +2,129 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #f6f6f6;
-}
-
-::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #f1f4f9;
-  border-radius: 20px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #f1f4f9;
-}
-
-
-/* Keep input borders controlled by Tailwind utilities; only remove native focus outline/shadow if desired */
-input:focus-visible{
-  outline: none !important;
-}
-input:focus{
-  box-shadow: none !important;
-}
-
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-
+/*
+ * Design tokens — macOS-style light system, single brand accent.
+ *
+ * Neutrals follow Apple's HIG light palette (label / secondaryLabel /
+ * separator / windowBackground). The accent is the clinic green #166534 and
+ * is the only saturated colour in the chrome; everything else is grey.
+ * shadcn reads the HSL triplets below through tailwind.config.ts, so
+ * `bg-primary`, `border-border`, `text-muted-foreground` etc. all resolve here.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* surfaces */
+    --background: 0 0% 100%;            /* window content */
+    --surface: 240 11% 96%;             /* #F5F5F7 — sidebar, toolbar, page chrome */
+    --surface-2: 240 6% 92%;            /* #EBEBED — pressed / grouped fills */
+    --foreground: 240 3% 12%;           /* #1D1D1F — label */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 240 3% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
+    --popover-foreground: 240 3% 12%;
+
+    /* accent */
+    --primary: 143 64% 24%;             /* #166534 */
+    --primary-foreground: 0 0% 100%;
+    --ring: 143 64% 24%;
+
+    /* greys */
+    --secondary: 240 11% 96%;
+    --secondary-foreground: 240 3% 12%;
+    --muted: 240 11% 96%;
+    --muted-foreground: 240 2% 44%;     /* #6E6E73 — secondaryLabel */
+    --accent: 143 45% 95%;              /* brand-50 tint for hover / selected */
+    --accent-foreground: 143 64% 20%;
+    --border: 240 6% 90%;               /* #E5E5EA — separator */
+    --input: 240 6% 86%;                /* #D9D9DE — control edge */
+
+    /* semantic */
+    --destructive: 354 100% 42%;        /* #D70015 — system red, AA on white */
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;             /* #22C55E */
+    --warning: 35 100% 50%;             /* #FF9500 */
+
+    --chart-1: 143 64% 24%;
+    --chart-2: 142 52% 45%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+
+    --radius: 10px;
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-surface text-foreground;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  h1, h2, h3, h4 {
+    @apply tracking-tight text-foreground;
+  }
+  /* Keyboard focus is the one place the accent is loud, as on macOS. */
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.28);
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+  }
+}
+
+/* Overlay scrollbars: thin, rounded, only visible on hover — like AppKit. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.32);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Vibrancy for the sidebar and toolbar: translucent fill over a blur. */
+@layer utilities {
+  .bg-vibrant {
+    background-color: hsl(var(--surface) / 0.82);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  .bg-vibrant-white {
+    background-color: rgba(255, 255, 255, 0.78);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  .hairline {
+    box-shadow: 0 0 0 1px hsl(var(--border));
   }
 }

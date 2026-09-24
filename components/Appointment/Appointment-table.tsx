@@ -152,11 +152,11 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
       await ApproveAppointment(selectedAppointment.id, data.providerName, data.notes)
       
       toast.success(
-        <div className="flex justify-between dark:text-white">
+        <div className="flex justify-between">
           <p>Appointment has been approved successfully.</p>
           <button
             onClick={() => toast.dismiss()}
-            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
           >
             <span className="text-sm">&#x2715;</span>
           </button>
@@ -173,20 +173,20 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
     <div className="w-full overflow-hidden px-4">
       {appointLoading ? (
         <div className="flex h-40 flex-col justify-center items-center">
-          <Spinner size="xl" className="dark:text-white" />
+          <Spinner size="xl" className="" />
         </div>
       ) : appointments.length === 0 ? (
         <div className="flex h-40 flex-col justify-center items-center">
-          <h1 className="text-gray-500 font-medium dark:text-gray-300">{t("Appoinments_k87")}</h1>
+          <h1 className="text-gray-500 font-medium">{t("Appoinments_k87")}</h1>
         </div>
       ) : (
         <>
           {/* Desktop Table View */}
           <div className="hidden md:flex relative flex-col h-[260px] overflow-x-auto rounded-lg">
-          <div className="border-2 border-gray-200 dark:border-gray-700 min-w-full rounded-lg">
+          <div className="border-2 border-gray-200 min-w-full rounded-lg">
               <Table className="border-collapse min-w-[780px] w-full text-xs sm:text-sm rounded-lg">
-                <TableHeader className="bg-gray-50 dark:bg-[#0E1725] sticky top-0 z-10">
-                  <TableRow className="dark:border-gray-700">
+                <TableHeader className="bg-gray-50 sticky top-0 z-10">
+                  <TableRow className="">
                     {[
                       { label: t("Appoinments_k26"), sort: "name" },
                       { label: t("Appoinments_k11"), sort: "email" },
@@ -195,20 +195,20 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                       { label: t("Appoinments_k2"), sort: "slot" },
                       { label: t("Appoinments_k1"), sort: "time" },
                     ].map(({ label, sort }) => (
-                      <TableHead key={sort} className="font-medium dark:border-gray-700">
+                      <TableHead key={sort} className="font-medium">
                         {label}
                         <button
                           onClick={() => sortHandle(sort)}
-                          className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70 dark:text-gray-400 dark:hover:text-gray-200"
+                          className="ml-1 text-gray-400 hover:text-gray-600 active:opacity-70"
                         >
                           <PiCaretUpDownBold
-                            className={`inline ${sortColumn === sort ? "text-green-600 dark:text-green-400" : ""}`}
+                            className={`inline ${sortColumn === sort ? "text-green-600" : ""}`}
                           />
                         </button>
                       </TableHead>
                     ))}
-                    <TableHead className="font-medium dark:border-gray-700">{t("Appoinments_k40")}</TableHead>
-                    <TableHead className="font-medium text-right dark:border-gray-700">{t("Appoinments_k41")}</TableHead>
+                    <TableHead className="font-medium">{t("Appoinments_k40")}</TableHead>
+                    <TableHead className="font-medium text-right">{t("Appoinments_k41")}</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -247,7 +247,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
 
           {/* Desktop Pagination */}
-          <div className="hidden md:flex py-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-row justify-between items-center gap-2">
+          <div className="hidden md:flex py-2 text-xs sm:text-sm text-gray-500 flex-row justify-between items-center gap-2">
             <span>
               {appointments.length === 0
                 ? "Showing 0 to 0 of 0 results"
@@ -260,10 +260,10 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               <button
                 onClick={handleDesktopPreviousPage}
                 disabled={desktopCurrentPage === 1}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 ${
                   desktopCurrentPage === 1
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {t("Appoinments_k46")}
@@ -271,10 +271,10 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               <button
                 onClick={handleDesktopNextPage}
                 disabled={desktopCurrentPage === desktopTotalPages}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 ${
                   desktopCurrentPage === desktopTotalPages
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {t("Appoinments_k47")}
@@ -283,7 +283,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           </div>
 
           {/* Mobile Pagination */}
-          <div className="md:hidden py-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-row justify-between items-center gap-2">
+          <div className="md:hidden py-2 text-xs sm:text-sm text-gray-500 flex flex-row justify-between items-center gap-2">
             <span>
               {appointments.length === 0
                 ? `${t("Appoinments_k48")} 0 ${t("Appoinments_k49")} 0`
@@ -293,10 +293,10 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               <button
                 onClick={handleMobilePreviousPage}
                 disabled={mobileCurrentPage === 1}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 ${
                   mobileCurrentPage === 1
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {t("Appoinments_k46")}
@@ -304,10 +304,10 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               <button
                 onClick={handleMobileNextPage}
                 disabled={mobileCurrentPage === mobileTotalPages}
-                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:focus:ring-gray-700 ${
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 ${
                   mobileCurrentPage === mobileTotalPages
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {t("Appoinments_k47")}
@@ -355,22 +355,22 @@ const MemoizedTableRow = memo(
     return (
       <TableRow
         onClick={() => onSelect(appointment)}
-        className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm"
+        className="hover:bg-gray-50 text-xs sm:text-sm"
       >
-        <TableCell className="font-medium dark:text-white px-2 py-2 sm:px-2 sm:py-3 max-w-[160px] truncate" title={name}>
+        <TableCell className="font-medium px-2 py-2 sm:px-2 sm:py-3 max-w-[160px] truncate" title={name}>
           {name}
         </TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300 max-w-[180px] truncate" title={email !== "—" ? email : undefined}>
+        <TableCell className="p-2 sm:px-2 sm:py-4 max-w-[180px] truncate" title={email !== "—" ? email : undefined}>
           {email}
         </TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{gender}</TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{appointment.service}</TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{date}</TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:text-gray-300">{time}</TableCell>
-        <TableCell className="p-2 sm:px-2 sm:py-4 dark:border-gray-700">
+        <TableCell className="p-2 sm:px-2 sm:py-4">{gender}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4">{appointment.service}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4">{date}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4">{time}</TableCell>
+        <TableCell className="p-2 sm:px-2 sm:py-4">
           {isUnapproved ? (
             <button
-              className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
+              className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-green-600"
               onClick={handleApprove}
             >
               {t("Appoinments_k54")}
@@ -381,28 +381,28 @@ const MemoizedTableRow = memo(
                 e.stopPropagation()
                 onOpenApprovedModal?.(appointment)
               }}
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
             >
               {t("Appoinments_k53")} ✓
             </button>
           )}
         </TableCell>
-        <TableCell className="text-right p-2 sm:p-4 dark:border-gray-700">
+        <TableCell className="text-right p-2 sm:p-4">
           <div className="flex justify-end space-x-2">
-            <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <button className="text-gray-500 hover:text-gray-700">
               <Eye className="h-4 w-4" />
             </button>
             <button
-              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+              className="text-gray-500 hover:text-brand-600"
               onClick={(e) => {
                 e.stopPropagation()
                 onEdit?.(appointment)
               }}
             >
-              <SquarePen className="h-4 w-4" color="#0066ff" />
+              <SquarePen className="h-4 w-4" color="#166534" />
             </button>
             <button
-              className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
+              className="text-gray-500 hover:text-red-600"
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete?.(appointment.id)
@@ -444,39 +444,39 @@ const MemoizedAppointmentCard = memo(
 
     return (
       <Card
-        className="cursor-pointer hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700"
+        className="cursor-pointer hover:shadow-md transition-shadow"
         onClick={() => onSelect(appointment)}
       >
         <CardContent className="p-4">
           <div className="space-y-3">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-medium text-sm dark:text-white">
+                <h3 className="font-medium text-sm">
                   {name}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{gender}</p>
+                <p className="text-xs text-gray-500">{gender}</p>
                 {email !== "—" && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 break-all">{email}</p>
+                  <p className="text-xs text-gray-500 break-all">{email}</p>
                 )}
               </div>
               <div className="flex space-x-2">
                 <button
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-gray-500 hover:text-gray-700"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Eye className="h-4 w-4" />
                 </button>
                 <button
-                  className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                  className="text-gray-500 hover:text-brand-600"
                   onClick={(e) => {
                     e.stopPropagation()
                     onEdit?.(appointment)
                   }}
                 >
-                  <SquarePen className="h-4 w-4" color="#0066ff" />
+                  <SquarePen className="h-4 w-4" color="#166534" />
                 </button>
                 <button
-                  className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500"
+                  className="text-gray-500 hover:text-red-600"
                   onClick={(e) => {
                     e.stopPropagation()
                     onDelete?.(appointment.id)
@@ -488,26 +488,26 @@ const MemoizedAppointmentCard = memo(
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t("Appoinments_k28")}</p>
-              <p className="text-sm dark:text-gray-300">{appointment.service}</p>
+              <p className="text-xs text-gray-500">{t("Appoinments_k28")}</p>
+              <p className="text-sm">{appointment.service}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("Appoinments_k2")}</p>
-                <p className="text-sm dark:text-gray-300">{date}</p>
+                <p className="text-xs text-gray-500">{t("Appoinments_k2")}</p>
+                <p className="text-sm">{date}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("Appoinments_k1")}</p>
-                <p className="text-sm dark:text-gray-300">{time}</p>
+                <p className="text-xs text-gray-500">{t("Appoinments_k1")}</p>
+                <p className="text-sm">{time}</p>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Status:</span>
+              <span className="text-xs text-gray-500">Status:</span>
               {isUnapproved ? (
                 <button
-                  className="bg-green-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600"
+                  className="bg-green-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-600"
                   onClick={handleApprove}
                 >
                   Approve
@@ -518,7 +518,7 @@ const MemoizedAppointmentCard = memo(
                     e.stopPropagation()
                     onOpenApprovedModal?.(appointment)
                   }}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 cursor-pointer hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
                 >
                   Approved ✓
                 </button>

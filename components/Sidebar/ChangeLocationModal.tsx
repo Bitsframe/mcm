@@ -51,10 +51,12 @@ const ChangeLocationModal = () => {
 
   return (
     <div>
-      <button onClick={handleOpen} className="text-white text-xs text-start">
-        <div className="">
-          <span>{selected_location_data?.title}</span>
-        </div>
+      <button
+        onClick={handleOpen}
+        className="block w-full truncate text-left text-body font-medium text-label"
+        title={selected_location_data?.title}
+      >
+        {selected_location_data?.title}
       </button>
       <Modal
         open={open}
@@ -71,13 +73,13 @@ const ChangeLocationModal = () => {
         }}
       >
         <div className="w-full h-full flex justify-center items-center p-2">
-          <div className="bg-white dark:bg-[#080e16] text-black dark:text-white rounded-md px-4 py-5 w-full max-w-[650px] mx-2 max-h-[90vh] h-[90vh] overflow-hidden relative">
+          <div className="bg-white text-black rounded-md px-4 py-5 w-full max-w-[650px] mx-2 max-h-[90vh] h-[90vh] overflow-hidden relative">
             <div className="flex items-center space-x-2 justify-between">
               <h2 id="date-range-modal-title" className="font-bold text-lg sm:text-xl">
                 {t("Sidebar_k28")}
               </h2>
               <button onClick={handleClose}>
-                <MdClose size={22} className="text-black dark:text-white" />
+                <MdClose size={22} className="text-black" />
               </button>
             </div>
 
@@ -89,7 +91,7 @@ const ChangeLocationModal = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={t("Sidebar_k30") || "Search locations..."}
-                  className="w-full px-3 py-2 border rounded-md bg-white dark:bg-[#0b1220] border-gray-300 dark:border-gray-600 text-sm"
+                  className="w-full px-3 py-2 border rounded-md bg-white border-gray-300 text-sm"
                 />
               </div>
 
@@ -100,24 +102,24 @@ const ChangeLocationModal = () => {
                     <button
                       key={id}
                       onClick={() => selectLocationHandle(id)}
-                      className="border w-full border-gray-300 dark:border-gray-600 rounded-lg py-3 px-2 flex items-center space-x-4"
+                      className="border w-full border-gray-300 rounded-lg py-3 px-2 flex items-center space-x-4"
                     >
                       <div>
                         {isSelected ? (
-                          <RiCheckboxBlankFill color="#0066ff" />
+                          <RiCheckboxBlankFill color="#166534" />
                         ) : (
                           <RiCheckboxBlankLine color="gray" />
                         )}
                       </div>
                       <div className="flex flex-col text-left">
-                        <h1 className="text-black dark:text-white text-sm sm:text-base truncate">
+                        <h1 className="text-black text-sm sm:text-base truncate">
                           {title}
                         </h1>
                         {/* Render address below the title in small grey text when present */}
                         {/** address field may be null/undefined; show only when available */}
                         {/** Use text-xs and muted colors to match design */}
                         {/** Truncate so long addresses don't break layout */}
-                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block max-w-[420px] truncate">
+                        <span className="text-xs text-gray-500 mt-1 block max-w-[420px] truncate">
                           {/** prefer 'address' key but fall back to 'address1' or '' */}
                           {(/* @ts-ignore */ (locations.find((l: any) => l.id === id)?.address) ||
                             /* @ts-ignore */ locations.find((l: any) => l.id === id)?.address1 ||
@@ -138,10 +140,10 @@ const ChangeLocationModal = () => {
               </div>
             </div>
 
-            <div className="my-5 flex justify-end sticky bottom-0 bg-white dark:bg-[#080e16] pt-2">
+            <div className="my-5 flex justify-end sticky bottom-0 bg-white pt-2">
               <button
                 onClick={applyChangeHandle}
-                className="bg-[#0066ff] text-white w-full sm:w-36 py-2 rounded-md text-sm sm:text-base"
+                className="bg-[#166534] text-white w-full sm:w-36 py-2 rounded-md text-sm sm:text-base"
               >
                 {t("Sidebar_k29")}
               </button>

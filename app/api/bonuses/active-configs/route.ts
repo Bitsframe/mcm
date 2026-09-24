@@ -1,13 +1,18 @@
+import { requireUser } from '@/utils/server/require-auth';
+import { classifyError } from '@/utils/logging/safe-log';
 import { NextResponse } from 'next/server'
 // Force this route to be dynamic so Next doesn't attempt static prerendering
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const url = new URL(req.url)
     const selectedDate = url.searchParams.get('selected_date')
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // If no date provided, return active configs (effective_to IS NULL)
     // If date provided, return configs effective for that date.
@@ -17,7 +22,7 @@ export async function GET(req: Request) {
         .select('id, location_id, flat_percentage, value, bonus_threshold, effective_from, effective_to')
         .is('effective_to', null)
       if (error) {
-        console.error('[api/bonuses/active-configs] select error', error)
+        console.error('[api/bonuses/active-configs] select error', classifyError(error))
         return NextResponse.json({ error: (error as any)?.message ?? String(error) }, { status: 500 })
       }
       // Reduce to one config per location: pick the row with the latest effective_from
@@ -36,7 +41,7 @@ export async function GET(req: Request) {
         })
         return NextResponse.json({ configs: Object.values(map) })
       } catch (e) {
-        console.error('[api/bonuses/active-configs] reduce error', e)
+        console.error('[api/bonuses/active-configs] reduce error', classifyError(e))
         return NextResponse.json({ configs: data || [] })
       }
     }
@@ -70,11 +75,11 @@ export async function GET(req: Request) {
       })
       return NextResponse.json({ configs: Object.values(map) })
     } catch (e) {
-      console.error('[api/bonuses/active-configs] reduce error', e)
+      console.error('[api/bonuses/active-configs] reduce error', classifyError(e))
       return NextResponse.json({ configs: cfgData || [] })
     }
   } catch (err: any) {
-    console.error('[api/bonuses/active-configs] error', err)
+    console.error('[api/bonuses/active-configs] error', classifyError(err))
     return NextResponse.json({ error: err?.message ?? String(err) }, { status: 500 })
   }
 }

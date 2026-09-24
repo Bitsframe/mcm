@@ -1,4 +1,6 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from "next/server";
+import { classifyError } from '@/utils/logging/safe-log';
 import { bridgePatch } from "@/lib/bridge/client";
 import { getServiceRoleSupabase } from "@/utils/supabase/service-role-client";
 
@@ -28,6 +30,9 @@ function extractAppointmentId(result: Record<string, unknown>): number | null {
 }
 
 export async function POST(req: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const body = await req.json();
     const rawLocation =
@@ -129,7 +134,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error in create appointment API:', error);
+    console.error('Error in create appointment API:', classifyError(error));
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

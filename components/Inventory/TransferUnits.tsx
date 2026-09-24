@@ -165,9 +165,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                 fromLocation === toLocation
             }
         >
-            <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
+            <div className="w-full grid grid-cols-2 gap-4">
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k50")}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("Inventory_k50")}</label>
                     <Searchable_Dropdown
                         label={t("Inventory_k50")}
                         value={fromLocation}
@@ -177,7 +177,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k51")}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("Inventory_k51")}</label>
                     <Searchable_Dropdown
                         label={t("Inventory_k51")}
                         value={toLocation}
@@ -187,7 +187,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k32")}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("Inventory_k32")}</label>
                     <Searchable_Dropdown
                         label={t("Inventory_k32")}
                         value={selectedCategory}
@@ -197,7 +197,7 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                     />
                 </div>
                 <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("Inventory_k52")}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t("Inventory_k52")}</label>
                     <Searchable_Dropdown
                         label={t("Inventory_k52")}
                         value={selectedProduct}
@@ -212,9 +212,9 @@ export const TransferUnits: React.FC<TransferUnitsProps> = ({
                         type="number"
                         value={units}
                         onChange={setUnits}
-                        border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                        border="border-[1px] border-gray-300 rounded-md"
                         label={`${t("Inventory_k53")} (${t("Inventory_k54")}: ${availableUnits})`}
-                        bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
+                        bg_color="bg-[#F5F5F7]"
                         disabled={!selectedProduct}
                     />
                 </div>

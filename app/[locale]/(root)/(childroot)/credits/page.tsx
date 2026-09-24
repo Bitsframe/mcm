@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import {
   Table,
   TableBody,
@@ -76,7 +77,7 @@ const Credits = () => {
           setLocationData(locationResponse[0]);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching data:", classifyError(error));
       } finally {
         setLoading(false);
       }
@@ -109,19 +110,19 @@ const Credits = () => {
           </div>
           <div className="p-3 sm:p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
-              <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <div className="bg-[#F5F5F7] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Credit Limit</span>
                 </p>
-                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 animate-pulse rounded mt-2"></div>
               </div>
-              <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <div className="bg-[#F5F5F7] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Current Balance</span>
                 </p>
-                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 animate-pulse rounded mt-2"></div>
               </div>
             </div>
           </div>
@@ -136,27 +137,27 @@ const Credits = () => {
           </div>
           <div className="p-3 sm:p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
-              <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <div className="bg-[#F5F5F7] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
 
                   <span>{t("Credits_k2")}</span>
                 </p>
-                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 animate-pulse rounded mt-2"></div>
               </div>
-              <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <div className="bg-[#F5F5F7] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>{t("Credits_k3")}</span>
                 </p>
-                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 animate-pulse rounded mt-2"></div>
               </div>
-              <div className="bg-[#F1F4F9] dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <div className="bg-[#F5F5F7] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>{t("Credits_k4")}</span>
                 </p>
-                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mt-2"></div>
+                <div className="h-6 sm:h-8 w-20 sm:w-24 bg-gray-200 animate-pulse rounded mt-2"></div>
               </div>
             </div>
           </div>
@@ -173,7 +174,7 @@ const Credits = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50 dark:bg-gray-800">
+                  <TableRow className="bg-gray-50">
                     <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                       {t("Credits_k6")}
                     </TableHead>
@@ -195,25 +196,25 @@ const Credits = () => {
                   {[...Array(5)].map((_, index) => (
                     <TableRow
                       key={index}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      className="hover:bg-gray-50"
                     >
                       <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
-                        <div className="h-4 w-12 sm:w-16 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                        <div className="h-4 w-12 sm:w-16 bg-gray-200 animate-pulse rounded"></div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
-                        <div className="h-4 w-24 sm:w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                        <div className="h-4 w-24 sm:w-32 bg-gray-200 animate-pulse rounded"></div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                         <div className="space-y-1 sm:space-y-2">
-                          <div className="h-4 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-                          <div className="h-4 w-28 sm:w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                          <div className="h-4 w-20 sm:w-24 bg-gray-200 animate-pulse rounded"></div>
+                          <div className="h-4 w-28 sm:w-32 bg-gray-200 animate-pulse rounded"></div>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
-                        <div className="h-4 w-16 sm:w-20 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                        <div className="h-4 w-16 sm:w-20 bg-gray-200 animate-pulse rounded"></div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
-                        <div className="h-4 w-20 sm:w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                        <div className="h-4 w-20 sm:w-24 bg-gray-200 animate-pulse rounded"></div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -228,7 +229,7 @@ const Credits = () => {
 
   return (
     <main className="w-full flex flex-col items-start p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 md:space-y-6">
-      <section className="w-full shadow-sm dark:bg-[#0e1725] dark:border-[#172945] border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
+      <section className="w-full shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
         <div className="flex items-center gap-2 p-3 sm:p-4">
           <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
           <h2 className="text-sm sm:text-base md:text-lg font-semibold">
@@ -237,50 +238,50 @@ const Credits = () => {
         </div>
         <div className="p-3 sm:p-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
-            <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                 <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                 {t("Credits_k12")}
               </p>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {locationData
                   ? formatCurrency(locationData.credit_limit)
                   : "$0.00"}
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                 <BadgeDollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 {t("Credits_k13")}
               </p>
               <p
                 className={`text-lg sm:text-xl md:text-2xl font-bold mt-1 sm:mt-2 ${
                   locationData?.balance && locationData.balance < 0
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-gray-900 dark:text-white"
+                    ? "text-red-600"
+                    : "text-gray-900"
                 }`}
               >
                 {locationData ? formatCurrency(locationData.balance) : "$0.00"}
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                 {t("Credits_k3")}
               </p>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {credits.length}
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-[#080e16] p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow transition-all">
+              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                 <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                 {t("Credits_k17")}
               </p>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {formatCurrency(totalAmount / (credits.length || 1))}
               </p>
             </div>
@@ -288,7 +289,7 @@ const Credits = () => {
         </div>
       </section>
 
-      <section className="w-full dark:bg-[#0e1725] dark:border-[#172945] shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
+      <section className="w-full shadow-sm border border-opacity-50 rounded-lg p-3 sm:p-4 transition-all hover:shadow-md">
         <div className="flex items-center gap-2 p-3 sm:p-4">
           <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
           <h2 className="text-sm sm:text-base md:text-lg font-semibold">
@@ -299,7 +300,7 @@ const Credits = () => {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50 dark:bg-[#0e1725] border-t border-x rounded-lg border-gray-200 dark:border-[#172945]">
+                <TableRow className="bg-gray-50 border-t border-x rounded-lg border-gray-200">
                   <TableHead className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                     {t("Credits_k6")}
                   </TableHead>
@@ -326,10 +327,10 @@ const Credits = () => {
                     >
                       <div className="flex flex-col items-center justify-center space-y-1 sm:space-y-2">
                         <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-gray-400" />
-                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-medium">
+                        <p className="text-sm sm:text-base text-gray-500 font-medium">
                           {t("Credits_k19")}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+                        <p className="text-xs sm:text-sm text-gray-400">
                           {t("Credits_k20")}
                         </p>
                       </div>
@@ -339,7 +340,7 @@ const Credits = () => {
                   credits.map((credit) => (
                     <TableRow
                       key={credit.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell className="font-medium text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                         {credit.id}
@@ -367,7 +368,7 @@ const Credits = () => {
                       >
                         {formatCurrency(credit.balance)}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2 text-gray-600 dark:text-gray-300">
+                      <TableCell className="text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2 text-gray-600">
                         {moment(credit.created_at).format("MMM DD, YYYY")}
                       </TableCell>
                     </TableRow>

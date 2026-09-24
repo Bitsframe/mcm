@@ -3,16 +3,12 @@ import {
   Users,
   CalendarCheck2,
   Warehouse,
-  Grid,
-  Layers,
   Hammer,
-  IdCard,
   Calculator,
+  Coins,
   Settings,
-  CreditCard
 } from "lucide-react";
 import { ComponentType } from "react";
-import { FaReceipt } from "react-icons/fa";
 
 
 
@@ -34,6 +30,18 @@ interface Route {
 }
 
 // Route path constants
+//
+// Bonus is a single page as of 2026-09-24: the per-location and per-person
+// pages were removed and Staff Bonuses replaced both. Its `name` must stay
+// 'bonus' — withAuthorization matches that to grant the `control` permission.
+// Hidden from the UI but otherwise intact: Credits, Transactions, Stock Panel,
+// Promo Codes, Reputation, Pharmacy and Medical Forms came out of the sidebar, then
+// (2026-09-22) Inventory, Patients Onsite/Offsite and the standalone Specials entry —
+// Specials is reached as a Website Content tab. Location Limits and Staff came out of
+// the Controls tabs. Their pages, API routes and data
+// are untouched, and the paths below are deliberately kept, so restoring an entry is a
+// one-liner — see git history for the exact blocks.
+
 const ROUTES = {
   HOME: "/",
   PATIENTS: {
@@ -60,14 +68,13 @@ const ROUTES = {
   CONTROLS: "/controls",
   CREDITS: "/credits",
   TRANSACTIONS: "/transactions",
-  BONUS: "/bonus",
+  BONUS: "/bonus/staff",
   TOOLS: {
     EMAIL_BROADCAST: '/tools/emailbroadcast',
     WEBSITE_CONTENT: '/tools/websitecontent',
     PROMO_CODES: '/tools/promo-codes',
     ROLES: '/tools/roles',
     USER_MANAGEMENT: '/tools/user-management',
-    // TEXT_BROADCAST: '/tools/textbroadcast',
     SETTINGS: '/tools/settings',
     PHARMACY: '/tools/pharmacy',
     SPECIALS: '/tools/specials',
@@ -79,22 +86,16 @@ export const routeList: Route[] = [
   {
     id: 'home',
     name: "dashboard",
-    label: "Sidebar_k1",
+    label: "Sidebar_k2",
     icon: Home,
-    children: [
-      { id: 'home-dashboard', name: "dashboard", label: "Sidebar_k2", route: ROUTES.HOME },
-    ],
+    route: ROUTES.HOME,
   },
   {
     id: 'patients',
     name: "patients",
     label: "Sidebar_k3",
     icon: Users,
-    children: [
-      { id: 'patients-all', name: "patients", label: "Sidebar_k4", route: ROUTES.PATIENTS.ALL },
-      { id: 'patients-onsite', name: "patients", label: "Sidebar_k5", route: ROUTES.PATIENTS.ONSITE },
-      { id: 'patients-offsite', name: "patients", label: "Sidebar_k6", route: ROUTES.PATIENTS.OFFSITE },
-    ],
+    route: ROUTES.PATIENTS.ALL,
   },
   {
     id: 'appointments',
@@ -102,20 +103,6 @@ export const routeList: Route[] = [
     label: "Sidebar_k7",
     icon: CalendarCheck2,
     route: ROUTES.APPOINTMENTS,
-  },
-  {
-    id: 'reputation',
-    name: "reputation",
-    label: "Sidebar_k8",
-    icon: IdCard,
-    children: [
-      {
-        id: 'reputation-private-feedback',
-        name: "reputation",
-        label: "Sidebar_k9",
-        route: ROUTES.REPUTATION.PRIVATE_FEEDBACK
-      },
-    ],
   },
   {
     id: 'pos',
@@ -129,38 +116,6 @@ export const routeList: Route[] = [
     ],
   },
   {
-    id: 'transactions',
-    name: "transactions",
-    label: "Sidebar_k27",
-    icon: FaReceipt,
-    route: ROUTES.TRANSACTIONS,
-  },
-  {
-    id: 'bonus',
-    name: "bonus",
-    label: "Sidebar_k32",
-    icon: Calculator,
-    route: ROUTES.BONUS,
-    children: [
-      { id: 'bonus-location', name: 'bonus-location', label: 'Sidebar_k33', route: '/bonus/location' },
-      { id: 'bonus-individual', name: 'bonus-individual', label: 'Sidebar_k34', route: '/bonus/individual' },
-    ],
-  },
-  {
-    id: 'inventory',
-    name: "inventory",
-    label: "Sidebar_k11",
-    icon: Grid,
-    route: ROUTES.INVENTORY.MANAGE,
-  },
-  {
-    id: 'credits',
-    name: "credits",
-    label: "Sidebar_k24",
-    icon: CreditCard,
-    route: ROUTES.CREDITS,
-  },
-  {
     id: 'warehouse',
     name: "warehouse",
     label: "Sidebar_k25",
@@ -168,11 +123,11 @@ export const routeList: Route[] = [
     route: ROUTES.WAREHOUSE.MANAGE,
   },
   {
-    id: 'inventory-stock',
-    name: "Stock Panel",
-    label: "Sidebar_k12",
-    icon: Layers,
-    route: ROUTES.INVENTORY.STOCK_PANEL,
+    id: 'bonus',
+    name: "bonus",
+    label: "Sidebar_k32",
+    icon: Coins,
+    route: ROUTES.BONUS,
   },
   {
     id: 'controls',
@@ -200,12 +155,6 @@ export const routeList: Route[] = [
         route: ROUTES.TOOLS.WEBSITE_CONTENT
       },
       {
-        id: 'tools-promo',
-        name: "promo codes",
-        label: "Sidebar_k16",
-        route: ROUTES.TOOLS.PROMO_CODES
-      },
-      {
         id: 'tools-roles',
         name: "roles",
         label: "Roles",
@@ -218,28 +167,10 @@ export const routeList: Route[] = [
         route: ROUTES.TOOLS.USER_MANAGEMENT
       },
       {
-        id: 'tools-specials',
-        name: "specials",
-        label: "Sidebar_k37",
-        route: ROUTES.TOOLS.SPECIALS
-      },
-      {
         id: 'settings',
         name: "settings",
         label: "Sidebar_k22",
         route: ROUTES.TOOLS.SETTINGS
-      },
-      {
-        id: 'tools-pharmacy',
-        name: "pharmacy",
-        label: "Sidebar_k35",
-        route: ROUTES.TOOLS.PHARMACY
-      },
-      {
-        id: 'tools-medical-forms',
-        name: "medical forms",
-        label: "Sidebar_k36",
-        route: ROUTES.TOOLS.MEDICAL_FORMS
       }
     ],
   }

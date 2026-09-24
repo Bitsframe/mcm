@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Darklogo, Lightlogo } from "@/assets/images";
+import { Darklogo } from "@/assets/images";
 import Image from "next/image";
-import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import LanguageChanger from "@/components/LanguageChanger";
 import { useLocale } from "next-intl";
@@ -12,12 +11,18 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Login shell — a macOS-style welcome window: wordmark and headline on the
+ * left panel, the sign-in card on a slightly darker grouped surface on the
+ * right. Light only; the tokens come from app/globals.css.
+ *
+ * `mounted` predates the styling pass: it gates the first render and is not
+ * something to alter on the login screen as part of a visual change.
+ */
 export default function ClientLayout({ children }: LayoutProps) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
-    const { t, i18n } = useTranslation();
-    const locale = useLocale()
-  
+  const { t } = useTranslation();
+  const locale = useLocale();
 
   useEffect(() => {
     setMounted(true);
@@ -25,82 +30,40 @@ export default function ClientLayout({ children }: LayoutProps) {
 
   if (!mounted) return null;
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === "dark" ? "light" : "dark"));
-  };
+  const headline = (
+    <>
+      {t("Login_k4")}{" "}
+      <span className="font-bold text-brand-700">{t("Login_k5")}</span>
+    </>
+  );
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "dark" : ""}`}>
-      <div className={`min-h-screen flex flex-col md:flex-row ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
-        
-        <div className="md:hidden w-full p-4 space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              {theme === "dark" ? (
-                <Image src={Lightlogo} alt="Logo" className="w-32 opacity-90" />
-              ) : (
-                <Image src={Darklogo} alt="Logo" className="w-32 opacity-90" />
-              )}
-            </div>
+    <div className="min-h-screen bg-surface">
+      {/* Phones */}
+      <div className="flex min-h-screen flex-col gap-8 p-5 md:hidden">
+        <div className="flex items-center justify-between">
+          <Image src={Darklogo} alt="MyClinic MD" className="h-7 w-auto" priority />
+          <LanguageChanger locale={locale} />
+        </div>
+        <h1 className="mt-6 text-center text-title2 text-label">{headline}</h1>
+        <div className="flex justify-center">{children}</div>
+      </div>
 
-            <div className="flex items-center gap-3">
-              <LanguageChanger locale={locale} />
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
-              >
-                {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="text-2xl font-semibold dark:text-white text-center mt-8">
-            {t("Login_k4")} <span className="text-[#58646b]"><b>{t("Login_k5")}</b></span>
-          </div>
-
-          <div className="flex justify-center">
-            {children}
+      {/* Desktop */}
+      <div className="hidden min-h-screen md:flex">
+        <div className="flex w-1/2 flex-col p-8">
+          <Image src={Darklogo} alt="MyClinic MD" className="h-9 w-auto self-start" priority />
+          <div className="my-auto max-w-md px-6">
+            <h1 className="text-title1 leading-tight text-label">{headline}</h1>
+            <p className="mt-3 text-callout text-label-2">Clinic operations, sales and patient care in one place.</p>
           </div>
         </div>
 
-        <div className="hidden md:flex w-full">
-          <div
-            className={`w-1/2 p-6 ${
-              theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-            }`}
-          >
-            {theme === "dark" ? (
-              <Image src={Lightlogo} alt="Logo" className="w-48 opacity-90" />
-            ) : (
-              <Image src={Darklogo} alt="Logo" className="w-48 opacity-90" />
-            )}
-
-            <div className="text-3xl font-semibold mt-28 dark:text-white px-10">
-              {t("Login_k4")} <span className="text-[#58646b]"><b>{t("Login_k5")}</b></span>
-            </div>
+        <div className="relative w-1/2 border-l border-border bg-surface-2/60">
+          <div className="absolute right-5 top-4 z-10">
+            <LanguageChanger locale={locale} />
           </div>
-
-          <div
-            className={`w-1/2 relative ${
-              theme === "dark" ? "bg-gray-800" : "bg-gray-200"
-            }`}
-          >
-            {/* Theme toggle and language changer */}
-            <div className="absolute top-4 right-4 flex items-center gap-4 z-10">
-              <LanguageChanger locale={locale} />
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-full bg-white text-black dark:bg-black dark:text-white hover:bg-gray-700 transition"
-              >
-                {theme === "dark" ? <Moon /> : <Sun />}
-              </button>
-            </div>
-
-            {/* Login form container */}
-            <div className="h-full flex items-center justify-center">
-              {children}
-            </div>
-          </div>
+          <div className="flex h-full items-center justify-center p-8">{children}</div>
         </div>
       </div>
     </div>

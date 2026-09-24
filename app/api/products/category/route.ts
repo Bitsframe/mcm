@@ -1,10 +1,15 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = async (request: NextRequest) => {
-    const supabase = supabaseCreateClient();
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
+    const supabase = await supabaseCreateClient();
 
     const searchParams = request.nextUrl.searchParams
     const locationId = +searchParams.get('locationId')!
@@ -53,7 +58,7 @@ export const GET = async (request: NextRequest) => {
             { status: 200 }
         );
     } catch (error) {
-        console.error('User details error:', error);
+        console.error('User details error:', classifyError(error));
         return NextResponse.json(
             {
                 success: false,

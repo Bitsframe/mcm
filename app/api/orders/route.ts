@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { create_content_service, fetch_content_service, update_content_service } from '@/utils/supabase/data_services/data_services';
 import { supabase } from '@/services/supabase';
 import { createClient } from '@/utils/supabase/server';
@@ -103,7 +104,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         
         // Update auth_member for existing team
         try {
-          const serverSupabase = createClient();
+          const serverSupabase = await createClient();
           const { data: { user } } = await serverSupabase.auth.getUser();
           
           if (user?.id) {
@@ -126,7 +127,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         console.log('[orders] No active sales_team found, creating one');
         try {
           // Get authenticated user from server-side client
-          const serverSupabase = createClient();
+          const serverSupabase = await createClient();
           const { data: { user } } = await serverSupabase.auth.getUser();
           const now = new Date().toISOString();
           
@@ -159,7 +160,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         }
       }
     } catch (e) {
-      console.error('Unexpected error fetching sales_team', e);
+      console.error('Unexpected error fetching sales_team', classifyError(e));
     }
 
     // Persist the UI Balance (creditAmount) into orders.credit_balance
@@ -194,7 +195,7 @@ const newCreditBalance = Number((discountedSubtotal - paidAmount).toFixed(2));
         order_date_utc = orderRows[0]?.order_date ?? null;
       }
     } catch (e) {
-      console.error('[orders] Unable to read order_date for email CT conversion', e);
+      console.error('[orders] Unable to read order_date for email CT conversion', classifyError(e));
     }
 
 

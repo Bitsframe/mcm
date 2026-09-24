@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -172,7 +173,7 @@ function Login() {
         );
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error:", classifyError(error));
       toast(
         params.locale === "es"
           ? "Ocurrió un error inesperado. Intente de nuevo."
@@ -186,12 +187,12 @@ function Login() {
   return (
     <main className=" w-full flex">
       <div className="flex-1 flex items-center justify-center px-4 md:px-0 mt-12">
-        <Card className="w-full max-w-[450px] mx-auto">
+        <Card className="mx-auto w-full max-w-[400px] shadow-mac">
           <CardHeader className="text-center">
-            <h1 className="text-xl font-bold">{t("Login_k1")}</h1>
+            <h1 className="text-title3 text-label">{t("Login_k1")}</h1>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <input
                 type="hidden"
                 name="locale"
@@ -218,19 +219,19 @@ function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-label-3 hover:text-label"
                 >
-                  {showPassword ? <IoEyeOff size={22} /> : <IoEye size={22} />}
+                  {showPassword ? <IoEyeOff size={18} /> : <IoEye size={18} />}
                 </button>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-primary_color text-white disabled:opacity-70 hover:opacity-90 active:opacity-80"
+                className="w-full"
                 disabled={loading || (cooldownUntil > Date.now())}
               >
                 {loading ? (
-                  <Loader2 className="animate-spin text-white" size={20} />
+                  <Loader2 className="animate-spin" size={16} />
                 ) : cooldownUntil > Date.now() ? (
                   `Try again in ${secondsLeft}s`
                 ) : (

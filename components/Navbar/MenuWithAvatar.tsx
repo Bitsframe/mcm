@@ -1,173 +1,114 @@
 "use client";
 
-import { useState, useContext, MouseEvent, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import { Avatar } from "@/assets/images";
 import { signOut } from "@/actions/supabase_auth/action";
 import { AuthContext } from "@/context";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
-import LanguageChanger from "@/components/LanguageChanger";
 import LanguageChanger2 from "@/components/LanguageChanger2";
-import ThemeToggleButton from "@/components/Themetoggle";
-import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { resolveAvatar } from "@/utils/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+/**
+ * Account menu in the toolbar. A compact avatar + name pill that opens a
+ * macOS-style popover; on phones the language switcher moves in here because
+ * the toolbar has no room for it.
+ */
 export default function MenuWithAvatar() {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { userProfile, userRole } = useContext(AuthContext);
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
-  const { theme } = useTheme();
   const { t, i18n } = useTranslation(translationConstant.SIDEBAR);
 
-  const open = Boolean(anchorEl);
-
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => setAnchorEl(null);
-
-  const handleLogout = async () => {
-    await signOut();
-    handleClose();
-  };
-
-  const handleChangePassword = () => {
-    router.push("/set-password");
-    handleClose();
-  };
-
-  const handleSettings = () => {
-    router.push("/tools/settings");
-    handleClose();
-  };
-
   const logoutLabel = i18n.language?.startsWith("es") ? "Cerrar sesión" : "Log Out";
+  const name = userProfile?.full_name || "User";
+  const picture = resolveAvatar(userProfile?.profile_pictures);
 
   return (
-    <div>
-      <Button
-        id="avatar-menu-button"
-        aria-controls={open ? "avatar-menu" : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? "true" : undefined}
-        onClick={handleClick}
-        className="p-0"
-      >
-        <div className="flex items-center justify-between dark:bg-[#0e1725] dark:border-blue-950 dark:text-white bg-white rounded-[100px] min-w-[230px] px-3 py-1 border-[1px] border-[#E0E0E0]">
-          <div className="relative w-12 h-12 overflow-hidden rounded-full">
-            {userProfile?.profile_pictures ? (
-              <Image
-                src={userProfile.profile_pictures}
-                alt={userProfile?.full_name || "User Avatar"}
-                fill
-                className="object-cover"
-                // allow external URLs without requiring next.config change
-                unoptimized
-              />
-            ) : (
-              <Image
-                src={Avatar}
-                alt="Default Avatar"
-                fill
-                className="object-cover"
-              />
-            )}
-          </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          id="avatar-menu-button"
+          aria-label={name}
+          className="group flex h-9 items-center gap-2 rounded-full border border-border bg-white pl-1 pr-2.5 text-left shadow-mac-sm transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-surface"
+        >
+          <span className="relative h-7 w-7 overflow-hidden rounded-full bg-surface-2">
+            <Image
+              src={picture ?? Avatar}
+              alt=""
+              fill
+              sizes="28px"
+              className="object-cover"
+              unoptimized={Boolean(picture)}
+            />
+          </span>
+          {!isMobile && (
+            <span className="flex max-w-[160px] flex-col leading-tight">
+              <span className="truncate text-body font-semibold text-label">{name}</span>
+              <span className="truncate text-caption text-label-2">{userRole || "Role"}</span>
+            </span>
+          )}
+          <ChevronDown
+            size={14}
+            className="text-label-3 transition-transform group-data-[state=open]:rotate-180"
+          />
+        </button>
+      </DropdownMenuTrigger>
 
-          <div className="ml-2 flex flex-col items-start">
-            <span className="text-[#121111] dark:text-white text-[16px] font-semibold">
-              {userProfile?.full_name || "User"}
-            </span>
-            <span className="text-[#121111] text-xs dark:text-white">
-              {userRole || "Role"}
-            </span>
-          </div>
-          <ChevronDown size={20} color="black" strokeWidth={3} />
-        </div>
-      </Button>
-      <Menu
-        id="avatar-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        MenuListProps={{ "aria-labelledby": "avatar-menu-button" }}
-        PaperProps={{
-          style: {
-            width: "220px",
-            borderRadius: "12px",
-            zIndex: 9999,
-            position: "relative",
-            background: theme === "dark" ? "#0e1725" : "#fff",
-            color: theme === "dark" ? "#fff" : "#222",
-            boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
-            border:
-              theme === "dark" ? "1px solid #232a36" : "1px solid #e0e0e0",
-          },
-        }}
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="w-60 rounded-lg border-border bg-vibrant-white p-1.5 shadow-mac-lg"
       >
-        {isMobile ? (
+        <DropdownMenuLabel className="px-2 py-1.5">
+          <div className="truncate text-body font-semibold text-label">{name}</div>
+          <div className="truncate text-caption font-normal text-label-2">{userRole || "Role"}</div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem
+          onSelect={() => router.push("/tools/settings")}
+          className="gap-2.5 rounded-md px-2 py-1.5 text-body focus:bg-brand-600 focus:text-white"
+        >
+          <Settings size={15} /> {t("Sidebar_k22")}
+        </DropdownMenuItem>
+        {isMobile && (
           <>
-            <div className="px-4 py-2 font-semibold text-gray-700 dark:text-white">
-              Welcome back,{" "}
-              <span className="font-bold">
-                {userProfile?.full_name || "User"}
-              </span>
-            </div>
-            <MenuItem
-              onClick={handleSettings}
-              style={{ color: "#0066ff", gap: "12px" }}
-            >
-              <Settings size={18} color="#0066ff" /> {t("Sidebar_k22")}
-            </MenuItem>
-            <MenuItem
-              onClick={handleLogout}
-              style={{ color: "red", gap: "12px" }}
-            >
-              <LogOut size={18} color="red" /> {logoutLabel}
-            </MenuItem>
-            <div className="px-4 py-2 font-semibold text-gray-700 dark:text-white">
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuLabel className="px-2 py-1 text-caption font-medium uppercase tracking-wide text-label-3">
               Language
-            </div>
-            <div className="px-4 pb-2">
+            </DropdownMenuLabel>
+            <div className="px-2 pb-1.5">
               <LanguageChanger2 locale={userProfile?.locale || "en"} />
             </div>
-            <div className="px-4 pt-2 pb-2 flex justify-center">
-              <ThemeToggleButton />
-            </div>
-          </>
-        ) : (
-          <>
-            <MenuItem
-              onClick={handleSettings}
-              style={{ color: "#0066ff", gap: "12px" }}
-            >
-              <Settings size={18} color="#0066ff" /> {t("Sidebar_k22")}
-            </MenuItem>
-            <MenuItem
-              onClick={handleLogout}
-              style={{ color: "red", gap: "12px" }}
-            >
-              <LogOut size={18} color="red" /> {logoutLabel}
-            </MenuItem>
           </>
         )}
-      </Menu>
-    </div>
+        <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem
+          onSelect={() => void signOut()}
+          className="gap-2.5 rounded-md px-2 py-1.5 text-body text-destructive focus:bg-destructive focus:text-white"
+        >
+          <LogOut size={15} /> {logoutLabel}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

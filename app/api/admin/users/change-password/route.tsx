@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient } from '@supabase/supabase-js';
 
 export const POST = async (req: Request) => {
@@ -35,7 +36,7 @@ export const POST = async (req: Request) => {
         }, { status: 200 });
 
     } catch (error: any) {
-        console.error('Password change error:', error);
+        console.error('Password change error:', classifyError(error));
         return NextResponse.json({ 
             message: error?.message || 'Internal Server Error' 
         }, { status: 500 });

@@ -29,8 +29,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TabContext } from "@/context";
-import { Archive, PlusCircle, ShieldCheck } from "lucide-react";
+import { Archive, MapPin, PlusCircle, ShieldCheck } from "lucide-react";
+import { InventoryView } from "@/components/Inventory/InventoryView";
+import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { translationConstant } from "@/utils/translationConstants";
+
+import { LocationPicker } from "@/components/ui/location-picker";
 
 interface DataListInterface {
   [key: string]: any;
@@ -73,10 +77,10 @@ const tableHeader = [
             label={getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")}
             bg_color={getDataArchiveType ? "bg-[#E7FDEF]" : "bg-[#FFE8E5]"}
             text_color={
-              getDataArchiveType ? "text-[#0EA542]" : "text-[#F71B1B]"
+              getDataArchiveType ? "text-[#0EA542]" : "text-[#D70015]"
             }
             border={
-              getDataArchiveType ? "border-[#81F5A9]" : "border-[#F71B1B]"
+              getDataArchiveType ? "border-[#81F5A9]" : "border-[#D70015]"
             }
             icon={<Archive size={18} />}
           />
@@ -103,6 +107,11 @@ const Categories = () => {
   const [modalState, setModalState] = useState("");
   const [activeDeleteId, setActiveDeleteId] = useState(0);
   const [getDataArchiveType, setGetDataArchiveType] = useState(false);
+  // "" = the warehouse catalogue; a location id = that location's stock (the
+  // Inventory view), so any location can be inspected without leaving the page.
+  const [viewLocationId, setViewLocationId] = useState<string>("");
+  const { locations: posLocations } = useLocationClinica();
+  const viewLocation = posLocations.find((l: any) => String(l.id) === viewLocationId);
   const [page, setPage] = useState(1);
   const { t } = useTranslation(translationConstant.INVENTORY);
   const ITEMS_PER_PAGE = 12;
@@ -210,27 +219,23 @@ const Categories = () => {
 
   const RightSideComponent = useMemo(
     () => (
-      <div className="text-sm p-1 space-x-1 flex items-center justify-start rounded-lg bg-[#F1F4F7] dark:bg-[#122136]">
+      <div className="inline-flex items-center gap-0.5 rounded-lg bg-surface-2 p-0.5 text-body shadow-mac-inset">
         <button
           onClick={handleActiveClick}
-          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-            !getDataArchiveType
-              ? "bg-blue-700 text-white"
-              : "text-gray-700 dark:text-gray-300"
+          className={`flex h-7 items-center gap-1.5 rounded-md px-3 font-medium transition-colors ${
+            !getDataArchiveType ? "bg-white text-label shadow-mac-sm" : "text-label-2 hover:text-label"
           }`}
         >
-          <ShieldCheck size={16} />
+          <ShieldCheck size={14} />
           <span>{t("Inventory_k5")}</span>
         </button>
         <button
           onClick={handleArchiveClick}
-          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition ${
-            getDataArchiveType
-              ? "bg-blue-700 text-white"
-              : "text-gray-700 dark:text-gray-300"
+          className={`flex h-7 items-center gap-1.5 rounded-md px-3 font-medium transition-colors ${
+            getDataArchiveType ? "bg-white text-label shadow-mac-sm" : "text-label-2 hover:text-label"
           }`}
         >
-          <Archive size={16} />
+          <Archive size={14} />
           <span>{t("Inventory_k33")}</span>
         </button>
       </div>
@@ -275,10 +280,28 @@ const Categories = () => {
   }, [setActiveTitle]);
 
   return (
-    <main className="w-full h-full font-medium text-base dark:bg-[#0e1725] text-white">
+    <main className="w-full text-body">
       <div className="w-full h-full overflow-auto">
+          <div className="flex items-center justify-end gap-2 pb-3">
+            <MapPin size={15} className="text-label-3" />
+            <label htmlFor="warehouse-view-location" className="text-footnote text-label-2">
+              {t("Inventory_kViewStockAt")}
+            </label>
+            <LocationPicker
+              id="warehouse-view-location"
+              locations={posLocations}
+              value={viewLocationId}
+              onChange={setViewLocationId}
+              allLabel={t("Inventory_kWarehouseAll")}
+              searchPlaceholder={t("Inventory_kSearchLocations")}
+            />
+          </div>
         <div className="h-full rounded-md pt-2">
-          <div className="px-3 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
+          {viewLocation ? (
+            <InventoryView location={viewLocation} />
+          ) : (
+          <>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1 w-full sm:w-auto">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full justify-between gap-x-3">
                 <div className="relative w-full sm:w-72">
@@ -286,14 +309,14 @@ const Categories = () => {
                     onChange={onChangeHandle}
                     type="text"
                     placeholder={t("Inventory_k4")}
-                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F1F4F7] dark:bg-[#122136] border-2 border-gray-300 dark:border-gray-500 focus:border-blue-600 text-gray-900 dark:text-white"
+                    className="block px-3 py-[10px] w-full text-sm rounded-md focus:outline-none bg-[#F5F5F7] border-2 border-gray-300 focus:border-brand-600 text-label"
                   />
                 </div>
                 <button
-                  className="flex items-center justify-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition w-full sm:w-auto"
+                  className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-body font-medium text-white shadow-mac-sm transition-colors hover:bg-brand-700 w-full sm:w-auto"
                   onClick={() => openModalHandle(modalStateEnum.CREATE)}
                 >
-                  <PlusCircle className="w-5 h-5" />
+                  <PlusCircle size={15} />
                   {t("Inventory_k25")}
                 </button>
               </div>
@@ -303,12 +326,12 @@ const Categories = () => {
             </div>
           </div>
 
-          <div className="px-3 pt-5">
-            <div className="border rounded-md border-gray-300 dark:border-gray-700">
+          <div className="pt-4">
+            <div className="overflow-hidden rounded-lg border border-border shadow-mac-sm">
               <div className="hidden md:block overflow-x-auto">
                 <div className="min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
                   <Table className="min-w-full">
-                    <TableHeader className="bg-gray-100 dark:bg-[#0e1725] border-b border-b-gray-300 dark:border-b-gray-700 sticky top-0 z-10">
+                    <TableHeader className="sticky top-0 z-10 bg-surface/95 backdrop-blur">
                       <TableRow className="flex hover:bg-transparent">
                         <TableHead className="w-12 p-3"></TableHead>
                         {tableHeader.map(({ label, align }, index) => (
@@ -316,7 +339,7 @@ const Categories = () => {
                             key={index}
                             className={`flex-1 ${
                               align || "text-start"
-                            } text-base font-normal p-3 text-gray-700 dark:text-gray-300`}
+                            } p-3`}
                           >
                             {t(label)}
                           </TableHead>
@@ -324,12 +347,12 @@ const Categories = () => {
                       </TableRow>
                     </TableHeader>
 
-                    <TableBody className="bg-white dark:bg-[#0e1725]">
+                    <TableBody>
                       {loading ? (
                         <TableRow className="flex h-[45dvh]">
                           <TableCell
                             colSpan={tableHeader.length + 1}
-                            className="w-full flex items-center justify-center bg-white dark:bg-[#0e1725]"
+                            className="w-full flex items-center justify-center bg-white"
                           >
                             <Spinner size="xl" />
                           </TableCell>
@@ -338,9 +361,9 @@ const Categories = () => {
                         <TableRow className="flex h-[45dvh]">
                           <TableCell
                             colSpan={tableHeader.length + 1}
-                            className="w-full flex items-center justify-center bg-white dark:bg-[#0e1725]"
+                            className="w-full flex items-center justify-center bg-white"
                           >
-                            <h1 className="text-gray-700 dark:text-white">
+                            <h1 className="text-label">
                               {t("Inventory_k48")}
                             </h1>
                           </TableCell>
@@ -349,7 +372,7 @@ const Categories = () => {
                         currentPageData.map((elem, index) => (
                           <TableRow
                             key={index}
-                            className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 px-3 py-4"
+                            className="flex items-center hover:bg-gray-100 border-b border-b-gray-200 px-3 py-4"
                           >
                             <TableCell className="w-12 p-0"></TableCell>
                             {tableHeader.map(
@@ -364,7 +387,7 @@ const Categories = () => {
                                     t={t}
                                   />
                                 ) : (
-                                  <span className="text-gray-800 dark:text-white">
+                                  <span className="text-label">
                                     {elem[id]}
                                   </span>
                                 );
@@ -374,7 +397,7 @@ const Categories = () => {
                                     key={ind}
                                     className={`flex-1 ${
                                       align || "text-start"
-                                    } text-base p-0 text-gray-800 dark:text-white`}
+                                    } text-base p-0 text-label`}
                                   >
                                     {content}
                                   </TableCell>
@@ -392,12 +415,12 @@ const Categories = () => {
               {/* Mobile View */}
               <div className="md:hidden p-4 space-y-4">
                 {loading ? (
-                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
+                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white">
                     <Spinner size="xl" />
                   </div>
                 ) : dataList.length === 0 ? (
-                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white dark:bg-[#0e1725]">
-                    <h1 className="text-gray-700 dark:text-white">
+                  <div className="h-[70dvh] w-full flex items-center justify-center bg-white">
+                    <h1 className="text-label">
                       {t("Inventory_k48")}
                     </h1>
                   </div>
@@ -406,22 +429,22 @@ const Categories = () => {
                     {currentPageData.map((elem, index) => (
                       <div
                         key={index}
-                        className="bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-700 rounded-md p-4 shadow-sm"
+                        className="bg-white border border-gray-300 rounded-md p-4 shadow-sm"
                       >
                         <div className="flex flex-col space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <span className="text-sm font-medium text-label">
                               {t("Inventory_k7")}
                             </span>
-                            <span className="text-sm text-gray-800 dark:text-white">
+                            <span className="text-sm text-label">
                               {elem.category_id}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <span className="text-sm font-medium text-label">
                               {t("Inventory_k8")}
                             </span>
-                            <span className="text-sm text-gray-800 dark:text-white">
+                            <span className="text-sm text-label">
                               {elem.category_name}
                             </span>
                           </div>
@@ -442,8 +465,8 @@ const Categories = () => {
               </div>
 
               {/* Pagination */}
-              <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300 dark:border-t-gray-700">
-                <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+              <div className="flex flex-row items-center justify-between gap-2 p-4 border-t border-t-gray-300">
+                <div className="text-sm text-label-2 whitespace-nowrap">
                   {dataList.length === 0
                     ? `${t("Inventory_k27")} 0 ${t("Inventory_k29")} 0`
                     : `${t("Inventory_k27")} ${startIndex + 1} ${t(
@@ -455,14 +478,14 @@ const Categories = () => {
                   <button
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1}
-                    className="px-3 py-1 border rounded-md text-sm text-gray-800 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="px-3 py-1 border rounded-md text-sm text-label bg-white hover:bg-gray-100"
                   >
                     {t("Inventory_k23") || "Previous"}
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page === totalPages}
-                    className="px-3 py-1 border rounded-md text-sm text-gray-800 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="px-3 py-1 border rounded-md text-sm text-label bg-white hover:bg-gray-100"
                   >
                     {t("Inventory_k22") || "Next"}
                   </button>
@@ -470,6 +493,8 @@ const Categories = () => {
               </div>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
 
@@ -489,26 +514,26 @@ const Categories = () => {
           py="py-3"
           label={t("Inventory_k32")}
           darkMode={true}
-          bg_color="bg-[#F1F4F7] dark:bg-[#1F2937]"
+          bg_color="bg-[#F5F5F7]"
         />
       </Custom_Modal>
 
       {activeDeleteId ? (
         <div className="fixed bg-black/90 h-screen w-screen top-0 left-0 right-0 bottom-0 z-50">
         <div className="flex justify-center items-center w-full h-full">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-xl px-4 py-3 rounded-lg">
-            <h1 className="font-bold text-xl text-gray-800 dark:text-white mb-5">
+          <div className="bg-white w-full max-w-xl px-4 py-3 rounded-lg">
+            <h1 className="mb-5 text-title3 text-label">
               {t("Inventory_k10")}
             </h1>
       
-            <p className="text-lg text-black dark:text-white">
+            <p className="text-lg text-black">
               {t("Inventory_k11").replace(
                 "Archive",
                 t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")
               ).trim()}
             </p>
       
-            <p className="text-sm text-gray-800 dark:text-white">
+            <p className="text-sm text-label">
               {t("Inventory_k12").replace(
                 "Archive",
                 t(getDataArchiveType ? "Inventory_k30" : "Inventory_k14")

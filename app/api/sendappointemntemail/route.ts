@@ -1,3 +1,4 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
 
 // Use the environment variables
@@ -6,11 +7,12 @@ const EDGE_FUNCTION_URL = process.env.NEXT_PUBLIC_EMAIL_SENDER_URL;
 const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL; // Add the reply-to email to the environment variables
 
 export async function POST(req: Request) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
     const data = await req.json();
 
-    // Log incoming data for debugging
-    console.log("Received email data:", data);
 
     // Extract necessary fields from the request data
     const { to, subject, appointmentDate, appointmentTime } = data;
@@ -38,7 +40,6 @@ export async function POST(req: Request) {
     };
 
     // Log the request body for debugging
-    console.log("Sending request body:", requestBody);
 
     // Build endpoint for single email (common shape for edge function)
     if (!EDGE_FUNCTION_URL) {
@@ -71,7 +72,6 @@ export async function POST(req: Request) {
     const responseText = await response.text();
 
     // Log the response from the edge function
-    console.log("Response from edge function:", responseText);
 
     // Handle successful response from the edge function
     if (response.ok) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ export default function MedicalFormsPage() {
         setForms(response.data.data);
       }
     } catch (error: any) {
-      console.error("Error fetching forms:", error);
+      console.error("Error fetching forms:", classifyError(error));
       toast.error("Failed to fetch forms");
     } finally {
       setLoading(false);
@@ -114,7 +115,7 @@ export default function MedicalFormsPage() {
         toast.success(`Form ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
       }
     } catch (error: any) {
-      console.error("Error updating form:", error);
+      console.error("Error updating form:", classifyError(error));
       toast.error("Failed to update form status");
     } finally {
       setUpdatingId(null);
@@ -140,7 +141,7 @@ export default function MedicalFormsPage() {
         toast.success("Form deleted successfully");
       }
     } catch (error: any) {
-      console.error("Error deleting form:", error);
+      console.error("Error deleting form:", classifyError(error));
       toast.error("Failed to delete form");
     } finally {
       setDeletingId(null);
@@ -195,7 +196,7 @@ export default function MedicalFormsPage() {
         setFieldName("");
       }
     } catch (error: any) {
-      console.error("Error saving form:", error);
+      console.error("Error saving form:", classifyError(error));
       toast.error("Failed to save form");
     } finally {
       setIsSaving(false);
@@ -236,7 +237,7 @@ export default function MedicalFormsPage() {
         fetchForms(); // Refresh the list
       }
     } catch (error: any) {
-      console.error("Error creating form:", error);
+      console.error("Error creating form:", classifyError(error));
       toast.error("Failed to create form");
       throw error; // Re-throw to prevent modal from closing on error
     } finally {
@@ -329,7 +330,7 @@ export default function MedicalFormsPage() {
       
       toast.success("PDF downloaded successfully");
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error generating PDF:', classifyError(error));
       toast.error("Failed to generate PDF. Please try again.");
     }
   };
@@ -339,21 +340,19 @@ export default function MedicalFormsPage() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Left Side - Table */}
-      <div className={`flex flex-col ${selectedForm ? 'w-1/3' : 'w-full'} transition-all duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900`}>
+      <div className={`flex flex-col ${selectedForm ? 'w-1/3' : 'w-full'} transition-all duration-300 border-r border-gray-200 bg-white`}>
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Medical Forms
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <h1 className="text-title2 text-label">Medical Forms</h1>
+              <p className="mt-1 text-body text-label-2">
                 Manage and distribute medical forms
               </p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsModalOpen(true)}>
+            <Button className="bg-brand-600 hover:bg-brand-700" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add New
             </Button>
@@ -372,21 +371,21 @@ export default function MedicalFormsPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-500">Total</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {forms.length}
               </p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-500">Active</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {forms.filter((f) => f.is_active).length}
               </p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Inactive</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-500">Inactive</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {forms.filter((f) => !f.is_active).length}
               </p>
             </div>
@@ -394,8 +393,8 @@ export default function MedicalFormsPage() {
         </div>
 
         {/* Forms Table */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
-          <div className="bg-white dark:bg-gray-800 m-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex-1 overflow-auto bg-gray-50">
+          <div className="bg-white m-4 rounded-lg border border-gray-200">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -409,7 +408,7 @@ export default function MedicalFormsPage() {
                   <TableRow>
                     <TableCell colSpan={3} className="text-center py-8">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        <div className="animate-spin h-5 w-5 border-2 border-brand-500 border-t-transparent rounded-full"></div>
                         <span>Loading...</span>
                       </div>
                     </TableCell>
@@ -426,8 +425,8 @@ export default function MedicalFormsPage() {
                     <TableRow 
                       key={form.id}
                       onClick={() => handleRowClick(form)}
-                      className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                        selectedForm?.id === form.id ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-gray-800'
+                      className={`cursor-pointer hover:bg-gray-100 ${
+                        selectedForm?.id === form.id ? 'bg-brand-50' : 'bg-gray-50'
                       }`}
                     >
                       <TableCell className="font-medium">{form.name}</TableCell>
@@ -443,7 +442,7 @@ export default function MedicalFormsPage() {
                         <button
                           onClick={(e) => handleDeleteForm(form.id, e)}
                           disabled={deletingId === form.id}
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete form"
                         >
                           {deletingId === form.id ? (
@@ -464,9 +463,9 @@ export default function MedicalFormsPage() {
 
       {/* Right Side - Form Editor */}
       {selectedForm && (
-        <div className="w-2/3 flex flex-col bg-gray-100 dark:bg-gray-900">
+        <div className="w-2/3 flex flex-col bg-gray-100">
           {/* Editor Header */}
-          <div className="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-6 bg-white border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <Input
@@ -494,7 +493,7 @@ export default function MedicalFormsPage() {
                       size="sm"
                       onClick={handleSaveForm}
                       disabled={isSaving}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-brand-600 hover:bg-brand-700"
                     >
                       {isSaving ? (
                         <>
@@ -531,7 +530,7 @@ export default function MedicalFormsPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleCloseEditor}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Close
@@ -543,17 +542,17 @@ export default function MedicalFormsPage() {
           </div>
 
           {/* Editor Content */}
-          <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+          <div className="flex-1 overflow-auto p-6 bg-gray-50">
             {isEditMode ? (
               <div>
                 {/* Editor Toolbar */}
-                <div className="border border-gray-300 dark:border-gray-600 rounded-t-lg bg-gray-50 dark:bg-gray-700 p-2 flex flex-wrap gap-1">
+                <div className="border border-gray-300 rounded-t-lg bg-gray-50 p-2 flex flex-wrap gap-1">
                   <button
                     onClick={() => editor?.chain().focus().toggleBold().run()}
                     className={`px-3 py-1 rounded text-sm font-semibold ${
                       editor?.isActive("bold")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -563,8 +562,8 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().toggleItalic().run()}
                     className={`px-3 py-1 rounded text-sm italic ${
                       editor?.isActive("italic")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -574,8 +573,8 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().toggleUnderline().run()}
                     className={`px-3 py-1 rounded text-sm underline ${
                       editor?.isActive("underline")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -585,15 +584,15 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().toggleStrike().run()}
                     className={`px-3 py-1 rounded text-sm line-through ${
                       editor?.isActive("strike")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
                     S
                   </button>
 
-                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
                   <button
                     onClick={() =>
@@ -601,8 +600,8 @@ export default function MedicalFormsPage() {
                     }
                     className={`px-3 py-1 rounded text-sm font-bold ${
                       editor?.isActive("heading", { level: 1 })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -614,8 +613,8 @@ export default function MedicalFormsPage() {
                     }
                     className={`px-3 py-1 rounded text-sm font-bold ${
                       editor?.isActive("heading", { level: 2 })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -627,22 +626,22 @@ export default function MedicalFormsPage() {
                     }
                     className={`px-3 py-1 rounded text-sm font-bold ${
                       editor?.isActive("heading", { level: 3 })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
                     H3
                   </button>
 
-                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
                   <button
                     onClick={() => editor?.chain().focus().setTextAlign("left").run()}
                     className={`px-3 py-1 rounded text-sm ${
                       editor?.isActive({ textAlign: "left" })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -652,8 +651,8 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().setTextAlign("center").run()}
                     className={`px-3 py-1 rounded text-sm ${
                       editor?.isActive({ textAlign: "center" })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -663,22 +662,22 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().setTextAlign("right").run()}
                     className={`px-3 py-1 rounded text-sm ${
                       editor?.isActive({ textAlign: "right" })
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
                     ➡
                   </button>
 
-                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
                   <button
                     onClick={() => editor?.chain().focus().toggleBulletList().run()}
                     className={`px-3 py-1 rounded text-sm ${
                       editor?.isActive("bulletList")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
@@ -688,15 +687,15 @@ export default function MedicalFormsPage() {
                     onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                     className={`px-3 py-1 rounded text-sm ${
                       editor?.isActive("orderedList")
-                        ? "bg-blue-600 text-white"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500"
+                        ? "bg-brand-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
                     }`}
                     type="button"
                   >
                     1. List
                   </button>
 
-                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
                   {/* User Input Button */}
                   <button
@@ -711,7 +710,7 @@ export default function MedicalFormsPage() {
 
                 {/* User Input Field Name Dialog */}
                 {showFieldInput && (
-                  <div className="border border-t-0 border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20 p-3 flex items-center gap-2">
+                  <div className="border border-t-0 border-gray-300 bg-yellow-50 p-3 flex items-center gap-2">
                     <Input
                       value={fieldName}
                       onChange={(e) => setFieldName(e.target.value)}
@@ -745,12 +744,12 @@ export default function MedicalFormsPage() {
                 )}
 
                 {/* Editor Content */}
-                <div className="border border-t-0 border-gray-300 dark:border-gray-600 rounded-b-lg bg-white dark:bg-gray-800 min-h-[400px] max-h-[600px] overflow-auto">
+                <div className="border border-t-0 border-gray-300 rounded-b-lg bg-white min-h-[400px] max-h-[600px] overflow-auto">
                   <EditorContent editor={editor} />
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 min-h-[400px] shadow-sm">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 min-h-[400px] shadow-sm">
                 <style jsx>{`
                   .form-preview p {
                     margin: 5px 0;
@@ -764,7 +763,7 @@ export default function MedicalFormsPage() {
                   }
                 `}</style>
                 <div 
-                  className="form-preview prose dark:prose-invert max-w-none"
+                  className="form-preview prose max-w-none"
                   dangerouslySetInnerHTML={{ 
                     __html: editedContent
                       .replace(/<p><\/p>/g, '<p>&nbsp;</p>')

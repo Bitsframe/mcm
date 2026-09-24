@@ -1,4 +1,5 @@
 "use client";
+import { classifyError } from '@/utils/logging/safe-log';
 import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Input_Component } from "@/components/Input_Component";
@@ -95,7 +96,7 @@ const SpecialsPage = () => {
 
       toast.success(t("Updated"));
     } catch (e: any) {
-      console.error("[onToggle] Error updating:", e);
+      console.error("[onToggle] Error updating:", classifyError(e));
       toast.error(e.message || t("FailedToUpdate"));
     }
   };
@@ -114,9 +115,9 @@ const SpecialsPage = () => {
   return (
     <>
 
-      <div className="p-6 bg-white dark:bg-[#0e1725] min-h-screen">
+      <div className="p-6 bg-white min-h-screen">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-black dark:text-white">{t("SpecialsGalleryTitle")}</h2>
+          <h2 className="text-title2 text-label">{t("SpecialsGalleryTitle")}</h2>
           <Button onClick={open} color="blue">{t("AddPictureButton")}</Button>
         </div>
 
@@ -136,25 +137,25 @@ const SpecialsPage = () => {
               onChange={(val: string) => setNewTitle(val)}
             />
             <div>
-              <label className="block text-sm font-medium mb-2 text-black dark:text-white">{t("SelectImageLabel")}</label>
+              <label className="block text-sm font-medium mb-2 text-black">{t("SelectImageLabel")}</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="w-full border rounded-lg p-2 bg-white dark:bg-[#1a2332] text-black dark:text-white border-gray-300 dark:border-blue-950"
+                className="w-full border rounded-lg p-2 bg-white text-black border-gray-300"
               />
             </div>
           </div>
         </Custom_Modal>
 
         {loading ? (
-          <div className="text-sm text-gray-500 dark:text-gray-300">{t("LoadingText")}</div>
+          <div className="text-sm text-gray-500">{t("LoadingText")}</div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-gray-500 dark:text-gray-300">{t("NoSpecialsText")}</div>
+          <div className="text-sm text-gray-500">{t("NoSpecialsText")}</div>
         ) : (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((it) => (
-              <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-[#1a2332] border-gray-200 dark:border-blue-950">
+              <div key={it.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white border-gray-200">
                 <button
                   type="button"
                   onClick={() => setPreviewUrl(
@@ -162,7 +163,7 @@ const SpecialsPage = () => {
                       .from('special_picture')
                       .getPublicUrl(it.file_path).data.publicUrl
                   )}
-                  className="aspect-video relative overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+                  className="aspect-video relative overflow-hidden bg-gray-100 block"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -173,19 +174,19 @@ const SpecialsPage = () => {
                 </button>
                 <div className="p-4 space-y-3">
                   {typeof it.title !== 'undefined' && (
-                    <p className="text-sm font-medium truncate text-black dark:text-white" title={it.title || undefined}>
+                    <p className="text-sm font-medium truncate text-black" title={it.title || undefined}>
                       {it.title || t("Untitled")}
                     </p>
                   )}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-black dark:text-white">{t("DisplayLabel")}</span>
+                      <span className="text-black">{t("DisplayLabel")}</span>
                       <button
                         onClick={() => onToggle(it)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${it.display ? "bg-green-600" : "bg-gray-300 dark:bg-gray-700"}`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${it.display ? "bg-green-600" : "bg-gray-300"}`}
                       >
                         <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-300 transition-transform ${it.display ? "translate-x-6" : "translate-x-1"}`}
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${it.display ? "translate-x-6" : "translate-x-1"}`}
                         />
                       </button>
                     </div>

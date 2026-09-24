@@ -4,7 +4,7 @@ import { GoDotFill } from "react-icons/go";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { Home, Info, Star, Globe, CircleHelp, BriefcaseBusiness } from "lucide-react";
+import { Home, Info, Star, Globe, CircleHelp, BriefcaseBusiness, Tag } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 
@@ -60,10 +60,11 @@ const TopTabs = () => {
       url: "locations",
       icon: <Globe />
     },
-    // {
-    //     title: "Specials",
-    //     url: "specials"
-    // },
+    {
+      title: "WebCont_kSpecials",
+      url: "specials",
+      icon: <Tag />
+    },
     {
       title: "WebCont_k6",
       url: "faqs",
@@ -90,8 +91,8 @@ const TopTabs = () => {
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all
     ${
       isActive
-        ? "bg-blue-600 text-white"
-        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        ? "bg-brand-600 text-white"
+        : "text-gray-700 hover:bg-gray-100"
     }`}
                 >
                   <span className="text-lg">{menuItem.icon}</span>
@@ -108,14 +109,14 @@ const TopTabs = () => {
       {/* Mobile dropdown menu */}
       <div className="block sm:hidden relative" ref={dropdownRef}>
         <button
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg w-full text-left border border-gray-300 dark:border-gray-700"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg w-full text-left border border-gray-300"
           onClick={() => setMenuOpen((open) => !open)}
         >
           <span className="font-medium">Menu</span>
           <svg className={`w-4 h-4 transition-transform ${menuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
         </button>
         {menuOpen && (
-          <div className="absolute z-50 mt-2 w-full bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="absolute z-50 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200">
             <ul className="flex flex-col gap-1 py-2">
               {WebsiteContentMenu.map((menuItem, index) => {
                 const isActive =
@@ -128,8 +129,8 @@ const TopTabs = () => {
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all w-full
                         ${
                           isActive
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                            ? "bg-brand-600 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
                         }`}
                       onClick={() => setMenuOpen(false)}
                     >

@@ -1,4 +1,5 @@
 import { Input_Component_Appointment } from "@/components/Appointment/Add_Appointment_Modal/Input_Component";
+import { classifyError, logError } from '@/utils/logging/safe-log';
 import { useLocationClinica } from "@/hooks/useLocationClinica";
 import { Label, Modal, Radio } from "flowbite-react";
 import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
@@ -18,6 +19,8 @@ import ComingBackTable from "@/components/Appointment/ComingBackTable";
 import { DobWheelField } from "@/components/Appointment/Add_Appointment_Modal/DobWheelField";
 import { normalizeDobParts } from "@/components/Appointment/Add_Appointment_Modal/dobUtils";
 
+
+import { MacSelect } from "@/components/ui/mac-select";
 
 interface RadioButtonOptionsInterface {
   label: string;
@@ -69,8 +72,8 @@ const RadioButtons = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 9999,
-                border: `2px solid ${selectedValue === opt.value ? '#0066ff' : '#cbd5e1'}`,
-                backgroundColor: selectedValue === opt.value ? '#0066ff' : '#ffffff',
+                border: `2px solid ${selectedValue === opt.value ? '#166534' : '#cbd5e1'}`,
+                backgroundColor: selectedValue === opt.value ? '#166534' : '#ffffff',
                 transition: 'background-color 120ms ease, border-color 120ms ease',
               }}
             >
@@ -93,11 +96,6 @@ const RadioButtons = ({
     </div>
   );
 };
-
-const get_in_office_patient_options = (t: (k: string) => string): RadioButtonOptionsInterface[] => [
-  { label: t("Appoinments_k18"), value: "true" },
-  { label: t("Appoinments_k19"), value: "false", disabled: true },
-];
 
 const get_patient_type_options = (t: (k: string) => string): RadioButtonOptionsInterface[] => [
   { label: t("Appoinments_k21"), value: "true" },
@@ -122,9 +120,9 @@ function FormSection({
 }) {
   return (
     <section
-      className={`rounded-xl border border-gray-200/90 bg-white/70 p-4 shadow-sm ring-1 ring-black/5 dark:border-gray-700 dark:bg-[#0c1626] dark:ring-white/5 sm:p-5 ${className}`}
+      className={`rounded-xl border border-gray-200/90 bg-white/70 p-4 shadow-sm ring-1 ring-black/5 sm:p-5 ${className}`}
     >
-      <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+      <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
         {title}
       </h2>
       <div className="space-y-5">{children}</div>
@@ -133,16 +131,7 @@ function FormSection({
 }
 
 const nativeSelectClassName =
-  "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#f1f4f9] px-3 py-2 text-base text-black outline-none transition-shadow focus:border-[#0066ff] focus:ring-2 focus:ring-[#0066ff]/20 dark:border-gray-600 dark:bg-[#122136] dark:text-white dark:focus:border-[#0066ff]";
-
-type AddressUiSuggestion = {
-  fullAddress: string;
-  streetLine?: string;
-  secondary?: string;
-  city?: string;
-  state?: string;
-  zipcode?: string;
-};
+  "w-full min-h-[46px] rounded-lg border border-gray-200 bg-[#F5F5F7] px-3 py-2 text-base text-black outline-none transition-shadow focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/20";
 
 export const Add_Appointment_Modal = ({
   newAddedRow,
@@ -161,21 +150,11 @@ export const Add_Appointment_Modal = ({
   const [selectedComingBackPatient, setSelectedComingBackPatient] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [addressSuggestions, setAddressSuggestions] = useState<AddressUiSuggestion[]>([]);
-  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
-  const [addressSuggestionsLoading, setAddressSuggestionsLoading] = useState(false);
-  const lastSelectedAddressRef = useRef("");
-  const addressSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dobParts, setDobParts] = useState({ y: "", m: "", d: "" });
 
   const close_handle = () => {
-    if (addressSearchTimerRef.current) clearTimeout(addressSearchTimerRef.current);
     setOpen(false);
     setEmailError("");
-    setAddressSuggestions([]);
-    setShowAddressSuggestions(false);
-    setAddressSuggestionsLoading(false);
-    lastSelectedAddressRef.current = "";
     setDobParts({ y: "", m: "", d: "" });
     if (selectedLocation) {
       setFormData({
@@ -209,10 +188,6 @@ export const Add_Appointment_Modal = ({
         patient_address: "",
       };
     });
-    setAddressSuggestions([]);
-    setShowAddressSuggestions(false);
-    setAddressSuggestionsLoading(false);
-    lastSelectedAddressRef.current = "";
     setDobParts({ y: "", m: "", d: "" });
 
     // clear any previously selected coming-back patient so modal always opens fresh
@@ -259,14 +234,14 @@ export const Add_Appointment_Modal = ({
           const result = await response.json();
 
           if (!response.ok) {
-            console.error('Error fetching returning patients:', result?.error);
+            logError('patients.returning_fetch_failed', { status: response.status });
             setComingBackData([]);
             return;
           }
 
           setComingBackData(result.data ?? []);
         } catch (err) {
-          console.error('Failed to fetch returning patients from allpatients', err);
+          console.error('Failed to fetch returning patients from allpatients', classifyError(err));
           setComingBackData([]);
         } finally {
           setComingBackLoading(false);
@@ -283,10 +258,7 @@ export const Add_Appointment_Modal = ({
       setComingBackData([]);
       setSelectedComingBackPatient(null);
 
-      setAddressSuggestions([]);
-      setShowAddressSuggestions(false);
-      lastSelectedAddressRef.current = "";
-      setDobParts({ y: "", m: "", d: "" });
+            setDobParts({ y: "", m: "", d: "" });
 
       // Reset all form fields to defaults for a fresh 'New' patient entry.
       setFormData((pre: any) => ({
@@ -313,63 +285,6 @@ export const Add_Appointment_Modal = ({
     setDobParts({ y: next.y, m: next.m, d: next.d });
     setFormData((pre: any) => ({ ...pre, dob: next.full }));
   };
-
-  const scheduleAddressSearch = useCallback((searchTerm: string) => {
-    if (addressSearchTimerRef.current) clearTimeout(addressSearchTimerRef.current);
-    addressSearchTimerRef.current = setTimeout(() => {
-      void (async () => {
-        if (searchTerm.length < 3) {
-          setAddressSuggestions([]);
-          setShowAddressSuggestions(false);
-          return;
-        }
-        setAddressSuggestionsLoading(true);
-        try {
-          const response = await fetch(
-            `/api/address/suggestions?search=${encodeURIComponent(searchTerm)}`
-          );
-          const data = await response.json();
-          if (data.success && Array.isArray(data.suggestions)) {
-            setAddressSuggestions(data.suggestions);
-            setShowAddressSuggestions(data.suggestions.length > 0);
-          } else {
-            setAddressSuggestions([]);
-            setShowAddressSuggestions(false);
-          }
-        } catch {
-          setAddressSuggestions([]);
-          setShowAddressSuggestions(false);
-        } finally {
-          setAddressSuggestionsLoading(false);
-        }
-      })();
-    }, 300);
-  }, []);
-
-  const handlePatientAddressChange = useCallback(
-    (val: string) => {
-      setFormData((pre: any) => ({ ...pre, patient_address: val }));
-      if (val === lastSelectedAddressRef.current) return;
-      lastSelectedAddressRef.current = "";
-      scheduleAddressSearch(val);
-    },
-    [scheduleAddressSearch]
-  );
-
-  const handlePatientAddressSelect = useCallback((suggestion: AddressUiSuggestion) => {
-    lastSelectedAddressRef.current = suggestion.fullAddress;
-    setFormData((pre: any) => ({ ...pre, patient_address: suggestion.fullAddress }));
-    setAddressSuggestions([]);
-    setShowAddressSuggestions(false);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (addressSearchTimerRef.current) {
-        clearTimeout(addressSearchTimerRef.current);
-      }
-    };
-  }, []);
 
   const selectDateTimeSlotHandle = useCallback(
     (date: Date | "", time?: string | "") => {
@@ -473,21 +388,12 @@ export const Add_Appointment_Modal = ({
       return;
     }
 
-    let addressLine = "";
-    if (isNew && !selectedComingBackPatient) {
-      const addr = String(formData.patient_address || "").trim();
-
-      if (!addr) {
-        toast.warning(t("Appoinments_k70"));
-        setLoading(false);
-        return;
-      }
-
-      addressLine = addr;
-    } else if (selectedComingBackPatient) {
-      // For coming-back patients, use the address field if provided
-      addressLine = String(formData.patient_address || "").trim();
-    }
+    // The Address field was removed from this form on 2026-09-23. A coming-back
+    // patient still carries whatever address is already on their record, and a
+    // new one is created without one, so the payload keeps its `address` key.
+    const addressLine = selectedComingBackPatient
+      ? String(formData.patient_address || "").trim()
+      : "";
 
     appointmentDetails.address = addressLine;
 
@@ -531,19 +437,13 @@ export const Add_Appointment_Modal = ({
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('API error:', errorData);
-          console.error('Request payload:', {
-            location_id,
-            first_name,
-            last_name,
-            email_address,
-            phone,
-            sex,
-            service,
-            date_and_time,
-            dob: dob || null,
-            patient_id: selectedComingBackPatient.id,
-          });
+          // The request payload carries first_name, last_name, email_address,
+          // phone, sex and dob — a complete patient identity. This is a client
+          // component, so it was written to the browser console, readable by
+          // devtools, extensions and screen recordings. Neither the payload nor
+          // the upstream error object is logged; the thrown Error below still
+          // surfaces the failure to the user.
+          logError('appointment.create_failed', { status: response.status });
           throw new Error(errorData.error || 'Failed to create appointment');
         }
 
@@ -557,7 +457,7 @@ export const Add_Appointment_Modal = ({
               <p>Appointment scheduled successfully.</p>
               <button
                 onClick={() => toast.dismiss()}
-                className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
               >
                 <span className="text-sm">✕</span>
               </button>
@@ -585,14 +485,14 @@ export const Add_Appointment_Modal = ({
                 }),
               });
             } catch (e) {
-              console.error('Error triggering appointment email (coming back):', e);
+              console.error('Error triggering appointment email (coming back):', classifyError(e));
             }
           }
 
           close_handle();
         }
       } catch (error: any) {
-        console.error('Error inserting appointment for coming back patient:', error);
+        console.error('Error inserting appointment for coming back patient:', classifyError(error));
         if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
           toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
         } else {
@@ -628,19 +528,13 @@ export const Add_Appointment_Modal = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API error:', errorData);
-        console.error('Request payload:', {
-          location_id,
-          first_name,
-          last_name,
-          email_address,
-          phone,
-          sex,
-          service,
-          date_and_time,
-          dob: dob || null,
-          address: addressLine || "",
-        });
+        // The request payload carries first_name, last_name, email_address,
+        // phone, sex and dob — a complete patient identity. This is a client
+        // component, so it was written to the browser console, readable by
+        // devtools, extensions and screen recordings. Neither the payload nor
+        // the upstream error object is logged; the thrown Error below still
+        // surfaces the failure to the user.
+        logError('appointment.create_failed', { status: response.status });
         throw new Error(errorData.error || 'Failed to create appointment');
       }
 
@@ -660,7 +554,7 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.warn("set-address (new patient)", e);
+            console.warn("set-address (new patient)", classifyError(e));
           }
         }
 
@@ -669,7 +563,7 @@ export const Add_Appointment_Modal = ({
             <p>Appointment scheduled successfully.</p>
             <button
               onClick={() => toast.dismiss()}
-              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100"
             >
               <span className="text-sm">&#x2715;</span>
             </button>
@@ -697,14 +591,14 @@ export const Add_Appointment_Modal = ({
               }),
             });
           } catch (e) {
-            console.error('Error triggering appointment email:', e);
+            console.error('Error triggering appointment email:', classifyError(e));
           }
         }
 
         close_handle();
       }
     } catch (error: any) {
-      console.error('Error creating appointment:', error);
+      console.error('Error creating appointment:', classifyError(error));
       if (error.message.includes('duplicate key') || error.message.includes('time slot')) {
         toast.error('Sorry, Appointment time slot is not available. Please select another time slot.');
       } else {
@@ -723,7 +617,7 @@ export const Add_Appointment_Modal = ({
           .select("title");
 
         if (error) {
-          console.error("Error fetching services:", error);
+          console.error("Error fetching services:", classifyError(error));
           setServices([]); // Ensure services state is reset on error
           return;
         }
@@ -733,7 +627,7 @@ export const Add_Appointment_Modal = ({
           setServices(serviceData); // Populate services state
         }
       } catch (err) {
-        console.error("Failed to fetch services:", err);
+        console.error("Failed to fetch services:", classifyError(err));
         setServices([]); // Reset services state on failure
       }
     };
@@ -754,7 +648,7 @@ export const Add_Appointment_Modal = ({
     <div>
       <button
         onClick={open_handle}
-        className="text-base flex items-center gap-3 bg-[#0066ff] px-5 py-2 rounded-md text-white hover:bg-[#0052cc] transition-colors"
+        className="text-base flex items-center gap-3 bg-[#166534] px-5 py-2 rounded-md text-white hover:bg-[#125229] transition-colors"
       >
         <CirclePlus color="white" />
         {t("Appoinments_k15")}
@@ -765,60 +659,49 @@ export const Add_Appointment_Modal = ({
         size="4xl"
         dismissible
       >
-        <Modal.Header className="border-b border-gray-200 dark:bg-[#0e1725] dark:border-gray-700">
+        <Modal.Header className="border-b border-gray-200">
           <div className="pr-8">
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">
               {t("Appoinments_k15")}
             </h1>
-            <p className="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm leading-relaxed text-gray-500">
               {t("Appoinments_k50")}
             </p>
           </div>
         </Modal.Header>
 
-        <Modal.Body className="bg-white dark:bg-[#0e1725] text-black dark:text-white">
+        <Modal.Body className="bg-white text-black">
           <div className="mx-auto max-w-3xl space-y-6 px-1 py-1 sm:px-0 max-h-[min(72vh,720px)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
-            <div className="flex items-start gap-3 rounded-xl border border-blue-100/90 bg-gradient-to-br from-blue-50/90 to-slate-50/50 px-4 py-3 dark:border-blue-900/50 dark:from-blue-950/40 dark:to-[#0c1626]">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm dark:bg-[#122136] dark:text-blue-400">
+            <div className="flex items-start gap-3 rounded-xl border border-brand-100/90 bg-gradient-to-br from-brand-50/90 to-slate-50/50 px-4 py-3">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 shadow-sm">
                 <MapPin className="h-4 w-4" aria-hidden />
               </span>
               <div className="min-w-0 flex-1 space-y-0.5">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-900/70 dark:text-blue-200/80">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-900/70">
                   {t("Appoinments_k51")}
                 </p>
-                <p className="truncate text-lg font-semibold leading-snug text-gray-900 dark:text-white">
+                <p className="truncate text-lg font-semibold leading-snug text-gray-900">
                   {selectedLocation?.title}
                 </p>
               </div>
             </div>
 
+            {/* "Type of visit" was removed on 2026-09-23: every appointment is an
+                office visit, and the virtual option was already disabled.
+                `in_office_patient` stays in formData, initialised to "true", so the
+                payload is unchanged. */}
             <FormSection title={t("Appoinments_k80")}>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t("Appoinments_k17")}
-                  </Label>
-                  <RadioButtons
-                    name="in_office_patient"
-                    options={get_in_office_patient_options(t)}
-                    selectedValue={formData.in_office_patient}
-                    onChange={(e) => select_change_handle("in_office_patient", e)}
-                    className="flex flex-wrap gap-x-4 gap-y-2"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t("Appoinments_k20")}
-                  </Label>
-                  <RadioButtons
-                    name="new_patient"
-                    options={get_patient_type_options(t)}
-                    selectedValue={formData.new_patient}
-                    onChange={(e) => select_change_handle("new_patient", e)}
-                    className="flex flex-wrap gap-x-4 gap-y-2"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  {t("Appoinments_k20")}
+                </Label>
+                <RadioButtons
+                  name="new_patient"
+                  options={get_patient_type_options(t)}
+                  selectedValue={formData.new_patient}
+                  onChange={(e) => select_change_handle("new_patient", e)}
+                  className="flex flex-wrap gap-x-4 gap-y-2"
+                />
               </div>
             </FormSection>
 
@@ -826,7 +709,7 @@ export const Add_Appointment_Modal = ({
               <FormSection title={t("Appoinments_k78")}>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k13")}
                     </Label>
                     <Input_Component_Appointment
@@ -836,11 +719,11 @@ export const Add_Appointment_Modal = ({
                       }
                       value={formData.first_name}
                       placeholder={t("Appoinments_k67")}
-                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      bg_color="bg-[#F5F5F7]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k12")}
                     </Label>
                     <Input_Component_Appointment
@@ -848,14 +731,14 @@ export const Add_Appointment_Modal = ({
                       onChange={(e: string) => select_change_handle("last_name", e)}
                       value={formData.last_name}
                       placeholder={t("Appoinments_k68")}
-                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      bg_color="bg-[#F5F5F7]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k11")}
                     </Label>
                     <Input_Component_Appointment
@@ -865,7 +748,7 @@ export const Add_Appointment_Modal = ({
                       type="email"
                       value={formData.email_address}
                       placeholder={t("Appoinments_k69")}
-                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
+                      bg_color="bg-[#F5F5F7]"
                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                       title="Please enter a valid email address (e.g., user@example.com)"
                       hasError={!!emailError}
@@ -875,7 +758,7 @@ export const Add_Appointment_Modal = ({
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k10")}
                     </Label>
                     <PhoneNumberInput
@@ -889,7 +772,7 @@ export const Add_Appointment_Modal = ({
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k9")}
                     </Label>
                     <DobWheelField
@@ -899,7 +782,7 @@ export const Add_Appointment_Modal = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <Label className="text-sm font-medium text-gray-700">
                       {t("Appoinments_k8")}
                     </Label>
                     <div className="min-h-[46px] flex items-center">
@@ -917,61 +800,8 @@ export const Add_Appointment_Modal = ({
               </FormSection>
             )}
 
-            {formData.new_patient !== "false" && (
-              <FormSection title={t("Appoinments_k32")}>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t("Appoinments_k4")}
-                  </Label>
-                  <div className="relative w-full">
-                    <Input_Component_Appointment
-                      required
-                      id="appointment-patient-address"
-                      onChange={handlePatientAddressChange}
-                      value={formData.patient_address || ""}
-                      placeholder={t("Appoinments_k70")}
-                      bg_color="dark:bg-[#122136] bg-[#f1f4f9]"
-                      onFocus={() => {
-                        if (addressSuggestions.length > 0) {
-                          setShowAddressSuggestions(true);
-                        }
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => setShowAddressSuggestions(false), 200);
-                      }}
-                    />
-                    {addressSuggestionsLoading && (
-                      <div className="pointer-events-none absolute right-3 top-[10px]">
-                        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-                      </div>
-                    )}
-                    {showAddressSuggestions && addressSuggestions.length > 0 && (
-                      <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        {addressSuggestions.map((suggestion, index) => (
-                          <div
-                            key={`${suggestion.fullAddress}-${index}`}
-                            className="cursor-pointer border-b border-gray-100 px-4 py-2 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700 last:border-b-0"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => handlePatientAddressSelect(suggestion)}
-                          >
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {suggestion.streetLine}
-                              {suggestion.secondary ? ` ${suggestion.secondary}` : ""}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {suggestion.city}, {suggestion.state} {suggestion.zipcode}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </FormSection>
-            )}
-
             {comingBackLoading && formData.new_patient === "false" && (
-              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/90 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-[#071226] dark:text-gray-300">
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/90 px-4 py-3 text-sm text-gray-600">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                 {t("Appoinments_k96", { defaultValue: "Loading patients…" })}
               </div>
@@ -1014,10 +844,10 @@ export const Add_Appointment_Modal = ({
             {comingBackData && comingBackData.length > 0 && !selectedComingBackPatient && formData.new_patient === "false" && (
               <FormSection title={t("Appoinments_k79")} className="!pb-9 sm:!pb-10">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <Label className="text-sm font-medium text-gray-700">
                     {t("Appoinments_k3")}
                   </Label>
-                  <select
+                  <MacSelect
                     required
                     value={formData.service}
                     onChange={(e) =>
@@ -1025,19 +855,19 @@ export const Add_Appointment_Modal = ({
                     }
                     className={nativeSelectClassName}
                   >
-                    <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                    <option value="" className="bg-white text-black">
                       {t("Appoinments_k28")}
                     </option>
                     {services?.map((service: string, index: any) => (
                       <option
                         key={index}
                         value={service}
-                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
+                        className="bg-white text-black"
                       >
                         {service}
                       </option>
                     ))}
-                  </select>
+                  </MacSelect>
                 </div>
 
                 <div className="space-y-2">
@@ -1052,22 +882,22 @@ export const Add_Appointment_Modal = ({
             )}
 
             {comingBackData && comingBackData.length === 0 && !comingBackLoading && !selectedComingBackPatient && formData.new_patient === "false" && (
-              <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-100">
+              <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-amber-900">
                 <p className="text-sm font-medium">{t("Appoinments_k92")}</p>
               </div>
             )}
 
             {selectedComingBackPatient && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-4 dark:border-gray-700 dark:bg-[#071226]">
+              <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1.5 text-sm">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">{t("Appoinments_k93")}</h3>
-                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k89", { defaultValue: (enAppoinments as any)["Appoinments_k89"] ?? "Name" })}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
-                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k90", { defaultValue: (enAppoinments as any)["Appoinments_k90"] ?? "Phone" })}</span> — {selectedComingBackPatient.phone || "—"}</p>
-                    <p><span className="text-gray-500 dark:text-gray-400">{t("Appoinments_k8")}</span> — {selectedComingBackPatient.sex || "—"}</p>
+                    <h3 className="text-base font-semibold text-gray-900">{t("Appoinments_k93")}</h3>
+                    <p><span className="text-gray-500">{t("Appoinments_k89", { defaultValue: (enAppoinments as any)["Appoinments_k89"] ?? "Name" })}</span> — {selectedComingBackPatient.first_name} {selectedComingBackPatient.last_name}</p>
+                    <p><span className="text-gray-500">{t("Appoinments_k90", { defaultValue: (enAppoinments as any)["Appoinments_k90"] ?? "Phone" })}</span> — {selectedComingBackPatient.phone || "—"}</p>
+                    <p><span className="text-gray-500">{t("Appoinments_k8")}</span> — {selectedComingBackPatient.sex || "—"}</p>
                     {!selectedComingBackPatient.dob && (
                       <div className="pt-2 space-y-2">
-                        <p className="text-amber-700 dark:text-amber-300">
+                        <p className="text-amber-700">
                           {t("Appoinments_k97", { defaultValue: "Date of birth is missing on file. Please add it before scheduling." })}
                         </p>
                         <DobWheelField
@@ -1085,7 +915,7 @@ export const Add_Appointment_Modal = ({
                       setDobParts({ y: "", m: "", d: "" });
                       setFormData((pre: any) => ({ ...pre, new_patient: "false", dob: "" }));
                     }}
-                    className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
+                    className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     {t("Appoinments_k94")}
                   </button>
@@ -1096,10 +926,10 @@ export const Add_Appointment_Modal = ({
             {(formData.new_patient !== "false" || selectedComingBackPatient) && (
               <FormSection title={t("Appoinments_k79")} className="!pb-9 sm:!pb-10">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <Label className="text-sm font-medium text-gray-700">
                     {t("Appoinments_k3")}
                   </Label>
-                  <select
+                  <MacSelect
                     required
                     value={formData.service}
                     onChange={(e) =>
@@ -1107,19 +937,19 @@ export const Add_Appointment_Modal = ({
                     }
                     className={nativeSelectClassName}
                   >
-                    <option value="" className="bg-white dark:bg-[#122136] text-black dark:text-white">
+                    <option value="" className="bg-white text-black">
                       {t("Appoinments_k28")}
                     </option>
                     {services?.map((service: string, index: any) => (
                       <option
                         key={index}
                         value={service}
-                        className="bg-white dark:bg-[#122136] text-black dark:text-white"
+                        className="bg-white text-black"
                       >
                         {service}
                       </option>
                     ))}
-                  </select>
+                  </MacSelect>
                 </div>
 
                 <div className="space-y-2">
@@ -1135,12 +965,12 @@ export const Add_Appointment_Modal = ({
           </div>
         </Modal.Body>
 
-        <Modal.Footer className="border-t border-gray-200 bg-gray-50/80 dark:border-gray-700 dark:bg-[#0e1725]">
+        <Modal.Footer className="border-t border-gray-200 bg-gray-50/80">
           <div className="mx-auto flex w-full max-w-3xl flex-col-reverse gap-2 px-1 sm:flex-row sm:justify-end sm:gap-3">
             <button
               type="button"
               onClick={close_handle}
-              className="min-h-[44px] rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-[#122136] dark:text-gray-200 dark:hover:bg-gray-800"
+              className="min-h-[44px] rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
               {t("Appoinments_k58")}
             </button>
@@ -1149,7 +979,7 @@ export const Add_Appointment_Modal = ({
               disabled={loading}
               onClick={submitHandle}
               className={`min-h-[44px] min-w-[160px] rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors ${
-                loading ? "cursor-not-allowed bg-[#0066ff]/70" : "bg-[#0066ff] hover:bg-[#0052cc]"
+                loading ? "cursor-not-allowed bg-[#166534]/70" : "bg-[#166534] hover:bg-[#125229]"
               }`}
             >
               {loading ? "Submitting..." : t("Appoinments_k57")}

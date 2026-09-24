@@ -35,18 +35,18 @@ const ConfirmDeleteModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40">
-      <div className="bg-white dark:bg-[#0e1725] rounded-lg shadow-lg w-full max-w-[520px] mx-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-[520px] mx-4">
         <div className="p-6">
           <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{resolvedTitle}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{resolvedTitle}</h3>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
           </div>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">{resolvedDescription}</div>
+          <div className="mt-4 text-sm text-gray-600">{resolvedDescription}</div>
 
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-100 dark:bg-[#122136] text-gray-700 dark:text-white"
+              className="px-4 py-2 rounded bg-gray-100 text-gray-700"
             >
               {t("POS-HistoryCancelBtn", { defaultValue: "Cancelar" })}
             </button>

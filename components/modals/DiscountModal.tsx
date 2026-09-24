@@ -84,12 +84,12 @@ export default function DiscountModal({
     >
       <div
         ref={dialogRef}
-        className="bg-white dark:bg-[#0e1725] rounded-lg shadow-xl w-full max-w-sm p-4"
+        className="bg-white rounded-lg shadow-xl w-full max-w-sm p-4"
       >
         <h3 id="discount-modal-title" className="text-lg font-semibold mb-2">
           {displayTitle}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           {t('POS-Sales_kDiscountModalExplanation')}
         </p>
 
@@ -123,7 +123,7 @@ export default function DiscountModal({
             setInputValue(rawValue);
           }}
           placeholder={t('POS-Sales_kDiscountModalPlaceholder')}
-          className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-[#f1f4f9] dark:bg-[#1f2937]"
+          className="w-full px-3 py-2 rounded-md border border-gray-300 bg-[#F5F5F7]"
           min={0}
           max={100}
           step="0.01"
@@ -132,13 +132,13 @@ export default function DiscountModal({
         <div className="mt-4 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700"
+            className="px-3 py-2 rounded-md border border-gray-300"
           >
             {t('POS-Sales_k85')}
           </button>
           <button
             onClick={handleApply}
-            className="px-3 py-2 rounded-md bg-[#0066FF] text-white hover:opacity-90"
+            className="px-3 py-2 rounded-md bg-[#166534] text-white hover:opacity-90"
           >
             {t('POS-Sales_k31')}
           </button>

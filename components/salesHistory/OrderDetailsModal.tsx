@@ -1,4 +1,5 @@
 import { fetch_content_service, update_content_service } from "@/utils/supabase/data_services/data_services";
+import { classifyError } from '@/utils/logging/safe-log';
 import { translationConstant } from "@/utils/translationConstants";
 import { CircularProgress } from "@mui/material";
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -117,7 +118,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             ? error.message
             : "An unexpected error occurred";
         toast.error(errorMessage);
-        console.error("Error fetching patient history:", error);
+        console.error("Error fetching patient history:", classifyError(error));
       } finally {
         setLoading(false);
       }
@@ -215,7 +216,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       // mark amounts saved so fields render as text
       setAmountsSaved(true);
     } catch (e: any) {
-      console.error("Failed to persist cash/card/zelle amounts", e);
+      console.error("Failed to persist cash/card/zelle amounts", classifyError(e));
       toast.error(e?.message || t("POS-Historyk67"));
       // Re-sync inputs from server state in case of failure
       setCashInput(dataList?.cash != null ? String(Number(dataList.cash).toFixed(2)) : "");
@@ -278,7 +279,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       setAmountsSaved(true);
       setAmountsEditable(false);
     } catch (e: any) {
-      console.error("Failed to update single payment method", e);
+      console.error("Failed to update single payment method", classifyError(e));
       toast.error(e?.message || t("POS-Historyk67"));
     }
   };
@@ -340,27 +341,27 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   return isOpen ? (
-    <div className="fixed inset-0 z-50 dark:bg-black/60 flex items-center justify-center backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
       {loading ? (
         <div className="h-full w-full flex justify-center items-center">
           <CircularProgress />
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#080e16] rounded-lg shadow-xl w-[85%] max-w-5xl mt-6 max-h-[80vh] flex flex-col">
+        <div className="bg-white rounded-lg shadow-xl w-[85%] max-w-5xl mt-6 max-h-[80vh] flex flex-col">
           {/* Fixed Header Section */}
-          <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#080e16] rounded-t-lg sticky top-0 z-10">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white rounded-t-lg sticky top-0 z-10">
+            <h2 className="text-2xl font-semibold text-gray-800">
               {t("POS-Historyk11")}# {order_id} {t("POS-Historyk10")}
             </h2>
             <div className="flex items-center gap-4">
-              <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
-                {t("POS-Historyk13")}: <strong className="text-gray-800 dark:text-gray-200">{pos?.patientid || patient_id}</strong>
+              <span className="text-lg font-medium text-gray-600">
+                {t("POS-Historyk13")}: <strong className="text-gray-800">{pos?.patientid || patient_id}</strong>
               </span>
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <span className="text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                <span className="text-2xl text-gray-500 hover:text-gray-700">
                   &times;
                 </span>
               </button>
@@ -370,7 +371,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           {/* Scrollable Content Section */}
           <div className="flex-1 overflow-y-auto p-4">
             {/* Patient Details and Invoice Summary */}
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-[#080e16] rounded-lg">
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Left Side - Patient Details */}
                 <div className="flex-1">
@@ -384,12 +385,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 </div>
                 
                 {/* Right Side - Invoice Summary */}
-                <div className="lg:w-80 bg-white dark:bg-[#0e1725] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                  <h4 className="font-bold text-lg mb-4 text-gray-800 dark:text-gray-200">{t("POS-Historyk52")}</h4>
+                <div className="lg:w-80 bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-bold text-lg mb-4 text-gray-800">{t("POS-Historyk52")}</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk53")}:</span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                      <span className="text-gray-600">{t("POS-Historyk53")}:</span>
+                      <span className="font-medium text-gray-800">
                         {(() => {
                           // Extract date part directly from ISO string without timezone conversion
                           const dateString = dataList?.order_date?.split('T')[0]; // YYYY-MM-DD
@@ -402,32 +403,32 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     </div>
                     
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk54")}:</span>
+                      <span className="text-gray-600">{t("POS-Historyk54")}:</span>
                       <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <label className="flex items-center gap-2 text-sm text-gray-700">
                           <input
                             type="checkbox"
                             checked={checks.cash}
                             onChange={() => toggleCheck("cash")}
-                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                           />
                           {t("POS-Historyk55")}
                         </label>
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <label className="flex items-center gap-2 text-sm text-gray-700">
                           <input
                             type="checkbox"
                             checked={checks.card}
                             onChange={() => toggleCheck("card")}
-                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                           />
                           {t("POS-Historyk56")}
                         </label>
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <label className="flex items-center gap-2 text-sm text-gray-700">
                           <input
                             type="checkbox"
                             checked={checks.zelle}
                             onChange={() => toggleCheck("zelle")}
-                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                           />
                           Zelle
                         </label>
@@ -469,7 +470,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           })()}
                           aria-label="Guardar"
                           title="Guardar"
-                          className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+                          className="inline-flex items-center justify-center w-6 h-6 bg-brand-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-700"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                             <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414L8 11.086l6.793-6.793a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -491,14 +492,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     })()}
                     {(Number(dataList?.cash) > 0 || isCashEditable) && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk59")}:</span>
+                      <span className="text-gray-600">{t("POS-Historyk59")}:</span>
                       {isCashEditable ? (
                         amountsSaved || !amountsEditable ? (
                           <span
                             onClick={() => {
                               if (!amountsSaved) setAmountsEditable(true);
                             }}
-                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                            className="font-medium text-gray-800 cursor-pointer"
                           >
                             ${(() => {
                               const cashAmt = Number(dataList?.cash) || 0;
@@ -507,7 +508,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           </span>
                         ) : (
                           <div className="relative flex items-center">
-                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
+                            <span className="absolute left-3 text-gray-600 font-medium pointer-events-none">$</span>
                             <input
                               type="text"
                               inputMode="decimal"
@@ -540,12 +541,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
                                 setCashInput(formatted);
                               }}
-                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                              className="w-32 bg-white border border-gray-300 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                           </div>
                         )
                       ) : (
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                        <span className="font-medium text-gray-800">
                           ${(() => {
                             const cashAmt = Number(dataList?.cash) || 0;
                             return cashAmt.toFixed(2);
@@ -557,14 +558,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     
                     {(Number(dataList?.card) > 0 || isCardEditable) && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk60")}:</span>
+                      <span className="text-gray-600">{t("POS-Historyk60")}:</span>
                       {isCardEditable ? (
                         amountsSaved || !amountsEditable ? (
                           <span
                             onClick={() => {
                               if (!amountsSaved) setAmountsEditable(true);
                             }}
-                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                            className="font-medium text-gray-800 cursor-pointer"
                           >
                             ${(() => {
                               const cardAmt = Number(dataList?.card) || 0;
@@ -573,7 +574,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           </span>
                         ) : (
                           <div className="relative flex items-center">
-                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
+                            <span className="absolute left-3 text-gray-600 font-medium pointer-events-none">$</span>
                             <input
                               type="text"
                               inputMode="decimal"
@@ -606,12 +607,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
                                 setCardInput(formatted);
                               }}
-                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                              className="w-32 bg-white border border-gray-300 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                           </div>
                         )
                       ) : (
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                        <span className="font-medium text-gray-800">
                           ${(() => {
                             const cardAmt = Number(dataList?.card) || 0;
                             return cardAmt.toFixed(2);
@@ -623,14 +624,14 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
                     {(Number(dataList?.zelle) > 0 || isZelleEditable) && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk61")}:</span>
+                      <span className="text-gray-600">{t("POS-Historyk61")}:</span>
                       {isZelleEditable ? (
                         amountsSaved || !amountsEditable ? (
                           <span
                             onClick={() => {
                               if (!amountsSaved) setAmountsEditable(true);
                             }}
-                            className="font-medium text-gray-800 dark:text-gray-200 cursor-pointer"
+                            className="font-medium text-gray-800 cursor-pointer"
                           >
                             ${(() => {
                               const zelleAmt = Number(dataList?.zelle) || 0;
@@ -639,7 +640,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           </span>
                         ) : (
                           <div className="relative flex items-center">
-                            <span className="absolute left-3 text-gray-600 dark:text-gray-400 font-medium pointer-events-none">$</span>
+                            <span className="absolute left-3 text-gray-600 font-medium pointer-events-none">$</span>
                             <input
                               type="text"
                               inputMode="decimal"
@@ -672,12 +673,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                                 const formatted = clamped === 0 ? "" : String(clamped.toFixed(2));
                                 setZelleInput(formatted);
                               }}
-                              className="w-32 bg-white dark:bg-[#0e1725] border border-gray-300 dark:border-gray-500 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                              className="w-32 bg-white border border-gray-300 text-sm px-3 py-2 pl-8 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                           </div>
                         )
                       ) : (
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                        <span className="font-medium text-gray-800">
                           ${(() => {
                             const zelleAmt = Number(dataList?.zelle) || 0;
                             return zelleAmt.toFixed(2);
@@ -688,8 +689,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     )}
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk62")}:</span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                      <span className="text-gray-600">{t("POS-Historyk62")}:</span>
+                      <span className="font-medium text-gray-800">
                         ${(() => {
                           const total = dataList?.sales_history?.reduce((sum: number, item: any) => 
                             sum + (item.total_price || 0), 0) || 0;
@@ -699,7 +700,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-600">
                         {t("POS-Historyk63")}({(() => {
                           const cartDiscount = dataList?.discounts?.find((d: any) => 
                             d.discount_type === 'cart' && d.product_id === null
@@ -707,7 +708,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                           return cartDiscount ? `${cartDiscount.discount_amount}%` : '0%';
                         })()}):
                       </span>
-                      <span className="font-medium text-red-600 dark:text-red-400">
+                      <span className="font-medium text-red-600">
                         -${(() => {
                           const cartDiscount = dataList?.discounts?.find((d: any) => 
                             d.discount_type === 'cart' && d.product_id === null
@@ -718,8 +719,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">{t("POS-Historyk64")}:</span>
-                      <span className="font-medium text-red-600 dark:text-red-400">
+                      <span className="text-gray-600">{t("POS-Historyk64")}:</span>
+                      <span className="font-medium text-red-600">
                         -${(() => {
                           let totalProductDiscount = 0;
                           
@@ -744,10 +745,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                       </span>
                     </div>
                     
-                    <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
+                    <div className="border-t border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-base">
-                        <span className="text-gray-800 dark:text-gray-200">{t("POS-Historyk65")}:</span>
-                        <span className="text-gray-800 dark:text-gray-200">
+                        <span className="text-gray-800">{t("POS-Historyk65")}:</span>
+                        <span className="text-gray-800">
                           ${(() => {
                             // Calculate Gross Amount
                             const grossAmount = dataList?.sales_history?.reduce((sum: number, item: any) => 
@@ -793,30 +794,30 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
             {/* Order Summary */}
             <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+              <h3 className="text-lg font-semibold text-gray-700">
                 {t("POS-Historyk21")}
               </h3>
 
               <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                 {/* <div className="space-y-1">
-                  <p className="text-gray-500 dark:text-gray-400">Order ID:</p>
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-500">Order ID:</p>
+                  <p className="font-medium text-gray-700">
                     {dataList?.order_id}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-gray-500 dark:text-gray-400">Order Date:</p>
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-500">Order Date:</p>
+                  <p className="font-medium text-gray-700">
                     {moment(dataList?.order_date)
                       .utcOffset(-6)
                       .format("DD-MM-YYYY")}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-gray-500">
                     Payment Type:
                   </p>
-                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                  <p className="font-medium text-gray-700">
                     {dataList?.sales_history?.[0]?.paymentcash ? "Cash" : "Debit"}
                   </p>
                 </div> */}
@@ -829,22 +830,22 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 <div className="relative max-w-xl">
                   <CiSearch
                     size={20}
-                    className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
+                    className="absolute left-3 top-3 text-gray-400"
                   />
                   <input
                     onChange={searchProductHandle}
                     type="text"
                     placeholder={t("POS-Historyk33")}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg bg-[#f1f4f9] border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                    className="w-full pl-10 pr-4 py-2 border rounded-lg bg-[#F5F5F7] border-gray-300 text-gray-800"
                   />
                 </div>
               </div>
 
               <div className="md:shrink-0 w-full md:w-72">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t("POS-Historyk70")}</h3>
-                <div className="p-2 bg-gray-50 dark:bg-[#071025] border rounded text-sm">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">{t("POS-Historyk70")}</h3>
+                <div className="p-2 bg-gray-50 border rounded text-sm">
                   {dataList?.sales_team_members && dataList.sales_team_members.length > 0 ? (
-                    <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                    <ul className="space-y-1 text-sm text-gray-800">
                       {dataList.sales_team_members.map((name: string, idx: number) => (
                         <li key={idx} className="py-0.5">{name}</li>
                       ))}
@@ -857,13 +858,13 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             </div>
 
             {/* Table Section */}
-            <div className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
+            <div className="border rounded-lg overflow-hidden border-gray-200">
               {/* Table Header - Only visible on md and larger screens */}
-              <div className="hidden md:grid bg-gray-50 dark:bg-gray-700 px-4 py-3 grid-cols-7 gap-4">
+              <div className="hidden md:grid bg-gray-50 px-4 py-3 grid-cols-7 gap-4">
                 {tableHeader.map(({ label, align, flex }, index) => (
                   <div
                     key={index}
-                    className={`text-sm font-medium text-gray-500 dark:text-gray-400 ${
+                    className={`text-sm font-medium text-gray-500 ${
                       align === "right" ? "text-right" : align === "text-center" ? "text-center" : "text-left"
                     }`}
                   >
@@ -873,36 +874,36 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               </div>
 
               {/* Table Body - Cards for small screens, Table for larger screens */}
-              <div className="overflow-y-auto divide-y divide-gray-200 dark:-gray-700">
+              <div className="overflow-y-auto divide-y divide-gray-200">
                 {salesHistory.map((elem: DataListInterface, index: number) => (
                   <div key={index}>
                     {/* Mobile Card View */}
-                    <div className="md:hidden p-4 space-y-3 border-b border-gray-200 dark:border-gray-700">
+                    <div className="md:hidden p-4 space-y-3 border-b border-gray-200">
                       <div className="flex flex-col space-y-2">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk24")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300 break-words">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk24")}</p>
+                            <p className="font-medium text-gray-700 break-words">
                               {elem?.inventory?.products?.product_name}
                             </p>
                           </div>
                           <div className="ml-4 text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk26")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk26")}</p>
+                            <p className="font-medium text-gray-700">
                               ${elem?.inventory?.price}
                             </p>
                           </div>
                         </div>
                         <div className="flex justify-between items-center">
                           <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk25")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk25")}</p>
+                            <p className="font-medium text-gray-700">
                               {elem?.quantity}
                             </p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk68")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk68")}</p>
+                            <p className="font-medium text-gray-700">
                               {(() => {
                                 const productId = elem?.inventory?.product_id;
                                 const productDiscount = dataList?.discounts?.find((discount: any) => 
@@ -913,8 +914,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             </p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk69")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk69")}</p>
+                            <p className="font-medium text-gray-700">
                               {(() => {
                                 const originalAmount = elem?.total_price || 0;
                                 const productId = elem?.inventory?.product_id;
@@ -932,8 +933,8 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{t("POS-Historyk26")}</p>
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-gray-500">{t("POS-Historyk26")}</p>
+                            <p className="font-medium text-gray-700">
                               ${calcTotalAmount({ sales_history: [elem] })}
                             </p>
                           </div>
@@ -965,34 +966,34 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-2 justify-between dark:bg-[#080e16] px-3 py-2 rounded-md">
-                {/* <span className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-2 justify-between px-3 py-2 rounded-md">
+                {/* <span className="text-sm text-gray-500">
                   Page
                 </span> */}
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-sm font-medium text-gray-700">
                 {t("POS-Historyk29")} {page} {t("POS-Historyk30")} {totalPages}
                 </span>
                 <div className="flex justify-center gap-2 items-center">
                 <button
                   onClick={() => changeHistoryHandle("prev")}
                   disabled={page === 1}
-                  className={`p-1 rounded border-2 border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                  className={`p-1 rounded border-2 border-gray-500 hover:bg-gray-200 ${
                     page === 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
                   {t("POS-Historyk32")}
-                  {/* <ArrowLeftFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
+                  {/* <ArrowLeftFromLine className="w-4 h-4 text-gray-700" /> */}
                 </button>
                 
                 <button
                   onClick={() => changeHistoryHandle("next")}
                   disabled={page === totalPages}
-                  className={`p-1 rounded border-2 border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                  className={`p-1 rounded border-2 border-gray-400 hover:bg-gray-200 ${
                     page === totalPages ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
                   {t("POS-Historyk31")}
-                  {/* <ArrowRightFromLine className="w-4 h-4 text-gray-700 dark:text-gray-300" /> */}
+                  {/* <ArrowRightFromLine className="w-4 h-4 text-gray-700" /> */}
                 </button>
                 </div>
               </div>

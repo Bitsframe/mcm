@@ -90,12 +90,12 @@ const tableHeader = [
             icon={<RefreshCcw size={18} />}
             onClick={() => clickHandle(modalStateEnum.UPDATE)}
             label=""
-            text_color="text-[#0066ff] dark:text-blue-400"
-            bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
+            text_color="text-[#166534]"
+            bg_color="bg-[#F0F7F2]"
             border={
               getDataArchiveType
-                ? "border-[#CCE0FF] dark:border-blue-800"
-                : "border-[#CCE0FF] dark:border-blue-800"
+                ? "border-[#B9DCC6]"
+                : "border-[#B9DCC6]"
             }
           />
           <Action_Button
@@ -103,27 +103,27 @@ const tableHeader = [
             label={getDataArchiveType ? "" : ""}
             text_color={
               getDataArchiveType
-                ? "text-[#0EA542] dark:text-green-400"
-                : "text-[#F71B1B] dark:text-red-400"
+                ? "text-[#0EA542]"
+                : "text-[#D70015]"
             }
             bg_color={
               getDataArchiveType
-                ? "bg-[#E7FDEF] dark:bg-green-900/30"
-                : "bg-[#FFE8E5] dark:bg-red-900/30"
+                ? "bg-[#E7FDEF]"
+                : "bg-[#FFE8E5]"
             }
             border={
               getDataArchiveType
-                ? "border-[#72F39E] dark:border-green-800"
-                : "border-[#FFD2CC] dark:border-red-800"
+                ? "border-[#72F39E]"
+                : "border-[#FFD2CC]"
             }
             onClick={() => clickHandle(modalStateEnum.DELETE)}
           />
           <Action_Button
             icon={<CirclePlus size={18} />}
             label=""
-            text_color="text-[#0EA542] dark:text-green-400"
-            bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
-            border="border-[#72F39E] dark:border-green-800"
+            text_color="text-[#0EA542]"
+            bg_color="bg-[#E7FDEF]"
+            border="border-[#72F39E]"
             onClick={() => clickHandle(modalStateEnum.ASSIGN)}
           />
         </div>
@@ -175,7 +175,9 @@ const Products = () => {
     quantity: 0,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  // Every active product in one scrolling list; the pager only appears if the
+  // list ever outgrows this.
+  const itemsPerPage = 500;
   const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const calculateTotalAssigned = useCallback(() => {
@@ -232,6 +234,8 @@ const Products = () => {
           },
         ],
         sortOptions: { column: "product_id", order: "desc" },
+        // The catalogue is past PostgREST's 1,000-row page; page through it all.
+        fetchAll: true,
       });
 
       setDataList(fetched_data);
@@ -516,41 +520,39 @@ const Products = () => {
 
   const { t } = useTranslation(translationConstant.INVENTORY);
   return (
-    <main className="w-full h-full font-[500] text-[20px] dark:bg-[#0e1725] dark:text-white">
-      <div className="w-full h-full overflow-auto py-2 px-2">
-        <div className="h-[100%] col-span-2 rounded-md py-2">
+    <main className="w-full text-body">
+      <div className="w-full">
+        <div className="rounded-md">
           <div className=" flex flex-col gap-3 sm:flex-row sm:justify-between items-center">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto">
               <input
                 onChange={onChangeHandle}
                 type="text"
                 placeholder={t("Inventory_k20")}
-                className="px-4 py-2 w-full sm:w-72 text-sm rounded-md focus:outline-none border border-gray-300 bg-[#f1f4f9] dark:bg-[#122136] dark:border-gray-700 dark:text-white"
+                className="h-8 w-full rounded-md border border-input bg-white px-2.5 text-body text-label shadow-[inset_0_1px_1px_rgba(0,0,0,0.04)] placeholder:text-label-3 focus:outline-none sm:w-72"
               />
               <button
                 onClick={() => openModalHandle(modalStateEnum.CREATE)}
-                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-blue-700 dark:hover:bg-blue-800 mt-2 sm:mt-0"
+                className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md bg-brand-600 px-3.5 text-body font-medium text-white shadow-mac-sm transition-colors hover:bg-brand-700 sm:w-auto"
               >
-                <CirclePlus className="w-6 h-6" />
+                <CirclePlus size={15} />
                 <span>{t("Inventory_k26")}</span>
               </button>
               <button
                 onClick={() => setTransferModalOpen(true)}
-                className="flex w-full sm:w-[200px] items-center justify-center gap-x-2 bg-green-600 hover:bg-green-700 text-white text-base font-medium px-4 py-[6px] rounded-md dark:bg-green-700 dark:hover:bg-green-800 mt-2 sm:mt-0"
+                className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-input bg-white px-3.5 text-body font-medium text-label shadow-mac-sm transition-colors hover:bg-surface sm:w-auto"
               >
-                <CirclePlus className="w-6 h-6" />
+                <CirclePlus size={15} />
                 <span>{t("Inventory_k44")}</span>
               </button>
             </div>
 
-            <div className="text-sm text-gray-500 flex items-center justify-start w-full sm:w-auto">
-              <div className="flex rounded-md overflow-hidden border dark:border-gray-700 bg-white dark:bg-[#122136]">
+            <div className="flex w-full items-center justify-start sm:w-auto">
+              <div className="inline-flex items-center gap-0.5 rounded-lg bg-surface-2 p-0.5 text-body shadow-mac-inset">
                 <button
                   onClick={handleActiveClick}
-                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    !getDataArchiveType
-                      ? "bg-blue-600 text-white dark:bg-blue-700"
-                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className={`flex h-7 items-center gap-1.5 rounded-md px-3 font-medium transition-colors ${
+                    !getDataArchiveType ? "bg-white text-label shadow-mac-sm" : "text-label-2 hover:text-label"
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
@@ -558,10 +560,8 @@ const Products = () => {
                 </button>
                 <button
                   onClick={handleArchiveClick}
-                  className={`flex items-center gap-x-2 px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    getDataArchiveType
-                      ? "bg-blue-600 text-white dark:bg-blue-700"
-                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className={`flex h-7 items-center gap-1.5 rounded-md px-3 font-medium transition-colors ${
+                    getDataArchiveType ? "bg-white text-label shadow-mac-sm" : "text-label-2 hover:text-label"
                   }`}
                 >
                   <Archive className="w-4 h-4" />
@@ -572,12 +572,12 @@ const Products = () => {
           </div>
 
           <div className="pt-5">
-            <div className="border rounded-md dark:border-gray-700 dark:bg-[#0e1725] overflow-hidden">
+            <div className="overflow-hidden rounded-lg border border-border shadow-mac-sm">
               {/* Table for larger screens */}
               <div className="hidden md:block overflow-x-auto">
                 <div className="min-h-[70dvh] max-h-[70dvh] overflow-y-auto">
                   <Table className="min-w-full">
-                    <TableHeader className="bg-gray-50 border-b border-b-[#E4E4E7] dark:bg-[#0e1725] dark:border-gray-700 sticky top-0 z-10">
+                    <TableHeader className="sticky top-0 z-10 bg-surface/95 backdrop-blur">
                       <TableRow className="flex hover:bg-transparent">
                       <TableHead className="w-8 p-2"></TableHead>
                       {tableHeader.map(
@@ -600,7 +600,7 @@ const Products = () => {
                               id === "actions"
                                 ? "text-center"
                                 : "text-start"
-                            } text-base text-[#71717A] font-normal p-2 dark:text-gray-400 truncate`}
+                            } text-base text-[#6E6E73] font-normal p-2 truncate`}
                           >
                             <div className="flex items-center justify-between">
                               {t(label)}
@@ -612,9 +612,9 @@ const Products = () => {
                                   <PiCaretUpDownBold
                                     className={`inline ${
                                       sortColumn === id
-                                        ? "text-blue-600 dark:text-blue-400"
-                                        : "text-gray-400 dark:text-gray-500"
-                                    } hover:text-gray-600 dark:hover:text-gray-300`}
+                                        ? "text-brand-600"
+                                        : "text-gray-400"
+                                    } hover:text-label-2`}
                                   />
                                 </button>
                               )}
@@ -625,16 +625,16 @@ const Products = () => {
                     </TableRow>
                   </TableHeader>
 
-                    <TableBody className="bg-white dark:bg-[#0e1725]">
+                    <TableBody className="bg-white">
                       {loading ? (
                         <TableRow className="flex h-[70dvh]">
                           <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center">
-                            <Spinner size="xl" className="dark:text-white" />
+                            <Spinner size="xl" className="" />
                           </TableCell>
                         </TableRow>
                       ) : dataList.length === 0 ? (
                         <TableRow className="flex h-[70dvh]">
-                          <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                          <TableCell className="h-[70dvh] w-full flex flex-col justify-center items-center">
                             <h1>{t("Inventory_k45")}</h1>
                           </TableCell>
                         </TableRow>
@@ -642,7 +642,7 @@ const Products = () => {
                       paginatedData.map((elem: DataListInterface, index) => (
                         <TableRow
                           key={index}
-                          className="flex items-center border-b border-b-[#E4E4E7] py-2 dark:hover:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
+                          className="flex items-center border-b border-b-[#E5E5EA] py-2 hover:bg-gray-100 transition-colors"
                         >
                           <TableCell className="w-8 p-2"></TableCell>
                           {tableHeader.map((element, ind) => {
@@ -705,9 +705,9 @@ const Products = () => {
                                         buttonClickActionHandle("Update", elem)
                                       }
                                       label={t("Inventory_k17")}
-                                      text_color="text-[#0066ff] dark:text-blue-400"
-                                      bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
-                                      border="border-[#CCE0FF] dark:border-blue-800"
+                                      text_color="text-[#166534]"
+                                      bg_color="bg-[#F0F7F2]"
+                                      border="border-[#B9DCC6]"
                                     />
                                     <Action_Button
                                       icon={<Archive size={16} />}
@@ -721,18 +721,18 @@ const Products = () => {
                                       }
                                       text_color={
                                         getDataArchiveType
-                                          ? "text-[#0EA542] dark:text-green-400"
-                                          : "text-[#F71B1B] dark:text-red-400"
+                                          ? "text-[#0EA542]"
+                                          : "text-[#D70015]"
                                       }
                                       bg_color={
                                         getDataArchiveType
-                                          ? "bg-[#E7FDEF] dark:bg-green-900/30"
-                                          : "bg-[#FFE8E5] dark:bg-red-900/30"
+                                          ? "bg-[#E7FDEF]"
+                                          : "bg-[#FFE8E5]"
                                       }
                                       border={
                                         getDataArchiveType
-                                          ? "border-[#72F39E] dark:border-green-800"
-                                          : "border-[#FFD2CC] dark:border-red-800"
+                                          ? "border-[#72F39E]"
+                                          : "border-[#FFD2CC]"
                                       }
                                     />
                                     <Action_Button
@@ -741,9 +741,9 @@ const Products = () => {
                                         buttonClickActionHandle("Assign", elem)
                                       }
                                       label={t("Inventory_k6")}
-                                      text_color="text-[#0EA542] dark:text-green-400"
-                                      bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
-                                      border="border-[#72F39E] dark:border-green-800"
+                                      text_color="text-[#0EA542]"
+                                      bg_color="bg-[#E7FDEF]"
+                                      border="border-[#72F39E]"
                                     />
                                   </div>
                                 </TableCell>
@@ -765,7 +765,7 @@ const Products = () => {
                                   id === "price" || id === "stock"
                                     ? "text-center"
                                     : "text-start"
-                                } text-base p-2 dark:text-gray-300 truncate`}
+                                } text-base p-2 truncate`}
                               >
                                 {id === "category"
                                   ? elem?.categories?.category_name
@@ -784,10 +784,10 @@ const Products = () => {
               <div className="md:hidden space-y-4 p-4">
                 {loading ? (
                   <div className="h-[70dvh] w-full flex flex-col justify-center items-center">
-                    <Spinner size="xl" className="dark:text-white" />
+                    <Spinner size="xl" className="" />
                   </div>
                 ) : dataList.length === 0 ? (
-                  <div className="h-[70dvh] w-full flex flex-col justify-center items-center dark:text-gray-300">
+                  <div className="h-[70dvh] w-full flex flex-col justify-center items-center">
                     <h1>{t("Inventory_k45")}</h1>
                   </div>
                 ) : (
@@ -795,38 +795,38 @@ const Products = () => {
                     {paginatedData.map((elem: DataListInterface, index) => (
                       <div
                         key={index}
-                        className="bg-white dark:bg-[#0e1725] p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                        className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
                       >
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            <span className="text-sm font-medium text-label-2">
                               {t("Inventory_k1")}:
                             </span>
-                            <span className="text-sm dark:text-gray-300 truncate">
+                            <span className="text-sm truncate">
                               {elem?.categories?.category_name}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            <span className="text-sm font-medium text-label-2">
                               {t("Inventory_k8")}:
                             </span>
-                            <span className="text-sm dark:text-gray-300 truncate">
+                            <span className="text-sm truncate">
                               {elem.product_name}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            <span className="text-sm font-medium text-label-2">
                               {t("Inventory_k18")}:
                             </span>
-                            <span className="text-sm dark:text-gray-300">
+                            <span className="text-sm">
                               {elem.price}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            <span className="text-sm font-medium text-label-2">
                               {t("Inventory_k19")}:
                             </span>
-                            <span className="text-sm dark:text-gray-300">
+                            <span className="text-sm">
                               {elem.unlimited ? "Unlimited" : elem.stock}
                             </span>
                           </div>
@@ -837,9 +837,9 @@ const Products = () => {
                                 buttonClickActionHandle("Update", elem)
                               }
                               label="Update"
-                              text_color="text-[#0066ff] dark:text-blue-400"
-                              bg_color="bg-[#E5F0FF] dark:bg-blue-900/30"
-                              border="border-[#CCE0FF] dark:border-blue-800"
+                              text_color="text-[#166534]"
+                              bg_color="bg-[#F0F7F2]"
+                              border="border-[#B9DCC6]"
                             />
                             <Action_Button
                               icon={<Archive size={16} />}
@@ -851,18 +851,18 @@ const Products = () => {
                               }
                               text_color={
                                 getDataArchiveType
-                                  ? "text-[#0EA542] dark:text-green-400"
-                                  : "text-[#F71B1B] dark:text-red-400"
+                                  ? "text-[#0EA542]"
+                                  : "text-[#D70015]"
                               }
                               bg_color={
                                 getDataArchiveType
-                                  ? "bg-[#E7FDEF] dark:bg-green-900/30"
-                                  : "bg-[#FFE8E5] dark:bg-red-900/30"
+                                  ? "bg-[#E7FDEF]"
+                                  : "bg-[#FFE8E5]"
                               }
                               border={
                                 getDataArchiveType
-                                  ? "border-[#72F39E] dark:border-green-800"
-                                  : "border-[#FFD2CC] dark:border-red-800"
+                                  ? "border-[#72F39E]"
+                                  : "border-[#FFD2CC]"
                               }
                             />
                             <Action_Button
@@ -871,9 +871,9 @@ const Products = () => {
                                 buttonClickActionHandle("Assign", elem)
                               }
                               label="Assign"
-                              text_color="text-[#0EA542] dark:text-green-400"
-                              bg_color="bg-[#E7FDEF] dark:bg-green-900/30"
-                              border="border-[#72F39E] dark:border-green-800"
+                              text_color="text-[#0EA542]"
+                              bg_color="bg-[#E7FDEF]"
+                              border="border-[#72F39E]"
                             />
                           </div>
                         </div>
@@ -883,8 +883,8 @@ const Products = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-between p-4 border-t dark:border-gray-700">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <div className="text-footnote text-label-2">
                   {dataList.length === 0
                     ? `${t("Inventory_k27")} 0 ${t("Inventory_k29")} 0`
                     : `${t("Inventory_k27")} ${
@@ -895,22 +895,24 @@ const Products = () => {
                       )} ${t("Inventory_k29")} ${dataList.length}`}
                 </div>
 
+                {totalPages > 1 && (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm"
                   >
                     {t("Inventory_k23") || "Previous"}
                   </button>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-md text-sm dark:hover:bg-gray-600 dark:text-white"
+                    className="px-3 py-1 border rounded-md text-sm"
                   >
                     {t("Inventory_k22") || "Next"}
                   </button>
                 </div>
+                )}
               </div>
             </div>
           </div>
@@ -933,10 +935,10 @@ const Products = () => {
         disabled={modalState === modalStateEnum.ASSIGN && !isAssignValid()}
       >
         {modalState === modalStateEnum.ASSIGN ? (
-          <div className="w-full grid grid-cols-2 h-[300px] gap-4 dark:bg-[#0e1725]">
+          <div className="w-full grid grid-cols-2 h-[300px] gap-4">
             <div className="col-span-2 space-y-2">
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-label">
                   {t("Inventory_k65")}
                 </label>
                 <div className="flex items-center space-x-2">
@@ -947,21 +949,21 @@ const Products = () => {
                       assignModalData.location_ids?.length === locations.length
                     }
                     onChange={handleSelectAll}
-                    className="h-5 w-5 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                    className="h-5 w-5 rounded border-2 border-gray-400 text-brand-600 focus:ring-brand-500 cursor-pointer ring-1 ring-gray-300"
                   />
                   <label
                     htmlFor="select-all-locations"
-                    className="text-sm text-gray-700 dark:text-gray-300"
+                    className="text-sm text-label"
                   >
                     {t("Inventory_k41")}
                   </label>
                 </div>
               </div>
-              <div className="max-h-[200px] overflow-y-auto border rounded-md dark:border-gray-700">
+              <div className="max-h-[200px] overflow-y-auto border rounded-md">
                 {locations.map((location: any) => (
                   <div
                     key={location.id}
-                    className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 border-b last:border-b-0 dark:border-gray-700"
+                    className="p-2 hover:bg-gray-50 border-b last:border-b-0"
                   >
                     <div className="flex items-center space-x-2">
                       <input
@@ -971,11 +973,11 @@ const Products = () => {
                           location.id
                         )}
                         onChange={() => handleLocationSelect(location.id)}
-                        className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                        className="h-4 w-4 rounded border-2 border-gray-400 text-brand-600 focus:ring-brand-500 cursor-pointer ring-1 ring-gray-300"
                       />
                       <label
                         htmlFor={`location-${location.id}`}
-                        className="text-sm text-gray-700 dark:text-gray-300"
+                        className="text-sm text-label"
                       >
                         {location.title}
                       </label>
@@ -983,7 +985,7 @@ const Products = () => {
                   </div>
                 ))}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-sm text-label-2">
                 {assignModalData.location_ids?.length || 0} {t("Inventory_k42")}
               </div>
             </div>
@@ -993,53 +995,53 @@ const Products = () => {
                   type="number"
                   value={assignModalData.quantity?.toString() || ""}
                   onChange={handleQuantityChange}
-                  border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                  border="border-[1px] border-gray-300 rounded-md"
                   label={t("Inventory_k66")}
-                  bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
+                  bg_color="bg-[#F5F5F7]"
                 />
               </div>
-              <div className="space-y-2 p-3 bg-gray-50 rounded-md dark:bg-[#0e1725]">
+              <div className="space-y-2 p-3 bg-gray-50 rounded-md">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-label-2">
                   {t("Inventory_k37")}
                   </span>
-                  <span className="font-medium dark:text-white">
+                  <span className="font-medium">
                     {modalData.unlimited ? "Unlimited" : "Limited"}
                   </span>
                 </div>
                 {!modalData.unlimited && (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">
+                      <span className="text-label-2">
                       {t("Inventory_k38")}
                       </span>
-                      <span className="font-medium dark:text-white">
+                      <span className="font-medium">
                         {modalData.stock}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">
+                      <span className="text-label-2">
                       {t("Inventory_k39")}
                       </span>
                       <span
                         className={`font-medium ${
                           calculateTotalAssigned() > modalData.stock
                             ? "text-red-500"
-                            : "dark:text-white"
+                            : ""
                         }`}
                       >
                         {calculateTotalAssigned()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">
+                      <span className="text-label-2">
                       {t("Inventory_k40")}
                       </span>
                       <span
                         className={`font-medium ${
                           getRemainingStock() === 0
                             ? "text-red-500"
-                            : "dark:text-white"
+                            : ""
                         }`}
                       >
                         {getRemainingStock()}
@@ -1056,7 +1058,7 @@ const Products = () => {
             </div>
           </div>
         ) : (
-          <div className="w-full grid grid-cols-2 gap-4 dark:bg-[#0e1725]">
+          <div className="w-full grid grid-cols-2 gap-4">
             {requiredInputFields.map((elem, index) => {
               const { id, label, colSpan, type } = elem;
               return id === "category_id" ? (
@@ -1084,9 +1086,9 @@ const Products = () => {
                     type={type || "text"}
                     value={modalData[id]}
                     onChange={(e: string) => modalInputChangeHandle(id, e)}
-                    border="border-[1px] border-gray-300 rounded-md dark:border-none"
+                    border="border-[1px] border-gray-300 rounded-md"
                     label={id === "product_name" ? t("Inventory_k8") : id === "price" ? t("Inventory_k63") : id === "stock" ? t("Inventory_k53") : label}
-                    bg_color="bg-[#f1f4f9] dark:bg-[#122136]"
+                    bg_color="bg-[#F5F5F7]"
                     disabled={id === "stock" && modalData.unlimited}
                   />
                 </div>
@@ -1101,11 +1103,11 @@ const Products = () => {
                   onChange={(e) =>
                     modalInputChangeHandle("unlimited", e.target.checked)
                   }
-                  className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                  className="h-4 w-4 rounded border-2 border-gray-400 text-brand-600 focus:ring-brand-500 cursor-pointer ring-1 ring-gray-300"
                 />
                 <label
                   htmlFor="unlimited"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-sm font-medium text-label"
                 >
                   {t("Inventory_k43")}
                 </label>
@@ -1119,11 +1121,11 @@ const Products = () => {
                   onChange={(e) =>
                     modalInputChangeHandle("bonus_eligible", e.target.checked)
                   }
-                  className="h-4 w-4 rounded border-2 border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-[#0e1725] cursor-pointer ring-1 ring-gray-300 dark:ring-gray-600"
+                  className="h-4 w-4 rounded border-2 border-gray-400 text-brand-600 focus:ring-brand-500 cursor-pointer ring-1 ring-gray-300"
                 />
                 <label
                   htmlFor="bonus_eligible"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-sm font-medium text-label"
                 >
                   {t("Inventory_k64")}
                 </label>
@@ -1136,15 +1138,15 @@ const Products = () => {
       {activeDeleteId ? (
         <div className="fixed bg-black/75 h-screen w-screen top-0  left-0 right-0 bottom-0 z-50">
           <div className="flex justify-center items-center w-full h-full">
-            <div className="bg-white w-full max-w-xl px-4 py-3 rounded-lg dark:bg-gray-800">
-              <h1 className="font-bold text-xl text-black mb-5 dark:text-white">
+            <div className="bg-white w-full max-w-xl px-4 py-3 rounded-lg">
+              <h1 className="mb-5 text-title3 text-label">
               {t("Inventory_k10")}
               </h1>
-              <p className="text-lg dark:text-gray-300">
+              <p className="text-lg">
               {t("Inventory_k11")}{" "}
                 {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")} this product
               </p>
-              <p className="text-sm dark:text-gray-400">
+              <p className="text-sm">
               {t("Inventory_k35")}{" "}
                 {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k14")} {t("Inventory_k36")}
               </p>
@@ -1154,7 +1156,7 @@ const Products = () => {
                   disabled={deleteLoading}
                   onClick={() => setActiveDeleteId(0)}
                   color="gray"
-                  className="dark:bg-gray-700 dark:text-white"
+                  className=""
                 >
                   {t("Inventory_k13")}
                 </Button>
@@ -1162,7 +1164,7 @@ const Products = () => {
                   isProcessing={deleteLoading}
                   color={"failure"}
                   onClick={deleteHandle}
-                  className="dark:bg-red-700 dark:hover:bg-red-800"
+                  className=""
                 >
                   {getDataArchiveType ? t("Inventory_k30") : t("Inventory_k33")}
                 </Button>

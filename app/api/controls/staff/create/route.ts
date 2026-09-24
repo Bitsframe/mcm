@@ -1,7 +1,12 @@
+import { requireSuperAdmin } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: Request) {
+  const gate = await requireSuperAdmin();
+  if (gate.response) return gate.response;
+
   try {
     const body = await request.json();
     const { full_name, location_id } = body;
@@ -20,17 +25,17 @@ export async function POST(request: Request) {
     // For debugging, log the incoming payload (will appear in server logs)
     console.log('[create-staff] payload', { full_name, location_id: normalizedLocationIds });
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data, error } = await supabase.from('staff').insert({ full_name, location_id: normalizedLocationIds }).select();
     if (error) {
-      console.error('[create-staff] supabase error', error);
+      console.error('[create-staff] supabase error', classifyError(error));
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (e: any) {
-    console.error('[create-staff] unexpected error', e);
+    console.error('[create-staff] unexpected error', classifyError(e));
     return NextResponse.json({ error: e?.message || 'Unexpected error' }, { status: 500 });
   }
 }

@@ -81,7 +81,7 @@ export const Searchable_Dropdown = ({
                 <Label
                     htmlFor="searchable-select"
                     value={t(label)}
-                    className="font-bold text-gray-900 dark:text-gray-200 mb-0.5 block text-sm"
+                    className="font-bold text-gray-900 mb-0.5 block text-sm"
                 />
             )} */}
 
@@ -90,22 +90,22 @@ export const Searchable_Dropdown = ({
                     setShowDropdown(true);
                     setSearchTerm('');
                 }}
-                className={`w-full p-2 rounded-lg cursor-pointer bg-[#f1f4f9] dark:bg-[#122136] border dark:border-gray-700 text-sm`}
+                className={`w-full p-2 rounded-lg cursor-pointer bg-[#F5F5F7] border text-sm`}
             >
-                <p className="text-gray-900 dark:text-gray-200">
+                <p className="text-gray-900">
                     {options_arr.find((opt) => opt.value === selectedValue)?.label || t(label as any)}
                 </p>
             </div>
 
             {showDropdown && (
-                <ul className="absolute z-10 w-full bg-[#f1f4f9] dark:bg-[#122136] border border-gray-300 dark:border-gray-700 rounded max-h-40 overflow-auto text-sm mt-1">
+                <ul className="absolute z-10 w-full bg-[#F5F5F7] border border-gray-300 rounded max-h-40 overflow-auto text-sm mt-1">
                     <input
                         type="text"
                         value={showDropdown ? searchTerm : options_arr.find((opt) => opt.value === selectedValue)?.label || ''}
                         onChange={handleInputChange}
                         onFocus={() => setShowDropdown(true)}
                         placeholder={placeholder ?? t(label as any) ?? 'Search...'}
-                        className="w-full p-1 border-b border-gray-300 dark:border-gray-600 rounded-t text-gray-900 dark:text-gray-100 bg-[#f1f4f9] dark:bg-[#122136] text-sm"
+                        className="w-full p-1 border-b border-gray-300 rounded-t text-gray-900 bg-[#F5F5F7] text-sm"
                         disabled={disabled}
                         required={required}
                         readOnly={false}
@@ -115,7 +115,7 @@ export const Searchable_Dropdown = ({
                         <li
                             key={ind}
                             onClick={() => !disabled && handleSelectOption(value)}
-                            className={`p-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-900 dark:text-gray-200 text-sm ${
+                            className={`p-1 hover:bg-gray-100 cursor-pointer text-gray-900 text-sm ${
                                 disabled ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                         >

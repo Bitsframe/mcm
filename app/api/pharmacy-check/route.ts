@@ -1,10 +1,14 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { classifyError } from '@/utils/logging/safe-log';
 export async function POST(request: NextRequest) {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
     try {
         const body = await request.json();
         
-        console.log('🔍 Pharmacy check request:', body);
 
         // Validate required fields
         if (!body.name || !body.address) {
@@ -46,12 +50,11 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await response.json();
-        console.log('✅ Pharmacy check result:', data);
 
         return NextResponse.json(data);
 
     } catch (error: any) {
-        console.error('❌ Error in pharmacy check:', error);
+        console.error('❌ Error in pharmacy check:', classifyError(error));
         
         return NextResponse.json({
             success: false,

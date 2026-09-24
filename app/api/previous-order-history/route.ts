@@ -1,10 +1,15 @@
+import { requireUser } from '@/utils/server/require-auth';
 import { NextResponse } from 'next/server';
+import { classifyError } from '@/utils/logging/safe-log';
 import { createClient as supabaseCreateClient } from '@/utils/supabase/server';
 import { fetch_content_service } from '@/utils/supabase/data_services/data_services';
 
 export const POST = async (req: Request) => {
+  const gate = await requireUser();
+  if (gate.response) return gate.response;
+
   try {
-    const supabase = supabaseCreateClient();
+    const supabase = await supabaseCreateClient();
     const { patientId, currentOrderId } = await req.json();
 
 
@@ -22,7 +27,6 @@ export const POST = async (req: Request) => {
       selectParam: ', Locations(title)',
       matchCase: { key: 'id', value: patientId }
     });
-    console.log(posRecords);
 
     /** When `allpatients.treatmenttype` is empty (e.g. patient added elsewhere), use latest appointment `service`. */
     const idsMissingTreatment = (posRecords || [])
@@ -55,7 +59,7 @@ export const POST = async (req: Request) => {
       } catch (e) {
         console.warn(
           'previous-order-history: appointment treatment fallback skipped',
-          e
+          classifyError(e)
         );
       }
     }
@@ -162,7 +166,6 @@ export const POST = async (req: Request) => {
 
     // Step 8: Structure the final response
     const formattedData = posRecords.map((pos: any) => {
-      console.log({ pos })
       const ordersForPos = orders.filter((order: any) => order.patient_id === pos.id);
 
       return ordersForPos.map((order: any) => {
