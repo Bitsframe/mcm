@@ -51,10 +51,13 @@ const ScheduleDateTime: FC<Props> = ({ data, selectDateTimeSlotHandle }) => {
         if (start.includes("am") && startHour === 12) startHour = 0;
         if (end.includes("am") && endHour === 12) endHour = 0;
 
-        for (let hour = startHour; hour <= endHour; hour++) {
+        // 15-minute increments, inclusive of the closing hour and never past it
+        for (let minutes = startHour * 60; minutes <= endHour * 60; minutes += 15) {
+            const hour = Math.floor(minutes / 60);
+            const minute = minutes % 60;
             let period = hour < 12 || hour === 24 ? 'AM' : 'PM';
             let formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-            let timeSlot = `${formattedHour}:00 ${period}`;
+            let timeSlot = `${formattedHour}:${String(minute).padStart(2, '0')} ${period}`;
             timeSlots.push(timeSlot);
         }
 
