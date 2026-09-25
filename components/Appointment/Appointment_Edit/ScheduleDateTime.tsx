@@ -1,9 +1,11 @@
 import moment from "moment";
-import React, { FC, useState, useEffect, useCallback } from "react";
+import React, { FC, useState, useEffect, useCallback, useMemo } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { supabase } from "@/services/supabase";
+import { classifyError } from "@/utils/logging/safe-log";
 import enAppoinments from "@/locales/en/Appoinments.json";
 
 import { MacSelect } from "@/components/ui/mac-select";
@@ -115,6 +117,7 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isClosed, setIsClosed] = useState<boolean>(false);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
   const getTimingKey = (date: Date): keyof DayTimings => {
     const days = [
@@ -149,10 +152,13 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
     if (start.includes("am") && startHour === 12) startHour = 0;
     if (end.includes("am") && endHour === 12) endHour = 0;
 
-    for (let hour = startHour; hour <= endHour; hour++) {
+    // 15-minute increments, inclusive of the closing hour and never past it
+    for (let minutes = startHour * 60; minutes <= endHour * 60; minutes += 15) {
+      const hour = Math.floor(minutes / 60);
+      const minute = minutes % 60;
       let period = hour < 12 || hour === 24 ? "AM" : "PM";
       let formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-      let timeSlot = `${formattedHour}:00 ${period}`;
+      let timeSlot = `${formattedHour}:${String(minute).padStart(2, "0")} ${period}`;
       timeSlots.push(timeSlot);
     }
 
@@ -225,6 +231,94 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
     }
   }, [splitDateAndTime]);
 
+  // This appointment's own location rides in `default_data_time` as
+  // "<location_id>|DD-MM-YYYY - H:MM AM".
+  const locationId = useMemo(() => {
+    const raw = (default_data_time || "").split("|")[0]?.trim();
+    const n = Number(raw);
+    return raw && Number.isFinite(n) ? n : null;
+  }, [default_data_time]);
+
+  // Fetch already-booked slots for the selected date at this appointment's location
+  useEffect(() => {
+    const fetchBooked = async () => {
+      try {
+        if (!locationId || !date) {
+          setBookedTimes([]);
+          return;
+        }
+
+        const { data: rows, error } = await supabase
+          .from("Appoinments")
+          .select("*")
+          .eq("location_id", locationId);
+
+        if (error) {
+          console.error("Error fetching booked slots", classifyError(error));
+          setBookedTimes([]);
+          return;
+        }
+
+        const selDayStrDMY = moment(date).format("DD-MM-YYYY");
+        const selDayStrYMD = moment(date).format("YYYY-MM-DD");
+
+        const times = ((rows || []) as any[])
+          .map((r) => (r && r.date_and_time) as string)
+          .filter(Boolean)
+          .map((s) => s.trim())
+          .map((s) => {
+            // Drop any "<location_id>|" prefix before parsing
+            const core = s.includes("|")
+              ? s.substring(s.lastIndexOf("|") + 1).trim()
+              : s;
+            const m = core.match(
+              /(\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4})\s*-\s*(\d{1,2}:\d{2}\s*[AaPp][Mm])/
+            );
+            if (!m) return "";
+            const datePart = m[1];
+            const timePartRaw = m[2];
+
+            let normalizedDate = "";
+            const d1 = moment(datePart, "DD-MM-YYYY", true);
+            if (d1.isValid()) normalizedDate = d1.format("DD-MM-YYYY");
+            else {
+              const d2 = moment(datePart, "YYYY-MM-DD", true);
+              if (d2.isValid()) normalizedDate = d2.format("DD-MM-YYYY");
+            }
+
+            const matches =
+              normalizedDate === selDayStrDMY ||
+              datePart === selDayStrDMY ||
+              datePart === selDayStrYMD;
+            return matches
+              ? timePartRaw.toUpperCase().replace(/\s+/g, " ").trim()
+              : "";
+          })
+          .filter((t) => !!t);
+
+        setBookedTimes(times);
+      } catch (e) {
+        console.error("Failed to fetch booked slots", classifyError(e));
+        setBookedTimes([]);
+      }
+    };
+    fetchBooked();
+  }, [locationId, date]);
+
+  // Booked slots for the chosen day, minus this appointment's own current slot so
+  // the user can still save without moving it.
+  const bookedSet = useMemo(() => {
+    const set = new Set(bookedTimes.map((t) => t.trim().toUpperCase()));
+    const ownDate = splitDateAndTime("date");
+    const ownTime = splitDateAndTime("time");
+    const sameDay =
+      ownDate instanceof Date && !!date && moment(date).isSame(moment(ownDate), "day");
+    if (sameDay && typeof ownTime === "string" && ownTime) {
+      set.delete(ownTime.trim().toUpperCase());
+    }
+    return set;
+  }, [bookedTimes, date, splitDateAndTime]);
+
   const { t } = useTranslation(translationConstant.APPOINMENTS)
 
   return (
@@ -271,15 +365,19 @@ const ScheduleDateTime: FC<ScheduleDateTimeProps> = ({
               <option value="" className="bg-white text-black">
                 {t("Appoinments_k95", { defaultValue: (enAppoinments as any)["Appoinments_k95"] ?? "Select Slot" })}
               </option>
-              {availableTimes.map((time, index) => (
-                <option
-                  key={index}
-                  value={time}
-                  className="bg-white text-black hover:bg-gray-100"
-                >
-                  {time}
-                </option>
-              ))}
+              {availableTimes.map((time, index) => {
+                const isBooked = bookedSet.has(String(time).trim().toUpperCase());
+                return (
+                  <option
+                    key={index}
+                    value={time}
+                    disabled={isBooked}
+                    className={`bg-white text-black hover:bg-gray-100 ${isBooked ? "opacity-60" : ""}`}
+                  >
+                    {time}{isBooked ? " (Booked)" : ""}
+                  </option>
+                );
+              })}
             </>
           ) : (
             <option value="" className="bg-white text-black">
