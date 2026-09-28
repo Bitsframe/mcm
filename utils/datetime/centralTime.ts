@@ -31,7 +31,12 @@ const CT_YMD = new Intl.DateTimeFormat("en-US", {
 const toDate = (value: string | number | Date): Date | null => {
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
   if (value === null || value === undefined || value === "") return null;
-  const date = new Date(value);
+  // The DB stores UTC. A timestamp string with no zone ("2026-09-23 15:04:05")
+  // would otherwise parse as the browser's local time, so read it as UTC.
+  const date =
+    typeof value === "string" && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(value)
+      ? new Date(value.replace(" ", "T") + "Z")
+      : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 };
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { classifyError, logError } from '@/utils/logging/safe-log';
-import StatStrip from "@/components/Dashboard/StatStrip";
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import moment from "moment";
 import { supabase } from "@/services/supabase";
@@ -14,9 +13,10 @@ import { LocationContext } from "@/context";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 import { TabContext } from "@/context";
-import { Eye } from "lucide-react";
+import { CalendarRange, Eye } from "lucide-react";
+import DateRangeModal from "@/components/ExportPDF/DateRangeModal";
 import ConfirmDeleteModal from '@/components/Modal_Components/ConfirmDeleteModal';
-import { convertUTCtoCtDate, todayInCtDate } from "@/utils/datetime/centralTime";
+import { convertUTCtoCtDate, formatCtDateTime, todayInCtDate } from "@/utils/datetime/centralTime";
 
 interface DataListInterface {
   [key: string]: any;
@@ -26,6 +26,13 @@ const tableHeader = [
   {
     id: "order_id",
     label: "ID de orden",
+    align: "text-center",
+    flex: "flex-1",
+  },
+  {
+    id: "order_date",
+    label: "Fecha de venta",
+    render_value: (val: any) => (val ? `${formatCtDateTime(val)} CT` : "—"),
     align: "text-center",
     flex: "flex-1",
   },
@@ -65,7 +72,12 @@ const SalesHistory = () => {
   const [patientNameSearch, setPatientNameSearch] = useState("");
   const [phoneSearch, setPhoneSearch] = useState("");
   const [emailSearch, setEmailSearch] = useState("");
-  const [dobSearch, setDobSearch] = useState("");
+  // Date range filter, as CT calendar days ("YYYY-MM-DD" compares correctly as a string)
+  // Opens on today (CT); Clear returns here.
+  const [today] = useState(todayInCtDate);
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
+  const [rangeOpen, setRangeOpen] = useState(false);
 
   const fetchReasonsList = useCallback(async () => {
     try {
@@ -244,15 +256,15 @@ const SalesHistory = () => {
         (item?.pos?.email || "").toLowerCase().includes(emailSearch.toLowerCase())
       );
     }
-    if (dobSearch.trim() !== "") {
+    if (dateFrom || dateTo) {
       filtered = filtered.filter((item) => {
         if (!item?.order_date) return false;
         const orderDateInCT = convertUTCtoCtDate(item.order_date);
-        return orderDateInCT === dobSearch;
+        return (!dateFrom || orderDateInCT >= dateFrom) && (!dateTo || orderDateInCT <= dateTo);
       });
     }
     setDataList(filtered);
-  }, [orderIdSearch, patientNameSearch, phoneSearch, emailSearch, dobSearch, allData]);
+  }, [orderIdSearch, patientNameSearch, phoneSearch, emailSearch, dateFrom, dateTo, allData]);
 
   useEffect(() => {
     if (selectedLocation) {
@@ -321,7 +333,7 @@ const SalesHistory = () => {
     setModalOpen(true);
     try {
       // Log info to console for debugging instead of alert
-      const dateFilter = dobSearch ? dobSearch : "All dates";
+      const dateFilter = dateFrom || dateTo ? `${dateFrom || "…"} – ${dateTo || "…"}` : "All dates";
       console.log("SalesHistory.openModal called", {
         dateFilter,
         selectedOrder: orderDetails,
@@ -331,14 +343,42 @@ const SalesHistory = () => {
     } catch (e) {
       // ignore in non-browser environments
     }
-  }, [dobSearch]);
+  }, [dateFrom, dateTo]);
 
   const closeModal = useCallback(() => {
     setModalOpen(false);
     setSelectedOrder(null);
   }, []);
 
-  const { t } = useTranslation(translationConstant.POSHISTORY);
+  const { t, i18n } = useTranslation(translationConstant.POSHISTORY);
+
+  // The day figures cover the selected range, or today (CT) when none is set.
+  const hasRange = Boolean(dateFrom || dateTo);
+  const inFigureRange = (ctDate: string) =>
+    hasRange
+      ? (!dateFrom || ctDate >= dateFrom) && (!dateTo || ctDate <= dateTo)
+      : ctDate === todayInCtDate();
+  const fmtDay = (d: string) =>
+    new Intl.DateTimeFormat(i18n.language === "es" ? "es-ES" : "en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(d + "T00:00:00"));
+  const isTodayRange = dateFrom === today && dateTo === today;
+  const resetDates = () => {
+    setDateFrom(today);
+    setDateTo(today);
+  };
+  // The range spelled out as dates ("Sep 28, 2026" or "Sep 1, 2026 – Sep 23, 2026").
+  // Same-year ranges drop the first year: "Sep 20 – Sep 26, 2026".
+  const fmtDayNoYear = (d: string) =>
+    new Intl.DateTimeFormat(i18n.language === "es" ? "es-ES" : "en-US", { month: "short", day: "numeric" })
+      .format(new Date(d + "T00:00:00"));
+  const rangeDates = dateFrom && dateTo && dateFrom === dateTo
+    ? fmtDay(dateFrom)
+    : dateFrom && dateTo && dateFrom.slice(0, 4) === dateTo.slice(0, 4)
+      ? `${fmtDayNoYear(dateFrom)} – ${fmtDay(dateTo)}`
+      : `${dateFrom ? fmtDay(dateFrom) : "…"} – ${dateTo ? fmtDay(dateTo) : "…"}`;
 
   const { setActiveTitle } = useContext(TabContext);
 
@@ -348,21 +388,55 @@ const SalesHistory = () => {
 
   return (
     <main className="w-full h-full font-[500] bg-white text-gray-800">
-      {/* Title row, then one compact band of figures — the table is the page. */}
+      {/* Title row, then the day figures — the table is the page. */}
       <div className="flex items-start justify-between gap-3 px-4 pt-1 pb-3">
         <div>
           <h1 className="text-title2 text-label">{t("POS-Historyk1")}</h1>
           <p className="text-footnote text-label-2">{t("POS-Historyk28")}</p>
         </div>
         <div className="flex items-center gap-2">
+          <DateRangeModal
+            open={rangeOpen}
+            handleOpen={() => setRangeOpen(true)}
+            handleClose={() => setRangeOpen(false)}
+            loading={false}
+            title={t("POS-HistoryFilterRangeTitle")}
+            maxDate={null}
+            value={dateFrom ? { startDate: dateFrom, endDate: dateTo || dateFrom } : null}
+            generatePdfHandle={(start, end) => {
+              setDateFrom(start);
+              setDateTo(end);
+              setRangeOpen(false);
+            }}
+            onClear={() => {
+              resetDates();
+              setRangeOpen(false);
+            }}
+            renderTrigger={(open) => (
+              <div className="flex items-center gap-3">
+              <span className="hidden text-callout text-label-2 sm:inline whitespace-nowrap">
+                {isTodayRange ? `${t("POS-Historyk50")} · ${rangeDates}` : rangeDates}
+              </span>
+              <button
+                type="button"
+                onClick={open}
+                className={`inline-flex h-10 items-center gap-2 rounded-md border px-3 text-base transition-colors ${
+                  !isTodayRange
+                    ? "border-brand-500 bg-brand-50 text-brand-700"
+                    : "border-border bg-white text-label hover:bg-gray-50"
+                }`}
+              >
+                <CalendarRange className="h-5 w-5" />
+                <span>{t("POS-HistoryFilter")}</span>
+              </button>
+              </div>
+            )}
+          />
           <ExportAsPDF />
         </div>
       </div>
-      <div className="px-4">
-        <StatStrip page="sales" />
-      </div>
 
-      {/* Day figures (follow the date filter) */}
+      {/* Figures for the selected date range (today when none is set) */}
       <div className="px-4 pb-2 pt-3">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {/* Card 1 - Products Sold Today */}
@@ -370,13 +444,10 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-footnote text-label-2">
-                  {t("POS-Historyk35")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk35").trim()}
                 </p>
                 <p className="mt-0.5 text-title3 text-label">
                   {(() => {
-                    // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || todayInCtDate();
-                    
                     let totalProductsSold = 0;
                     
                     dataList.forEach((order) => {
@@ -384,7 +455,7 @@ const SalesHistory = () => {
                         order.sales_history.forEach((sale: any) => {
                           if (!sale.date_sold) return;
                           const saleDateInCT = convertUTCtoCtDate(sale.date_sold);
-                          if (saleDateInCT === targetDateString) {
+                          if (inFigureRange(saleDateInCT)) {
                             totalProductsSold += sale.quantity_sold || 0;
                           }
                         });
@@ -408,19 +479,16 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-footnote text-label-2">
-                  {t("POS-Historyk36")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk36").trim()}
                 </p>
                 <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
-                    // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || todayInCtDate();
-                    
                     let totalAmount = 0;
                     
                     allData.forEach((order) => {
                       if (!order?.order_date) return;
                       const orderDateInCT = convertUTCtoCtDate(order.order_date);
-                      if (orderDateInCT === targetDateString) {
+                      if (inFigureRange(orderDateInCT)) {
                         const paidAmount =
                           Number(order.cash || 0) +
                           Number(order.card || 0) +
@@ -448,13 +516,10 @@ const SalesHistory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-footnote text-label-2">
-                  {t("POS-Historyk37")} {dobSearch ? `el ${new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dobSearch + 'T00:00:00'))}` : `${t("POS-Historyk50")}`}
+                  {t("POS-Historyk37").trim()}
                 </p>
                 <p className="mt-0.5 text-title3 text-label">
                   ${(() => {
-                    // Use selected date or today's date in CT
-                    const targetDateString = dobSearch || todayInCtDate();
-                    
                     let totalSales = 0;
                     
                     dataList.forEach((order) => {
@@ -462,7 +527,7 @@ const SalesHistory = () => {
                         order.sales_history.forEach((sale: any) => {
                           if (!sale.date_sold) return;
                           const saleDateInCT = convertUTCtoCtDate(sale.date_sold);
-                          if (saleDateInCT === targetDateString) {
+                          if (inFigureRange(saleDateInCT)) {
                             totalSales += sale.total_price || 0;
                           }
                         });
@@ -502,8 +567,11 @@ const SalesHistory = () => {
           setPhoneSearch,
           emailSearch,
           setEmailSearch,
-          dobSearch,
-          setDobSearch,
+          dateFrom,
+          dateTo,
+          dateLabel: hasRange ? rangeDates : "",
+          datesChanged: !isTodayRange,
+          clearDates: resetDates,
         }}
       />
 

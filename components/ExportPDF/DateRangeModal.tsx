@@ -18,6 +18,16 @@ interface PropsInterface {
     handleClose: () => void;
     generatePdfHandle: (startDate: string, endDate: string) => void;
     loading: boolean;
+    /** Defaults to the sales-report title. */
+    title?: string;
+    /** Replaces the default "Sales History" report button. */
+    renderTrigger?: (open: () => void) => React.ReactNode;
+    /** Latest selectable day. Defaults to yesterday (the report excludes today); null = no limit. */
+    maxDate?: Date | null;
+    /** Range to show when the modal opens ("YYYY-MM-DD"). */
+    value?: { startDate: string; endDate: string } | null;
+    /** When set, the footer shows a Clear button. */
+    onClear?: () => void;
 }
 
 export default function DateRangeModal({
@@ -25,7 +35,12 @@ export default function DateRangeModal({
     handleOpen,
     handleClose,
     generatePdfHandle,
-    loading
+    loading,
+    title,
+    renderTrigger,
+    maxDate,
+    value,
+    onClear,
 }: PropsInterface) {
     const [selectionRange, setSelectionRange] = React.useState<DateRange>({
         startDate: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(0,0,0,0); return d })(),
@@ -40,6 +55,17 @@ export default function DateRangeModal({
         d.setHours(0, 0, 0, 0)
         return d
     }
+
+    // Re-seed the calendar from the current value each time the modal opens.
+    React.useEffect(() => {
+        if (open && value?.startDate) {
+            setSelectionRange({
+                startDate: moment(value.startDate, 'YYYY-MM-DD').toDate(),
+                endDate: moment(value.endDate || value.startDate, 'YYYY-MM-DD').toDate(),
+                key: 'selection',
+            });
+        }
+    }, [open, value?.startDate, value?.endDate]);
 
     const handleSelect = (ranges: RangeKeyDict) => {
         setSelectionRange(ranges.selection as DateRange);
@@ -60,6 +86,7 @@ export default function DateRangeModal({
 
     return (
         <div>
+            {renderTrigger ? renderTrigger(handleOpen) : (
             <button
                 onClick={handleOpen}
                 className="bg-[#166534] text-base px-3 py-2 text-white rounded-md flex items-center space-x-2 hover:bg-[#125229] transition-colors duration-200"
@@ -68,6 +95,7 @@ export default function DateRangeModal({
                 <span className="hidden sm:inline">{t("POS-Historyk1")}</span>
                 <span className="sm:hidden">Report</span>
             </button>
+            )}
             
             <Modal
                 open={open}
@@ -83,7 +111,7 @@ export default function DateRangeModal({
                                 id="date-range-modal-title" 
                                 className="text-lg font-semibold text-gray-900"
                             >
-                                Select a Date Range
+                                {title ?? t("POS-HistoryReportRangeTitle")}
                             </h2>
                         </div>
 
@@ -367,13 +395,21 @@ export default function DateRangeModal({
                                     showDateDisplay={false}
                                     rangeColors={['#166534']}
                                     // Prevent selecting today or future dates by capping maxDate to yesterday
-                                    maxDate={getYesterdayDate()}
+                                    maxDate={maxDate === undefined ? getYesterdayDate() : maxDate ?? undefined}
                                 />
                             </div>
                         </div>
 
                         {/* Footer */}
                         <div className="px-4 py-3 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3">
+                            {onClear && (
+                                <button
+                                    onClick={onClear}
+                                    className="w-full sm:w-auto sm:mr-auto px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                                >
+                                    {t("POS-HistoryClearFilters")}
+                                </button>
+                            )}
                             <button
                                 onClick={handleClose}
                                 className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
