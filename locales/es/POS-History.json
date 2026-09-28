@@ -71,6 +71,15 @@
     "POS-Historyk70": "Vendedor",
     "POS-Historyk71": "No hay vendedor asignado",
     "POS-HistoryDeleteDesc": "¿Está seguro de que desea eliminar este pedido? Esta acción no se puede deshacer.",
-    "POS-HistoryCancelBtn": "Cancelar"
+    "POS-HistoryCancelBtn": "Cancelar",
+    "POS-HistoryNoData": "No hay datos disponibles",
+    "POS-HistoryClearFilters": "Limpiar",
+    "POS-HistoryDateFrom": "Fecha desde",
+    "POS-HistoryDateTo": "Fecha hasta",
+    "POS-HistoryFilter": "Filtrar",
+    "POS-HistorySaleDate": "Fecha de venta",
+    "POS-HistoryFilterRangeTitle": "Seleccione un rango de fechas para filtrar las ventas",
+    "POS-HistoryReportRangeTitle": "Seleccione un rango de fechas para descargar un informe de ventas",
+    "POS-HistoryNoDataFor": "No hay datos disponibles para el {{date}}"
   }
   

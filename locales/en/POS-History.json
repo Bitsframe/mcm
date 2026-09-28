@@ -37,6 +37,15 @@
 "POS-Historyk70": "Sales Person",
 "POS-Historyk71": "No sales person assigned",
 "POS-HistoryDeleteDesc": "Are you sure you want to delete this order? This action cannot be undone.",
-"POS-HistoryCancelBtn": "Cancel"
+"POS-HistoryCancelBtn": "Cancel",
+"POS-HistoryNoData": "No data available",
+"POS-HistoryClearFilters": "Clear",
+"POS-HistoryDateFrom": "From date",
+"POS-HistoryDateTo": "To date",
+"POS-HistoryFilter": "Filter",
+"POS-HistorySaleDate": "Sale Date",
+"POS-HistoryFilterRangeTitle": "Select a date range to filter sales",
+"POS-HistoryReportRangeTitle": "Select a date range to download a sales report",
+"POS-HistoryNoDataFor": "No data available for {{date}}"
 
 }

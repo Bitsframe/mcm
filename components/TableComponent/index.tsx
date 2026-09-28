@@ -3,6 +3,7 @@
 import { CircularProgress } from "@mui/material";
 import React, { useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
+import { Hash, Mail, Phone, User, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,6 +14,7 @@ import {
 } from "../ui/table";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
+import { formatCtDate } from "@/utils/datetime/centralTime";
 import ExportAsPDF from "../ExportPDF";
 
 
@@ -48,6 +50,37 @@ interface DataListInterface {
   [key: string]: any;
 }
 
+/** Data columns in the desktop table: order, sale date, patient, amount, phone, email. */
+const DATA_COLUMNS = 6;
+
+const filterInputClass =
+  "h-9 w-full min-w-0 flex-1 bg-transparent pr-3 text-sm text-label placeholder:text-label-3 focus:outline-none";
+
+/** A filter input with a leading icon (and optional fixed prefix, e.g. "+1"). */
+const FilterField = ({
+  icon,
+  prefix,
+  invalid,
+  children,
+}: {
+  icon: React.ReactNode;
+  prefix?: string;
+  invalid?: boolean;
+  children: React.ReactNode;
+}) => (
+  <label
+    className={`flex items-center rounded-lg border bg-white shadow-mac-sm transition-shadow focus-within:ring-2 ${
+      invalid
+        ? "border-red-400 focus-within:ring-red-200"
+        : "border-border focus-within:border-brand-500 focus-within:ring-brand-100"
+    }`}
+  >
+    <span className="pl-3 pr-2 text-label-3">{icon}</span>
+    {prefix && <span className="pr-1 text-sm text-label-2 select-none">{prefix}</span>}
+    {children}
+  </label>
+);
+
 const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   itemPerPage,
   tableHeader,
@@ -63,7 +96,8 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   resetPaginationTrigger,
 }) => {
   // Use only POS-History namespace for table translations
-  const { t } = useTranslation("POS-History");
+  const { t, i18n } = useTranslation("POS-History");
+  const dateLocale = i18n.language === "es" ? "es-ES" : "en-US";
 
   const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
   const isAllSelected =
@@ -94,6 +128,24 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
   const isEmailValid = emailValue
     ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)
     : true;
+
+  const hasFilters = Boolean(
+    searchInputs &&
+      (searchInputs.orderIdSearch ||
+        searchInputs.patientNameSearch ||
+        searchInputs.phoneSearch ||
+        searchInputs.emailSearch ||
+        searchInputs.datesChanged)
+  );
+
+  const clearFilters = () => {
+    searchInputs.setOrderIdSearch("");
+    searchInputs.setPatientNameSearch("");
+    searchInputs.setPhoneSearch("");
+    searchInputs.setEmailSearch("");
+    searchInputs.clearDates?.();
+    setEmailTouched(false);
+  };
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -146,13 +198,76 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
 
   return (
     <div className="bg-white w-full text-black">
-      <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 gap-2 sm:gap-0 sticky top-0 z-20 bg-white">
-  {/* No global search bar for this table */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
-          {pdf ? <ExportAsPDF /> : null}
-          {RightSideComponent ? <RightSideComponent /> : null}
+      {(pdf || RightSideComponent) && (
+        <div className="pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 gap-2 sm:gap-0 sticky top-0 z-20 bg-white">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between min-w-0">
+            {pdf ? <ExportAsPDF /> : null}
+            {RightSideComponent ? <RightSideComponent /> : null}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Filters — one toolbar above the table rather than a row wedged into its header */}
+      {searchInputs && (
+        <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center">
+          <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <FilterField icon={<Hash size={15} />}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className={filterInputClass}
+                placeholder={t("POS-Historyk38", { ns: "POS-History", defaultValue: "Order ID" })}
+                value={searchInputs.orderIdSearch}
+                onChange={e => searchInputs.setOrderIdSearch(e.target.value.replace(/[^0-9]/g, ""))}
+              />
+            </FilterField>
+            <FilterField icon={<User size={15} />}>
+              <input
+                type="text"
+                className={filterInputClass}
+                placeholder={t("POS-Historyk39", { ns: "POS-History", defaultValue: "Patient Name" })}
+                value={searchInputs.patientNameSearch}
+                onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
+              />
+            </FilterField>
+            <FilterField icon={<Phone size={15} />} prefix="+1">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className={filterInputClass}
+                placeholder={t("POS-Historyk41", { ns: "POS-History", defaultValue: "Phone Number" })}
+                value={searchInputs.phoneSearch}
+                onChange={e => searchInputs.setPhoneSearch(e.target.value.replace(/[^0-9]/g, ""))}
+              />
+            </FilterField>
+            <FilterField icon={<Mail size={15} />} invalid={!isEmailValid && emailTouched}>
+              <input
+                type="text"
+                className={filterInputClass}
+                placeholder={t("POS-Historyk42", { ns: "POS-History", defaultValue: "Email" })}
+                value={emailValue}
+                onChange={e => {
+                  searchInputs.setEmailSearch(e.target.value);
+                  setEmailTouched(true);
+                }}
+                onBlur={() => setEmailTouched(true)}
+              />
+            </FilterField>
+          </div>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium text-label-2 transition-colors hover:bg-gray-100 hover:text-label"
+            >
+              <X size={15} />
+              {t("POS-HistoryClearFilters", { ns: "POS-History", defaultValue: "Clear" })}
+            </button>
+          )}
+        </div>
+      )}
 
       <div
         className={`w-full border border-gray-200 rounded-md ${tableHeight} flex flex-col min-w-0 overflow-x-auto`}
@@ -215,85 +330,11 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
         <div className="hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
           <Table className="w-full min-w-[600px] rounded-lg border-collapse text-xs sm:text-sm">
             <TableHeader className="bg-white sticky top-0 z-10 min-w-0">
-              {/* Search Inputs Row */}
-              {searchInputs && (
-                <TableRow>
-                  <TableCell className="p-1">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                        placeholder={t("POS-Historyk38", { ns: "POS-History", defaultValue: "Order ID" })}
-                        value={searchInputs.orderIdSearch}
-                        onChange={e => {
-                          const val = e.target.value.replace(/[^0-9]/g, "");
-                          searchInputs.setOrderIdSearch(val);
-                        }}
-                      />
-                  </TableCell>
-                  <TableCell className="p-1">
-                      <input
-                        type="text"
-                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                        placeholder={t("POS-Historyk39", { ns: "POS-History", defaultValue: "Patient Name" })}
-                        value={searchInputs.patientNameSearch}
-                        onChange={e => searchInputs.setPatientNameSearch(e.target.value)}
-                      />
-                  </TableCell>
-                  <TableCell className="p-1">
-                      <input
-                        type="date"
-                        className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                        placeholder={t("POS-Historyk40", { ns: "POS-History", defaultValue: "Date of Birth" })}
-                        value={searchInputs.dobSearch}
-                        onChange={e => searchInputs.setDobSearch(e.target.value)}
-                      />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <div className="flex items-center">
-                      <span className="px-1 text-xs select-none">+1</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          className="w-full border-2 border-gray-300 rounded px-1 py-1 text-xs bg-gray-100 focus:outline-none"
-                          placeholder={t("POS-Historyk41", { ns: "POS-History", defaultValue: "Phone Number" })}
-                          value={searchInputs.phoneSearch}
-                          onChange={e => {
-                            const val = e.target.value.replace(/[^0-9]/g, "");
-                            searchInputs.setPhoneSearch(val);
-                          }}
-                          style={{ marginLeft: '-2px' }}
-                        />
-                    </div>
-                  </TableCell>
-                  <TableCell className="p-1">
-                      <input
-                        type="text"
-                        className={`w-full border-2 rounded px-1 py-1 text-xs focus:outline-none 
-                        ${!isEmailValid && emailTouched ? 'bg-red-100 border-red-400' : 'bg-gray-100 border-gray-300'}`}
-                        placeholder={t("POS-Historyk42", { ns: "POS-History", defaultValue: "Email" })}
-                        value={emailValue}
-                        onChange={e => {
-                          searchInputs.setEmailSearch(e.target.value);
-                          setEmailTouched(true);
-                        }}
-                        onBlur={() => setEmailTouched(true)}
-                      />
-</TableCell>
-
-
-
-
-                  
-                  {/* Details column header cell for alignment */}
-                  {openModal && <TableCell className="p-1"></TableCell>}
-                </TableRow>
-              )}
               <TableRow className="border-b border-gray-400 rounded-lg min-w-0">
                 {/* Order ID */}
                 <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk43", { ns: "POS-History", defaultValue: "Order ID" })}</TableHead>
+                {/* Sale Date */}
+                <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-HistorySaleDate", { ns: "POS-History", defaultValue: "Sale Date" })}</TableHead>
                 {/* Patient Name */}
                 <TableHead className="py-3 text-sm text-gray-500 font-medium text-center min-w-0">{t("POS-Historyk44", { ns: "POS-History", defaultValue: "Patient Name" })}</TableHead>
                 {/* Amount Received */}
@@ -313,10 +354,26 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={
-                    tableHeader.length + (openModal ? 1 : 0) + (onDelete ? 1 : 0)
+                    DATA_COLUMNS + (openModal ? 1 : 0) + (onDelete ? 1 : 0)
                   }>
                     <div className="h-full w-full flex items-center justify-center py-4">
                       <CircularProgress />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : currentData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={
+                    DATA_COLUMNS + (openModal ? 1 : 0) + (onDelete ? 1 : 0)
+                  }>
+                    <div className="py-10 text-center text-sm text-gray-500">
+                      {searchInputs?.dateLabel
+                        ? t("POS-HistoryNoDataFor", {
+                            ns: "POS-History",
+                            date: searchInputs.dateLabel,
+                            defaultValue: "No data available for {{date}}",
+                          })
+                        : t("POS-HistoryNoData", { ns: "POS-History", defaultValue: "No data available" })}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -328,6 +385,19 @@ const TableComponent: React.FC<Props & { searchInputs?: any }> = ({
                   >
                     {/* Order ID */}
                     <TableCell className="py-3 text-sm text-center min-w-0">{elem.order_id}</TableCell>
+                    {/* Sale Date (Central Time) */}
+                    <TableCell className="py-3 text-sm text-center min-w-0 whitespace-nowrap">
+                      {elem?.order_date ? (
+                        <>
+                          <div>{formatCtDate(elem.order_date, dateLocale)}</div>
+                          <div className="text-xs text-gray-500">
+                            {formatCtDate(elem.order_date, dateLocale, { hour: "numeric", minute: "2-digit" })} CT
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
                     {/* Patient Name */}
                     <TableCell className="py-3 text-sm text-center min-w-0">{`${elem?.pos?.firstname || ''} ${elem?.pos?.lastname || ''}`}</TableCell>
                     {/* Amount Received */}
