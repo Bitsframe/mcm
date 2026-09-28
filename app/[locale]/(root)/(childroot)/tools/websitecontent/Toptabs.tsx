@@ -4,7 +4,7 @@ import { GoDotFill } from "react-icons/go";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
-import { Home, Info, Star, Globe, CircleHelp, BriefcaseBusiness, Tag } from "lucide-react";
+import { Home, Info, Star, CircleHelp, BriefcaseBusiness, Tag } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 
@@ -55,11 +55,6 @@ const TopTabs = () => {
     //     title: "Blogs",
     //     url: "blogs"
     // },
-    {
-      title: "WebCont_k5",
-      url: "locations",
-      icon: <Globe />
-    },
     {
       title: "WebCont_kSpecials",
       url: "specials",
