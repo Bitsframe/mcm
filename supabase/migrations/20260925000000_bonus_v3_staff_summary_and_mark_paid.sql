@@ -9,6 +9,26 @@
 --
 -- NOT yet applied to production.
 
+-- Who marked a payout paid; written by bonus_mark_staff_paid below. Added on
+-- staging by migration 20260923220617, which was never committed here.
+alter table public.individual_bonus
+  add column if not exists paid_by uuid;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.individual_bonus'::regclass and conname = 'individual_bonus_paid_by_fkey'
+  ) then
+    alter table public.individual_bonus
+      add constraint individual_bonus_paid_by_fkey
+      foreign key (paid_by) references public.profiles(id) on delete set null;
+  end if;
+end $$;
+
+comment on column public.individual_bonus.paid_by is
+  'Who marked this payout paid. Null for anything paid before this column existed.';
+
 -- One row per staff member: where they work, when they were last paid, and
 -- what is still owed. Only live v3 rows count; superseded recalculations and
 -- the retired v2 pipeline are excluded so no stale money reaches the screen.
