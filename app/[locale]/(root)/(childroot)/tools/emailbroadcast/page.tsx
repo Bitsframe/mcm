@@ -29,6 +29,7 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -58,7 +59,6 @@ import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from "lucide-react";
 
-import { MacSelect } from "@/components/ui/mac-select";
 
 const EmailBroadcast: React.FC = () => {
   const [emailList, setEmailList] = useState<any[]>([]);
@@ -324,7 +324,7 @@ const EmailBroadcast: React.FC = () => {
 
   const  RenderTemplate = () => {
     if (dbTemplates.length > 0) {
-      const selected = dbTemplates.find((t) => t.id === selectedTemplate);
+      const selected = dbTemplates.find((t) => String(t.id) === String(selectedTemplate));
       if (selected) {
         let previewHtml = selected.body || "";
         
@@ -373,7 +373,7 @@ const EmailBroadcast: React.FC = () => {
     }
     // Hardcoded template
     const SelectedTemplateComponent = templates.find(
-      (template) => template.value === selectedTemplate
+      (template) => String(template.value) === String(selectedTemplate)
     )?.component;
     if (SelectedTemplateComponent) {
       return (
@@ -732,7 +732,7 @@ const EmailBroadcast: React.FC = () => {
       toast.error("No email selected.", { position: "top-center" });
       return;
     }
-    const isDbTemplate = dbTemplates.find(t => t.id === selectedTemplate);
+    const isDbTemplate = dbTemplates.find(t => String(t.id) === String(selectedTemplate));
     
     if (!subject || !name) {
       toast.error("All fields are necessary.", { position: "top-center" });
@@ -748,7 +748,7 @@ const EmailBroadcast: React.FC = () => {
     toast.success("Broadcast started", { position: "top-center" });
 
     try {
-      const dbTemplate = dbTemplates.find((t) => t.id === selectedTemplate);
+      const dbTemplate = dbTemplates.find((t) => String(t.id) === String(selectedTemplate));
       let templateBody: string | undefined = undefined;
       if (dbTemplate) {
         // Render the template body with logo and name
@@ -1083,45 +1083,44 @@ const EmailBroadcast: React.FC = () => {
               <span className="text-destructive ml-1">*</span>
             </label>
 
-            <div className="relative">
-              <MacSelect
-                id="template"
-                className="w-full p-3 bg-[#F5F5F7] text-sm text-foreground rounded-md border-none appearance-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                value={selectedTemplate}
-                onChange={(e) => setSelectedTemplate(e.target.value)}
-                disabled={loadingTemplates}
-              >
-                {templateOptions.map((template) => (
-                  <option
-                    key={template.value}
-                    value={template.value}
-                    className="bg-background text-foreground"
-                  >
-                    {template.label}
-                    {template.type === "db" ? " (DB)" : " (Built-in)"}
-                  </option>
-                ))}
-              </MacSelect>
-
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-muted-foreground"
-                >
-                  <path
-                    d="M4 6L8 10L12 6"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
+            <Select
+              value={String(selectedTemplate)}
+              onValueChange={(v) => setSelectedTemplate(v)}
+              disabled={loadingTemplates}
+            >
+              <SelectTrigger id="template" className="h-10 w-full px-3 text-callout">
+                <SelectValue placeholder={t("EmailB_k15")} />
+              </SelectTrigger>
+              {/* Solid, trigger-width list: the shared vibrant background let the page show through here. */}
+              <SelectContent className="max-h-72 w-[var(--radix-select-trigger-width)] bg-white">
+                {[
+                  { type: "db", label: "Saved templates" },
+                  { type: "hardcoded", label: "Built-in templates" },
+                ].map((group) => {
+                  const items = templateOptions.filter((o) => o.type === group.type);
+                  if (items.length === 0) return null;
+                  return (
+                    <SelectGroup key={group.type}>
+                      <SelectLabel>{group.label}</SelectLabel>
+                      {items.map((template) => (
+                        <SelectItem key={String(template.value)} value={String(template.value)} className="py-2">
+                          <span className="flex items-center gap-2">
+                            <span className="truncate">{template.label}</span>
+                            <span
+                              className={`shrink-0 rounded px-1.5 py-0.5 text-caption font-medium ${
+                                template.type === "db" ? "bg-brand-50 text-brand-700" : "bg-surface-2 text-label-2"
+                              }`}
+                            >
+                              {template.type === "db" ? "Saved" : "Built-in"}
+                            </span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
+              </SelectContent>
+            </Select>
             <div className="mt-2 flex items-center gap-2">
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -1287,7 +1286,7 @@ const EmailBroadcast: React.FC = () => {
             />
           </div>
 
-          {!dbTemplates.find(t => t.id === selectedTemplate) && (
+          {!dbTemplates.find(t => String(t.id) === String(selectedTemplate)) && (
             <div className="space-y-2 mt-2">
               <label
                 htmlFor="price"

@@ -19,6 +19,7 @@ import {
 import { fetch_content_service } from "@/utils/supabase/data_services/data_services";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { translationConstant } from "@/utils/translationConstants";
 
@@ -36,21 +37,17 @@ const StaffControlsPage: React.FC = () => {
   const [viewLocationId, setViewLocationId] = useState<number | null>(null);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // load staff for viewLocationId
+  // Everyone when no location is picked; otherwise only that clinic's staff.
   React.useEffect(() => {
     const load = async () => {
-      if (!viewLocationId) {
-        setStaffList([]);
-        return;
-      }
       try {
         setLoadingStaff(true);
-        // staff.location_id is now stored as an array — fetch rows where the array contains the selected location id
-        const { data, error } = await (supabase as any)
-          .from('staff')
-          .select('*')
-          .contains('location_id', [String(viewLocationId)]);
+        let query = (supabase as any).from('staff').select('*').order('full_name');
+        // staff.location_id is an array — match rows whose array contains the selected id
+        if (viewLocationId) query = query.contains('location_id', [String(viewLocationId)]);
+        const { data, error } = await query;
 
         if (error) {
           console.error('Error fetching staff list', classifyError(error));
@@ -67,7 +64,7 @@ const StaffControlsPage: React.FC = () => {
       }
     };
     load();
-  }, [viewLocationId]);
+  }, [viewLocationId, reloadKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +89,7 @@ const StaffControlsPage: React.FC = () => {
         toast.success("Staff created successfully");
         setFullName("");
         setLocationIds([]);
+        setReloadKey((k) => k + 1);
       }
     } catch (err: any) {
       console.error(err);
@@ -137,6 +135,48 @@ const StaffControlsPage: React.FC = () => {
       toast.error("Could not remove them from this location");
     } finally {
       setRemovingId(null);
+    }
+  };
+
+  // Delete flow: confirm first; if they have bonus history the API refuses and
+  // the modal offers unassigning them from every clinic instead.
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string; hasHistory: boolean } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const locationTitles = (ids: any[] | null | undefined) =>
+    (ids ?? [])
+      .map((id) => (locations ?? []).find((l: any) => Number(l.id) === Number(id))?.title)
+      .filter(Boolean) as string[];
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { id, name, hasHistory } = deleteTarget;
+    try {
+      setDeleting(true);
+      const res = await fetch("/api/controls/staff/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ staff_id: id, unassign_all: hasHistory }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (res.status === 409 && payload?.has_bonus_history) {
+        setDeleteTarget({ id, name, hasHistory: true });
+        return;
+      }
+      if (!res.ok) {
+        logError('staff.delete_failed', { status: res.status });
+        toast.error(payload?.error || "Could not delete this staff member");
+        return;
+      }
+      toast.success(hasHistory ? `${name} removed from all clinics.` : `${name} deleted.`);
+      setDeleteTarget(null);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      console.error('Error deleting staff', classifyError(err));
+      toast.error("Could not delete this staff member");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -237,30 +277,82 @@ const StaffControlsPage: React.FC = () => {
                 {loadingStaff ? (
                   <div className="text-sm text-gray-500">Loading...</div>
                 ) : staffList.length === 0 ? (
-                  <div className="text-sm text-gray-500">{t("CT_k42")}</div>
+                  <div className="text-sm text-gray-500">{viewLocationId ? t("CT_k42") : "No staff yet"}</div>
                 ) : (
-                  staffList.map((s: any) => (
+                  <>
+                  <div className="text-xs text-gray-500 px-2">
+                    {staffList.length} {viewLocationId ? "at this location" : "staff in total"}
+                  </div>
+                  {staffList.map((s: any) => {
+                    const clinics = locationTitles(s.location_id);
+                    return (
                     <div key={s.id} className="flex items-center justify-between gap-2 p-2 border-b last:border-b-0">
                       <div className="min-w-0">
                         <div className="font-medium truncate">{s.full_name}</div>
-                        <div className="text-xs text-gray-500">ID: {s.id}</div>
+                        <div className="text-xs text-gray-500 truncate" title={clinics.join(", ")}>
+                          ID: {s.id} · {clinics.length ? (clinics.length === 1 ? clinics[0] : `${clinics.length} clinics`) : "No clinic"}
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        disabled={removingId === Number(s.id)}
-                        onClick={() => removeFromLocation(Number(s.id), s.full_name)}
-                        className="shrink-0 rounded-md border border-destructive/30 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/[0.06] disabled:opacity-50"
-                      >
-                        {removingId === Number(s.id) ? "Removing…" : "Remove"}
-                      </button>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {viewLocationId && (
+                          <button
+                            type="button"
+                            disabled={removingId === Number(s.id)}
+                            onClick={() => removeFromLocation(Number(s.id), s.full_name)}
+                            className="rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                          >
+                            {removingId === Number(s.id) ? "Removing…" : "Remove"}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          aria-label={`Delete ${s.full_name}`}
+                          onClick={() => setDeleteTarget({ id: Number(s.id), name: s.full_name, hasHistory: false })}
+                          className="rounded-md border border-destructive/30 p-1.5 text-destructive hover:bg-destructive/[0.06]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  ))
+                    );
+                  })}
+                  </>
                 )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 p-4" onClick={() => !deleting && setDeleteTarget(null)}>
+          <div role="dialog" aria-modal="true" className="w-full max-w-md rounded-xl bg-white p-6 shadow-mac-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-red-50 p-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-headline text-label">
+                  {deleteTarget.hasHistory ? `${deleteTarget.name} can't be deleted` : `Delete ${deleteTarget.name}?`}
+                </h3>
+                <p className="mt-1 text-body text-label-2">
+                  {deleteTarget.hasHistory
+                    ? "They have bonus payouts on record, and deleting them would lose that history. You can remove them from all clinics instead — they stop sharing any daily bonus, and their past payouts stay."
+                    : "This permanently deletes this staff member. This can't be undone."}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button type="button" variant="outline" disabled={deleting} onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button type="button" variant="destructive" disabled={deleting} onClick={confirmDelete}>
+                {deleting ? "Working…" : deleteTarget.hasHistory ? "Remove from all clinics" : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

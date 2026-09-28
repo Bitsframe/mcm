@@ -16,7 +16,6 @@ import { Minus, Plus } from "lucide-react";
 ;
 
 import { PiCaretCircleRightFill } from "react-icons/pi";
-import { FaArrowsAltV } from "react-icons/fa";
 import { BsCashCoin } from "react-icons/bs";
 
 import { useCategoriesClinica } from "@/hooks/useCategoriesClinica";
@@ -26,7 +25,6 @@ import { CircularProgress } from "@mui/material";
 import { currencyFormatHandle } from "@/helper/common_functions";
 import { toast } from "sonner";
 import { Searchable_Dropdown } from "@/components/Searchable_Dropdown";
-import PromoCodeComponent from "@/components/PromoCodeComponent";
 import DiscountModal from "@/components/modals/DiscountModal";
 // import SplitToLocationModal from "@/components/SplitToLocationModal";
 import Product from "@/components/POS/Product";
@@ -287,7 +285,6 @@ const Orders = () => {
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
 
-  const [isPanelShrunk, setIsPanelShrunk] = useState(false);
 
   const {
     selectedCategory,
@@ -852,14 +849,6 @@ const addToCartHandle = () => {
     }
   };
 
-  const applyDiscountHandle = (
-    codeData: PromoCodeDataInterface | null,
-    discount: number
-  ) => {
-    setAppliedDiscount(discount);
-    setPromoCode(codeData);
-  };
-
   const { setActiveTitle } = useContext(TabContext);
 
   useEffect(() => {
@@ -1206,24 +1195,7 @@ const addToCartHandle = () => {
           {/* Right: the transaction — totals, payment and checkout */}
           <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-mac-sm md:col-span-2 md:sticky md:top-0 md:max-h-[calc(100vh-170px)]">
           <div className="relative flex-1 overflow-y-auto bg-surface/60">
-            <div
-              className={`space-y-2 p-4 transition-all duration-300 ${
-                isPanelShrunk ? "max-h-12 overflow-hidden" : "max-h-none"
-              }`}
-            >
-              <button
-                onClick={() => setIsPanelShrunk(!isPanelShrunk)}
-                className="absolute right-3 top-2 z-10 rounded-full border-2 border-white bg-brand-600 p-1 text-white shadow-mac-sm transition-colors hover:bg-brand-700"
-                type="button"
-              >
-                {isPanelShrunk ? <FaArrowsAltV /> : <FaArrowsAltV /> }
-              </button>
-
-              <PromoCodeComponent
-                patientId={selectedPatient?.id}
-                applyDiscountHandle={applyDiscountHandle}
-              />
-
+            <div className="space-y-2 p-4">
               <div className="flex items-center justify-between">
                 <h1 className="text-body text-label-2">
                   {t("POS-Sales_k76")}
